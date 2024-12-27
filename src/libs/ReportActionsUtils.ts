@@ -147,15 +147,24 @@ function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
-function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+/**
+ * Get the boolean value of the field from the message or the originalMessage field of the reportAction, without any other checks.
+ */
+function getIsDeletedParentActionField(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     // Sometimes the isDeletedParentAction value is only present in the originalMessage field.
     const originalMessage = reportAction?.originalMessage;
     let isDeletedParentActionValue = getReportActionMessage(reportAction)?.isDeletedParentAction;
     if (isDeletedParentActionValue === undefined && originalMessage && 'isDeletedParentAction' in originalMessage) {
         isDeletedParentActionValue = originalMessage.isDeletedParentAction;
     }
+    return !!isDeletedParentActionValue;
+}
 
-    return !!isDeletedParentActionValue && (reportAction?.childVisibleActionCount ?? 0) > 0;
+/**
+ * Is the field set and are there visible child actions?
+ */
+function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return getIsDeletedParentActionField(reportAction) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
@@ -1006,7 +1015,7 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return getReportActionMessage(reportAction)?.isDeletedParentAction ?? false;
+    return getIsDeletedParentActionField(reportAction);
 }
 
 /**
