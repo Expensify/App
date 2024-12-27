@@ -69,13 +69,15 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                     Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
-                Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));
+
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                 Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
             }
-            Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
         },
         [isUpdatingExistingReport, reportID, currentChatName],
     );

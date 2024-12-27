@@ -33,7 +33,7 @@ function WorkspaceNamePage({policy}: Props) {
 
             Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
         [policy],
     );

@@ -65,7 +65,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
 
             Policy.updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
         [policy],
     );

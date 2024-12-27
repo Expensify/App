@@ -45,7 +45,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
     const reportID = report?.reportID ?? '-1';
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
     }, [reportID, route.params.backTo]);
 
     const validate = useCallback(
