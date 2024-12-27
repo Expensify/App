@@ -259,7 +259,6 @@ function ReportActionItemSingle({
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
     const statusText = status && 'text' in status ? String(status?.text) ?? '' : '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    // const pendingFieldsAvatar = pendingFields && 'avatar' in pendingFields ? pendingFields?.avatar ?? undefined : undefined;
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
