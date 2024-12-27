@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
@@ -21,10 +20,6 @@ import pkg from '../../../package.json';
 import RNFS from './RNFS';
 import Share from './Share';
 
-type BaseProfilingToolMenuOnyxProps = {
-    isProfilingInProgress: OnyxEntry<boolean>;
-};
-
 type BaseProfilingToolMenuProps = {
     /** Path used to save the file */
     pathToBeUsed: string;
@@ -32,7 +27,7 @@ type BaseProfilingToolMenuProps = {
     displayPath: string;
     /** Whether to show the share button */
     showShareButton?: boolean;
-} & BaseProfilingToolMenuOnyxProps;
+};
 
 function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
@@ -51,7 +46,8 @@ function formatBytes(bytes: number, decimals = 2) {
 // WARNING: When changing this name make sure that the "scripts/symbolicate-profile.ts" script is still working!
 const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
 
-function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
+function BaseProfilingToolMenu({showShareButton = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
+    const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS);
     const styles = useThemeStyles();
     const [filePath, setFilePath] = useState('');
     const [sharePath, setSharePath] = useState('');
@@ -187,8 +183,4 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
 
 BaseProfilingToolMenu.displayName = 'BaseProfilingToolMenu';
 
-export default withOnyx<BaseProfilingToolMenuProps, BaseProfilingToolMenuOnyxProps>({
-    isProfilingInProgress: {
-        key: ONYXKEYS.APP_PROFILING_IN_PROGRESS,
-    },
-})(BaseProfilingToolMenu);
+export default BaseProfilingToolMenu;
