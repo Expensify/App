@@ -241,8 +241,6 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
             }
 
-            console.log('policyMaxExpenseAmount', policyMaxExpenseAmount, updatedTransaction.amount);
-
             if (!hasOverLimitViolation && policyMaxExpenseAmount && -updatedTransaction.amount > policyMaxExpenseAmount) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.OVER_LIMIT,
