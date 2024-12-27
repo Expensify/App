@@ -13,6 +13,7 @@ import toggleProfileTool from '@libs/actions/ProfilingTool';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {Memoize} from '@libs/memoize';
+import Performance from '@libs/Performance';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,12 +70,14 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
         setTotalMemory(amountOfTotalMemory);
         setUsedMemory(amountOfUsedMemory);
         setMemoizeStats(Memoize.stopMonitoring());
+        Performance.disableMonitoring();
     }, []);
 
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
             Memoize.startMonitoring();
+            Performance.enableMonitoring();
             startProfiling();
         } else {
             stop();
@@ -94,6 +97,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
                 memoizeStats,
+                performance: Performance.getPerformanceMeasures(),
             }),
         [memoizeStats, totalMemory, usedMemory],
     );
