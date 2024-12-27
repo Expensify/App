@@ -1,6 +1,8 @@
+import CONST from '@src/CONST';
 import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Transaction} from '../../src/types/onyx';
+import type {Policy, Transaction} from '../../src/types/onyx';
+import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -90,6 +92,144 @@ describe('TransactionUtils', () => {
 
                 expect(result).toEqual(expectedResult);
             });
+        });
+    });
+
+    describe('getCategoryTaxCodeAndAmount', () => {
+        it('should return the associated tax when the category matches the tax expense rules', () => {
+            // Given a policy with tax expense rules associated with a category
+            const category = 'Advertising';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction();
+
+            // When retrieving the tax from the associated category
+            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+
+            // Then it should return the associated tax code and amount
+            expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+            expect(categoryTaxAmount).toBe(5);
+        });
+
+        it("should return the default tax when the category doesn't match the tax expense rules", () => {
+            // Given a policy with tax expense rules associated with a category
+            const ruleCategory = 'Advertising';
+            const selectedCategory = 'Benefits';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction();
+
+            // When retrieving the tax from a category that is not associated with the tax expense rules
+            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+
+            // Then it should return the default tax code and amount
+            expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+            expect(categoryTaxAmount).toBe(0);
+        });
+
+        it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
+            // Given a policy with tax expense rules associated with a category and a transaction with a foreign currency
+            const ruleCategory = 'Advertising';
+            const selectedCategory = 'Benefits';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    foreignTaxDefault: 'id_TAX_RATE_2',
+                    taxes: {
+                        ...CONST.DEFAULT_TAX.taxes,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        id_TAX_RATE_2: {
+                            name: 'Tax rate 2',
+                            value: '10%',
+                        },
+                    },
+                },
+                outputCurrency: 'IDR',
+                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction();
+
+            // When retrieving the tax from a category that is not associated with the tax expense rules
+            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+
+            // Then it should return the default tax code and amount
+            expect(categoryTaxCode).toBe('id_TAX_RATE_2');
+            expect(categoryTaxAmount).toBe(9);
+        });
+
+        describe('should return undefined tax', () => {
+            it('if the transaction type is distance', () => {
+                // Given a policy with tax expense rules associated with a category
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(0),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                };
+                const transaction: Transaction = {
+                    ...generateTransaction(),
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                };
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+
+                // Then it should return undefined for both the tax code and the tax amount
+                expect(categoryTaxCode).toBe(undefined);
+                expect(categoryTaxAmount).toBe(undefined);
+            });
+
+            it('if there are no policy tax expense rules', () => {
+                // Given a policy without tax expense rules
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(0),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {},
+                };
+                const transaction = generateTransaction();
+
+                // When retrieving the tax from a category
+                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+
+                // Then it should return undefined for both the tax code and the tax amount
+                expect(categoryTaxCode).toBe(undefined);
+                expect(categoryTaxAmount).toBe(undefined);
+            });
+        });
+    });
+
+    describe('getUpdatedTransaction', () => {
+        it('should return updated category and tax when updating category with a category tax rules', () => {
+            // Given a policy with tax expense rules associated with a category
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction();
+
+            // When updating the transaction category to the category associated with the rule
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {category},
+            });
+
+            // Then the updated transaction should contain the tax from the matched rule
+            expect(updatedTransaction.category).toBe(category);
+            expect(updatedTransaction.taxCode).toBe(taxCode);
+            expect(updatedTransaction.taxAmount).toBe(5);
         });
     });
 });

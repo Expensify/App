@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -49,6 +50,7 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
+        autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -98,6 +100,8 @@ function BaseTextInput(
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+
+    useHtmlPaste(input, undefined, isMarkdownEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -250,7 +254,8 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -441,14 +446,10 @@ function BaseTextInput(
             )}
             {/*
                  Text input component doesn't support auto grow by default.
-                 We're using a hidden text input to achieve that.
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
             {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
-                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // https://github.com/Expensify/App/issues/8158
-                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[
                         inputStyle,
