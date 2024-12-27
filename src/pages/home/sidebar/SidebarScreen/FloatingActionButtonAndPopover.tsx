@@ -379,7 +379,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
-            onHideTooltip: hideProductTrainingTooltip,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
 
@@ -395,9 +394,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () =>
-                        interceptAnonymousUser(() =>
-                            QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption),
-                        ),
+                        interceptAnonymousUser(() => {
+                            hideProductTrainingTooltip();
+                            QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                        }),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                 },
             ];
