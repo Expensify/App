@@ -38,6 +38,7 @@ Onyx.connect({
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
 function startOnboardingFlow(isPrivateDomain?: boolean, canUsePrivateDomainOnboardingCheck?: boolean) {
+    console.log('canUsePrivateDomainOnboardingCheck', canUsePrivateDomainOnboardingCheck);
     const currentRoute = navigationRef.getCurrentRoute();
     const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, canUsePrivateDomainOnboardingCheck), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);
@@ -65,7 +66,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
 
-    if (!isPrivateDomain && canUsePrivateDomainOnboardingCheck) {
+    if (!isPrivateDomain && (canUsePrivateDomainOnboardingCheck ?? false)) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 

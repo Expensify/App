@@ -52,8 +52,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
         Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
 
-        if(onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
-
+        if (onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
             return;
         }
 
@@ -61,9 +60,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
             return;
         }
-        
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
 
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
     }, []);
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {

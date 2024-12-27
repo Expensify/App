@@ -1245,6 +1245,50 @@ function AddWorkEmail(workEmail: string) {
     );
 }
 
+function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accountID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+                isLoading: false,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: 'onboarding.error',
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
+        {workEmail, validateCode, accountID},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1285,4 +1329,5 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     AddWorkEmail,
+    MergeIntoAccountAndLogin,
 };

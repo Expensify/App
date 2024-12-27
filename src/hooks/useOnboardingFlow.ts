@@ -67,13 +67,13 @@ function useOnboardingFlowRouter() {
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                    OnboardingFlow.startOnboardingFlow(isPrivateDomain, canUsePrivateDomainOnboardingCheck);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                OnboardingFlow.startOnboardingFlow(isPrivateDomain, canUsePrivateDomainOnboardingCheck);
             }
         });
     }, [

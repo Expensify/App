@@ -21,7 +21,6 @@ type Onboarding = {
 
     /** A Boolean that informs whether the user needs to validate their work email */
     shouldValidate?: boolean;
-
 };
 
 export default Onboarding;

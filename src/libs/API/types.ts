@@ -444,6 +444,7 @@ const WRITE_COMMANDS = {
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
     ADD_WORK_EMAIL: 'AddWorkEmail',
+    MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogin',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -902,6 +903,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
 
     [WRITE_COMMANDS.ADD_WORK_EMAIL]: Parameters.AddWorkEmailParams;
+    [WRITE_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN]: Parameters.MergeIntoAccountAndLoginParams;
 };
 
 const READ_COMMANDS = {

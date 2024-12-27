@@ -124,6 +124,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORK_EMAIL.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
+                    path: ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
                     exact: true,
