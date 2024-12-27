@@ -887,5 +887,5 @@ ReportScreen.displayName = 'ReportScreen';
 const MemoizedReportScreen = memo(ReportScreen, (prevProps, nextProps) => prevProps.currentReportID === nextProps.currentReportID && lodashIsEqual(prevProps.route, nextProps.route));
 const WithCurrentReportID = withCurrentReportID(MemoizedReportScreen);
 
-export default Performance.withRenderTrace({id: '<ReportScreen> rendering'})(WithCurrentReportID);
+export default Performance.withRenderTrace({id: CONST.PERFORMANCE.SCREEN_KEYS.REPORT_SCREEN})(WithCurrentReportID as React.ComponentType);
 export type {ReportScreenProps, ReportScreenNavigationProps};
