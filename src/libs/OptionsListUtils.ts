@@ -506,7 +506,12 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const reportID = report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const reportID = report?.reportID;
+
+    if (!reportID) {
+        return '';
+    }
+
     const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
@@ -562,7 +567,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID))) {
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID)) {
         lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
@@ -1173,7 +1178,7 @@ function getValidOptions(
         shouldSeparateWorkspaceChat = false,
     }: GetOptionsConfig = {},
 ): Options {
-    const topmostReportId = Navigation.getTopmostReportId() ?? String(CONST.DEFAULT_NUMBER_ID);
+    const topmostReportId = Navigation.getTopmostReportId();
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
@@ -1290,10 +1295,14 @@ function getValidOptions(
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.private_isArchived;
 
+            if (!reportOption.policyID) {
+                break;
+            }
+
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID ?? String(CONST.DEFAULT_NUMBER_ID), policies) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID, policies) &&
                 !reportOption.private_isArchived &&
                 PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 
@@ -1530,7 +1539,7 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportID: member.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        reportID: member.reportID,
     };
 }
 
