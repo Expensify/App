@@ -54,16 +54,10 @@ describe('ReportActionItemSingle', () => {
             };
 
             function setup() {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction, fakePersonalDetails, fakePolicy);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
 
-                return waitForBatchedUpdates().then(() =>
-                    Onyx.multiSet({
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        ...policyCollectionDataSet,
-                    }),
-                );
+                return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false));
             }
 
             it('renders secondary Avatar properly', async () => {

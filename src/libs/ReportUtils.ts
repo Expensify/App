@@ -860,7 +860,7 @@ const unavailableTranslation = Localize.translateLocal('workspace.common.unavail
  */
 function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName)) {
+    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName && !policy)) {
         return noPolicyFound;
     }
 

@@ -27,7 +27,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -61,6 +61,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** Personal details list */
     personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
+
+    /** Current connected policy */
+    policy?: OnyxEntry<Policy>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -82,12 +85,12 @@ function ReportActionItemSingle({
     iouReport,
     isHovered = false,
     personalDetails,
+    policy,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -153,7 +156,7 @@ function ReportActionItemSingle({
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(report, {});
+        const reportIcons = ReportUtils.getIcons(report, personalDetails, null, undefined, undefined, policy);
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (ReportUtils.isInvoiceReport(iouReport)) {
