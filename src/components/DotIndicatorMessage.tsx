@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import * as Localize from '@libs/Localize';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -15,6 +16,7 @@ import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RNFS from './ProfilingToolMenu/RNFS';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -62,6 +64,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const operatingSystem = getOperatingSystem();
 
     const renderMessage = (message: string | ReceiptError, index: number) => {
         if (isReceiptError(message)) {
@@ -78,60 +81,75 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                                 if (!message.source) {
                                     return;
                                 }
-                                fetch(message.source)
-                                    .then((res) => {
-                                        if (!res.ok) {
-                                            throw new Error(res.statusText);
+
+                                const handleFileRetry = (file: File) => {
+                                    switch (message.action) {
+                                        case 'replaceReceipt': {
+                                            dismissError();
+                                            const replaceReceiptParams = {...message.retryParams} as IOU.ReplaceReceipt;
+                                            replaceReceiptParams.file = file;
+                                            IOU.replaceReceipt(replaceReceiptParams);
+                                            break;
                                         }
-                                        return res.blob();
-                                    })
-                                    .then((blob) => {
-                                        const reconstructedFile = new File([blob], message.filename);
-                                        reconstructedFile.uri = message.source;
-                                        reconstructedFile.source = message.source;
+                                        case 'startSplitBill': {
+                                            dismissError();
+                                            const startSplitBillParams = {...message.retryParams} as IOU.StartSplitBilActionParams;
+                                            startSplitBillParams.receipt = file;
+                                            IOU.startSplitBill(startSplitBillParams);
+                                            break;
+                                        }
+                                        case 'trackExpense': {
+                                            dismissError();
+                                            const trackExpenseParams = {...message.retryParams} as IOU.TrackExpense;
+                                            trackExpenseParams.receipt = file;
+                                            IOU.trackExpense(trackExpenseParams);
+                                            break;
+                                        }
+                                        case 'moneyRequest': {
+                                            dismissError();
+                                            const requestMoneyParams = {...message.retryParams} as IOU.RequestMoneyInformation;
+                                            requestMoneyParams.transactionParams.receipt = file;
+                                            requestMoneyParams.isRetry = true;
+                                            IOU.requestMoney(requestMoneyParams);
+                                            break;
+                                        }
+                                        default:
+                                            setShouldShowErrorModal(true);
+                                            break;
+                                    }
+                                };
 
-                                        switch (message.action) {
-                                            case 'replaceReceipt': {
-                                                dismissError();
-                                                const replaceReceiptParams = {...message.retryParams} as IOU.ReplaceReceipt;
-                                                replaceReceiptParams.file = reconstructedFile;
-                                                IOU.replaceReceipt(replaceReceiptParams);
-                                                break;
-                                            }
-
-                                            case 'startSplitBill': {
-                                                dismissError();
-                                                const startSplitBillParams = {...message.retryParams} as IOU.StartSplitBilActionParams;
-                                                startSplitBillParams.receipt = reconstructedFile;
-                                                IOU.startSplitBill(startSplitBillParams);
-                                                break;
-                                            }
-
-                                            case 'trackExpense': {
-                                                dismissError();
-                                                const trackExpenseParams = {...message.retryParams} as IOU.TrackExpense;
-                                                trackExpenseParams.receipt = reconstructedFile;
-                                                IOU.trackExpense(trackExpenseParams);
-                                                break;
-                                            }
-
-                                            case 'moneyRequest': {
-                                                dismissError();
-                                                const requestMoneyParams = {...message.retryParams} as IOU.RequestMoneyInformation;
-                                                requestMoneyParams.transactionParams.receipt = reconstructedFile;
-                                                requestMoneyParams.isRetry = true;
-                                                IOU.requestMoney(requestMoneyParams);
-                                                break;
-                                            }
-
-                                            default:
+                                if (operatingSystem === CONST.OS.ANDROID && message.source.startsWith('file://')) {
+                                    // Android-specific logic using RNFS
+                                    try {
+                                        const filePath = message.source.replace('file://', '');
+                                        RNFS.readFile(filePath, 'base64')
+                                            .then((fileContent) => {
+                                                const file = new File([fileContent], message.filename, {type: 'image/jpeg'});
+                                                file.uri = message.source;
+                                                file.source = message.source;
+                                                handleFileRetry(file);
+                                            })
+                                            .catch(() => {
                                                 setShouldShowErrorModal(true);
-                                                break;
-                                        }
-                                    })
-                                    .catch(() => {
+                                            });
+                                    } catch (error) {
                                         setShouldShowErrorModal(true);
-                                    });
+                                    }
+                                } else {
+                                    // For other platforms
+                                    fetch(message.source)
+                                        .then((res) => res.blob())
+                                        .then((blob) => {
+                                            const reconstructedFile = new File([blob], message.filename);
+                                            reconstructedFile.uri = message.source;
+                                            reconstructedFile.source = message.source;
+                                            handleFileRetry(reconstructedFile);
+                                        })
+                                        .catch(() => {
+                                            setShouldShowErrorModal(true);
+                                        });
+                                }
                             }}
                         >
                             {Localize.translateLocal('iou.error.tryAgainMessage')}
