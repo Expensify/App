@@ -26,6 +26,9 @@ jest.mock('@react-navigation/native', () => {
         triggerTransitionEnd: jest.fn(),
     };
 });
+
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 TestHelper.setupApp();
 
 async function signInAndGetApp(): Promise<void> {
