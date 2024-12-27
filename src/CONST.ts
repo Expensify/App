@@ -6448,6 +6448,12 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    PERFORMANCE: {
+        SCREEN_KEYS: {
+            REPORT_SCREEN: '<ReportScreen> rendering',
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
