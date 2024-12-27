@@ -10,6 +10,7 @@ import * as UpdateRequired from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -150,39 +151,6 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         });
 }
 
-function processFormData(data: Record<string, unknown>, initiatedOffline: boolean): Promise<FormData> {
-    const formData = new FormData();
-    let promiseChain = Promise.resolve();
-
-    Object.keys(data).forEach((key) => {
-        promiseChain = promiseChain.then(() => {
-            if (typeof data[key] === 'undefined') {
-                return Promise.resolve();
-            }
-
-            if (key === 'receipt' && initiatedOffline) {
-                const {uri: path = '', source} = data[key] as File;
-
-                return import('./fileDownload/FileUtils')
-                    .then(({readFileAsync}) => readFileAsync(source, path, () => {}))
-                    .then((file) => {
-                        if (!file) {
-                            return;
-                        }
-
-                        formData.append(key, file);
-                    });
-            }
-
-            formData.append(key, data[key] as string | Blob);
-
-            return Promise.resolve();
-        });
-    });
-
-    return promiseChain.then(() => formData);
-}
-
 /**
  * Makes XHR request
  * @param command the name of the API command
@@ -193,12 +161,13 @@ function processFormData(data: Record<string, unknown>, initiatedOffline: boolea
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
     if (command === 'RequestMoney') {
         console.debug('[dev] 1. data:', data);
+        console.debug('[dev] 2. initiatedOffline:', initiatedOffline);
     }
 
-    return processFormData(data, initiatedOffline).then((formData) => {
+    return prepareRequestPayload(data, initiatedOffline).then((formData) => {
         if (command === 'RequestMoney') {
-            console.debug('[dev] 7. formData:', formData);
-            console.debug("[dev] 8. formData.getAll('receipt'):", formData.getAll('receipt'));
+            console.debug('[dev] 3. formData:', formData);
+            console.debug("[dev] 4. formData.getAll('receipt'):", formData.getAll('receipt'));
         }
 
         const url = ApiUtils.getCommandURL({shouldUseSecure, command});
