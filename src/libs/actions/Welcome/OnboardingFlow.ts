@@ -38,7 +38,6 @@ Onyx.connect({
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
 function startOnboardingFlow(isPrivateDomain?: boolean, canUsePrivateDomainOnboardingCheck?: boolean) {
-    console.log('canUsePrivateDomainOnboardingCheck', canUsePrivateDomainOnboardingCheck);
     const currentRoute = navigationRef.getCurrentRoute();
     const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, canUsePrivateDomainOnboardingCheck), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);

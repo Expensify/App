@@ -33,8 +33,6 @@ function useOnboardingFlowRouter() {
 
     const {canUsePrivateDomainOnboardingCheck} = usePermissions();
 
-    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
-
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
@@ -89,6 +87,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
         isPrivateDomain,
+        canUsePrivateDomainOnboardingCheck,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

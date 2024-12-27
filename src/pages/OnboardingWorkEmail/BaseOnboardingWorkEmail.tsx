@@ -23,20 +23,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkEmailProps} from './types';
 
-function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailProps) {
+function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
-    console.log('workEmailworkEmail', workEmail);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -44,25 +43,29 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
+    const ICON_SIZE = 48;
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
-        Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
+    const validatePrivateDomain = useCallback(
+        (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
+            Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
 
-        if (onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
-            return;
-        }
+            if (onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
+                return;
+            }
 
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-            return;
-        }
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                return;
+            }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, []);
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+        },
+        [isVsb, onboardingValues],
+    );
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
         if (!shouldValidateOnChange) {
@@ -96,26 +99,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         items: Item[];
     };
 
-    const section: SectionObject[] = [
-        {
-            titleTranslationKey: 'onboarding.workEmail.title',
-            subtitleTranslationKey: 'onboarding.workEmail.subtitle',
-            items: [
-                {
-                    icon: Illustrations.EnvelopeReceipt,
-                    titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-                },
-                {
-                    icon: Illustrations.Profile,
-                    titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-                },
-                {
-                    icon: Illustrations.Gears,
-                    titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-                },
-            ],
-        },
-    ];
+    const section: SectionObject = {
+        titleTranslationKey: 'onboarding.workEmail.title',
+        subtitleTranslationKey: 'onboarding.workEmail.subtitle',
+        items: [
+            {
+                icon: Illustrations.EnvelopeReceipt,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+            },
+            {
+                icon: Illustrations.Profile,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+            },
+            {
+                icon: Illustrations.Gears,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+            },
+        ],
+    };
 
     const renderItem = useCallback(
         (item: Item) => (
@@ -138,23 +139,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         ),
         [styles, translate],
     );
-
-    const renderSection = useCallback(
-        (section: SectionObject) => (
-            <View>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
-                </View>
-                <View style={styles.mb2}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
-                </View>
-                <View>{section.items.map(renderItem)}</View>
-            </View>
-        ),
-        [shouldUseNarrowLayout, styles, renderItem, translate, onboardingIsMediumOrLargerScreenWidth],
-    );
-
-    const ICON_SIZE = 48;
 
     return (
         <ScreenWrapper
@@ -197,7 +181,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 }
                 shouldRenderFooterAboveSubmit
             >
-                {section.map(renderSection)}
+                <View>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                        <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
+                    </View>
+                    <View style={styles.mb2}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
+                    </View>
+                    <View>{section.items.map(renderItem)}</View>
+                </View>
 
                 <View style={[styles.mb4, styles.pt3]}>
                     <InputWrapper
