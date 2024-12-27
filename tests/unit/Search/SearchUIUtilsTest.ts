@@ -3,22 +3,25 @@ import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
-const fakeAccountID = 18439984;
-const fakePolicyID = 'A1B2C3';
-const fakeReportID = '123456789';
-const fakeTransactionID = '1';
+const accountID = 18439984;
+const policyID = 'A1B2C3';
+// Given the report id of the report transaction
+const reportID = '123456789';
+// Transaction ID of the transaction
+const transactionID = '1';
 
-const fakeSearchResults: OnyxTypes.SearchResults = {
+// Search data results of the given report and transactions
+const searchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
-            [fakeAccountID]: {
-                accountID: fakeAccountID,
+            [accountID]: {
+                accountID: accountID,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                 displayName: 'test',
                 login: 'test1234@gmail.com',
             },
         },
-        [`policy_${fakePolicyID}`]: {
+        [`policy_${policyID}`]: {
             approvalMode: 'OPTIONAL',
             autoReimbursement: {
                 limit: 0,
@@ -32,8 +35,8 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             role: 'admin',
             type: 'team',
         },
-        [`report_${fakeReportID}`]: {
-            accountID: fakeAccountID,
+        [`report_${reportID}`]: {
+            accountID: accountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -41,11 +44,11 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: fakeAccountID,
+            managerID: accountID,
             nonReimbursableTotal: 0,
-            ownerAccountID: fakeAccountID,
-            policyID: fakePolicyID,
-            reportID: fakeReportID,
+            ownerAccountID: accountID,
+            policyID: policyID,
+            reportID: reportID,
             reportName: 'Expense Report #123',
             stateNum: 1,
             statusNum: 1,
@@ -53,8 +56,8 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             type: 'expense',
             unheldTotal: -5000,
         },
-        [`transactions_${fakeTransactionID}`]: {
-            accountID: fakeAccountID,
+        [`transactions_${transactionID}`]: {
+            accountID: accountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -68,7 +71,7 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: fakeAccountID,
+            managerID: accountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -77,11 +80,11 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
-            policyID: fakePolicyID,
-            reportID: fakeReportID,
+            policyID: policyID,
+            reportID: reportID,
             reportType: 'expense',
             tag: '',
-            transactionID: fakeTransactionID,
+            transactionID: transactionID,
             transactionThreadReportID: '456',
             transactionType: 'cash',
         },
@@ -100,7 +103,7 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
         type: 'expense',
     },
 };
-const transactionSections = SearchUIUtils.getSections('expense', 'all', fakeSearchResults.data, fakeSearchResults.search) as TransactionListItemType[];
+const transactionSections = SearchUIUtils.getSections('expense', 'all', searchResults.data, searchResults.search) as TransactionListItemType[];
 const tests = transactionSections.map((transactionList) => [{transactionListItem: transactionList, expectedMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT}]);
 
 describe('SearchUIUtils', () => {
