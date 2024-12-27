@@ -26,7 +26,7 @@ Onyx.connect({
 function getCustomUnitID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
+    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
 
@@ -103,7 +103,7 @@ function getDestinationListSections({
 }): DestinationTreeSection[] {
     const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({
         name: rate.name ?? '',
-        rateID: rate.customUnitRateID ?? '',
+        rateID: rate.customUnitRateID,
         currency: rate.currency ?? CONST.CURRENCY.USD,
     }));
     const destinationSections: DestinationTreeSection[] = [];
@@ -187,13 +187,19 @@ function getDestinationListSections({
 }
 
 function getDestinationForDisplay(customUnit: CustomUnit | undefined, transaction: OnyxEntry<Transaction>) {
-    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID ?? '';
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    if (!customUnitRateID) {
+        return '';
+    }
     const selectedDestination = customUnit?.rates?.[customUnitRateID];
     return selectedDestination?.name ?? '';
 }
 
 function getSubratesFields(customUnit: CustomUnit | undefined, transaction: OnyxEntry<Transaction>) {
-    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID ?? '';
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    if (!customUnitRateID) {
+        return [];
+    }
     const selectedDestination = customUnit?.rates?.[customUnitRateID];
     const countSubrates = selectedDestination?.subRates?.length ?? 0;
     const currentSubrates = transaction?.comment?.customUnit?.subRates ?? [];

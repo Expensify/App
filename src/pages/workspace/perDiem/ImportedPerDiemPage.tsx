@@ -98,7 +98,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const importPerDiemRates = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
-        if (Object.keys(errors).length > 0) {
+        if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
             return;
         }
 
@@ -122,7 +122,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits, rowsLength);
+            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 

@@ -78,7 +78,7 @@ function IOURequestStepTime({
         const newStart = DateUtils.combineDateAndTime(value.startTime, value.startDate);
         const newEnd = DateUtils.combineDateAndTime(value.endTime, value.endDate);
 
-        IOU.setMoneyRequestDateAttribute(transaction?.transactionID ?? '-1', newStart, newEnd);
+        IOU.setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
 
         if (backTo) {
             navigateBack();

@@ -47,7 +47,7 @@ function IOURequestStepDestination({
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explictPolicyID ?? IOU.getIOURequestPolicyID(transaction, report)}`);
     const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = ReportUtils.getPolicyExpenseChat(accountID, policy?.id ?? '-1');
+    const policyExpenseReport = policy?.id ? ReportUtils.getPolicyExpenseChat(accountID, policy.id) : undefined;
 
     const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
@@ -70,10 +70,13 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
+        if (isEmptyObject(customUnit)) {
+            return;
+        }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
                 IOU.setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
-                IOU.setCustomUnitID(transactionID, customUnit?.customUnitID ?? '');
+                IOU.setCustomUnitID(transactionID, customUnit.customUnitID);
                 IOU.setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
             }
             IOU.setCustomUnitRateID(transactionID, destination.keyForList ?? '');
@@ -132,7 +135,7 @@ function IOURequestStepDestination({
                                 style={[styles.w100]}
                                 onPress={() => {
                                     InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy?.id ?? '-1'));
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id));
                                     });
                                 }}
                                 text={translate('workspace.perDiem.editPerDiemRates')}
@@ -142,10 +145,10 @@ function IOURequestStepDestination({
                     )}
                 </View>
             )}
-            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
+            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
                 <DestinationPicker
                     selectedDestination={selectedDestination}
-                    policyID={report?.policyID ?? policy?.id ?? '-1'}
+                    policyID={policy.id}
                     onSubmit={updateDestination}
                 />
             )}

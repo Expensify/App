@@ -34,9 +34,13 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
         const selectedRate = customUnit?.rates?.[selectedDestination];
 
+        if (!selectedRate?.customUnitRateID) {
+            return [];
+        }
+
         return [
             {
-                rateID: selectedRate?.customUnitRateID ?? '',
+                rateID: selectedRate.customUnitRateID,
                 name: selectedRate?.name ?? '',
                 currency: selectedRate?.currency ?? CONST.CURRENCY.USD,
                 isSelected: true,

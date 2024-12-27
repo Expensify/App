@@ -61,7 +61,10 @@ function IOURequestStepPerDiemWorkspace({
     }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const selectWorkspace = (item: WorkspaceListItem) => {
-        const policyExpenseReportID = ReportUtils.getPolicyExpenseChat(accountID, item.value)?.reportID ?? '-1';
+        const policyExpenseReportID = ReportUtils.getPolicyExpenseChat(accountID, item.value)?.reportID;
+        if (!policyExpenseReportID) {
+            return;
+        }
         const selectedPolicy = PolicyUtils.getPolicy(item.value, allPolicies);
         const perDiemUnit = PolicyUtils.getPerDiemCustomUnit(selectedPolicy);
         IOU.setMoneyRequestParticipants(transactionID, [

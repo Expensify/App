@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -18,6 +17,7 @@ import ValuePicker from '@components/ValuePicker';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -69,7 +69,7 @@ function IOURequestStepWaypoint({
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {canUseCombinedTrackSubmit} = usePermissions();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
+    const policy = usePolicy(report?.policyID);
     const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -79,9 +79,9 @@ function IOURequestStepWaypoint({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const parsedIndex = parseInt(pageIndex, 10);
-    const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID ?? '';
+    const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const allSubrates = transaction?.comment?.customUnit?.subRates ?? [];
-    const allPossibleSubrates = customUnit?.rates?.[selectedDestination]?.subRates ?? [];
+    const allPossibleSubrates = selectedDestination ? customUnit?.rates?.[selectedDestination]?.subRates ?? [] : [];
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
     const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;
