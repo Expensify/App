@@ -128,6 +128,10 @@ function process(): Promise<void> {
     return currentRequestPromise;
 }
 
+/**
+ * @param shouldResetPromise Determines whether the isReadyPromise should be reset. Resetting can cause unresolved READ requests
+ * to hang if tied to the old promise, so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
+ */
 function flush(shouldResetPromise = true) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
