@@ -158,7 +158,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers.at(0)?.displayName ?? '-1').localeCompare(b.approvers.at(0)?.displayName ?? '-1');
+        return (a.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString().localeCompare((b.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString());
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
