@@ -10,8 +10,7 @@ import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const RERENDER_WAIT_TIME = 5000;
-const RENDER_DEBOUNCE_TIME = 0; // Add debounce time to group rapid rerenders
+const RERENDER_WAIT_TIME = 7000;
 
 const test = (config: NativeConfig) => {
     console.debug('==========================================');
@@ -21,31 +20,8 @@ const test = (config: NativeConfig) => {
     const reportID = getConfigValueOrThrow('reportID', config);
     const name = getConfigValueOrThrow('name', config);
 
-    // Track both raw and unique render times
-    const renderTimes = new Set<number>();
-    const rawRenderTimes: number[] = [];
-    const startTestTime = Date.now();
-    let uniqueRenderCount = 0;
     let totalRenderCount = 0;
-
-    // Add render phase tracking
-    const renderPhases = {
-        mount: 0,
-        update: 0,
-        'nested-update': 0,
-    };
-
-    const logStats = () => {
-        console.debug('==========================================');
-        console.debug('[E2E] RERENDER TEST STATS');
-        console.debug(`Total renders: ${totalRenderCount}`);
-        console.debug(`Unique renders (${RENDER_DEBOUNCE_TIME}ms debounce): ${uniqueRenderCount}`);
-        console.debug('Render phases:', renderPhases);
-        console.debug(`Total duration: ${Date.now() - startTestTime}ms`);
-        console.debug('Render times (debounced):', Array.from(renderTimes));
-        console.debug('Raw render times:', rawRenderTimes);
-        console.debug('==========================================');
-    };
+    let timeoutId: NodeJS.Timeout | null = null;
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -56,38 +32,43 @@ const test = (config: NativeConfig) => {
 
         openReportPromise
             .then(() => {
-                logStats();
+                console.debug(`Total renders: ${totalRenderCount}`);
+                E2EClient.submitTestResults({
+                    branch: Config.E2E_BRANCH,
+                    name,
+                    metric: totalRenderCount,
+                    unit: 'renders',
+                });
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
                 console.debug('[E2E] Test completed');
                 E2EClient.submitTestDone();
             })
             .catch((err) => {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
                 console.debug('[E2E] Error:', err);
                 console.error(err);
             });
 
+        const startTimer = () => {
+            // Clear existing timeout if any
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            // Set new timeout
+            timeoutId = setTimeout(() => {
+                console.debug('[E2E] No new renders for 5 seconds, completing test');
+                openReportResolve();
+            }, RERENDER_WAIT_TIME);
+        };
+
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === '<ReportScreen> rendering') {
-                const currentTime = Date.now();
-                const phase = entry.detail?.phase;
-
-                // Track all renders
-                if (['mount', 'update', 'nested-update'].includes(phase)) {
-                    totalRenderCount++;
-                    rawRenderTimes.push(currentTime);
-
-                    // Increment phase counter
-                    if (phase) {
-                        renderPhases[phase]++;
-                    }
-
-                    // Check if this render is unique (debounced)
-                    const isUniqueRender = !Array.from(renderTimes).some((time) => Math.abs(currentTime - time) < RENDER_DEBOUNCE_TIME);
-
-                    if (isUniqueRender) {
-                        renderTimes.add(currentTime);
-                        uniqueRenderCount++;
-                    }
-                }
+                totalRenderCount++;
             }
 
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
@@ -97,16 +78,8 @@ const test = (config: NativeConfig) => {
             }
 
             if (entry.name === CONST.TIMING.OPEN_REPORT) {
-                setTimeout(() => {
-                    logStats();
-                    E2EClient.submitTestResults({
-                        branch: Config.E2E_BRANCH,
-                        name,
-                        metric: uniqueRenderCount,
-                        unit: 'renders',
-                    });
-                    openReportResolve();
-                }, RERENDER_WAIT_TIME);
+                // Start initial timer
+                startTimer();
             }
         });
     });
