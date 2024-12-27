@@ -27,6 +27,8 @@ const SCREENS = {
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
+        TRIP_SUMMARY: 'Travel_TripSummary',
+        TRIP_DETAILS: 'Travel_TripDetails',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
@@ -156,7 +158,6 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
-        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -317,8 +318,6 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
-
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -506,6 +505,7 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
+        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -558,6 +558,11 @@ const SCREENS = {
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
         PER_DIEM_SETTINGS: 'Per_Diem_Settings',
+        PER_DIEM_DETAILS: 'Per_Diem_Details',
+        PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
+        PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
+        PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
     },
 
     EDIT_REQUEST: {
@@ -582,8 +587,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {

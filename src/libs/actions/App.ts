@@ -89,6 +89,14 @@ Onyx.connect({
     },
 });
 
+let preservedUserSession: OnyxTypes.Session | undefined;
+Onyx.connect({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -102,6 +110,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
+    ONYXKEYS.PRESERVED_USER_SESSION,
 ];
 
 Onyx.connect({
@@ -367,21 +376,10 @@ function endSignOnTransition() {
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [policyID] Optional, Policy id.
- * @param [file],file
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(
-    policyOwnerEmail = '',
-    policyName = '',
-    transitionFromOldDot = false,
-    makeMeAdmin = false,
-    backTo = '',
-    policyID = '',
-    currency?: string,
-    file?: File,
-) {
-    const genereatedPolicyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID || genereatedPolicyID, makeMeAdmin, currency, file);
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
+    const policyID = Policy.generatePolicyID();
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -389,7 +387,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
@@ -403,8 +401,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
+    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**
@@ -535,6 +533,10 @@ function setIsUsingImportedState(usingImportedState: boolean) {
     Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, usingImportedState);
 }
 
+function setPreservedUserSession(session: OnyxTypes.Session) {
+    Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
+}
+
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
@@ -547,6 +549,11 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
 
         if (shouldNavigateToHomepage) {
             Navigation.navigate(ROUTES.HOME);
+        }
+
+        if (preservedUserSession) {
+            Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+            Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
         }
 
         // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
@@ -585,5 +592,6 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };
