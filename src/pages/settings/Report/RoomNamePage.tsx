@@ -1,8 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -27,22 +26,18 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
 
-type RoomNamePageOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-};
-
-type RoomNamePageProps = RoomNamePageOnyxProps & {
+type RoomNamePageProps = {
     report: Report;
 };
 
-function RoomNamePage({report, reports}: RoomNamePageProps) {
+function RoomNamePage({report}: RoomNamePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>>();
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const reportID = report?.reportID;
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const goBack = useCallback(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
@@ -122,8 +117,4 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
 
 RoomNamePage.displayName = 'RoomNamePage';
 
-export default withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(RoomNamePage);
+export default RoomNamePage;
