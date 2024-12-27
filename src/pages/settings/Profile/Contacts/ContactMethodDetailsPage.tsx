@@ -310,7 +310,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
 
                 {isValidateCodeActionModalVisible &&
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{translate('contacts.enterMagicCode', {contactMethod})}</Text>
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
