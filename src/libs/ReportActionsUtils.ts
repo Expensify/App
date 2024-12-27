@@ -148,7 +148,14 @@ function getReportActionMessage(reportAction: PartialReportAction) {
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    // Sometimes the isDeletedParentAction value is only present in the originalMessage field.
+    const originalMessage = reportAction?.originalMessage;
+    let isDeletedParentActionValue = getReportActionMessage(reportAction)?.isDeletedParentAction;
+    if (isDeletedParentActionValue === undefined && originalMessage && 'isDeletedParentAction' in originalMessage) {
+        isDeletedParentActionValue = originalMessage.isDeletedParentAction;
+    }
+
+    return !!isDeletedParentActionValue && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {

@@ -72,6 +72,9 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Used to show the IOU as deleted when viewing the transaction thread */
+    isDeletedParentAction?: boolean;
 };
 
 /** Names of moderation decisions */
