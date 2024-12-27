@@ -30,6 +30,11 @@ import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkEmailProps} from './types';
 
+type Item = {
+    icon: IconAsset;
+    titleTranslationKey: TranslationPaths;
+};
+
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -39,7 +44,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
@@ -88,57 +93,20 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         return errors;
     };
 
-    type Item = {
-        icon: IconAsset;
-        titleTranslationKey: TranslationPaths;
-    };
-
-    type SectionObject = {
-        titleTranslationKey: TranslationPaths;
-        subtitleTranslationKey: TranslationPaths;
-        items: Item[];
-    };
-
-    const section: SectionObject = {
-        titleTranslationKey: 'onboarding.workEmail.title',
-        subtitleTranslationKey: 'onboarding.workEmail.subtitle',
-        items: [
-            {
-                icon: Illustrations.EnvelopeReceipt,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-            },
-            {
-                icon: Illustrations.Profile,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-            },
-            {
-                icon: Illustrations.Gears,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-            },
-        ],
-    };
-
-    const renderItem = useCallback(
-        (item: Item) => (
-            <View
-                key={item.titleTranslationKey}
-                style={[styles.mt2, styles.mb3]}
-            >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                    <Icon
-                        src={item.icon}
-                        height={ICON_SIZE}
-                        width={ICON_SIZE}
-                        additionalStyles={[styles.mr3]}
-                    />
-                    <View style={[styles.flexColumn, styles.flex1]}>
-                        <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
-                    </View>
-                </View>
-            </View>
-        ),
-        [styles, translate],
-    );
+    const section: Item[] = [
+        {
+            icon: Illustrations.EnvelopeReceipt,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+        },
+        {
+            icon: Illustrations.Profile,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+        },
+        {
+            icon: Illustrations.Gears,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+        },
+    ];
 
     return (
         <ScreenWrapper
@@ -188,7 +156,28 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     <View style={styles.mb2}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
                     </View>
-                    <View>{section.items.map(renderItem)}</View>
+                    <View>
+                        {section.map((item) => {
+                            return (
+                                <View
+                                    key={item.titleTranslationKey}
+                                    style={[styles.mt2, styles.mb3]}
+                                >
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                        <Icon
+                                            src={item.icon}
+                                            height={ICON_SIZE}
+                                            width={ICON_SIZE}
+                                            additionalStyles={[styles.mr3]}
+                                        />
+                                        <View style={[styles.flexColumn, styles.flex1]}>
+                                            <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
                 </View>
 
                 <View style={[styles.mb4, styles.pt3]}>

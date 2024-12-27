@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -32,12 +32,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
-
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     const email = session?.email ?? '';
-    const domain = email.split('@').at(1) ?? '';
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
