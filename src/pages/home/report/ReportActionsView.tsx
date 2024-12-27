@@ -254,7 +254,7 @@ function ReportActionsView({
             reportActions.filter(
                 (reportAction) =>
                     (isOffline ||
-                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        ReportActionsUtils.isDeletedParentActionWithReplies(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
                     ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),

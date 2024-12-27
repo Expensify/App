@@ -98,7 +98,7 @@ function MoneyRequestAction({
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentActionWithReplies(action);
     const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (
         !isEmptyObject(iouReport) &&

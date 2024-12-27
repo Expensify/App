@@ -528,7 +528,7 @@ function ReportActionsList({
         }
 
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return !ReportActionsUtils.isDeletedParentAction(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
+            return !ReportActionsUtils.isDeletedParentActionWithReplies(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
         }
 
         if (ReportUtils.isTaskReport(report)) {

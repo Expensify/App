@@ -133,7 +133,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const wasLoadingApp = usePrevious(isLoadingApp);
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentActionWithReplies(parentReportAction);
     const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);

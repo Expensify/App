@@ -150,7 +150,7 @@ function getReportActionMessage(reportAction: PartialReportAction) {
 /**
  * Get the boolean value of the field from the message or the originalMessage field of the reportAction, without any other checks.
  */
-function getIsDeletedParentActionField(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     // Sometimes the isDeletedParentAction value is only present in the originalMessage field.
     const originalMessage = reportAction?.originalMessage;
     let isDeletedParentActionValue = getReportActionMessage(reportAction)?.isDeletedParentAction;
@@ -163,8 +163,8 @@ function getIsDeletedParentActionField(reportAction: OnyxInputOrEntry<ReportActi
 /**
  * Is the field set and are there visible child actions?
  */
-function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return getIsDeletedParentActionField(reportAction) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+function isDeletedParentActionWithReplies(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return isDeletedParentAction(reportAction) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
@@ -707,7 +707,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
 
-    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+    return !isDeleted || isPending || isDeletedParentActionWithReplies(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -756,7 +756,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
+        !(isDeletedAction(reportAction) && !isDeletedParentActionWithReplies(reportAction)) &&
         !isResolvedActionTrackExpense(reportAction)
     );
 }
@@ -1015,7 +1015,7 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return getIsDeletedParentActionField(reportAction);
+    return isDeletedParentAction(reportAction);
 }
 
 /**
@@ -1945,6 +1945,7 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDeletedParentActionWithReplies,
     isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
