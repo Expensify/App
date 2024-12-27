@@ -333,7 +333,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
 };
 
 const createFile = (file: File): FileObject => {
-    if (getPlatform() === 'web') {
+    if (getPlatform() === CONST.PLATFORM.WEB) {
         return new File([file], file.name, {
             type: file.type,
             lastModified: file.lastModified,
