@@ -96,8 +96,6 @@ function ReportActionComposeWrapper() {
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
-                showSoftInputOnFocus={false}
-                setShowSoftInputOnFocus={() => {}}
             />
         </ComposeProviders>
     );

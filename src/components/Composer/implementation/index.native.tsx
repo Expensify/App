@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
@@ -9,7 +9,6 @@ import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -38,7 +37,6 @@ function Composer(
         selection,
         value,
         isGroupPolicyReport = false,
-        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -51,11 +49,7 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const [contextMenuHidden, setContextMenuHidden] = useState(true);
-
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
-    const keyboardState = useKeyboardState();
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 
     useEffect(() => {
         if (autoFocus === !!autoFocusInputRef.current) {
@@ -63,13 +57,6 @@ function Composer(
         }
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
-
-    useEffect(() => {
-        if (!showSoftInputOnFocus || !isKeyboardShown) {
-            return;
-        }
-        setContextMenuHidden(false);
-    }, [showSoftInputOnFocus, isKeyboardShown]);
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -171,8 +158,6 @@ function Composer(
                 props?.onBlur?.(e);
             }}
             onClear={onClear}
-            showSoftInputOnFocus={showSoftInputOnFocus}
-            contextMenuHidden={contextMenuHidden}
         />
     );
 }

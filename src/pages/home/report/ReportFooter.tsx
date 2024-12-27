@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -45,6 +45,12 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
+
+    /** Whether the chat is empty */
+    isEmptyChat?: boolean;
+
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -59,12 +65,6 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
-
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -73,12 +73,12 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
+    isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
-    showSoftInputOnFocus,
+    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
-    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -103,7 +103,7 @@ function ReportFooter({
             }
         },
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
@@ -172,15 +172,6 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
-
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
-
     return (
         <>
             {!!shouldHideComposer && (
@@ -222,14 +213,12 @@ function ReportFooter({
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
+                            isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
-                            showSoftInputOnFocus={showSoftInputOnFocus}
-                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
-                            didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>
                 </View>
@@ -246,9 +235,10 @@ export default memo(
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+        prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
+        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
