@@ -53,7 +53,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     if (tnode.attributes.islarge === undefined) {
                         return {whiteSpace: 'pre'};
                     }
-                    return {whiteSpace: 'pre', ...styles.onlyEmojisTextLineHeight};
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
                 contentModel: HTMLContentModel.block,
             }),
@@ -63,7 +63,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     if (tnode.attributes.islarge === undefined) {
                         return {whiteSpace: 'normal'};
                     }
-                    return {whiteSpace: 'normal', ...styles.onlyEmojisTextLineHeight};
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
                 },
                 contentModel: HTMLContentModel.block,
             }),
