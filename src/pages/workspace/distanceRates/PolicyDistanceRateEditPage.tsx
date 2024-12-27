@@ -43,7 +43,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             Navigation.goBack();
             return;
         }
-        if (!customUnit) {
+        if (!customUnit || !rate) {
             return;
         }
         DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
@@ -52,8 +52,8 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, currency, toLocaleDigit),
-        [currency, toLocaleDigit],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit, rate?.rate),
+        [toLocaleDigit, customUnit?.rates, rate?.rate],
     );
 
     if (!rate) {

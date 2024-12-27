@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
@@ -38,13 +38,16 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
 
+    useEffect(() => {
+        offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
+    }, [isOn, offsetX]);
+
     const handleSwitchPress = () => {
         InteractionManager.runAfterInteractions(() => {
             if (disabled) {
                 disabledAction?.();
                 return;
             }
-            offsetX.set(withTiming(isOn ? OFFSET_X.OFF : OFFSET_X.ON, {duration: 300}));
             onToggle(!isOn);
         });
     };

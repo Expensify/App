@@ -25,6 +25,7 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
@@ -69,6 +70,7 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
@@ -146,7 +148,7 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = value.accountID ?? -1;
+        currentAccountID = value.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
@@ -168,7 +170,6 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
                 selected: currentTimezone,
@@ -237,10 +238,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorOptions = useRootNavigatorOptions();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {toggleSearchRouter} = useSearchRouterContext();
+    const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
-    const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -250,7 +250,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
+        return initialReport?.reportID;
     });
 
     useEffect(() => {
@@ -279,9 +279,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher().then(() => {
-            setDidPusherInit(true);
-        });
+        initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!NativeModules.HybridAppModule) {
@@ -365,7 +363,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                         return;
                     }
-                    toggleSearchRouter();
+                    toggleSearch();
                 })();
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -467,7 +465,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={{
                             headerShown: false,
                             presentation: Presentation.TRANSPARENT_MODAL,
-                            animation: 'none',
+                            animation: Animations.NONE,
                         }}
                         getComponent={loadProfileAvatar}
                         listeners={modalScreenListeners}
@@ -519,24 +517,29 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={ExplanationModalNavigator}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
+                        options={rootNavigatorOptions.basicModalNavigator}
+                        component={MigratedUserWelcomeModalNavigator}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={FeatureTrainingModalNavigator}
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
                     {isOnboardingCompleted === false && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            options={{...rootNavigatorOptions.onboardingModalNavigator, gestureEnabled: false}}
+                            options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
                             component={OnboardingModalNavigator}
                             listeners={{
                                 focus: () => {
@@ -550,7 +553,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
                             headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         listeners={modalScreenListeners}
                         getComponent={loadWorkspaceJoinUser}
@@ -586,7 +588,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <TestToolsModal />
                 <SearchRouterModal />
             </View>
-            {didPusherInit && <ActiveGuidesEventListener />}
+            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

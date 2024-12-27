@@ -1,14 +1,12 @@
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
-import useKeyboardState from '@hooks/useKeyboardState';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
@@ -25,6 +23,7 @@ import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTr
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
+import ModalContext from './Modal/ModalContext';
 import OfflineIndicator from './OfflineIndicator';
 import withNavigationFallback from './withNavigationFallback';
 
@@ -149,24 +148,18 @@ function ScreenWrapper(
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+    // since Modals are drawn in separate native view hierarchy we should always add paddings
+    const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
-    const {isOffline} = useNetwork();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
-
-    const isKeyboardShownRef = useRef<boolean>(false);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
@@ -188,7 +181,7 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
@@ -218,7 +211,7 @@ function ScreenWrapper(
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
             ? navigation.addListener('beforeRemove', () => {
-                  if (!isKeyboardShownRef.current) {
+                  if (!Keyboard.isVisible()) {
                       return;
                   }
                   Keyboard.dismiss();
@@ -237,24 +230,29 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
     const paddingStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
         paddingStyle.paddingTop = paddingTop;
     }
+    if (includePaddingTop && ignoreInsetsConsumption) {
+        paddingStyle.paddingTop = unmodifiedPaddings.top;
+    }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    const isSafeAreaBottomPaddingApplied = includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator);
-    if (isSafeAreaBottomPaddingApplied) {
+    if (includeSafeAreaPaddingBottom) {
         paddingStyle.paddingBottom = paddingBottom;
+    }
+    if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
+        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied}),
-        [didScreenTransitionEnd, isSafeAreaBottomPaddingApplied, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     return (
@@ -296,7 +294,14 @@ function ScreenWrapper(
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
                                     <>
-                                        <OfflineIndicator style={offlineIndicatorStyle} />
+                                        <OfflineIndicator
+                                            style={[offlineIndicatorStyle]}
+                                            containerStyles={
+                                                includeSafeAreaPaddingBottom
+                                                    ? [styles.offlineIndicatorMobile]
+                                                    : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
+                                            }
+                                        />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
                                     </>

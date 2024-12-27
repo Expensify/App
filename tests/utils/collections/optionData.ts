@@ -36,7 +36,6 @@ export default function createRandomOptionData(index: number): OptionData {
         description: randWord(),
         isDeletedParentAction: randBoolean(),
         reportName: randWord(),
-        reportActionID: `reportAction_${index}`,
         chatReportID: `chatReport_${index}`,
         stateNum: rand(Object.values(CONST.REPORT.STATE_NUM)),
         statusNum: rand(Object.values(CONST.REPORT.STATUS_NUM)),

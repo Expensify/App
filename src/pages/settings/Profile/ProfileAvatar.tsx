@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -11,17 +11,13 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from '@src/types/onyx';
 
-type ProfileAvatarOnyxProps = {
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    personalDetailsMetadata: OnyxEntry<Record<string, PersonalDetailsMetadata>>;
-    isLoadingApp: OnyxEntry<boolean>;
-};
+type ProfileAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
 
-type ProfileAvatarProps = ProfileAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
-
-function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadingApp = true}: ProfileAvatarProps) {
+function ProfileAvatar({route}: ProfileAvatarProps) {
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
     const accountID = Number(route.params.accountID ?? '-1');
@@ -37,7 +33,7 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
 
     return (
         <AttachmentModal
-            headerTitle={displayName}
+            headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
@@ -52,14 +48,4 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
 
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-export default withOnyx<ProfileAvatarProps, ProfileAvatarOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    personalDetailsMetadata: {
-        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(ProfileAvatar);
+export default ProfileAvatar;

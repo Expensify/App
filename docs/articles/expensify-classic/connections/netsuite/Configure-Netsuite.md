@@ -36,11 +36,17 @@ The three options for the date your report will export with are:
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
+## Accounting Method
+
+This dictates when reimbursable expenses will export, according to your preferred accounting method:
+- Accrual: Out-of-pocket expenses will export immediately when the report is final approved
+- Cash: Out-of-pocket expenses will export when paid via Expensify or marked as Reimbursed
+
 ## Export Settings for Reimbursable Expenses 
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
 
-**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding workspace. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
+**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and are mapped to the subsidiary associated with the corresponding workspace. Each report is posted as payable to the vendor associated with the employee who submitted it. You can also set an approval level in NetSuite for vendor bills.
 
 **Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this workspace. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
 
@@ -57,7 +63,7 @@ The three options for the date your report will export with are:
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-**Expense Reports:** To use the expense report option for your corporate card expenses, you will need to set up your default corporate cards in NetSuite. 
+**Expense Reports:** To use the expense report option for your corporate card expenses, you must set up your default corporate cards in NetSuite. 
 
 To use a default corporate card for non-reimbursable expenses, you must select the correct card on the employee records (for individual accounts) or the subsidiary record (If you use a non-one world account, the default is found in your accounting preferences).
 
@@ -80,6 +86,8 @@ When selecting the option to export non-reimbursable expenses as vendor bills, t
 # Step 2: Configure Coding Settings
 
 The Coding tab is where NetSuite information is configured in Expensify, which allows employees to code expenses and reports accurately. There are several coding options in NetSuite. Let’s go over each of those below. 
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_08.png){:width="100%"}
 
 ## Expense Categories
 
@@ -218,6 +226,8 @@ From there, you should see the values for the Custom Lists under the Tag or Repo
 # Step 3: Configure Advanced Settings
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
 
 Let’s review the different advanced settings and how they interact with the integration.
 

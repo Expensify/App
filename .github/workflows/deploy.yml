@@ -118,43 +118,30 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
     steps:
-      - name: Checkout
+      - name: Checkout App and Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule
+      - name: Update submodule to match main
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache: npm
-          cache-dependency-path: 'Mobile-Expensify/react-native'
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
 
-      - name: Install node modules
+      - name: Run grunt build
         run: |
-          npm install
-          cd .. && npm install
-          
-          # Fixes https://github.com/Expensify/App/issues/51682
-          npm run grunt:build:shared
+            cd Mobile-Expensify
+            npm run grunt:build:shared
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -166,7 +153,6 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -181,7 +167,7 @@ jobs:
           op document get --output ./upload-key.keystore upload-key.keystore 
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
-          cp ./upload-key.keystore ../Android 
+          cp ./upload-key.keystore Mobile-Expensify/Android 
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
@@ -196,7 +182,7 @@ jobs:
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -212,11 +198,24 @@ jobs:
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
+      - name: Get current Android rollout percentage
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        id: getAndroidRolloutPercentage
+        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+        with:
+          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # Complete the previous version rollout
-          bundle exec fastlane android complete_hybrid_rollout
+          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
+              echo "Completing the previous version rollout"
+              bundle exec fastlane android complete_hybrid_rollout
+          else
+              echo "Skipping the completion of the previous version rollout"
+          fi
           
           # Submit the new version for review and slow rollout when it's approved
           bundle exec fastlane android upload_google_play_production_hybrid_rollout
@@ -430,47 +429,31 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
       - name: Update submodule
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: |
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
         id: setup-node
-        with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache-dependency-path: 'Mobile-Expensify/react-native'
-
-      - name: Install node modules
-        run: |
-          npm install
-          cd .. && npm install
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -479,12 +462,12 @@ jobs:
         uses: actions/cache@v4
         id: pods-cache
         with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+          path: Mobile-Expensify/iOS/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
@@ -492,7 +475,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd Mobile-Expensify/iOS && pod install
+          command: npm run pod-install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
@@ -503,6 +486,7 @@ jobs:
         run: |
           op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
           op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
+          op document get --output ./OldApp_AppStore_Notification_Service.mobileprovision OldApp_AppStore_Notification_Service
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
@@ -934,7 +918,7 @@ jobs:
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ github.ref == 'refs/heads/production' && needs.uploadAndroid.result }}
+      android: ${{ github.ref == 'refs/heads/production' || needs.uploadAndroid.result }}
       android_hybrid: ${{ needs.android_hybrid.result }}
       ios: ${{ needs.iOS.result }}
       ios_hybrid: ${{ needs.iOS_hybrid.result }}
