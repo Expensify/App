@@ -182,7 +182,7 @@ function HeaderWithBackButton({
                         width={iconWidth ?? variables.iconHeader}
                         height={iconHeight ?? variables.iconHeader}
                         additionalStyles={[styles.mr2, iconStyles]}
-                        fill={iconFill ?? theme.icon}
+                        fill={iconFill}
                     />
                 )}
                 {!!policyAvatar && (
