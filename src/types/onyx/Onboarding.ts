@@ -22,8 +22,6 @@ type Onboarding = {
     /** A Boolean that informs whether the user needs to validate their work email */
     shouldValidate?: boolean;
 
-    /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.Errors;
 };
 
 export default Onboarding;
