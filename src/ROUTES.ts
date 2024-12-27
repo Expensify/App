@@ -675,6 +675,10 @@ const ROUTES = {
         route: ':action/:iouType/start/:transactionID/:reportID/scan',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/scan` as const,
     },
+    MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
+        route: ':action/:iouType/start/:transactionID/:reportID/per-diem',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem` as const,
+    },
 
     MONEY_REQUEST_STATE_SELECTOR: {
         route: 'submit/state',

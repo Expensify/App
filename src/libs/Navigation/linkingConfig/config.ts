@@ -1232,6 +1232,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
                                     exact: true,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'per-diem': {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                    exact: true,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
