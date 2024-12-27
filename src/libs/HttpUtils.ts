@@ -160,26 +160,17 @@ function processFormData(data: Record<string, unknown>, initiatedOffline: boolea
                 return Promise.resolve();
             }
 
-            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT && initiatedOffline) {
+            if (key === 'receipt' && initiatedOffline) {
                 const {uri: path = '', source} = data[key] as File;
 
-                console.debug('[dev] 2. data[key]:', data[key]);
-                console.debug('[dev] 3. path', path);
-                console.debug('[dev] 4. source', source);
-
                 return import('./fileDownload/FileUtils')
-                    .then(({readFileAsync}) => {
-                        console.debug('[dev] 5. readFileAsync', readFileAsync);
-                        return readFileAsync(source, path, () => {});
-                    })
+                    .then(({readFileAsync}) => readFileAsync(source, path, () => {}))
                     .then((file) => {
-                        console.debug('[dev] 6. file', file);
-                        if (file) {
-                            formData.append(key, file);
+                        if (!file) {
+                            return;
                         }
-                    })
-                    .catch(() => {
-                        console.debug('[dev] Error reading photo');
+
+                        formData.append(key, file);
                     });
             }
 
