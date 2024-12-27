@@ -612,7 +612,12 @@ function MoneyRequestConfirmationListFooter({
             description={translate('common.subrate')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRouteWithoutParams()))}
+            onPress={() => {
+                if (!transactionID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRouteWithoutParams()));
+            }}
             disabled={didConfirm}
             interactive={!isReadOnly}
         />
@@ -772,9 +777,12 @@ function MoneyRequestConfirmationListFooter({
                         description={translate('common.destination')}
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                        }
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        }}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                     />
@@ -785,7 +793,12 @@ function MoneyRequestConfirmationListFooter({
                         description={translate('iou.time')}
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        }}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         numberOfLinesTitle={2}
