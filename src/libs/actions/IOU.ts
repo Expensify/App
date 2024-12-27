@@ -39,6 +39,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
@@ -65,6 +66,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -2071,6 +2073,25 @@ function getDeleteTrackExpenseInformation(
     return {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport};
 }
 
+/**
+ * Get the invoice receiver type based on the receiver participant.
+ * @param receiverParticipant The participant who will receive the invoice or the invoice receiver object directly.
+ * @returns The invoice receiver type.
+ */
+function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | undefined): InvoiceReceiverType {
+    if (!receiverParticipant) {
+        Log.warn('getReceiverType called with no receiverParticipant');
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    }
+    if ('type' in receiverParticipant && receiverParticipant.type) {
+        return receiverParticipant.type;
+    }
+    if ('policyID' in receiverParticipant && receiverParticipant.policyID) {
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+    }
+    return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+}
+
 /** Gathers all the data needed to create an invoice. */
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -2086,17 +2107,18 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '-1';
-    const receiverParticipant = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : -1;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
+    const receiverType = getReceiverType(receiverParticipant);
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID) ?? null;
+        chatReport = ReportUtils.getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
     }
 
     if (!chatReport) {
@@ -3441,15 +3463,8 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, policy);
     const transactionChanges: TransactionChanges = {
         category,
-        ...(categoryTaxCode &&
-            categoryTaxAmount !== undefined && {
-                taxCode: categoryTaxCode,
-                taxAmount: categoryTaxAmount,
-            }),
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
@@ -5377,27 +5392,19 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 }
 
 function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
-    const newTransactionChanges = {...transactionChanges};
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    if (transactionChanges.category) {
-        const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(transactionChanges.category, draftSplitTransaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
-            newTransactionChanges.taxCode = categoryTaxCode;
-            newTransactionChanges.taxAmount = categoryTaxAmount;
-        }
-    }
-
     const updatedTransaction = draftSplitTransaction
         ? TransactionUtils.getUpdatedTransaction({
               transaction: draftSplitTransaction,
-              transactionChanges: newTransactionChanges,
+              transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
+              policy,
           })
         : null;
 
@@ -6896,7 +6903,7 @@ function getPayMoneyRequestParams(
     }
 
     if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID);
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }

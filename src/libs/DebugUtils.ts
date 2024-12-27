@@ -468,6 +468,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -513,6 +514,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
@@ -621,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
