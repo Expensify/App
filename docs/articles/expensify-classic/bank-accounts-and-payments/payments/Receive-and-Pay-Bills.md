@@ -13,7 +13,7 @@ Expensify makes it easy to receive bills in three simple ways:
 Share your Expensify billing email with vendors to receive bills automatically.  
 
 - Set a Primary Contact under **Settings > Domains > Domain Admins**.  
-- Ask vendors to email bills to your billing address: `domainname@expensify.cash` (e.g., for *expensify.com*, use `expensify@expensify.cash`).  
+- Ask vendors to email bills to your billing address: `domainname@expensify.cash` (e.g., for *expensicorp.com*, use `expensicorp@expensify.cash`).  
 - Once emailed, the bill is automatically created in Expensify, ready for payment.  
 
 ![Setting the Primary Contact at Domain Admins > Primary Contact](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%201.png){:width="100%"}
@@ -22,7 +22,7 @@ Share your Expensify billing email with vendors to receive bills automatically.
 Received a bill in your email? Forward it to Expensify.  
 
 - Ensure your Primary Contact is set under **Settings > Domains > Domain Admins**.  
-- Forward bills to `domainname@expensify.cash`. Example: `domainname@expensify.cash` (e.g., for *expensify.com*, use `expensify@expensify.cash`).  
+- Forward bills to `domainname@expensify.cash`. Example: `domainname@expensify.cash` (e.g., for *expensicorp.com*, use `expensicorp@expensify.cash`).  
 - Expensify will create a bill automatically, ready for payment.  
 
 ### 3. Manual Upload  
