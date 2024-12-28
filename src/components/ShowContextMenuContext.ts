@@ -10,10 +10,10 @@ import CONST from '@src/CONST';
 import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
-    anchor?: ContextMenuAnchor;
-    report?: OnyxEntry<Report>;
-    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
-    action?: OnyxEntry<ReportAction>;
+    anchor: ContextMenuAnchor;
+    report: OnyxEntry<Report>;
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
+    action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
     isDisabled: boolean;
