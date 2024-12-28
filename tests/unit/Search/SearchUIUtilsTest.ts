@@ -106,6 +106,7 @@ const searchResults: OnyxTypes.SearchResults = {
 const transactionSections = SearchUIUtils.getSections('expense', 'all', searchResults.data, searchResults.search) as TransactionListItemType[];
 const tests = transactionSections.map((transactionList) => [{transactionListItem: transactionList, expectedMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT}]);
 
+// Then verify the merchant column is displayed as "Expense", and does not contain an empty string
 describe('SearchUIUtils', () => {
     test.each(tests)('Transaction list item with "Expense" merchant', ({transactionListItem, expectedMerchant}) => {
         expect(transactionListItem.merchant).toEqual(expectedMerchant);
