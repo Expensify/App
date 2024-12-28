@@ -5,7 +5,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 const accountID = 18439984;
 const policyID = 'A1B2C3';
-// Given the report id of the report transaction
 const reportID = '123456789';
 // Transaction ID of the transaction
 const transactionID = '1';
