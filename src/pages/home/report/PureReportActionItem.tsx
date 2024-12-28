@@ -521,9 +521,14 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: attachmentContextValueType}), [reportID, attachmentContextValueType]);
+    const attachmentContextValue = useMemo(() => {
+        if (attachmentContextValueType === CONST.ATTACHMENT_TYPE.SEARCH) {
+            return {type: attachmentContextValueType};
+        }
+        return {reportID, type: attachmentContextValueType};
+    }, [reportID, attachmentContextValueType]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID ?? '-1'}), [reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
