@@ -1,4 +1,3 @@
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type PrepareRequestPayload from './types';
 
 const prepareRequestPayload: PrepareRequestPayload = (data, initiatedOffline) => {
@@ -14,13 +13,15 @@ const prepareRequestPayload: PrepareRequestPayload = (data, initiatedOffline) =>
             if (key === 'receipt' && initiatedOffline) {
                 const {uri: path = '', source} = data[key] as File;
 
-                return readFileAsync(source, path, () => {}).then((file) => {
-                    if (!file) {
-                        return;
-                    }
+                return import('@libs/fileDownload/FileUtils').then(({readFileAsync}) =>
+                    readFileAsync(source, path, () => {}).then((file) => {
+                        if (!file) {
+                            return;
+                        }
 
-                    formData.append(key, file);
-                });
+                        formData.append(key, file);
+                    }),
+                );
             }
 
             formData.append(key, data[key] as string | Blob);
