@@ -80,9 +80,11 @@ describe('actions/IOU', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
     describe('trackExpense', () => {
-        it('categorize the tracked expense self DM', async () => {
-            // Setup fake data
+        it('category a distance expense of selfDM report', async () => {
+            // Given a participant of the report
             const participant = {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID};
+
+            // Given waypoints of the transaction
             const fakeWayPoints = {
                 waypoint0: {
                     keyForList: '88 Kearny Street_1735023533854',
@@ -99,16 +101,24 @@ describe('actions/IOU', () => {
                     name: 'Golden Gate Bridge Vista Point',
                 },
             };
+
+            // Given a selfDM report
             const selfDMReport = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
+
+            // Given a policyExpenseChat report
             const expenseReport = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
+
+            // Given policy categories and a policy
             const fakeCategories = createRandomPolicyCategories(3);
             const fakePolicy = createRandomPolicy(1);
+
+            // Given a transaction with a distance request type
             const fakeTransaction = {
                 ...createRandomTransaction(1),
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
@@ -122,10 +132,11 @@ describe('actions/IOU', () => {
                 },
             };
 
-            // Save the transaction draft in Onyx
+            // When the transaction is saved to draft before being submitted
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`, fakeTransaction);
             mockFetch?.pause?.();
-            //  Submit the tracked expense
+
+            // When the user submits the transaction to the selfDM report
             IOU.trackExpense(
                 selfDMReport,
                 fakeTransaction.amount,
@@ -156,16 +167,23 @@ describe('actions/IOU', () => {
             );
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
+
+            // Then the transaction must remain a distance request
             const transaction = await new Promise<OnyxEntry<OnyxTypes.Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
-                        resolve(Object.values(transactions ?? {}).at(0));
+                        const transaction = Object.values(transactions ?? {}).at(0);
+                        const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+                        expect(isDistanceRequest).toBe(true);
+                        resolve(transaction);
                     },
                 });
             });
+
+            // Given all report actions of the selfDM report
             const allReportActions = await new Promise<OnyxCollection<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -176,17 +194,17 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            const selfDMReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
 
-            // The IOU report should have a ACTIONABLE_TRACK_EXPENSE_WHISPER action and IOU action
+            // Then the selfDM report should have an actionable track expense whisper action and an IOU action
+            const selfDMReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
             expect(Object.values(selfDMReportActions ?? {}).length).toBe(2);
 
-            // Simulate step clear cache, then the local flag iouRequestType is removed
+            // When the cache is cleared before categorizing the tracked expense
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
                 iouRequestType: null,
             });
 
-            // Simulate step create draft transaction in the report screen
+            // When the transaction is saved to draft by selecting a category in the selfDM report
             const reportAction = Object.values(selfDMReportActions ?? {}).find((reportAction) => ReportActionsUtils.isActionableTrackExpense(reportAction));
             ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(
                 transaction?.transactionID ?? '',
@@ -195,6 +213,8 @@ describe('actions/IOU', () => {
                 reportAction?.reportActionID,
             );
             await waitForBatchedUpdates();
+
+            // Then the transaction draft should be saved successfully
             const allTransactionsDraft = await new Promise<OnyxCollection<OnyxTypes.Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
@@ -206,7 +226,8 @@ describe('actions/IOU', () => {
                 });
             });
             const transactionDraft = allTransactionsDraft?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`];
-            // Categorize the tracked expense
+
+            // When the user confirms the category for the tracked expense
             IOU.trackExpense(
                 expenseReport,
                 transactionDraft?.amount ?? fakeTransaction.amount,
@@ -238,15 +259,21 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
-            // Verify the transaction remains a distance request
+            // Then the expense should be categorized successfully
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
-                        const isDistanceRequest = TransactionUtils.isDistanceRequest(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`]);
+                        const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
+
+                        // Then the transaction must remain a distance request
+                        const isDistanceRequest = TransactionUtils.isDistanceRequest(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
+
+                        // Then the transaction category must match the original category
+                        expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
                         resolve();
                     },
                 });
