@@ -290,14 +290,10 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  * Returns custom unit rate ID for the distance transaction
  */
 function getCustomUnitRateID(reportID?: string) {
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-
-    if (!reportID) {
-        return customUnitRateID;
-    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID);
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (isEmptyObject(policy)) {
         return customUnitRateID;
