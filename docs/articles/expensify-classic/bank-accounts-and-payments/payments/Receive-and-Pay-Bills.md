@@ -97,10 +97,10 @@ If you prefer to pay outside Expensify, you can still track the payment within t
 3. Select **Mark as Paid** to update its status.  
 
 **Fees:** None.  
-{% include faq-begin.md %}
 
+{% include faq-begin.md %}
 ## Who receives vendor bills in Expensify?
-bills are sent to the Primary Contact listed under **Settings > Domains > [Domain Name] > Domain Admins**.
+Bills are sent to the Primary Contact listed under **Settings > Domains > [Domain Name] > Domain Admins**.
 
 ## Who can view and pay a bill?
 Only the primary domain contact can view and pay a bill.
