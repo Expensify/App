@@ -175,10 +175,10 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
-                        const transaction = Object.values(transactions ?? {}).at(0);
-                        const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+                        const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
+                        const isDistanceRequest = TransactionUtils.isDistanceRequest(trackedExpenseTransaction);
                         expect(isDistanceRequest).toBe(true);
-                        resolve(transaction);
+                        resolve(trackedExpenseTransaction);
                     },
                 });
             });
@@ -205,12 +205,12 @@ describe('actions/IOU', () => {
             });
 
             // When the transaction is saved to draft by selecting a category in the selfDM report
-            const reportAction = Object.values(selfDMReportActions ?? {}).find((reportAction) => ReportActionsUtils.isActionableTrackExpense(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => ReportActionsUtils.isActionableTrackExpense(reportAction));
             ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(
-                transaction?.transactionID ?? '',
+                transaction?.transactionID,
                 selfDMReport.reportID,
                 CONST.IOU.ACTION.CATEGORIZE,
-                reportAction?.reportActionID,
+                reportActionableTrackExpense?.reportActionID,
             );
             await waitForBatchedUpdates();
 
