@@ -101,6 +101,8 @@ const searchResults: OnyxTypes.SearchResults = {
         type: 'expense',
     },
 };
+
+// When the results are filtered by type "expense" to be displayed on the search page
 const transactionSections = SearchUIUtils.getSections('expense', 'all', searchResults.data, searchResults.search) as TransactionListItemType[];
 const tests = transactionSections.map((transactionList) => [{transactionListItem: transactionList, expectedMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT}]);
 
