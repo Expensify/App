@@ -8,7 +8,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const transactionID = '1';
 
-// Search data results of the given report and transactions
+// Given search data results consisting of involved users' personal details, policyID, reportID and transactionID
 const searchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
