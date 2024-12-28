@@ -112,6 +112,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSupporting,
             styles.textLineThrough,
             styles.mutedNormalTextLabel,
+            styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
         ],
     );
