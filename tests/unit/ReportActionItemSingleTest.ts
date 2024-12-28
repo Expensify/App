@@ -1,7 +1,6 @@
 import {screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -55,8 +54,6 @@ describe('ReportActionItemSingle', () => {
 
             function setup() {
                 LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction, fakePersonalDetails, fakePolicy);
-                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-
                 return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false));
             }
 

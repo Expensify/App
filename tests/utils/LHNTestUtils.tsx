@@ -16,7 +16,7 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
