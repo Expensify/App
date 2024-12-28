@@ -30,6 +30,9 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
+
+    /** Permissions granted to the participant */
+    permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 }>;
 
 /** Types of invoice receivers in a report */
@@ -48,6 +51,9 @@ type InvoiceReceiver =
           /** ID of the policy */
           policyID: string;
       };
+
+/** Type of invoice receiver */
+type InvoiceReceiverType = InvoiceReceiver['type'];
 
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
@@ -217,6 +223,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
+
+        /** The report's welcome message */
+        welcomeMessage?: string;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
@@ -226,4 +235,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
