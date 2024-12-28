@@ -33,7 +33,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
-        explictPolicyID?: string;
+        explicitPolicyID?: string;
     };
 
 function IOURequestStepDestination({
@@ -43,9 +43,9 @@ function IOURequestStepDestination({
     },
     transaction,
     openedFromStartPage = false,
-    explictPolicyID,
+    explicitPolicyID,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explictPolicyID ?? IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? IOU.getIOURequestPolicyID(transaction, report)}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? ReportUtils.getPolicyExpenseChat(accountID, policy.id) : undefined;
 
