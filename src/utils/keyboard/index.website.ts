@@ -1,4 +1,5 @@
 import {Keyboard} from 'react-native';
+import * as Browser from '@libs/Browser';
 
 let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
@@ -24,7 +25,7 @@ window.visualViewport?.addEventListener('resize', handleResize);
 
 const dismiss = (): Promise<void> => {
     return new Promise((resolve) => {
-        if (!isVisible) {
+        if (!isVisible || !Browser.isSafari()) {
             resolve();
             return;
         }
