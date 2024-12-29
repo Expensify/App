@@ -21,6 +21,7 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
+    ShareTrackedExpenseParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -113,7 +114,7 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
-type CategorizeTrackedExpenseTransactionParams = {
+type TrackedExpenseTransactionParams = {
     transactionID: string;
     amount: number;
     currency: string;
@@ -127,11 +128,11 @@ type CategorizeTrackedExpenseTransactionParams = {
     billable?: boolean;
     receipt?: Receipt;
 };
-type CategorizeTrackedExpensePolicyParams = {
+type TrackedExpensePolicyParams = {
     policyID: string;
-    isDraftPolicy: boolean;
+    isDraftPolicy?: boolean;
 };
-type CategorizeTrackedExpenseReportInformation = {
+type TrackedExpenseReportInformation = {
     moneyRequestPreviewReportActionID: string;
     moneyRequestReportID: string;
     moneyRequestCreatedReportActionID: string;
@@ -141,13 +142,14 @@ type CategorizeTrackedExpenseReportInformation = {
     transactionThreadReportID: string;
     reportPreviewReportActionID: string;
 };
-type CategorizeTrackedExpenseParams = {
-    onyxData: OnyxData | undefined;
-    reportInformation: CategorizeTrackedExpenseReportInformation;
-    transactionParams: CategorizeTrackedExpenseTransactionParams;
-    policyParams: CategorizeTrackedExpensePolicyParams;
+type TrackedExpenseParams = {
+    onyxData?: OnyxData;
+    reportInformation: TrackedExpenseReportInformation;
+    transactionParams: TrackedExpenseTransactionParams;
+    policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
 };
+
 type SendInvoiceInformation = {
     senderWorkspaceID: string;
     receiver: Partial<OnyxTypes.PersonalDetails>;
@@ -3660,7 +3662,7 @@ function convertTrackedExpenseToRequest(
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpenseParams) {
+function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
@@ -3705,32 +3707,20 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     }
 }
 
-function shareTrackedExpense(
-    policyID: string,
-    transactionID: string,
-    moneyRequestPreviewReportActionID: string,
-    moneyRequestReportID: string,
-    moneyRequestCreatedReportActionID: string,
-    actionableWhisperReportActionID: string,
-    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID: string,
-    transactionThreadReportID: string,
-    reportPreviewReportActionID: string,
-    onyxData: OnyxData | undefined,
-    amount: number,
-    currency: string,
-    comment: string,
-    merchant: string,
-    created: string,
-    category?: string,
-    tag?: string,
-    taxCode = '',
-    taxAmount = 0,
-    billable?: boolean,
-    receipt?: Receipt,
-    createdWorkspaceParams?: CreateWorkspaceParams,
-) {
+function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
+    const {transactionID} = transactionParams;
+    const {
+        actionableWhisperReportActionID,
+        moneyRequestPreviewReportActionID,
+        moneyRequestCreatedReportActionID,
+        reportPreviewReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+    } = reportInformation;
 
     const {
         optimisticData: moveTransactionOptimisticData,
@@ -3751,26 +3741,15 @@ function shareTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters = {
-        policyID,
-        transactionID,
+    const parameters: ShareTrackedExpenseParams = {
+        ...transactionParams,
+        policyID: policyParams?.policyID,
         moneyRequestPreviewReportActionID,
         moneyRequestReportID,
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
         reportPreviewReportActionID,
-        amount,
-        currency,
-        comment,
-        merchant,
-        created,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -4105,31 +4084,41 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            shareTrackedExpense(
-                chatReport?.policyID ?? '-1',
-                transaction?.transactionID ?? '-1',
-                iouAction?.reportActionID ?? '-1',
-                iouReport?.reportID ?? '-1',
-                createdIOUReportActionID ?? '-1',
-                actionableWhisperReportActionID,
-                linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID,
-                transactionThreadReportID ?? '-1',
-                reportPreviewAction?.reportActionID ?? '-1',
-                onyxData,
+            const transactionParams = {
+                transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
                 comment,
                 merchant,
                 created,
+                taxCode: taxCode ?? '',
+                taxAmount: taxAmount ?? 0,
                 category,
                 tag,
-                taxCode,
-                taxAmount,
                 billable,
-                trackedReceipt,
+                receipt: trackedReceipt,
+            };
+            const policyParams = {
+                policyID: chatReport?.policyID ?? '-1',
+            };
+            const reportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
+                moneyRequestReportID: iouReport?.reportID ?? '-1',
+                moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID: transactionThreadReportID ?? '-1',
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
+            };
+            const trackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
                 createdWorkspaceParams,
-            );
+            };
+            shareTrackedExpense(trackedExpenseParams);
             break;
         }
         default: {
