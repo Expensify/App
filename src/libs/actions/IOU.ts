@@ -39,6 +39,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
@@ -65,6 +66,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -713,7 +715,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
@@ -1185,7 +1186,6 @@ function buildOnyxDataForInvoice(
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -2073,6 +2073,25 @@ function getDeleteTrackExpenseInformation(
     return {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport};
 }
 
+/**
+ * Get the invoice receiver type based on the receiver participant.
+ * @param receiverParticipant The participant who will receive the invoice or the invoice receiver object directly.
+ * @returns The invoice receiver type.
+ */
+function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | undefined): InvoiceReceiverType {
+    if (!receiverParticipant) {
+        Log.warn('getReceiverType called with no receiverParticipant');
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    }
+    if ('type' in receiverParticipant && receiverParticipant.type) {
+        return receiverParticipant.type;
+    }
+    if ('policyID' in receiverParticipant && receiverParticipant.policyID) {
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+    }
+    return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+}
+
 /** Gathers all the data needed to create an invoice. */
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -2088,17 +2107,18 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '-1';
-    const receiverParticipant = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : -1;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
+    const receiverType = getReceiverType(receiverParticipant);
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID) ?? null;
+        chatReport = ReportUtils.getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
     }
 
     if (!chatReport) {
@@ -3443,15 +3463,8 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, policy);
     const transactionChanges: TransactionChanges = {
         category,
-        ...(categoryTaxCode &&
-            categoryTaxAmount !== undefined && {
-                taxCode: categoryTaxCode,
-                taxAmount: categoryTaxAmount,
-            }),
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
@@ -5379,27 +5392,19 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 }
 
 function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
-    const newTransactionChanges = {...transactionChanges};
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    if (transactionChanges.category) {
-        const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(transactionChanges.category, draftSplitTransaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
-            newTransactionChanges.taxCode = categoryTaxCode;
-            newTransactionChanges.taxAmount = categoryTaxAmount;
-        }
-    }
-
     const updatedTransaction = draftSplitTransaction
         ? TransactionUtils.getUpdatedTransaction({
               transaction: draftSplitTransaction,
-              transactionChanges: newTransactionChanges,
+              transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
+              policy,
           })
         : null;
 
@@ -5750,7 +5755,11 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+    if (!transactionID) {
+        return undefined;
+    }
+
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     // Determine which report to navigate back to
@@ -5773,7 +5782,16 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportActio
  * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+function getNavigationUrlAfterTrackExpenseDelete(
+    chatReportID: string | undefined,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+): Route | undefined {
+    if (!chatReportID || !transactionID) {
+        return undefined;
+    }
+
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
 
     // If not a self DM, handle it as a regular money request
@@ -5948,7 +5966,11 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!transactionID) {
+        return;
+    }
+
     // STEP 1: Calculate and prepare the data
     const {
         shouldDeleteTransactionThread,
@@ -6209,7 +6231,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteTrackExpense(chatReportID: string | undefined, transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!chatReportID || !transactionID) {
+        return;
+    }
+
     const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
 
     // STEP 1: Get all collections we're updating
@@ -6877,7 +6903,7 @@ function getPayMoneyRequestParams(
     }
 
     if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID);
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }
@@ -6917,7 +6943,6 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        lastVisibleActionCreated: optimisticIOUReportAction.created,
         hasOutstandingChildRequest: false,
         iouReportID: null,
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
@@ -6953,6 +6978,7 @@ function getPayMoneyRequestParams(
                 ...iouReport,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 pendingFields: {
@@ -7742,6 +7768,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticReportAction),
                 stateNum,
@@ -7845,6 +7872,8 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal();
+    Report.notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
@@ -7904,6 +7933,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
+    Report.notifyNewAction(iouReport?.reportID ?? '', userAccountID);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
@@ -8724,7 +8754,6 @@ function resolveDuplicates(params: TransactionMergeParams) {
     });
 
     const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
-    const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
         return message?.IOUTransactionID ?? '';
@@ -8735,10 +8764,13 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const reportActionIDList: string[] = [];
     const optimisticHoldTransactionActions: OnyxUpdate[] = [];
     const failureHoldTransactionActions: OnyxUpdate[] = [];
-    transactionThreadReportIDList.forEach((transactionThreadReportID) => {
+    iouActionList.forEach((action) => {
+        const transactionThreadReportID = action?.childReportID;
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID ?? '-1');
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action)
+            ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+            : CONST.DEFAULT_NUMBER_ID;
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,

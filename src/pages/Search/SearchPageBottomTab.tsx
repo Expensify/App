@@ -9,6 +9,7 @@ import SearchStatusBar from '@components/Search/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
@@ -37,10 +38,11 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
     const {windowHeight} = useWindowDimensions();
 
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
+    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
@@ -55,9 +57,9 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
             const isScrollingDown = currentOffset > scrollOffset.get();
             const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight));
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
             }
             scrollOffset.set(currentOffset);
         },
@@ -68,9 +70,9 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
             if (windowHeight <= h) {
                 return;
             }
-            topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+            topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, topBarOffset],
+        [windowHeight, topBarOffset, StyleUtils.searchHeaderHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
@@ -98,6 +100,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
             testID={SearchPageBottomTab.displayName}
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
+            headerGapStyles={styles.searchHeaderGap}
         >
             {!selectionMode?.isEnabled ? (
                 <>
@@ -118,7 +121,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
                             <SearchStatusBar
                                 queryJSON={queryJSON}
                                 onStatusChange={() => {
-                                    topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                    topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
                         </Animated.View>

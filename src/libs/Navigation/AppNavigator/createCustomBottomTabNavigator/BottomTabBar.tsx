@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -5,14 +6,17 @@ import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@libs/Navigation/helpers';
@@ -90,7 +94,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
-
+    const isFocused = useIsFocused();
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
+        selectedTab !== BOTTOM_TABS.HOME && isFocused,
+    );
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -208,36 +218,49 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 />
             )}
             <View style={styles.bottomTabBarContainer}>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.inbox')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
+                    shouldUseOverlay
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    onHideTooltip={hideProductTrainingTooltip}
                 >
-                    <View>
-                        <Icon
-                            src={Expensicons.Inbox}
-                            fill={selectedTab === BOTTOM_TABS.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {!!chatTabBrickRoad && (
-                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
-                        )}
-                    </View>
-                    <Text
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === BOTTOM_TABS.HOME ? styles.textBold : styles.textSupporting,
-                            styles.bottomTabBarLabel,
-                        ]}
+                    <PressableWithFeedback
+                        onPress={navigateToChats}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.inbox')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.bottomTabBarItem}
                     >
-                        {translate('common.inbox')}
-                    </Text>
-                </PressableWithFeedback>
+                        <View>
+                            <Icon
+                                src={Expensicons.Inbox}
+                                fill={selectedTab === BOTTOM_TABS.HOME ? theme.iconMenu : theme.icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                            {!!chatTabBrickRoad && (
+                                <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                            )}
+                        </View>
+                        <Text
+                            style={[
+                                styles.textSmall,
+                                styles.textAlignCenter,
+                                styles.mt1Half,
+                                selectedTab === BOTTOM_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                styles.bottomTabBarLabel,
+                            ]}
+                        >
+                            {translate('common.inbox')}
+                        </Text>
+                    </PressableWithFeedback>
+                </EducationalTooltip>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}

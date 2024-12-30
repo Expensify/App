@@ -21,14 +21,16 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
     const currentRoute = useRoute();
+    const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -36,7 +38,7 @@ function BaseSidebarScreen() {
     }, []);
 
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined) {
+        if (!!activeWorkspace || activeWorkspaceID === undefined || isLoading) {
             return;
         }
 
@@ -61,7 +63,7 @@ function BaseSidebarScreen() {
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
         });
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID, currentRoute.key]);
+    }, [activeWorkspace, activeWorkspaceID, isLoading, currentRoute.key]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 

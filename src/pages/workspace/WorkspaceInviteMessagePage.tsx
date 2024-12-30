@@ -93,7 +93,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             return;
         }
         // @TODO: Check if this method works the same as on the main branch
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo));
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
@@ -104,7 +104,12 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-        Navigation.dismissModal();
+        if ((route.params?.backTo as string)?.endsWith('members')) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)));
     };
 
     /** Opens privacy url as an external link */
@@ -142,7 +147,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

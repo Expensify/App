@@ -14,6 +14,7 @@ export {default as getTopmostReportParams} from './getTopmostReportParams';
 export {default as getTopmostRouteName} from './getTopmostRouteName';
 export {default as isReportOpenInRHP} from './isReportOpenInRHP';
 export {default as isSearchTopmostFullScreenRoute} from './isSearchTopmostFullScreenRoute';
+export {default as isReportTopmostSplitNavigator} from './isReportTopmostSplitNavigator';
 export {default as isSideModalNavigator} from './isSideModalNavigator';
 export {default as linkTo} from './linkTo';
 export {default as getMinimalAction} from './linkTo/getMinimalAction';

@@ -6,10 +6,12 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ViolationName} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -124,11 +126,11 @@ describe('SidebarLinksData', () => {
 
     describe('Report that should be included in the LHN', () => {
         it('should display the current active report', async () => {
-            // When the SidebarLinks are rendered without a specified report ID.
+            // Given the SidebarLinks are rendered without a specified report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport();
 
-            // And the Onyx state is initialized with a report.
+            // When the Onyx state is initialized with a report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -147,14 +149,14 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display draft report', async () => {
-            // When SidebarLinks are rendered initially.
+            // Given SidebarLinks are rendered initially.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const draftReport = {
                 ...createReport(false, [1, 2], 0),
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
             };
 
-            // And Onyx state is initialized with a draft report.
+            // When Onyx state is initialized with a draft report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
             });
@@ -172,11 +174,11 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display pinned report', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(false);
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -196,10 +198,10 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the report with violations', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             const report: Report = {
                 ...createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
@@ -209,7 +211,7 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The report should appear in the sidebar because it’s pinned.
+            // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
             await waitForBatchedUpdatesWithAct();
 
@@ -226,19 +228,19 @@ describe('SidebarLinksData', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
-            // The RBR icon should be shown
+            // Then the RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
 
         it('should display the report awaiting user action', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(false),
                 hasOutstandingChildRequest: true,
             };
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -251,7 +253,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the archived report in the default mode', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
@@ -270,30 +272,30 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // And the user is in the default mode
+            // When the user is in the default mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
-            // The report should appear in the sidebar because it's archived
+            // Then the report should appear in the sidebar because it's archived
             expect(getOptionRows()).toHaveLength(1);
         });
 
         it('should display the selfDM report by default', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(true, undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.SELF_DM, undefined);
 
-            // And the selfDM is initialized in Onyx
+            // When the selfDM is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The selfDM report should appear in the sidebar by default
+            // Then the selfDM report should appear in the sidebar by default
             expect(getOptionRows()).toHaveLength(1);
         });
 
         it('should display the unread report in the focus mode with the bold text', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
@@ -307,10 +309,10 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // And the user is in focus mode
+            // When the user is in focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
-            // The report should appear in the sidebar because it's unread
+            // Then the report should appear in the sidebar because it's unread
             expect(getOptionRows()).toHaveLength(1);
 
             // And the text is bold
@@ -324,18 +326,18 @@ describe('SidebarLinksData', () => {
                 lastReadTime: report.lastVisibleActionCreated,
             });
 
-            // The report should not disappear in the sidebar because we are in the focus mode
+            // Then the report should not disappear in the sidebar because we are in the focus mode
             expect(getOptionRows()).toHaveLength(0);
         });
     });
 
     describe('Report that should NOT be included in the LHN', () => {
         it('should not display report with no participants', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([]);
 
-            // And a report with no participants is initialized in Onyx.
+            // When a report with no participants is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -345,16 +347,179 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display empty chat', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([1, 2], 0);
 
-            // And a report with no messages is initialized in Onyx
+            // When a report with no messages is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
             // Then the empty report should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the report marked as hidden', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(),
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+
+            // When a report with notification preference set as hidden is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then hidden report should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the report has empty notification preference', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report = createReport(false, [2]);
+
+            // When a report with empty notification preference is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then the report should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the report the user cannot access due to policy restrictions', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+                lastMessageText: 'fake last message',
+            };
+
+            // When a default room is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // And the defaultRooms beta is removed
+            await Onyx.merge(ONYXKEYS.BETAS, []);
+
+            // Then the default room should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the single transaction thread', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+            const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+                'create',
+                100,
+                'USD',
+                '',
+                [],
+                expenseTransaction.transactionID,
+                undefined,
+                expenseReport.reportID,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+            );
+            const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
+            expenseCreatedAction.childReportID = transactionThreadReport.reportID;
+
+            // When a single transaction thread is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
+
+            // Then such report should not appear in the sidebar because the highest level context is on the workspace chat with GBR that is visible in the LHN
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the report with parent message is pending removal', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const parentReport = createReport();
+            const report = createReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            report.parentReportID = parentReport.reportID;
+            report.parentReportActionID = parentReportAction.reportActionID;
+
+            // When a report with parent message is pending removal is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                [parentReportAction.reportActionID]: parentReportAction,
+            });
+
+            // Then report should not appear in the sidebar until the moderation feature decides if the message should be removed
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the read report in the focus mode', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(),
+                lastMessageText: 'fake last message',
+                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            // When a read report that isn't empty is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in default mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+
+            // Then the report should appear in the sidebar
+            expect(getOptionRows()).toHaveLength(1);
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user is in focus mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+
+            // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
         });
     });

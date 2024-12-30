@@ -177,6 +177,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
         policyID: string;
@@ -186,6 +187,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;

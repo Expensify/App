@@ -30,7 +30,7 @@ Onyx.connect({
         if (value === undefined) {
             return;
         }
-        onboardingValues = value as Onboarding;
+        onboardingValues = value;
     },
 });
 

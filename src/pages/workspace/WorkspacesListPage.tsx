@@ -120,7 +120,7 @@ function WorkspacesListPage() {
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete ?? '-1');
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const policyToDelete = PolicyUtils.getPolicy(policyIDToDelete);
@@ -172,7 +172,7 @@ function WorkspacesListPage() {
                             setIsSupportalActionRestrictedModalOpen(true);
                             return;
                         }
-                        setPolicyIDToDelete(item.policyID ?? '-1');
+                        setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
@@ -184,7 +184,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID)),
                 });
             }
 
@@ -409,7 +409,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
@@ -445,7 +445,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
