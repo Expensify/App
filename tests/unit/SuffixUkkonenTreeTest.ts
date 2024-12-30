@@ -7,7 +7,7 @@ describe('SuffixUkkonenTree', () => {
         const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true}));
         const numericList = numericLists.reduce(
             (acc, {numeric}) => {
-                acc.push(...numeric.array, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
+                acc.push(...numeric, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
                 return acc;
             },
             // The value we pass to makeTree needs to be offset by one

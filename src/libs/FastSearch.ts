@@ -146,9 +146,9 @@ function dataToNumericRepresentation<T>(
         SuffixUkkonenTree.stringToNumeric(cleanedSearchStringForTree, {
             charSetToSkip,
             out: {
-                outArray: concatenatedNumericList,
+                outArray: concatenatedNumericList.array,
                 offset,
-                outOccurrenceToIndex: occurrenceToIndex,
+                outOccurrenceToIndex: occurrenceToIndex.array,
                 index,
             },
         });
