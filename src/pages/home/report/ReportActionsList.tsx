@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -284,9 +284,9 @@ function ReportActionsList({
             // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
             // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
             const isPreviouslyOptimistic = !!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction;
-            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
+            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && isPreviouslyOptimistic;
 
-            return !shouldIgnoreUnreadForCurrentUserMessage;
+            return !isNewMessage && !shouldIgnoreUnreadForCurrentUserMessage;
         };
 
         // If there are message that were recevied while offline,
@@ -331,7 +331,7 @@ function ReportActionsList({
      * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
      * lastReadTime.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (unreadMarkerReportActionID) {
             return;
         }
