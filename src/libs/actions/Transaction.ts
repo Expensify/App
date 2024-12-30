@@ -355,7 +355,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -367,7 +367,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -388,7 +388,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
-                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
+                        [`${dissmissedPersonalDetails.login}`]: getUnixTime(new Date()),
                     },
                 },
             },
@@ -415,7 +415,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: null,
         },
     }));
 
@@ -427,7 +427,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: null,
         },
     }));
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
