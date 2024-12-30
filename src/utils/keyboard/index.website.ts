@@ -5,27 +5,26 @@ let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
 
 const handleResize = () => {
-    const currentHeight = window?.visualViewport?.height;
+    const viewportHeight = window?.visualViewport?.height;
 
-    if (!currentHeight || !initialViewportHeight) {
+    if (!viewportHeight || !initialViewportHeight) {
         return;
     }
 
-    if (currentHeight < initialViewportHeight) {
-        isVisible = true;
-        return;
-    }
+    // Determine if the keyboard is visible by checking if the height difference exceeds 152px.
+    // The 152px threshold accounts for UI elements such as smart banners on iOS Retina (max ~152px)
+    // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
+    const keyboardIsVisible = initialViewportHeight - viewportHeight > 152;
 
-    if (currentHeight === initialViewportHeight) {
-        isVisible = false;
-    }
+    // Update the visibility state
+    isVisible = !!keyboardIsVisible;
 };
 
 window.visualViewport?.addEventListener('resize', handleResize);
 
 const dismiss = (): Promise<void> => {
     return new Promise((resolve) => {
-        if (!isVisible || !Browser.isSafari()) {
+        if (!isVisible) {
             resolve();
             return;
         }
