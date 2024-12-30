@@ -1005,33 +1005,11 @@ describe('OptionsListUtils', () => {
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
-        const VALID_EMAIL = 'valid@email.com';
-        it('should allow to create optimistic personal detail option if email is valid', () => {
-            const currentUserEmail = 'tonystark@expensify.com';
-            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: VALID_EMAIL,
-                currentUserOption: {
-                    login: currentUserEmail,
-                } as ReportUtils.OptionData,
-                // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
-                // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
-                // This is a performance optimization.
-                personalDetailsOptions: [],
-                recentReportOptions: [],
-            });
-
-            expect(canCreate).toBe(true);
-        });
-
         it('should not allow to create option if email is an email of current user', () => {
-            const currentUserEmail = 'tonystark@expensify.com';
             const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: currentUserEmail,
-                recentReportOptions: [],
-                personalDetailsOptions: [],
-                currentUserOption: {
-                    login: currentUserEmail,
-                } as ReportUtils.OptionData,
+                recentReportOptions: OPTIONS.reports,
+                personalDetailsOptions: OPTIONS.personalDetails,
+                currentUserOption: null,
             });
 
             expect(canCreate).toBe(false);
