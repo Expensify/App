@@ -108,7 +108,7 @@ function IOURequestStepWaypoint({
         if (quantityValue === '') {
             ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
         }
-        if (subrateValue === '') {
+        if (subrateValue === '' || !validOptions.some(({value}) => value === subrateValue)) {
             ErrorUtils.addErrorMessage(errors, `subrate${pageIndex}`, translate('common.error.fieldRequired'));
         }
         if (Number.isNaN(quantityInt)) {
