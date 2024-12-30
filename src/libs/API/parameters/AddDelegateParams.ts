@@ -1,7 +1,7 @@
 import type {DelegateRole} from '@src/types/onyx/Account';
 
 type AddDelegateParams = {
-    delegate: string;
+    delegateEmail: string;
     role: DelegateRole;
     validateCode: string;
 };

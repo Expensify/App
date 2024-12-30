@@ -1,5 +1,5 @@
 ---
-title: Quickbooks Online Troubleshooting
+title: QuickBooks Online Troubleshooting
 description: A list of common QuickBooks Online errors and how to resolve them
 ---
 

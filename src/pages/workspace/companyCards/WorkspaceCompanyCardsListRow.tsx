@@ -25,14 +25,14 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
 
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex3]}>
                 <Avatar
                     source={cardholder?.avatar ?? getDefaultAvatarURL(cardholder?.accountID)}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
-                <View>
+                <View style={[styles.flex1, styles.pr2]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
@@ -47,12 +47,14 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
                     </Text>
                 </View>
             </View>
-            <Text
-                numberOfLines={1}
-                style={[styles.textLabelSupporting, styles.lh16]}
-            >
-                {cardNumber}
-            </Text>
+            <View style={[styles.flex1, styles.alignItemsEnd]}>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textLabelSupporting, styles.lh16]}
+                >
+                    {cardNumber}
+                </Text>
+            </View>
         </View>
     );
 }

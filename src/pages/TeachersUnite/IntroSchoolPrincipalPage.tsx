@@ -75,7 +75,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={IntroSchoolPrincipalPage.displayName}
         >
             <HeaderWithBackButton

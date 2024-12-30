@@ -25,7 +25,7 @@ When an expense is submitted to a workspace, your approver will receive an email
 
 # How to Create an Expense
 
-# SmartScan a receipt
+## SmartScan a receipt
 
 {% include selector.html values="desktop, mobile" %}
 
@@ -51,11 +51,16 @@ When an expense is submitted to a workspace, your approver will receive an email
 
 {% include end-selector.html %}
 
+![Click Global Create]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-1.png){:width="100%"}
+![Click Create Expense]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-2.png){:width="100%"}
+![Click Scan]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-3.png){:width="100%"}
+![Enter workspace or individual's name]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-4.png){:width="100%"}
+
 {% include info.html %}
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
 {% include end-info.html %}
 
-# Manually add an expense
+## Manually add an expense
 
 {% include selector.html values="desktop, mobile" %}
 
@@ -83,7 +88,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 {% include end-selector.html %}
 
-# Create a distance expense
+## Create a distance expense
 
 {% include selector.html values="desktop, mobile" %}
 
@@ -111,6 +116,28 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 8. Add a description, category, tags, or tax as desired or as required by your workspace. Tap **Show More** to see all coding options.
 9. (Optional) Enable the expense as billable if it should be billed to a client.
 10. Click **Submit**.
+{% include end-option.html %}
+
+{% include end-selector.html %}
+
+# How to Delete an Expense
+
+{% include selector.html values="desktop, mobile" %}
+
+{% include option.html value="desktop or WebApp" %}
+1. Click **Search > Expenses** and locate your expense.
+2. Click the checkbox next to the expense(s) you wish to delete.
+3. Click **# selected** in the top right corner.
+4. Choose **Delete**.
+5. Confirm that you wish to delete it by clicking the red **Delete** button in the popup.
+{% include end-option.html %}
+
+{% include option.html value="mobile" %}
+1. Tap **Search**.
+2. Tap and hold on the expense you wish to delete.
+3. Tap **# selected**.
+4. Tap **Delete**.
+5. Confirm that you wish to delete it by clicking the red **Delete** button in the popup.
 {% include end-option.html %}
 
 {% include end-selector.html %}
@@ -146,6 +173,24 @@ Yes, you can edit an expense until it is paid. When an expense is submitted, the
 In Expensify, expense reports group expenses in a batch to be paid or reconciled. When a draft report is open, all new expenses are added to it. 
 
 Once a report is submitted, you can track the status from the **Search** section. Click the **View** button for a specific expense or expense report. The status is displayed at the top of the expense or report.
+
+**How can I enable camera permission for a website on mobile browsers?**
+
+**Google Chrome:**
+1. Open Chrome.
+2. To the right of the address bar, tap More icon > **Settings**.
+3. Tap **Site settings** > **Camera**.
+4. Tap to turn the microphone or camera on or off.
+    - If you find the site you want to use under **Blocked**, tap the site > **Allow**.
+5. Refresh the site.
+
+**Safari:**
+1. Open Safari.
+2. To the left of the address bar, tap More icon > **Site settings** > **Camera**.
+3. Tap **Allow** to grant permission.
+4. Tap **Done**.
+5. Refresh the site.
+
 {% include faq-end.md %}
 
 </div>

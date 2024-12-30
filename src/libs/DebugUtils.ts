@@ -458,10 +458,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'policyID':
         case 'reportName':
         case 'reportID':
-        case 'reportActionID':
         case 'chatReportID':
         case 'type':
-        case 'lastMessageTranslationKey':
         case 'parentReportID':
         case 'parentReportActionID':
         case 'lastVisibleActionLastModified':
@@ -470,6 +468,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -477,10 +476,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isPinned':
         case 'hasParentAccess':
         case 'isDeletedParentAction':
-        case 'isOptimisticReport':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
-        case 'isHidden':
             return validateBoolean(value);
         case 'lastReadSequenceNumber':
         case 'managerID':
@@ -489,6 +486,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'total':
         case 'unheldTotal':
         case 'nonReimbursableTotal':
+        case 'unheldNonReimbursableTotal':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -516,6 +514,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
@@ -532,12 +531,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        case 'pendingChatMembers':
-            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
-                accountID: 'string',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                errors: 'object',
-            });
         case 'fieldList':
             return validateObject<ObjectElement<Report, 'fieldList'>>(
                 value,
@@ -596,17 +589,14 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 hasParentAccess: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isDeletedParentAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                lastMessageTranslationKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isOptimisticReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionLastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -616,13 +606,12 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -634,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -925,6 +915,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
+        case 'inserted':
+        case 'posted':
             return validateDate(value);
         case 'isLoading':
         case 'billable':
@@ -1048,6 +1040,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1369,7 +1363,7 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtils.getTransactionID(report?.reportID ?? '-1');
+    const transactionID = TransactionUtils.getTransactionID(report?.reportID);
 
     return Number(transactionID) > 0
         ? transactionID

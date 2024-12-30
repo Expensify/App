@@ -11,6 +11,8 @@ If your organization is recognized by the IRS or other local tax authorities as 
 1. Our team will review your document and let you know if we need any more information.
 1. Once everything is verified, we'll update your account accordingly.
 
+![Click the request tax exempt status button]({{site.url}}/assets/images/Tax Exempt - Classic.png){:width="100%"}
+
 Once your account is marked as tax-exempt, the corresponding state tax will no longer be applied to future billing. 
 
 If you need to remove your tax-exempt status, let your Account Manager know or contact Concierge.
