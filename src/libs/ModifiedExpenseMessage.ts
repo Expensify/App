@@ -162,7 +162,6 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
-    const policyID = report?.policyID ?? '-1';
 
     if (reportActionOriginalMessage?.movedToReportID) {
         return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
@@ -253,7 +252,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
