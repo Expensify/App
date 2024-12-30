@@ -6,6 +6,10 @@ type TypedArrayConstructor<T extends TypedArray> = {
     BYTES_PER_ELEMENT: number;
 };
 
+/**
+ * A TypedArray that can grow dynamically (similar to c++ std::vector).
+ * You still need to provide an initial size. If the array grows beyond the initial size, it will be resized to double the size.
+ */
 class DynamicArrayBuffer<T extends TypedArray> {
     private buffer: ArrayBuffer;
 
