@@ -12,7 +12,7 @@ import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -101,7 +101,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: wasInvitedToNewDotSelector,
     });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.NVP_HAS_NON_PERSONAL_POLICY);
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
 
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
