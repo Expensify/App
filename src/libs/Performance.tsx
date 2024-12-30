@@ -41,7 +41,8 @@ function measureFailSafe(measureName: string, startOrMeasureOptions: string, end
 }
 
 /**
- * Measures the TTI time. To be called when the app is considered to be interactive.
+ * Measures the TTI (time to interactive) time starting from the `nativeLaunchStart` event.
+ * To be called when the app is considered to be interactive.
  */
 function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
@@ -60,7 +61,6 @@ function measureTTI(endMark?: string): void {
 /*
  * Monitor native marks that we want to put on the timeline
  */
-
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
     list.getEntries().forEach((entry: PerformanceEntry) => {
         if (entry.name === 'nativeLaunchEnd') {
