@@ -502,11 +502,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 translationKey: 'workspace.common.goToWorkspace',
                 icon: Expensicons.Building,
                 action: () => {
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
+                    if (!report?.policyID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID ?? '-1'));
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
