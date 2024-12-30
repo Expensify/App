@@ -65,69 +65,19 @@ describe('DynamicArrayBuffer', () => {
         });
     });
 
-    describe('clamp operation', () => {
-        test('clamp reduces capacity to size', () => {
+    describe('truncate operation', () => {
+        test('truncate reduces capacity to actual size', () => {
             const buffer = new DynamicArrayBuffer<Float64Array>(8, Float64Array);
             buffer.push(1.1);
             buffer.push(2.2);
 
             expect(buffer.capacity).toBe(8);
-            buffer.clamp();
+            expect(buffer.length).toBe(2);
+            buffer.truncate();
             expect(buffer.capacity).toBe(2);
             expect(buffer.length).toBe(2);
             expect(buffer.array[0]).toBe(1.1);
             expect(buffer.array[1]).toBe(2.2);
-        });
-
-        test('clamp does nothing when capacity equals size', () => {
-            const buffer = new DynamicArrayBuffer<Float64Array>(2, Float64Array);
-            buffer.push(1.1);
-            buffer.push(2.2);
-
-            expect(buffer.capacity).toBe(2);
-            buffer.clamp();
-            expect(buffer.capacity).toBe(2);
-            expect(buffer.array[0]).toBe(1.1);
-            expect(buffer.array[1]).toBe(2.2);
-        });
-    });
-
-    describe('slice operation', () => {
-        let buffer: DynamicArrayBuffer<Float64Array>;
-
-        beforeEach(() => {
-            buffer = new DynamicArrayBuffer<Float64Array>(8, Float64Array);
-            buffer.push(1.1);
-            buffer.push(2.2);
-            buffer.push(3.3);
-            buffer.push(4.4);
-            buffer.push(5.5);
-        });
-
-        test('basic slice', () => {
-            const slice = buffer.slice(1, 3);
-            expect(slice.length).toBe(2);
-            expect(slice.array[0]).toBe(2.2);
-            expect(slice.array[1]).toBe(3.3);
-        });
-
-        test('slice with negative indices', () => {
-            const slice = buffer.slice(-2);
-            expect(slice.length).toBe(2);
-            expect(slice.array[0]).toBe(4.4);
-            expect(slice.array[1]).toBe(5.5);
-        });
-
-        test('slice with out of bounds indices', () => {
-            const slice = buffer.slice(-10, 10);
-            expect(slice.length).toBe(5);
-            expect([...slice]).toEqual([1.1, 2.2, 3.3, 4.4, 5.5]);
-        });
-
-        test('slice with no arguments', () => {
-            const slice = buffer.slice();
-            expect(slice.length).toBe(5);
-            expect([...slice]).toEqual([1.1, 2.2, 3.3, 4.4, 5.5]);
         });
     });
 

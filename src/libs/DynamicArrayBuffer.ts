@@ -9,7 +9,7 @@ type TypedArrayConstructor<T extends TypedArray> = {
 class DynamicArrayBuffer<T extends TypedArray> {
     private buffer: ArrayBuffer;
 
-    public array: T; // Made public to allow direct indexed access
+    public array: T;
 
     private size: number;
 
@@ -42,21 +42,16 @@ class DynamicArrayBuffer<T extends TypedArray> {
     }
 
     private resize(newCapacity: number): void {
-        console.log('Resizing to', newCapacity);
-        const start = performance.now();
         if (typeof this.buffer.transfer === 'function') {
-            console.log('Using ArrayBuffer.transfer');
             this.buffer = this.buffer.transfer(newCapacity * this.getBytesPerElement(this.TypedArrayConstructor));
             this.array = new this.TypedArrayConstructor(this.buffer);
         } else {
-            console.log('Using manual copy');
             const newBuffer = new ArrayBuffer(newCapacity * this.getBytesPerElement(this.TypedArrayConstructor));
             const newArray = new this.TypedArrayConstructor(newBuffer);
             newArray.set(this.array);
             this.buffer = newBuffer;
             this.array = newArray;
         }
-        console.log('Resized in', performance.now() - start, 'ms');
     }
 
     set(index: number, value: number): void {
@@ -73,49 +68,13 @@ class DynamicArrayBuffer<T extends TypedArray> {
         this.array[index] = value;
     }
 
-    /**
-     * Returns a new DynamicArrayBuffer containing elements from start to end (exclusive).
-     * If end is not provided, slices to the end of the buffer.
-     * Negative indices can be used to count from the end.
-     */
-    slice(start?: number, end?: number): DynamicArrayBuffer<T> {
-        // Handle negative indices and undefined values
-        const actualStart = start === undefined ? 0 : start < 0 ? Math.max(this.size + start, 0) : Math.min(start, this.size);
-        const actualEnd = end === undefined ? this.size : end < 0 ? Math.max(this.size + end, 0) : Math.min(end, this.size);
-
-        const sliceLength = Math.max(0, actualEnd - actualStart);
-        const result = new DynamicArrayBuffer<T>(sliceLength, this.TypedArrayConstructor);
-
-        if (typeof this.buffer.transfer === 'function') {
-            // Create a temporary buffer with just the slice we want
-            const tempBuffer = new ArrayBuffer(sliceLength * this.getBytesPerElement(this.TypedArrayConstructor));
-            const tempArray = new this.TypedArrayConstructor(tempBuffer);
-            tempArray.set(new this.TypedArrayConstructor(this.buffer, actualStart * this.getBytesPerElement(this.TypedArrayConstructor), sliceLength));
-
-            // Transfer the temporary buffer to the result
-            result.buffer = this.buffer.transfer(tempBuffer, sliceLength * this.getBytesPerElement(this.TypedArrayConstructor));
-            result.array = new this.TypedArrayConstructor(result.buffer);
-        } else {
-            result.array.set(new this.TypedArrayConstructor(this.buffer, actualStart * this.getBytesPerElement(this.TypedArrayConstructor), sliceLength));
-        }
-
-        result.size = sliceLength;
-        return result;
-    }
-
-    clamp(): void {
-        if (this.size >= this.capacity) {
-            return; // todo: does this make sense?
-        }
-        if (typeof ArrayBuffer.transfer === 'function') {
-            this.buffer = ArrayBuffer.transfer(this.buffer, this.size * this.getBytesPerElement(this.TypedArrayConstructor));
-        } else {
-            const newBuffer = new ArrayBuffer(this.size * this.getBytesPerElement(this.TypedArrayConstructor));
-            const newArray = new this.TypedArrayConstructor(newBuffer);
-            newArray.set(new this.TypedArrayConstructor(this.buffer, 0, this.size));
-            this.buffer = newBuffer;
-        }
+    truncate(end = this.size): DynamicArrayBuffer<T> {
+        const length = end;
+        this.buffer = this.buffer.slice(0, length * this.getBytesPerElement(this.TypedArrayConstructor));
         this.array = new this.TypedArrayConstructor(this.buffer);
+
+        this.size = length;
+        return this;
     }
 
     [Symbol.iterator](): Iterator<number> {

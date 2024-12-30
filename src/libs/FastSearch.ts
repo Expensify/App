@@ -56,7 +56,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     Timing.end(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
 
     // The list might be larger than necessary, so we clamp it to the actual size:
-    // TODO: concatenatedNumericList = concatenatedNumericList.slice(0, offset.value);
+    concatenatedNumericList.truncate(offset.value);
 
     // Create & build the suffix tree:
     Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
