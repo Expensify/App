@@ -69,11 +69,10 @@ const test = () => {
 
   // markEnd will be called in the Screen's implementation
   Performance.subscribeToMeasurements((measurement) => {
-      if (!measurement.name !== "navigateToReport") {
+      if (measurement.name !== "navigateToReport") {
         return;
       }
 
-      // ... do something with the measurements
       E2EClient.submitTestResults({
           name: "Navigate to report",
           metric: measurement.duration,
