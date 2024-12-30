@@ -20,7 +20,7 @@ const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms
         return;
     }
 
-    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
+    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
     Navigation.navigate(lastAccessedReportRoute);
 };
 
