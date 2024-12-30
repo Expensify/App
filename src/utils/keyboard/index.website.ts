@@ -14,10 +14,7 @@ const handleResize = () => {
     // Determine if the keyboard is visible by checking if the height difference exceeds 152px.
     // The 152px threshold accounts for UI elements such as smart banners on iOS Retina (max ~152px)
     // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
-    const keyboardIsVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
-
-    // Update the visibility state
-    isVisible = keyboardIsVisible;
+    isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
 };
 
 window.visualViewport?.addEventListener('resize', handleResize);
