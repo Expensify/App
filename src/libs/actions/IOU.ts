@@ -2587,7 +2587,7 @@ function getTrackExpenseInformation(
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
-        // @ts-expect-error TODO: consider logic update
+        // @ts-expect-error TODO: update buildOptimisticTransaction return type to indicate that reportID can be undefined
         shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
         comment,
         [],
@@ -5474,10 +5474,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         );
         onyxData = splitOnyxData;
 
-        if (!splitData.createdReportActionID) {
-            return;
-        }
-
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
         // Therefore, any params related to the IOU report are irrelevant and omitted below.
         parameters = {
@@ -7973,12 +7969,8 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
 
-    if (!invoiceReport?.reportID) {
-        return;
-    }
-
     let params: PayInvoiceParams = {
-        reportID: invoiceReport.reportID,
+        reportID: invoiceReport?.reportID,
         reportActionID,
         paymentMethodType,
         payAsBusiness,
