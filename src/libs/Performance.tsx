@@ -80,7 +80,8 @@ const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
             measureFailSafe('appCreationEnd_To_contentAppeared', 'appCreationEnd', 'contentAppeared');
         }
 
-        // We don't need to keep the observer past this point
+        // At this point we've captured and processed all the native marks we're interested in
+        // and are not expecting to have more thus we can safely disconnect the observer
         if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
             _observer.disconnect();
         }
