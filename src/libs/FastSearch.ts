@@ -83,7 +83,6 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
             // (otherwise the search could fail as we include in our search empty array values):
             clamp: true,
         });
-        // TODO: we shouldn't need to convert to an array here (although it should be fast)
         const result = tree.findSubstring(Array.from(numeric));
 
         const resultsByDataSet = Array.from({length: dataSets.length}, () => new Set<T>());

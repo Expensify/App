@@ -84,7 +84,6 @@ function stringToNumeric(
     for (let i = 0; i < input.length; i++) {
         const char = input[i];
 
-        // TODO: Sets are slow in hermes, so we should replace this with a map
         if (options?.charSetToSkip?.has(char)) {
             continue;
         }
@@ -93,15 +92,15 @@ function stringToNumeric(
 
         if (char >= 'a' && char <= 'z') {
             // char is an alphabet character
-            occurrenceToIndex.set(outArray.length, index);
+            occurrenceToIndex.push(index);
             outArray.push(charCode - CHAR_CODE_A);
         } else {
-            occurrenceToIndex.set(outArray.length, index);
+            occurrenceToIndex.push(index);
             outArray.push(SPECIAL_CHAR_CODE);
             const asBase26Numeric = convertToBase26(charCode);
             // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let j = 0; j < asBase26Numeric.length; j++) {
-                occurrenceToIndex.set(outArray.length, index);
+                occurrenceToIndex.push(index);
                 outArray.push(asBase26Numeric[j]);
             }
         }
