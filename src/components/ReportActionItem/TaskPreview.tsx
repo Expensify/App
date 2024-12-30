@@ -57,11 +57,24 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: () => void;
 
+    /** Callback that will do measure of necessary layout elements and run provided callback */
+    onShowContextMenu: (callback: () => void) => void;
+
     /** Style for the task preview container */
     style: StyleProp<ViewStyle>;
 };
 
-function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
+function TaskPreview({
+    taskReportID,
+    action,
+    contextMenuAnchor,
+    chatReportID,
+    checkIfContextMenuActive,
+    currentUserPersonalDetails,
+    onShowContextMenu,
+    isHovered = false,
+    style,
+}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -75,7 +88,8 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
@@ -95,7 +109,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive))}
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
@@ -106,12 +120,12 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) || !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID)}
+                            disabled={!Task.canActionTask(taskReport, currentUserPersonalDetails.accountID, taskOwnerAccountID, taskAssigneeAccountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    Task.reopenTask(taskReport);
+                                    Task.reopenTask(taskReport, taskReportID);
                                 } else {
-                                    Task.completeTask(taskReport);
+                                    Task.completeTask(taskReport, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}

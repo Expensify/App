@@ -29,10 +29,10 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction, User} from '@src/types/onyx';
+import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -75,9 +75,11 @@ type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string;
+    report: OnyxEntry<ReportType>;
     draftMessage: string;
     selection: string;
     close: () => void;
+    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
@@ -374,7 +376,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, reportID, hasCard}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, hasCard}) => {
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
@@ -476,7 +478,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
-                    const report = ReportUtils.getReport(reportID);
                     setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true, report?.policyID, hasCard));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(ReportActionsUtils.getRemovedConnectionMessage(reportAction));
@@ -603,8 +604,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: ({type, isProduction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
-        onPress: (closePopover, {reportID}) => {
-            const report = ReportUtils.getReport(reportID);
+        onPress: (closePopover, {report}) => {
             Clipboard.setString(JSON.stringify(report, null, 4));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },

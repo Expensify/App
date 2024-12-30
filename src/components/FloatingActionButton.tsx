@@ -3,6 +3,7 @@ import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {Platform} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {PressableWithoutFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -66,9 +68,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const platform = getPlatform();
     const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const isFocused = useBottomTabIsFocused();
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
-        isFocused,
+        isFocused && isSidebarLoaded,
     );
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;

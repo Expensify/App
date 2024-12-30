@@ -66,7 +66,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = TransactionUtils.getMerchant(transactionItem);
-    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
         formattedFrom,
@@ -106,7 +106,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
     });
@@ -305,9 +305,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
+    const hasOnlyPendingTransactions =
+        allReportTransactions.length > 0 && allReportTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
 
     const isAllowedToApproveExpenseReport = ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy);
-    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
+    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
@@ -372,7 +374,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 action: getAction(data, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
