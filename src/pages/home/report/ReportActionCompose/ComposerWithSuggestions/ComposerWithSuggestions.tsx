@@ -649,10 +649,11 @@ function ComposerWithSuggestions(
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
-        if (prevIsFocused && !isFocused && !showSoftInputOnFocus) {
-            setShowSoftInputOnFocus(true);
+        if (prevIsFocused || !isFocused || showSoftInputOnFocus) {
+            return;
         }
-    }, [isFocused, prevIsFocused, showSoftInputOnFocus]);
+        setShowSoftInputOnFocus(true);
+    }, [isFocused, prevIsFocused, showSoftInputOnFocus, setShowSoftInputOnFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -701,7 +702,7 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+        tag.set(findNodeHandle(textInputRef.current) ?? CONST.);
     }, [tag]);
 
     useFocusedInputHandler(
