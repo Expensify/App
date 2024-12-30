@@ -5,7 +5,6 @@ import React, {forwardRef, Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
 import performance, {PerformanceObserver, setResourceLoggingEnabled} from 'react-native-performance';
 import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
-import type {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
@@ -62,7 +61,7 @@ function measureTTI(endMark?: string): void {
  * Monitor native marks that we want to put on the timeline
  */
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
-    list.getEntries().forEach((entry: PerformanceEntry) => {
+    list.getEntries().forEach((entry) => {
         if (entry.name === 'nativeLaunchEnd') {
             measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
         }
@@ -101,8 +100,8 @@ function setNativeMarksObserverEnabled(enabled = false): void {
 /**
  * Monitor for "_end" marks and capture "_start" to "_end" measures, including events recorded in the native layer before the app fully initializes.
  */
-const customMarksObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
-    list.getEntriesByType('mark').forEach((mark: PerformanceEntry) => {
+const customMarksObserver = new PerformanceObserver((list) => {
+    list.getEntriesByType('mark').forEach((mark) => {
         if (mark.name.endsWith('_end')) {
             const end = mark.name;
             const name = end.replace(/_end$/, '');
@@ -160,7 +159,7 @@ function printPerformanceMetrics(): void {
 }
 
 function subscribeToMeasurements(callback: (entry: PerformanceEntry) => void): () => void {
-    const observer = new PerformanceObserver((list: PerformanceObserverEntryList) => {
+    const observer = new PerformanceObserver((list) => {
         list.getEntriesByType('measure').forEach(callback);
     });
 
