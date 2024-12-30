@@ -702,11 +702,11 @@ const ROUTES = {
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
     },
     WORKSPACE_INVITE_MESSAGE: {
         route: 'settings/workspaces/:policyID/invite-message',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite-message` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
@@ -1324,6 +1324,26 @@ const ROUTES = {
     WORKSPACE_PER_DIEM_SETTINGS: {
         route: 'settings/workspaces/:policyID/per-diem/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/settings` as const,
+    },
+    WORKSPACE_PER_DIEM_DETAILS: {
+        route: 'settings/workspaces/:policyID/per-diem/details/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `settings/workspaces/${policyID}/per-diem/details/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_DESTINATION: {
+        route: 'settings/workspaces/:policyID/per-diem/edit/destination/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `settings/workspaces/${policyID}/per-diem/edit/destination/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_SUBRATE: {
+        route: 'settings/workspaces/:policyID/per-diem/edit/subrate/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `settings/workspaces/${policyID}/per-diem/edit/subrate/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_AMOUNT: {
+        route: 'settings/workspaces/:policyID/per-diem/edit/amount/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `settings/workspaces/${policyID}/per-diem/edit/amount/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_CURRENCY: {
+        route: 'settings/workspaces/:policyID/per-diem/edit/currency/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `settings/workspaces/${policyID}/per-diem/edit/currency/${rateID}/${subRateID}` as const,
     },
     RULES_CUSTOM_NAME: {
         route: 'settings/workspaces/:policyID/rules/name',
