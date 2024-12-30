@@ -68,6 +68,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     // Render the App and sign in as a test user.
     render(<App />);
 
+
     const participants: Record<number, Participant> = {};
     participantAccountIDs?.forEach((id) => {
         participants[id] = {
