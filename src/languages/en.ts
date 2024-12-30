@@ -1019,6 +1019,7 @@ const translations = {
             atLeastOneAttendee: 'At least one attendee must be selected',
             invalidQuantity: 'Please enter a valid quantity.',
             quantityGreaterThanZero: 'Quantity must be greater than zero.',
+            invalidSubrateLength: 'There must be at least one subrate.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',

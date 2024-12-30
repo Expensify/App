@@ -604,7 +604,10 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const subRateFields = PerDiemRequestUtils.getSubratesFields(perDiemCustomUnit, transaction).map((field, index) => (
+    const subRates = PerDiemRequestUtils.getSubratesFields(perDiemCustomUnit, transaction);
+    const shouldDisplaySubrateError = isPerDiemRequest && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
+
+    const subRateFields = subRates.map((field, index) => (
         <MenuItemWithTopDescription
             key={`${translate('common.subrate')}${field?.key ?? index}`}
             shouldShowRightIcon={!isReadOnly}
@@ -620,6 +623,8 @@ function MoneyRequestConfirmationListFooter({
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}
+            brickRoadIndicator={index === 0 && shouldDisplaySubrateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
         />
     ));
 

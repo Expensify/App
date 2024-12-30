@@ -1017,6 +1017,7 @@ const translations = {
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
             invalidQuantity: 'Please enter a valid quantity.',
             quantityGreaterThanZero: 'Quantity must be greater than zero.',
+            invalidSubrateLength: 'There must be at least one subrate.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
