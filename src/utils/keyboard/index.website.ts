@@ -27,7 +27,14 @@ const dismiss = (): Promise<void> => {
         }
 
         const handleDismissResize = () => {
-            if (window.visualViewport?.height !== initialViewportHeight) {
+            const viewportHeight = window?.visualViewport?.height;
+
+            if (!viewportHeight || !initialViewportHeight) {
+                return;
+            }
+
+            const isKeyboardVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+            if (isKeyboardVisible) {
                 return;
             }
 
