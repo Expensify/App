@@ -468,6 +468,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -513,6 +514,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
@@ -529,12 +531,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        case 'pendingChatMembers':
-            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
-                accountID: 'string',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                errors: 'object',
-            });
         case 'fieldList':
             return validateObject<ObjectElement<Report, 'fieldList'>>(
                 value,
@@ -616,7 +612,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -628,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
