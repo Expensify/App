@@ -166,11 +166,11 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
 
-        Policy.deleteWorkspace(policy?.id, policyName);
+        Policy.deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
-        if (activeWorkspaceID === policy?.id) {
+        if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
             Navigation.dismissModal();
             const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
