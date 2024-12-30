@@ -71,9 +71,9 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report?.parentReportActionID] : undefined;
     const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-    return originalMessage?.IOUTransactionID ?? -1;
+    return originalMessage?.IOUTransactionID;
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
@@ -81,8 +81,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const parentReportID = report?.parentReportID ?? '-1';
-    const policyID = report?.policyID ?? '-1';
+    const parentReportID = report?.parentReportID;
+    const policyID = report?.policyID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
@@ -97,12 +97,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report?.parentReportActionID] : undefined;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-        return originalMessage?.IOUTransactionID ?? '-1';
+        return originalMessage?.IOUTransactionID;
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
@@ -224,10 +224,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newBillable === TransactionUtils.getBillable(transaction)) {
+            if (newBillable === TransactionUtils.getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID ?? '-1', newBillable, policy, policyTagList, policyCategories);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -458,7 +458,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
-                            if (!transaction?.transactionID && linkedTransactionID === '-1') {
+                            if (!transaction?.transactionID && !linkedTransactionID) {
                                 return;
                             }
 
@@ -473,7 +473,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 }
                             }
                             Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
-                            ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
+                            ReportActions.clearAllRelatedReportActionErrors(report?.reportID, parentReportAction);
                         }}
                     >
                         {hasReceipt && (

@@ -26,7 +26,7 @@ Onyx.connect({
     },
 });
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
+function clearReportActionErrors(reportID: string | undefined, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
 
     if (!reportAction?.reportActionID) {
@@ -81,7 +81,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
 ignore: `undefined` means we want to check both parent and children report actions
 ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
  */
-function clearAllRelatedReportActionErrors(reportID: string, reportAction: ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) {
+function clearAllRelatedReportActionErrors(reportID: string | undefined, reportAction: ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0) {
         return;

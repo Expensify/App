@@ -799,7 +799,10 @@ function isDraftReport(reportID: string | undefined): boolean {
 /**
  * Returns the report
  */
-function getReport(reportID: string): OnyxEntry<Report> {
+function getReport(reportID: string | undefined): OnyxEntry<Report> {
+    if (!reportID) {
+        return undefined;
+    }
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
