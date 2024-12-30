@@ -240,8 +240,8 @@ function getOrderedReportIDs(
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
 
     const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports]
-        .map((report) => report.reportID)
-        .filter((reportID) => !!reportID) as string[];
+        .map((report) => report?.reportID)
+        .filter((reportID) => reportID) as string[];
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return LHNReports;
