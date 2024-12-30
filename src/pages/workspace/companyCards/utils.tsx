@@ -90,7 +90,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
                 data: resultData.map((card) => ({
                     value: card.name,
                     text: card.name,
@@ -117,7 +117,7 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: true,
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID, backTo)),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -200,7 +200,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 data,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID, backTo)),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
@@ -274,7 +274,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 title,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
                 data,
             };
         }
