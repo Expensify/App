@@ -702,7 +702,7 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(textInputRef.current) ?? CONST.);
+        tag.set(findNodeHandle(textInputRef.current) ?? -1);
     }, [tag]);
 
     useFocusedInputHandler(
