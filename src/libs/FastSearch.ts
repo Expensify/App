@@ -44,7 +44,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
     const concatenatedNumericList = new DynamicArrayBuffer(initialListSize, Uint8Array);
     // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
-    const occurrenceToIndex = new DynamicArrayBuffer(initialListSize * 4, Uint32Array);
+    const occurrenceToIndex = new DynamicArrayBuffer(initialListSize, Uint32Array);
     // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
     const listOffsets: number[] = [];
 
