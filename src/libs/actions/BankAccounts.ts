@@ -631,11 +631,11 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID: policyID ?? '-1',
+        policyID,
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
