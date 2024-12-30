@@ -376,6 +376,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
+        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+            updatedTransaction.taxCode = categoryTaxCode;
+            updatedTransaction.taxAmount = categoryTaxAmount;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {
@@ -1258,11 +1263,12 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
 
 function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    if (!taxRules || taxRules?.length === 0) {
+    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
 
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, policy?.taxRates?.defaultExternalID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
+    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
     let categoryTaxAmount;
 
