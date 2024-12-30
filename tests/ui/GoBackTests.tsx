@@ -260,4 +260,28 @@ describe('Go back on the narrow layout', () => {
         expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
         expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
     });
+
+    it('Should go back to the page from the previous split navigator', () => {
+        const initialState = {
+            index: 1,
+            routes: [...INITIAL_SETTINGS_STATE.routes, ...INITIAL_REPORTS_STATE.routes],
+        };
+
+        // Given the initialized navigation on the narrow layout with reports and settings pages
+        render(<TestNavigationContainer initialState={initialState} />);
+
+        const rootStateBeforeGoBack = navigationRef.current?.getRootState();
+        expect(rootStateBeforeGoBack?.index).toBe(1);
+        expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+        // When go back to the page present in the previous split navigator
+        act(() => {
+            Navigation.goBack(ROUTES.SETTINGS);
+        });
+
+        // Then pop the current split navigator
+        const rootStateAfterGoBack = navigationRef.current?.getRootState();
+        expect(rootStateAfterGoBack?.index).toBe(0);
+        expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+    });
 });
