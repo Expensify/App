@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -189,9 +190,7 @@ const ViolationsUtils = {
             const categoryKey = updatedTransaction.category;
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
             const inputDate = new Date(updatedTransaction.created);
-            const currentDate = new Date();
-            const normalizedInputDate = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
-            const normalizedCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+            const isInputDateInTheFuture = DateUtils.isFutureDate(inputDate);
             const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
             const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
             const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
@@ -218,15 +217,20 @@ const ViolationsUtils = {
             }
 
             // Add 'futureDate' violation if transaction date is in the future
-            if (!hasFutureDateViolation && normalizedInputDate > normalizedCurrentDate) {
+            if (!hasFutureDateViolation && isInputDateInTheFuture) {
                 newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
 
-            if (hasFutureDateViolation && normalizedInputDate <= normalizedCurrentDate) {
+            if (hasFutureDateViolation && !isInputDateInTheFuture) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
             }
 
-            if (!hasReceiptRequiredViolation && policy.maxExpenseAmountNoReceipt && !updatedTransaction.receipt?.receiptID) {
+            if (
+                !hasReceiptRequiredViolation &&
+                policy.maxExpenseAmountNoReceipt &&
+                Math.abs(updatedTransaction.amount) > policy.maxExpenseAmountNoReceipt &&
+                !updatedTransaction.receipt?.receiptID
+            ) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
                     data: {
@@ -237,11 +241,14 @@ const ViolationsUtils = {
                 });
             }
 
-            if (hasReceiptRequiredViolation && !!updatedTransaction.receipt?.receiptID) {
+            if (
+                hasReceiptRequiredViolation &&
+                (!!updatedTransaction.receipt?.receiptID || !policy.maxExpenseAmountNoReceipt || Math.abs(updatedTransaction.amount) <= policy.maxExpenseAmountNoReceipt)
+            ) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
             }
 
-            if (!hasOverLimitViolation && policyMaxExpenseAmount && -updatedTransaction.amount > policyMaxExpenseAmount) {
+            if (!hasOverLimitViolation && policyMaxExpenseAmount && Math.abs(updatedTransaction.amount) > policyMaxExpenseAmount) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.OVER_LIMIT,
                     data: {
@@ -252,7 +259,7 @@ const ViolationsUtils = {
                 });
             }
 
-            if (hasOverLimitViolation && (!policyMaxExpenseAmount || -updatedTransaction.amount <= policyMaxExpenseAmount)) {
+            if (hasOverLimitViolation && (!policyMaxExpenseAmount || Math.abs(updatedTransaction.amount) <= policyMaxExpenseAmount)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
             }
         }

@@ -679,6 +679,15 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 };
 
 /**
+ * Checks if the input time is after the reference date
+ * param {Date} inputDate - The date to validate.
+ * returns {boolean} - Returns true if the input date is after the reference date, otherwise false.
+ */
+const isFutureDate = (inputDate: Date): boolean => {
+    return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
  * Checks if the input time is at least one minute in the future compared to the reference time.
  * param {Date} inputTime - The time to validate.
  * param {Date} referenceTime - The time to compare against.
@@ -937,6 +946,7 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    isFutureDate,
 };
 
 export default DateUtils;
