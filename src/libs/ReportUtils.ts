@@ -6579,7 +6579,7 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
 
 type ShouldReportBeInOptionListParams = {
     report: OnyxEntry<Report>;
-    currentReportId: string;
+    currentReportId: string | undefined;
     isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
