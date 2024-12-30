@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
@@ -34,6 +36,7 @@ const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
 function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
@@ -43,9 +46,10 @@ function WorkspaceSwitcherPage() {
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const getIndicatorTypeForPolicy = useCallback(
         (policyId?: string) => {
@@ -157,24 +161,27 @@ function WorkspaceSwitcherPage() {
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <SelectionList<WorkspaceListItem>
-                        ListItem={UserListItem}
-                        sections={sections}
-                        onSelectRow={(option) => selectPolicy(option.policyID)}
-                        textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        listEmptyContent={WorkspaceCardCreateAWorkspaceInstance}
-                        shouldShowListEmptyContent={shouldShowCreateWorkspace}
-                        initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
-                        showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                        includeSafeAreaPaddingBottom={false}
-                        showConfirmButton={!!activeWorkspaceID}
-                        shouldUseDefaultTheme
-                        confirmButtonText={translate('workspace.common.clearFilter')}
-                        onConfirm={() => selectPolicy(undefined)}
-                    />
+                    {shouldShowLoadingIndicator ? (
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    ) : (
+                        <SelectionList<WorkspaceListItem>
+                            ListItem={UserListItem}
+                            sections={sections}
+                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            listEmptyContent={WorkspaceCardCreateAWorkspaceInstance}
+                            shouldShowListEmptyContent={shouldShowCreateWorkspace}
+                            initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
+                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            showConfirmButton={!!activeWorkspaceID}
+                            shouldUseDefaultTheme
+                            confirmButtonText={translate('workspace.common.clearFilter')}
+                            onConfirm={() => selectPolicy(undefined)}
+                        />
+                    )}
                 </>
             )}
         </ScreenWrapper>
