@@ -57,6 +57,8 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 useNativeDriver
             >
                 <ScreenWrapper
+                    style={styles.pb0}
+                    includePaddingTop={false}
                     includeSafeAreaPaddingBottom
                     testID={TimeModalPicker.displayName}
                 >
