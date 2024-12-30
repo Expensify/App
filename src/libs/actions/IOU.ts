@@ -3595,15 +3595,8 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, policy);
     const transactionChanges: TransactionChanges = {
         category,
-        ...(categoryTaxCode &&
-            categoryTaxAmount !== undefined && {
-                taxCode: categoryTaxCode,
-                taxAmount: categoryTaxAmount,
-            }),
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
@@ -5531,27 +5524,19 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 }
 
 function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
-    const newTransactionChanges = {...transactionChanges};
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    if (transactionChanges.category) {
-        const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(transactionChanges.category, draftSplitTransaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
-            newTransactionChanges.taxCode = categoryTaxCode;
-            newTransactionChanges.taxAmount = categoryTaxAmount;
-        }
-    }
-
     const updatedTransaction = draftSplitTransaction
         ? TransactionUtils.getUpdatedTransaction({
               transaction: draftSplitTransaction,
-              transactionChanges: newTransactionChanges,
+              transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
+              policy,
           })
         : null;
 
@@ -7915,6 +7900,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticReportAction),
                 stateNum,
@@ -8018,6 +8004,8 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal();
+    Report.notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
@@ -8077,6 +8065,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
+    Report.notifyNewAction(iouReport?.reportID ?? '', userAccountID);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
