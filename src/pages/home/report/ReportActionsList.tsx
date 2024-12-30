@@ -275,6 +275,10 @@ function ReportActionsList({
                 return false;
             }
 
+            const isPendingAdd = (action: OnyxTypes.ReportAction) => {
+                return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            };
+
             // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
             const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
             const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
@@ -283,7 +287,9 @@ function ReportActionsList({
             // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
             // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
             // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
-            const isPreviouslyOptimistic = !!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction;
+            const isPreviouslyOptimistic =
+                (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
+                (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
             const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && isPreviouslyOptimistic;
 
             return !isNewMessage && !shouldIgnoreUnreadForCurrentUserMessage;
