@@ -649,10 +649,10 @@ function ComposerWithSuggestions(
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(()=>{
-        if(prevIsModalVisible && !modal?.isVisible && !showSoftInputOnFocus){
+        if(prevIsFocused && !isFocused && !showSoftInputOnFocus){
             setShowSoftInputOnFocus(true);
         }
-    },[modal?.isVisible, prevIsModalVisible, showSoftInputOnFocus])
+    },[isFocused, prevIsFocused, showSoftInputOnFocus])
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
