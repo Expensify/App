@@ -1,5 +1,4 @@
 import {Keyboard} from 'react-native';
-import * as Browser from '@libs/Browser';
 
 let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
