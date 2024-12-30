@@ -40,7 +40,7 @@ interface NodeRequire {
     <T = any>(id: string): T;
 }
 
-// Define ArrayBuffer.transfer:
+// Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ArrayBuffer {
     // Might be defined in browsers, in RN hermes it's not implemented yet
