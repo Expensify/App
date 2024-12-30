@@ -108,13 +108,15 @@ describe('WorkspaceCategories', () => {
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
 
+        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
+
         // Wait for selection mode to be active and click the dropdown menu button
         await waitFor(() => {
-            expect(screen.getByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button')).toBeOnTheScreen();
+            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
         });
 
         // Click the "2 selected" button to open the menu
-        const dropdownButton = screen.getByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button');
+        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
         fireEvent.press(dropdownButton);
 
         await waitForBatchedUpdatesWithAct();
