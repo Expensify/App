@@ -62,6 +62,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
+        welcomeMessage: unknown;
     },
     PolicyReportField['fieldID']
 >;
