@@ -6455,6 +6455,7 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
+    SMART_BANNER_HEIGHT: 152,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
