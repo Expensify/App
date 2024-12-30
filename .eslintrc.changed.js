@@ -11,7 +11,6 @@ module.exports = {
     overrides: [
         {
             files: [
-                'src/libs/ReportUtils.ts',
                 'src/libs/actions/IOU.ts',
                 'src/libs/actions/Report.ts',
                 'src/libs/actions/Task.ts',

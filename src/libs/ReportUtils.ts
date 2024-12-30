@@ -8593,7 +8593,7 @@ function hasInvoiceReports() {
 }
 
 function getReportMetadata(reportID?: string) {
-    return allReportMetadataKeyValue[reportID ?? '-1'];
+    return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
 
 export {
