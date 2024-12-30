@@ -648,6 +648,12 @@ function ComposerWithSuggestions(
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
+    useEffect(()=>{
+        if(prevIsModalVisible && !modal?.isVisible && !showSoftInputOnFocus){
+            setShowSoftInputOnFocus(true);
+        }
+    },[modal?.isVisible, prevIsModalVisible, showSoftInputOnFocus])
+
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
