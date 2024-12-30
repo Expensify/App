@@ -605,7 +605,8 @@ function MoneyRequestConfirmationListFooter({
     ];
 
     const subRates = PerDiemRequestUtils.getSubratesFields(perDiemCustomUnit, transaction);
-    const shouldDisplaySubrateError = isPerDiemRequest && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
+    const shouldDisplaySubrateError =
+        isPerDiemRequest && (shouldDisplayFieldError || formError === 'iou.error.invalidSubrateLength') && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
 
     const subRateFields = subRates.map((field, index) => (
         <MenuItemWithTopDescription
