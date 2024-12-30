@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-at */
 import CONST from '@src/CONST';
 import Timing from './actions/Timing';
+import DynamicArrayBuffer from './DynamicArrayBuffer';
 import SuffixUkkonenTree from './SuffixUkkonenTree';
 
 type SearchableData<T> = {
@@ -35,11 +36,11 @@ const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/',
  */
 function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
-    const maxNumericListSize = 400_000;
+    const initialListSize = 350_000;
     // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
-    let concatenatedNumericList = new Uint8Array(maxNumericListSize);
+    const concatenatedNumericList = new DynamicArrayBuffer(initialListSize, Uint8Array);
     // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
-    const occurrenceToIndex = new Uint32Array(maxNumericListSize * 4);
+    const occurrenceToIndex = new DynamicArrayBuffer(initialListSize * 4, Uint32Array);
     // As we are working with ArrayBuffers, we need to keep track of the current offset:
     const offset = {value: 1};
     // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
@@ -50,12 +51,12 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
         dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, offset, {data, toSearchableString});
         listOffsets.push(offset.value);
     }
-    concatenatedNumericList[offset.value++] = SuffixUkkonenTree.END_CHAR_CODE;
+    concatenatedNumericList.set(offset.value, SuffixUkkonenTree.END_CHAR_CODE);
     listOffsets[listOffsets.length - 1] = offset.value;
     Timing.end(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
 
     // The list might be larger than necessary, so we clamp it to the actual size:
-    concatenatedNumericList = concatenatedNumericList.slice(0, offset.value);
+    // TODO: concatenatedNumericList = concatenatedNumericList.slice(0, offset.value);
 
     // Create & build the suffix tree:
     Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
@@ -84,7 +85,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < result.length; i++) {
             const occurrenceIndex = result[i];
-            const itemIndexInDataSet = occurrenceToIndex[occurrenceIndex];
+            const itemIndexInDataSet = occurrenceToIndex.array[occurrenceIndex];
             const dataSetIndex = listOffsets.findIndex((listOffset) => occurrenceIndex < listOffset);
 
             if (dataSetIndex === -1) {
@@ -128,7 +129,12 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
  * This function converts the user data (which are most likely objects) to a numeric representation.
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
-function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occurrenceToIndex: Uint32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
+function dataToNumericRepresentation<T>(
+    concatenatedNumericList: DynamicArrayBuffer<Uint8Array>,
+    occurrenceToIndex: DynamicArrayBuffer<Uint32Array>,
+    offset: {value: number},
+    {data, toSearchableString}: SearchableData<T>,
+): void {
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
@@ -146,10 +152,9 @@ function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occ
                 index,
             },
         });
+        occurrenceToIndex.set(offset.value, index);
         // eslint-disable-next-line no-param-reassign
-        occurrenceToIndex[offset.value] = index;
-        // eslint-disable-next-line no-param-reassign
-        concatenatedNumericList[offset.value++] = SuffixUkkonenTree.DELIMITER_CHAR_CODE;
+        concatenatedNumericList.set(offset.value++, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
     });
 }
 

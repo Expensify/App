@@ -1,3 +1,4 @@
+import DynamicArrayBuffer from '@libs/DynamicArrayBuffer';
 import SuffixUkkonenTree from '@libs/SuffixUkkonenTree/index';
 
 describe('SuffixUkkonenTree', () => {
@@ -6,15 +7,23 @@ describe('SuffixUkkonenTree', () => {
         const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true}));
         const numericList = numericLists.reduce(
             (acc, {numeric}) => {
-                acc.push(...numeric, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
+                acc.push(...numeric.array, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
                 return acc;
             },
             // The value we pass to makeTree needs to be offset by one
             [0],
         );
         numericList.push(SuffixUkkonenTree.END_CHAR_CODE);
-        return Uint8Array.from(numericList);
+        const arrayBuffer = new DynamicArrayBuffer(numericList.length, Uint8Array);
+        numericList.forEach((n) => arrayBuffer.push(n));
+        return arrayBuffer;
     }
+
+    it('should build strings correctly', () => {
+        const string = 'abc';
+        const numeric = SuffixUkkonenTree.stringToNumeric(string, {clamp: true}).numeric;
+        expect(Array.from(numeric)).toEqual(expect.arrayContaining([0, 1, 2]));
+    });
 
     it('should insert, build, and find all occurrences', () => {
         const strings = ['banana', 'pancake'];
