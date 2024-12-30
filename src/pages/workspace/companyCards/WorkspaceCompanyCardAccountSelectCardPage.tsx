@@ -40,6 +40,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
         return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
@@ -81,15 +82,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                     {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {!!exportMenuItem && (
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={exportMenuItem.onExportPagePress}
-                                >
-                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
-                                </TextLink>
+                            {!!exportMenuItem && !isXeroConnection && (
+                                <>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitlePart')}{' '}
+                                    <TextLink
+                                        style={styles.link}
+                                        onPress={exportMenuItem.onExportPagePress}
+                                    >
+                                        {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
+                                    </TextLink>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
+                                </>
                             )}
-                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
                         </Text>
                     )}
                 </View>
