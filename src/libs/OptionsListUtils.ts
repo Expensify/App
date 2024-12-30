@@ -507,7 +507,6 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const reportID = report?.reportID ?? '-1';
-
     const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
