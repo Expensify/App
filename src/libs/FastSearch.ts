@@ -140,7 +140,6 @@ function dataToNumericRepresentation<T>(
     {data, toSearchableString}: SearchableData<T>,
 ): void {
     data.forEach((option, index) => {
-        // console.log('Processing index', index);
         const searchStringForTree = toSearchableString(option);
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
 
