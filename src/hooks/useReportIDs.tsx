@@ -21,7 +21,7 @@ type ReportIDsContextProviderProps = {
 };
 
 type ReportIDsContextValue = {
-    orderedReportIDs: Array<string | undefined>;
+    orderedReportIDs: string[];
     currentReportID: string;
     policyMemberAccountIDs: number[];
 };
