@@ -369,7 +369,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
         if (!shouldUseNarrowLayout) {
-            return rootNavigatorOptions.fullScreen;
+            return rootNavigatorOptions.splitNavigator;
         }
 
         // On the narrow screen, we want to animate this navigator if it is opened from the settings split.
@@ -379,7 +379,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const animationEnabled = !workspaceSplitsWithoutEnteringAnimation.has(route.key);
 
         return {
-            ...rootNavigatorOptions.fullScreen,
+            ...rootNavigatorOptions.splitNavigator,
 
             // Allow swipe to go back from this split navigator to the settings navigator.
             gestureEnabled: true,
@@ -394,17 +394,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={rootNavigatorOptions.splitNavigator}
                         getComponent={loadReportSplitNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={rootNavigatorOptions.splitNavigator}
                         getComponent={loadSettingsSplitNavigator}
                     />
                     <RootStack.Screen
                         name={SCREENS.SEARCH.CENTRAL_PANE}
-                        options={rootNavigatorOptions.searchPage}
+                        options={rootNavigatorOptions.fullScreen}
                         getComponent={loadSearchPage}
                         initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                     />

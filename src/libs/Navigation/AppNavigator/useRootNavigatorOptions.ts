@@ -14,11 +14,11 @@ type RootNavigatorOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
     leftModalNavigator: PlatformStackNavigationOptions;
+    splitNavigator: PlatformStackNavigationOptions;
     homeScreen: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
     centralPaneNavigator: PlatformStackNavigationOptions;
     bottomTab: PlatformStackNavigationOptions;
-    searchPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -107,7 +107,7 @@ const useRootNavigatorOptions = () => {
             },
         },
 
-        fullScreen: {
+        splitNavigator: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
@@ -119,7 +119,7 @@ const useRootNavigatorOptions = () => {
             },
         },
 
-        searchPage: {
+        fullScreen: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
