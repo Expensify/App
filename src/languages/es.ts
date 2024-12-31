@@ -512,6 +512,7 @@ const translations = {
         chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo adjunto supera el límite de ${maxUploadSizeInMB} MB.`,
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
         wrongFileType: 'Tipo de archivo inválido',
@@ -1756,6 +1757,7 @@ const translations = {
     },
     onboarding: {
         welcome: '¡Bienvenido!',
+        welcomeSignOffTitle: '¡Es un placer conocerte!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
