@@ -6986,6 +6986,7 @@ function getPayMoneyRequestParams(
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
         {
@@ -7009,6 +7010,7 @@ function getPayMoneyRequestParams(
                 reimbursed: null,
                 partial: null,
             },
+            errors: null,
         },
     });
 
