@@ -30,11 +30,11 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     const lastScreenIndex = useMemo(() => calculateLastIndex(bodyContent.length, skipSteps), [bodyContent.length, skipSteps]);
 
     const prevScreen = useCallback(() => {
-        let decrementNuber = 1;
-        while (screenIndex - decrementNuber >= 0 && skipSteps.includes(screenIndex - decrementNuber)) {
-            decrementNuber += 1;
+        let decrementNumber = 1;
+        while (screenIndex - decrementNumber >= 0 && skipSteps.includes(screenIndex - decrementNumber)) {
+            decrementNumber += 1;
         }
-        const prevScreenIndex = screenIndex - decrementNuber;
+        const prevScreenIndex = screenIndex - decrementNumber;
 
         if (prevScreenIndex < 0) {
             return;
