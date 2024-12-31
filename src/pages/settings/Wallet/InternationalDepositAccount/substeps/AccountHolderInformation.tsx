@@ -18,6 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+const ACCOUNT_HOLDER_COUNTRY = 'accountHolderCountry';
+
 function getInputComponent(field: CorpayFormField) {
     if ((field.valueSet ?? []).length > 0) {
         return ValuePicker;
@@ -28,7 +30,7 @@ function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
         return AddressSearch;
     }
-    if (field.id === 'accountHolderCountry') {
+    if (field.id === ACCOUNT_HOLDER_COUNTRY) {
         return TextPicker;
     }
     return TextInput;
@@ -69,7 +71,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
                 return [index === 0 ? styles.pb2 : styles.pv2];
             }
-            if (field.id === 'accountHolderCountry') {
+            if (field.id === ACCOUNT_HOLDER_COUNTRY) {
                 return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             return [index === 0 ? styles.pb2 : styles.pv2];
@@ -101,10 +103,10 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 inputID={field.id}
                                 defaultValue={formValues[field.id]}
                                 label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                                description={field.id === 'accountHolderCountry' ? field.label : undefined}
+                                description={field.id === ACCOUNT_HOLDER_COUNTRY ? field.label : undefined}
                                 items={getItems(field)}
-                                disabled={field.id === 'accountHolderCountry'}
-                                interactive={field.id === 'accountHolderCountry' ? false : undefined}
+                                disabled={field.id === ACCOUNT_HOLDER_COUNTRY}
+                                interactive={field.id === ACCOUNT_HOLDER_COUNTRY ? false : undefined}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
                                     street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
