@@ -61,6 +61,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
@@ -193,6 +194,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
@@ -453,6 +455,7 @@ const translations = {
         drafts: 'Drafts',
         finished: 'Finished',
         upgrade: 'Upgrade',
+        downgradeWorkspace: 'Downgrade workspace',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
@@ -500,13 +503,6 @@ const translations = {
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
     },
-    contact: {
-        importContacts: 'Import contacts',
-        importContactsTitle: 'Import your contacts',
-        importContactsText: 'Import contacts from your phone so your favorite people are always a tap away.',
-        importContactsExplanation: 'so your favorite people are always a tap away.',
-        importContactsNativeText: 'Just one more step! Give us the green light to import your contacts.',
-    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
@@ -530,7 +526,7 @@ const translations = {
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB}MB. Please try again.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
     },
     filePicker: {
         fileError: 'File error',
@@ -661,10 +657,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -851,10 +843,6 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -1103,7 +1091,7 @@ const translations = {
         viewPhoto: 'View photo',
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar',
-        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
@@ -2541,7 +2529,7 @@ const translations = {
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
-            profile: 'Profile',
+            profile: 'Workspace profile',
             perDiem: 'Per diem',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
@@ -2608,6 +2596,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
@@ -2633,6 +2622,9 @@ const translations = {
                 existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
             },
             importPerDiemRates: 'Import per diem rates',
+            editPerDiemRate: 'Edit per diem rate',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this destination will change it for all ${destination} per diem subrates.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this currency will change it for all ${destination} per diem subrates.`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -3582,7 +3574,8 @@ const translations = {
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported.`,
+                integrationExportTitlePart: 'Select a different',
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
                 lastUpdated: 'Last updated',
@@ -4362,6 +4355,40 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
+            commonFeatures: {
+                title: 'Upgrade to the Control plan',
+                note: 'Unlock our most powerful features, including:',
+                benefits: {
+                    note: 'The Control plan starts at $9 per active member per month.',
+                    learnMore: 'Learn more',
+                    pricing: 'about our plans and pricing.',
+                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Downgrade to the Collect plan',
+                note: 'If you downgrade, you’ll lose access to these features and more:',
+                benefits: {
+                    note: 'For a full comparison of our plans, check out our',
+                    pricingPage: 'pricing page',
+                    confirm: 'Are you sure you want to downgrade and remove your configurations?',
+                    warning: 'This cannot be undone.',
+                    benefit1: 'Accounting connections (except QuickBooks Online and Xero)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
+            completed: {
+                headline: 'Your workspace has been downgraded',
+                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                gotIt: 'Got it, thanks',
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -4464,6 +4491,25 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+        },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'For teams looking to automate their processes.',
+                },
+                corporate: {
+                    label: 'Control',
+                    description: 'For organizations with advanced requirements.',
+                },
+            },
+            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
+            subscriptionLink: 'plan types and pricing help page',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+                other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+            }),
+            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {
@@ -4602,7 +4648,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try creating something with the green + button.',
+                subtitle: 'Try adjusting your search criteria or creating something with the green + button.',
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -4619,7 +4665,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5519,6 +5564,44 @@ const translations = {
             chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
+        },
+        workspaceChatTooltip: {
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
+        },
+        globalCreateTooltip: {
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
         },
     },
 };

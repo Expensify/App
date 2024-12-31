@@ -23,18 +23,6 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
-/** The pending member of report */
-type PendingChatMember = {
-    /** Account ID of the pending member */
-    accountID: string;
-
-    /** Action to be applied to the pending member of report */
-    pendingAction: OnyxCommon.PendingAction;
-
-    /** Collection of errors to show to the user */
-    errors?: OnyxCommon.Errors;
-};
-
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** What is the role of the participant in the report */
@@ -42,6 +30,9 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
+
+    /** Permissions granted to the participant */
+    permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 }>;
 
 /** Types of invoice receivers in a report */
@@ -60,6 +51,9 @@ type InvoiceReceiver =
           /** ID of the policy */
           policyID: string;
       };
+
+/** Type of invoice receiver */
+type InvoiceReceiverType = InvoiceReceiver['type'];
 
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
@@ -148,9 +142,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
-        /** Translation key of the last message in the report */
-        lastMessageTranslationKey?: string;
-
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 
@@ -211,9 +202,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
-        /** Pending members of the report */
-        pendingChatMembers?: PendingChatMember[];
-
         /** Collection of policy report fields, indexed by their fieldID */
         fieldList?: Record<string, PolicyReportField>;
 
@@ -235,6 +223,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
+
+        /** The report's welcome message */
+        welcomeMessage?: string;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
@@ -244,4 +235,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
