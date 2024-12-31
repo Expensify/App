@@ -10,7 +10,7 @@ const GUTTER_WIDTH = variables.gutterWidth;
  * Compute the amount the tooltip needs to be horizontally shifted in order to keep it from displaying in the gutters.
  *
  * @param windowWidth - The width of the window.
- * @param tooltipLeftEdge - The distance between the left edge of the window
+ * @param tooltipLeftEdge - The distance between the left edge of the tooltip
  *                           and the left edge of the wrapped component.
  * @param tooltipWidth - The width of the tooltip itself.
  */
