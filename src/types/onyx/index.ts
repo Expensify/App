@@ -126,7 +126,6 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
-    CorpayFields,
     Currency,
     CurrencyList,
     CustomStatusDraft,

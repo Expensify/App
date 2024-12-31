@@ -680,7 +680,7 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
     );
 }
 
-function createCorpayBankAccount(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
     const inputData = {
         ...data,
         classification,
@@ -725,9 +725,9 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
-    getCorpayBankAccountFields,
-    createCorpayBankAccount,
     clearReimbursementAccountBankCreation,
+    getCorpayBankAccountFields,
+    createCorpayBankAccountForWalletFlow,
 };
 
 export type {BusinessAddress, PersonalAddress};

@@ -38,7 +38,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setError('');
         setIsSubmitting(true);
-        BankAccounts.createCorpayBankAccount(
+        BankAccounts.createCorpayBankAccountForWalletFlow(
             {...formValues, ...values},
             corpayFields?.classification ?? '',
             corpayFields?.destinationCountry ?? '',

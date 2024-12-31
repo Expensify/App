@@ -67,6 +67,10 @@ type CorpayFields = {
     preferredMethod: string;
     /** Form fields for the Corpay form */
     formFields: CorpayFormField[];
+    /** Indicates if the fields are loading */
+    isLoading: boolean;
+    /** Indicates if the fields loaded successfully */
+    isSuccess: boolean;
 };
 
 /** CorpayFieldsMap */
