@@ -16,6 +16,7 @@ import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
+import type CorpayFields from './CorpayFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -112,7 +113,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -127,6 +127,7 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
+    CorpayFields,
     Currency,
     CurrencyList,
     CustomStatusDraft,
@@ -236,7 +237,6 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
-    WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,

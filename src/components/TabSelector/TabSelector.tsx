@@ -28,16 +28,6 @@ type IconAndTitle = {
 
 function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
-        case CONST.DEBUG.DETAILS:
-            return {icon: Expensicons.Info, title: translate('debug.details')};
-        case CONST.DEBUG.JSON:
-            return {icon: Expensicons.Eye, title: translate('debug.JSON')};
-        case CONST.DEBUG.REPORT_ACTIONS:
-            return {icon: Expensicons.Document, title: translate('debug.reportActions')};
-        case CONST.DEBUG.REPORT_ACTION_PREVIEW:
-            return {icon: Expensicons.Document, title: translate('debug.reportActionPreview')};
-        case CONST.DEBUG.TRANSACTION_VIOLATIONS:
-            return {icon: Expensicons.Exclamation, title: translate('debug.violations')};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
         case CONST.TAB_REQUEST.SCAN:
