@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -23,7 +23,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -71,8 +70,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
+    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '-1';
+    const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
@@ -98,8 +98,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, [fetchCategories]),
     );
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
-    useCleanupSelectedOptions(cleanupSelectedOption);
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedCategories({});
+    }, [isFocused]);
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean, categoryName: string) => {
@@ -108,29 +112,35 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         [policyId],
     );
 
-    const categoryList = useMemo<PolicyOption[]>(
-        () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? undefined,
-                    rightElement: (
-                        <Switch
-                            isOn={value.enabled}
-                            disabled={isDisabled}
-                            accessibilityLabel={translate('workspace.categories.enableCategory')}
-                            onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
-                        />
-                    ),
-                };
-            }),
-        [policyCategories, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory],
-    );
+    const categoryList = useMemo<PolicyOption[]>(() => {
+        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        return categories.reduce<PolicyOption[]>((acc, value) => {
+            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            if (!isOffline && isDisabled) {
+                return acc;
+            }
+
+            acc.push({
+                text: value.name,
+                keyForList: value.name,
+                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isDisabled,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
+                rightElement: (
+                    <Switch
+                        isOn={value.enabled}
+                        disabled={isDisabled}
+                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
+                    />
+                ),
+            });
+
+            return acc;
+        }, []);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
@@ -161,10 +171,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
-            toggleCategory(category);
-            return;
-        }
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
@@ -262,6 +268,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategoriesArray.length}
+                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
                 />
             );
         }
