@@ -1,7 +1,8 @@
 import isEqual from 'lodash/isEqual';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -9,6 +10,7 @@ import * as PolicyActions from '@src/libs/actions/Policy/Policy';
 import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
+import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import * as Localize from '@src/libs/Localize';
 import * as NumberUtils from '@src/libs/NumberUtils';
@@ -19,8 +21,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as InvoiceData from '../data/Invoice';
+import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -3400,7 +3406,84 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('resolveDuplicate', () => {
+        test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
+            // Given two duplicate transactions
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+            const transaction2 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const iouActions: OnyxTypes.ReportAction[] = [];
+            [transaction1, transaction2].forEach((transaction) =>
+                iouActions.push(ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+            );
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {};
+            iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When resolving duplicates with transaction thread reports no existing in onyx
+                    IOU.resolveDuplicates({
+                        ...transaction1,
+                        receiptID: 1,
+                        category: '',
+                        comment: '',
+                        billable: false,
+                        reimbursable: true,
+                        tag: '',
+                        transactionIDList: [transaction2.transactionID],
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
+                            callback: (transaction) => {
+                                Onyx.disconnect(connection);
+                                // Then the duplicate transaction should correctly be set on hold.
+                                expect(transaction?.comment?.hold).toBeDefined();
+                                resolve();
+                            },
+                        });
+                    });
+                });
+        });
+    });
+
     describe('sendInvoice', () => {
+        it('creates a new invoice chat when one has been converted from individual to business', async () => {
+            // Mock API.write for this test
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Given a convertedInvoiceReport is stored in Onyx
+            const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
+
+            // And data for when a new invoice is sent to a user
+            const currentUserAccountID = 32;
+            const companyName = 'b1-53019';
+            const companyWebsite = 'https://www.53019.com';
+
+            // When the user sends a new invoice to an individual
+            IOU.sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+
+            // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
+            expect(writeSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
             mockFetch?.pause?.();
@@ -3467,40 +3550,82 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('should not change the tax if there are no tax expense rules', async () => {
-            // Given a policy without tax expense rules
-            const transactionID = '1';
-            const category = 'Advertising';
-            const policyID = '2';
-            const taxCode = 'id_TAX_EXEMPT';
-            const taxAmount = 0;
-            const fakePolicy: OnyxTypes.Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                taxCode,
-                taxAmount,
-                amount: 100,
+        describe('should not change the tax', () => {
+            it('if the transaction type is distance', async () => {
+                // Given a policy with tax expense rules associated with category and a distance transaction
+                const transactionID = '1';
+                const category = 'Advertising';
+                const policyID = '2';
+                const taxCode = 'id_TAX_EXEMPT';
+                const ruleTaxCode = 'id_TAX_RATE_1';
+                const taxAmount = 0;
+                const fakePolicy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    taxCode,
+                    taxAmount,
+                    amount: 100,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+                // When setting the money request category
+                IOU.setMoneyRequestCategory(transactionID, category, policyID);
+
+                await waitForBatchedUpdates();
+
+                // Then the transaction tax rate and amount shouldn't be updated
+                await new Promise<void>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+                        callback: (transaction) => {
+                            Onyx.disconnect(connection);
+                            expect(transaction?.taxCode).toBe(taxCode);
+                            expect(transaction?.taxAmount).toBe(taxAmount);
+                            resolve();
+                        },
+                    });
+                });
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
-            // When setting the money request category
-            IOU.setMoneyRequestCategory(transactionID, category, policyID);
+            it('if there are no tax expense rules', async () => {
+                // Given a policy without tax expense rules
+                const transactionID = '1';
+                const category = 'Advertising';
+                const policyID = '2';
+                const taxCode = 'id_TAX_EXEMPT';
+                const taxAmount = 0;
+                const fakePolicy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    taxCode,
+                    taxAmount,
+                    amount: 100,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
-            await waitForBatchedUpdates();
+                // When setting the money request category
+                IOU.setMoneyRequestCategory(transactionID, category, policyID);
 
-            // Then the transaction tax rate and amount shouldn't be updated
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBe(taxCode);
-                        expect(transaction?.taxAmount).toBe(taxAmount);
-                        resolve();
-                    },
+                await waitForBatchedUpdates();
+
+                // Then the transaction tax rate and amount shouldn't be updated
+                await new Promise<void>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+                        callback: (transaction) => {
+                            Onyx.disconnect(connection);
+                            expect(transaction?.taxCode).toBe(taxCode);
+                            expect(transaction?.taxAmount).toBe(taxAmount);
+                            resolve();
+                        },
+                    });
                 });
             });
         });
@@ -3540,6 +3665,7 @@ describe('actions/IOU', () => {
             // Given a policy with tax expense rules associated with category
             const transactionID = '1';
             const policyID = '2';
+            const transactionThreadReportID = '3';
             const category = 'Advertising';
             const taxCode = 'id_TAX_EXEMPT';
             const ruleTaxCode = 'id_TAX_RATE_1';
@@ -3554,9 +3680,10 @@ describe('actions/IOU', () => {
                 amount: 100,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+            IOU.updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3572,36 +3699,102 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-        });
 
-        it('should not update the tax when there are no tax expense rules', async () => {
-            // Given a policy without tax expense rules
-            const transactionID = '1';
-            const policyID = '2';
-            const category = 'Advertising';
-            const fakePolicy: OnyxTypes.Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-            // When updating the money request category
-            IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
-
-            await waitForBatchedUpdates();
-
-            // Then the transaction tax rate and amount shouldn't be updated
+            // But the original message should only contains the old and new category data
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    callback: (transaction) => {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                    callback: (reportActions) => {
                         Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBeUndefined();
-                        expect(transaction?.taxAmount).toBeUndefined();
-                        resolve();
+                        const reportAction = Object.values(reportActions ?? {}).at(0);
+                        if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE)) {
+                            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+                            expect(originalMessage?.oldCategory).toBe('');
+                            expect(originalMessage?.category).toBe(category);
+                            expect(originalMessage?.oldTaxRate).toBeUndefined();
+                            expect(originalMessage?.oldTaxAmount).toBeUndefined();
+                            resolve();
+                        }
                     },
+                });
+            });
+        });
+
+        describe('should not update the tax', () => {
+            it('if the transaction type is distance', async () => {
+                // Given a policy with tax expense rules associated with category and a distance transaction
+                const transactionID = '1';
+                const policyID = '2';
+                const category = 'Advertising';
+                const taxCode = 'id_TAX_EXEMPT';
+                const taxAmount = 0;
+                const ruleTaxCode = 'id_TAX_RATE_1';
+                const fakePolicy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    taxCode,
+                    taxAmount,
+                    amount: 100,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+                // When updating a money request category
+                IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+
+                await waitForBatchedUpdates();
+
+                // Then the transaction tax rate and amount shouldn't be updated
+                await new Promise<void>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                        callback: (transaction) => {
+                            Onyx.disconnect(connection);
+                            expect(transaction?.taxCode).toBe(taxCode);
+                            expect(transaction?.taxAmount).toBe(taxAmount);
+                            resolve();
+                        },
+                    });
+                });
+            });
+
+            it('if there are no tax expense rules', async () => {
+                // Given a policy without tax expense rules
+                const transactionID = '1';
+                const policyID = '2';
+                const category = 'Advertising';
+                const fakePolicy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+                // When updating the money request category
+                IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+
+                await waitForBatchedUpdates();
+
+                // Then the transaction tax rate and amount shouldn't be updated
+                await new Promise<void>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                        callback: (transaction) => {
+                            Onyx.disconnect(connection);
+                            expect(transaction?.taxCode).toBeUndefined();
+                            expect(transaction?.taxAmount).toBeUndefined();
+                            resolve();
+                        },
+                    });
                 });
             });
         });
@@ -3647,7 +3840,7 @@ describe('actions/IOU', () => {
         });
 
         describe('should not change the tax', () => {
-            it('if there is no tax expense rules', async () => {
+            it('if there are no tax expense rules', async () => {
                 // Given a policy without tax expense rules
                 const transactionID = '1';
                 const category = 'Advertising';
