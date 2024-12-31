@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -113,6 +114,8 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -419,22 +422,26 @@ function WorkspacesListPage() {
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <FeatureList
-                            menuItems={workspaceFeatures}
-                            title={translate('workspace.emptyWorkspace.title')}
-                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                            ctaText={translate('workspace.new.newWorkspace')}
-                            ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                            illustration={LottieAnimations.WorkspacePlanet}
-                            // We use this style to vertically center the illustration, as the original illustration is not centered
-                            illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
-                            titleStyles={styles.textHeadlineH1}
-                        />
-                    </View>
-                </ScrollView>
+                {shouldShowLoadingIndicator ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <ScrollView contentContainerStyle={styles.pt3}>
+                        <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            <FeatureList
+                                menuItems={workspaceFeatures}
+                                title={translate('workspace.emptyWorkspace.title')}
+                                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                                ctaText={translate('workspace.new.newWorkspace')}
+                                ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
+                                onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                                illustration={LottieAnimations.WorkspacePlanet}
+                                // We use this style to vertically center the illustration, as the original illustration is not centered
+                                illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         );
     }

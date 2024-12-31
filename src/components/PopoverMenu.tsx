@@ -3,7 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -61,6 +61,9 @@ type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'anim
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
+
+    /** Optional callback passed to popover's children container */
+    onLayout?: (e: LayoutChangeEvent) => void;
 
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
@@ -130,6 +133,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
+
+    /** Used to locate the component in the tests */
+    testID?: string;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -151,6 +157,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onLayout,
     onModalShow,
     headerText,
     fromSidebarMediumScreen,
@@ -174,6 +181,7 @@ function PopoverMenu({
     shouldUseScrollView = false,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
+    testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -261,6 +269,7 @@ function PopoverMenu({
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${item.text}_${menuIndex}`}
+                    pressableTestID={`PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={() => selectItem(menuIndex)}
                     focused={focusedIndex === menuIndex}
@@ -357,9 +366,13 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
+                <View
+                    onLayout={onLayout}
+                    style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}
+                >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}

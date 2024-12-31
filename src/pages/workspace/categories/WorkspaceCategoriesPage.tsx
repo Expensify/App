@@ -72,7 +72,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '-1';
+    const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
@@ -105,22 +105,28 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories({});
     }, [isFocused]);
 
-    const categoryList = useMemo<PolicyOption[]>(
-        () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? undefined,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                };
-            }),
-        [policyCategories, selectedCategories, canSelectMultiple, translate],
-    );
+    const categoryList = useMemo<PolicyOption[]>(() => {
+        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        return categories.reduce<PolicyOption[]>((acc, value) => {
+            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            if (!isOffline && isDisabled) {
+                return acc;
+            }
+
+            acc.push({
+                text: value.name,
+                keyForList: value.name,
+                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isDisabled,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
+                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+            });
+
+            return acc;
+        }, []);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
@@ -248,6 +254,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategoriesArray.length}
+                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
                 />
             );
         }
