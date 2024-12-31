@@ -122,7 +122,7 @@ function CategorySettingsPage({
     const deleteCategory = () => {
         Category.deleteWorkspaceCategories(policyID, [categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
-        navigateBack();
+        Navigation.setNavigationActionToMicrotaskQueue(navigateBack);
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
