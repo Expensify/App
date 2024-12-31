@@ -68,7 +68,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
                 <MenuItem
-                    avatarID={personalDetails?.accountID ?? -1}
+                    avatarID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     icon={avatarIcon}
                     title={displayName}
