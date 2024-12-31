@@ -103,6 +103,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                     component={SettingsSplitNavigator}
                 />
+                <RootStack.Screen
+                    name={SCREENS.SEARCH.CENTRAL_PANE}
+                    getComponent={() => jest.fn()}
+                />
             </RootStack.Navigator>
         </NavigationContainer>
     );
@@ -305,10 +309,76 @@ describe('Go back on the narrow layout', () => {
             expect(rootStateAfterGoBack?.index).toBe(0);
             expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
+
+        it('Should replace the current route with a new split navigator when distance from the fallbackRoute is greater than one split navigator', () => {
+            // Given the initialized navigation on the narrow layout
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 2,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                name: SCREENS.SEARCH.CENTRAL_PANE,
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const rootStateBeforeGoBack = navigationRef.current?.getRootState();
+            expect(rootStateBeforeGoBack?.index).toBe(2);
+            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+
+            // When go back to the page present in the split navigator that is more than 1 route away
+            act(() => {
+                Navigation.goBack(ROUTES.SETTINGS);
+            });
+
+            // Then replace the current route with a new split navigator including the target page to avoid losing routes from the navigation state
+            const rootStateAfterGoBack = navigationRef.current?.getRootState();
+            expect(rootStateAfterGoBack?.index).toBe(2);
+            expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        });
     });
 
     describe('called with fallbackRoute param with route params comparison', () => {
-        it('Should go back to the page with matched route params', () => {
+        it('Should go back to the page with matching route params', () => {
             // Given the initialized navigation on the narrow layout with the reports split navigator
             render(
                 <TestNavigationContainer
