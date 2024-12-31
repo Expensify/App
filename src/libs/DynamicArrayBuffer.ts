@@ -39,8 +39,9 @@ class DynamicArrayBuffer<T extends TypedArray> {
     }
 
     push(value: number): void {
-        if (this.size === this.capacity) {
-            this.resize(this.capacity * 2);
+        const capacity = this.array.length; // avoid function calls for performance
+        if (this.size === capacity) {
+            this.resize(capacity * 2);
         }
         this.array[this.size++] = value;
     }
@@ -64,8 +65,9 @@ class DynamicArrayBuffer<T extends TypedArray> {
         }
 
         // If the index is beyond our current capacity, resize
-        while (index >= this.capacity) {
-            this.resize(this.capacity * 2);
+        const capacity = this.array.length; // avoid function calls for performance
+        while (index >= capacity) {
+            this.resize(capacity * 2);
         }
 
         this.size = Math.max(this.size, index + 1);
