@@ -49,10 +49,14 @@ function measureTTI(endMark?: string): void {
         requestAnimationFrame(() => {
             measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
-            // we don't want the alert to show on an e2e test session
-            if (!isE2ETestSession()) {
-                printPerformanceMetrics();
+            // We don't want an alert to show:
+            // - on builds with performance metrics collection disabled by a feature flag
+            // - e2e test sessions
+            if (!Metrics.canCapturePerformanceMetrics() || isE2ETestSession()) {
+                return;
             }
+
+            printPerformanceMetrics();
         });
     });
 }
