@@ -1,6 +1,7 @@
 import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
@@ -12,6 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import computeHorizontalShift, {GUTTER_WIDTH} from './computeHorizontalShift';
+import {ComputeHorizontalShift} from './computeHorizontalShift/types';
 import isOverlappingAtTop from './isOverlappingAtTop';
 import tooltipPlatformStyle from './tooltipPlatformStyles';
 
@@ -53,6 +55,20 @@ type TooltipAnimationProps = {
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles; getTooltipAnimatedStyles: (props: TooltipAnimationProps) => {transform: [{scale: number}]}};
+
+const computeHorizontalShiftNew: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth) => {
+    const tooltipRightEdge = tooltipLeftEdge + tooltipWidth;
+    if (tooltipLeftEdge < GUTTER_WIDTH) {
+        // Tooltip is in left gutter, shift right by a multiple of four.
+        return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);
+    }
+    if (tooltipRightEdge > windowWidth - GUTTER_WIDTH) {
+        // Tooltip is in right gutter, shift left by a multiple of four.
+        return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - tooltipRightEdge);
+    }
+    // Tooltip is not in the gutter, so no need to shift it horizontally
+    return 0;
+};
 
 /**
  * Generate styles for the tooltip component.
@@ -207,6 +223,33 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                     pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2);
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
+
+            rootWrapperLeft = xOffset + manualShiftHorizontal;
+            switch (anchorAlignment.horizontal) {
+                case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
+                    pointerWrapperLeft = POINTER_WIDTH / 2;
+                    break;
+                case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
+                    pointerWrapperLeft = tooltipWidth - POINTER_WIDTH * 1.5;
+                    rootWrapperLeft += tooltipTargetWidth - tooltipWidth;
+                    break;
+                case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
+                default:
+                    pointerWrapperLeft = tooltipWidth / 2 - POINTER_WIDTH / 2;
+                    rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
+            }
+
+            horizontalShift = computeHorizontalShiftNew(windowWidth, rootWrapperLeft, tooltipWidth);
+
+            // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
+            // We shift it to the right a bit if the tooltip is positioned on the extreme left
+            // and shift it to left a bit if the tooltip is positioned on the extreme right.
+            horizontalShiftPointer =
+                horizontalShift > 0
+                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
+                    : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall);
+            rootWrapperLeft += horizontalShift;
+            pointerWrapperLeft += horizontalShiftPointer;
 
             pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
 
