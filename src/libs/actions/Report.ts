@@ -4013,8 +4013,8 @@ function prepareOnboardingOptimisticData(
     }
 
     type SelfDMParameters = {
-        reportID?: string; 
-        createdReportActionID?: string
+        reportID?: string;
+        createdReportActionID?: string;
     };
 
     let selfDMParameters: SelfDMParameters = {};
