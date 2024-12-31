@@ -1,7 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
+import React, {createContext, useCallback, useMemo, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 
 type CurrentReportIDContextValue = {
@@ -60,30 +58,6 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 }
 
 CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
-
-export default function withCurrentReportID<TProps extends CurrentReportIDContextValue, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof CurrentReportIDContextValue> & React.RefAttributes<TRef>) => React.ReactElement | null {
-    function WithCurrentReportID(props: Omit<TProps, keyof CurrentReportIDContextValue>, ref: ForwardedRef<TRef>) {
-        return (
-            <CurrentReportIDContext.Consumer>
-                {(currentReportIDUtils) => (
-                    <WrappedComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...currentReportIDUtils}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(props as TProps)}
-                        ref={ref}
-                    />
-                )}
-            </CurrentReportIDContext.Consumer>
-        );
-    }
-
-    WithCurrentReportID.displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
-
-    return forwardRef(WithCurrentReportID);
-}
 
 export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
 export type {CurrentReportIDContextValue};
