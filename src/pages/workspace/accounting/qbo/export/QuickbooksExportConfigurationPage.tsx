@@ -32,6 +32,8 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
+    const isConnectionShouldBeRemovedFromCompanyCard = shouldShowVendorMenuItems && backTo;
+
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
@@ -84,7 +86,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={!backTo ? undefined : () => Navigation.navigate(backTo)}
+            onBackButtonPress={isConnectionShouldBeRemovedFromCompanyCard ? () => Navigation.navigate(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

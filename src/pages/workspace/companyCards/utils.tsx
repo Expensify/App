@@ -115,7 +115,7 @@ function getExportMenuItem(
             return {
                 description,
                 exportType,
-                shouldShowMenuItem: true,
+                shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID, backTo)),
                 data: (resultData ?? []).map((card) => {
@@ -274,7 +274,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 title,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo)),
                 data,
             };
         }

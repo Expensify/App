@@ -25,6 +25,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
 
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const isConnectionShouldBeRemovedFromCompanyCard = !exportConfiguration?.nonReimbursableAccount && backTo;
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {
@@ -94,7 +95,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={!backTo ? undefined : () => Navigation.navigate(backTo)}
+            onBackButtonPress={isConnectionShouldBeRemovedFromCompanyCard ? () => Navigation.navigate(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

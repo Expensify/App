@@ -50,6 +50,11 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {canUseNetSuiteUSATax} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
+    const isConnectionShouldBeRemovedFromCompanyCard =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
+            config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT) &&
+        backTo;
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
@@ -200,7 +205,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={!backTo ? undefined : () => Navigation.navigate(backTo)}
+            onBackButtonPress={isConnectionShouldBeRemovedFromCompanyCard ? () => Navigation.navigate(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
