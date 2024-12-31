@@ -244,6 +244,9 @@ type PureReportActionItemProps = {
 
     /** Type of attachment context value */
     attachmentContextValueType?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+
+    /** Current connected policy */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 /**
@@ -298,6 +301,7 @@ function PureReportActionItem({
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
     attachmentContextValueType = CONST.ATTACHMENT_TYPE.REPORT,
+    policy,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate} = useLocalize();
@@ -1045,6 +1049,7 @@ function PureReportActionItem({
                         !ReportActionsUtils.isPendingRemove(action)
                     }
                     personalDetails={personalDetails}
+                    policy={policy}
                 >
                     {content}
                 </ReportActionItemSingle>

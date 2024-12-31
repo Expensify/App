@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +62,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
 
     /** Current connected policy */
-    policy?: OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -91,8 +90,6 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const onyxPolicy = usePolicy(report?.policyID);
-    const reportPolicy = policy ?? onyxPolicy;
     const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -117,9 +114,9 @@ function ReportActionItemSingle({
     let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report, undefined, reportPolicy);
+        displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceIcon(report, reportPolicy).source;
+        avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
     } else if (action?.delegateAccountID && personalDetails?.[action?.delegateAccountID]) {
         displayName = delegatePersonalDetails?.displayName ?? '';
@@ -158,7 +155,7 @@ function ReportActionItemSingle({
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(report, personalDetails, null, undefined, undefined, reportPolicy);
+        const reportIcons = ReportUtils.getIcons(report, personalDetails, null, undefined, undefined, policy);
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (ReportUtils.isInvoiceReport(iouReport)) {

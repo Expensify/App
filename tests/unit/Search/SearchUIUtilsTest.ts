@@ -3,6 +3,8 @@ import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 const accountID = 18439984;
 const policyID = 'A1B2C3';
 const reportID = '123456789';

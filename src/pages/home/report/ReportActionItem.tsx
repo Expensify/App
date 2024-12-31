@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
+import usePolicy from '@hooks/usePolicy';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -43,6 +44,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
     const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
+    const policy = usePolicy(report?.policyID);
 
     return (
         <PureReportActionItem
@@ -81,6 +83,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             dismissTrackExpenseActionableWhisper={Report.dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
             reportAutomaticallyForwardedMessage={ReportUtils.getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
+            policy={policy}
         />
     );
 }

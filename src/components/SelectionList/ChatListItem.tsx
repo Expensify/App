@@ -83,6 +83,7 @@ function ChatListItem<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 shouldDisplayContextMenu={false}
                 attachmentContextValueType={CONST.ATTACHMENT_TYPE.SEARCH}
+                policy={undefined}
             />
         </BaseListItem>
     );

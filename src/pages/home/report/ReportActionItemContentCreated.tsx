@@ -96,6 +96,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             action={parentReportAction}
                             showHeader
                             report={report}
+                            policy={policy}
                         >
                             <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                         </ReportActionItemSingle>
@@ -130,6 +131,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             action={parentReportAction}
                             showHeader={draftMessage === undefined}
                             report={report}
+                            policy={policy}
                         >
                             <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
                         </ReportActionItemSingle>
