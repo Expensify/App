@@ -5,6 +5,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import * as ActionSheetAwareScrollView from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
@@ -89,6 +90,7 @@ function App({url}: AppProps) {
                                 CustomStatusBarAndBackgroundContextProvider,
                                 ActiveElementRoleProvider,
                                 ActiveWorkspaceContextProvider,
+                                ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
                                 ReportIDsContextProvider,
                                 PlaybackContextProvider,
                                 FullScreenContextProvider,
