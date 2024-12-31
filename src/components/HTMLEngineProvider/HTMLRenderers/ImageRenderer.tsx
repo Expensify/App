@@ -114,14 +114,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
                                 return onShowContextMenu(() =>
-                                    showContextMenuForReport(
-                                        event,
-                                        anchor,
-                                        report?.reportID ?? '-1',
-                                        action,
-                                        checkIfContextMenuActive,
-                                        ReportUtils.isArchivedRoom(report, reportNameValuePairs),
-                                    ),
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs)),
                                 );
                             }}
                             shouldUseHapticsOnLongPress
