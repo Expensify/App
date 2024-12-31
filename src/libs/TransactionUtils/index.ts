@@ -49,12 +49,12 @@ type TransactionParams = {
     billable?: boolean;
     pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
     reimbursable?: boolean;
+    source?: string;
+    filename?: string;
 };
 
 type BuildOptimisticTransactionParams = {
-    source?: string;
     originalTransactionID?: string;
-    filename?: string;
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
@@ -159,7 +159,7 @@ function isManualRequest(transaction: Transaction): boolean {
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
-    const {source = '', originalTransactionID = '', existingTransactionID, existingTransaction, filename = '', policy, transactionParams} = params;
+    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams} = params;
     const {
         amount,
         currency,
@@ -176,6 +176,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         billable = false,
         pendingFields,
         reimbursable = true,
+        source = '',
+        filename = '',
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)

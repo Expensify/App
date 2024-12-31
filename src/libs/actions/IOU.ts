@@ -2145,7 +2145,6 @@ function getSendInvoiceInformation(
         filename = receipt.name;
     }
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
-        filename,
         transactionParams: {
             amount,
             currency,
@@ -2159,6 +2158,7 @@ function getSendInvoiceInformation(
             taxCode,
             taxAmount,
             billable,
+            filename,
         },
     });
 
@@ -2568,7 +2568,6 @@ function getTrackExpenseInformation(
     }
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
-        filename,
         existingTransactionID,
         existingTransaction,
         policy,
@@ -2587,6 +2586,7 @@ function getTrackExpenseInformation(
             billable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable: false,
+            filename,
         },
     });
 
@@ -4499,7 +4499,6 @@ function createSplitsAndOnyxData(
 
         // STEP 3: Build optimistic transaction
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
-            source: CONST.IOU.TYPE.SPLIT,
             originalTransactionID: splitTransaction.transactionID,
             transactionParams: {
                 amount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
@@ -4513,6 +4512,7 @@ function createSplitsAndOnyxData(
                 taxCode,
                 taxAmount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
                 billable,
+                source: CONST.IOU.TYPE.SPLIT,
             },
         });
 
@@ -4852,7 +4852,6 @@ function startSplitBill({
 
     // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = TransactionUtils.buildOptimisticTransaction({
-        filename,
         transactionParams: {
             amount: 0,
             currency,
@@ -4865,6 +4864,7 @@ function startSplitBill({
             taxCode,
             taxAmount,
             billable,
+            filename,
         },
     });
 
@@ -5260,9 +5260,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         }
 
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
-            source: CONST.IOU.TYPE.SPLIT,
             originalTransactionID: transactionID,
-            filename: updatedTransaction?.filename,
             transactionParams: {
                 amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
                 currency: currency ?? '',
@@ -5276,6 +5274,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 taxCode: updatedTransaction?.taxCode,
                 taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
                 billable: updatedTransaction?.billable,
+                source: CONST.IOU.TYPE.SPLIT,
+                filename: updatedTransaction?.filename,
             },
         });
 
