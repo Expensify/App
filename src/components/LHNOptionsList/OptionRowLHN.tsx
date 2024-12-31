@@ -48,9 +48,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && activePolicyID === report?.policyID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
+    const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
 
