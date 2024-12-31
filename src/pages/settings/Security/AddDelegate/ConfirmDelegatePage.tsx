@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -23,7 +23,7 @@ import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
-function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
+function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
@@ -33,6 +33,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const {isOffline} = useNetwork();
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
+    useEffect(() => {
+        navigation.setParams({showValidateActionModal: String(isValidateCodeActionModalVisible)});
+    }, [isValidateCodeActionModalVisible, navigation]);
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
