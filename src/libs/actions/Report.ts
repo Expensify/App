@@ -4012,7 +4012,12 @@ function prepareOnboardingOptimisticData(
         guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
-    let selfDMParameters: {reportID?: string; createdReportActionID?: string} = {};
+    type SelfDMParameters = {
+        reportID?: string; 
+        createdReportActionID?: string
+    };
+
+    let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         const selfDMReportID = ReportUtils.findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
@@ -4062,14 +4067,6 @@ function prepareOnboardingOptimisticData(
                     },
                 },
             );
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: selfDMReport?.isPinned,
-                },
-            });
         } else {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

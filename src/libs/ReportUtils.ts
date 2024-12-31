@@ -4598,7 +4598,7 @@ function buildOptimisticSelfDMReport(created: string): Report {
     return {
         reportID: generateReportID(),
         participants: {
-            [currentUserAccountID ?? '-1']: {
+            [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
             },
         },
@@ -4607,7 +4607,6 @@ function buildOptimisticSelfDMReport(created: string): Report {
         isOwnPolicyExpenseChat: false,
         isPinned: true,
         lastActorAccountID: 0,
-        lastMessageTranslationKey: '',
         lastMessageHtml: '',
         lastMessageText: undefined,
         lastReadTime: created,
