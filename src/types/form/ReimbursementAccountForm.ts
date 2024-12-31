@@ -82,7 +82,6 @@ const INPUT_IDS = {
             BUSINESS_CATEGORY: 'natureOfBusiness',
             APPLICANT_TYPE_ID: 'applicantTypeID',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
-            PREFERRED_METHOD: 'preferredMethod',
             CURRENCY_NEEDED: 'currencyNeeded',
             TRADE_VOLUME: 'tradeVolume',
             ANNUAL_VOLUME: 'annualVolume',
@@ -194,11 +193,8 @@ type ReimbursementAccountProps = {
 
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
-    /** Country of the bank */
+    /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
-
-    /** Preferred method of payment */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PREFERRED_METHOD]: string;
 
     /** Name of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;

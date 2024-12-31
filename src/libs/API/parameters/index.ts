@@ -8,7 +8,6 @@ export type {default as RestartBankAccountSetupParams} from './RestartBankAccoun
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
-export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';
@@ -30,7 +29,6 @@ export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
-export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';

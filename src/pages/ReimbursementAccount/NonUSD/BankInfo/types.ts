@@ -1,6 +1,17 @@
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import type CorpayFormFields from '@src/types/onyx/CorpayFields';
+import type {ReimbursementAccountForm} from '@src/types/form';
 
-type BankInfoSubStepProps = SubStepProps & {corpayFields?: CorpayFormFields; preferredMethod?: string};
+type CorpayFormField = {
+    id: keyof ReimbursementAccountForm;
+    isRequired: boolean;
+    errorMessage: string;
+    label: string;
+    regEx?: string;
+    validationRules: Array<{errorMessage: string; regEx: string}>;
+    defaultValue?: string;
+    detailedRule?: Array<{isRequired: boolean; value: Array<{errorMessage: string; regEx: string; ruleDescription: string}>}>;
+};
 
-export type {BankInfoSubStepProps, CorpayFormFields};
+type BankInfoSubStepProps = SubStepProps & {corpayFields: CorpayFormField[]};
+
+export type {BankInfoSubStepProps, CorpayFormField};

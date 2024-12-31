@@ -26,9 +26,8 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
-        Policy.updateGeneralSettings(policy?.name ?? '', item.currencyCode, policy?.id);
+        Policy.updateGeneralSettings(policy?.id ?? '-1', policy?.name ?? '', item.currencyCode);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -36,7 +35,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id}
+            policyID={policy?.id ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{onLinkPress: PolicyUtils.goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >

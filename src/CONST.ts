@@ -665,7 +665,6 @@ const CONST = {
                 HANG_TIGHT: 4,
             },
         },
-        BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
