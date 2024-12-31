@@ -338,6 +338,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     // eslint-disable-next-line no-continue
                     continue;
                 }
+                if (!ReportActionsUtils.isAddCommentAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
                 reportActionItems.push({
                     ...reportAction,
                     from,
