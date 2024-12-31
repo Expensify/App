@@ -28,8 +28,20 @@ describe('IOUUtils', () => {
 
         test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
+            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'AED',
+                    reportID: iouReport.reportID,
+                },
+            });
             const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
@@ -42,8 +54,20 @@ describe('IOUUtils', () => {
 
         test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
+            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'AED',
+                    reportID: iouReport.reportID,
+                },
+            });
 
             const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
@@ -150,14 +174,26 @@ describe('isValidMoneyRequestType', () => {
 describe('Check valid amount for IOU/Expense request', () => {
     test('IOU amount should be positive', () => {
         const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-        const iouTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+        const iouTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: iouReport.reportID,
+            },
+        });
         const iouAmount = TransactionUtils.getAmount(iouTransaction, false, false);
         expect(iouAmount).toBeGreaterThan(0);
     });
 
     test('Expense amount should be negative', () => {
         const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
-        const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+        const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: expenseReport.reportID,
+            },
+        });
         const expenseAmount = TransactionUtils.getAmount(expenseTransaction, true, false);
         expect(expenseAmount).toBeLessThan(0);
     });

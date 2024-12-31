@@ -2144,25 +2144,23 @@ function getSendInvoiceInformation(
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        amount,
-        currency,
-        optimisticInvoiceReport.reportID,
-        trimmedComment,
-        [],
-        created,
-        '',
-        '',
-        merchant,
-        receiptObject,
-        filename,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-    );
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticInvoiceReport.reportID,
+            comment: trimmedComment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
@@ -2312,29 +2310,27 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
-        currency,
-        iouReport.reportID,
-        comment,
-        attendees,
-        created,
-        '',
-        '',
-        merchant,
-        receipt,
-        '',
+    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
         existingTransactionID,
-        category,
-        tag,
-        taxCode,
-        ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        undefined,
         existingTransaction,
         policy,
-    );
+        transactionParams: {
+            amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: iouReport.reportID,
+            comment,
+            attendees,
+            created,
+            merchant,
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount: ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
@@ -2571,29 +2567,28 @@ function getTrackExpenseInformation(
         filename = existingTransaction?.filename;
     }
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
-        currency,
-        shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
-        comment,
-        [],
-        created,
-        '',
-        '',
-        merchant,
-        receiptObject,
-        filename,
-        existingTransactionID ?? null,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        false,
+    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        existingTransactionID,
         existingTransaction,
         policy,
-    );
+        transactionParams: {
+            amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
+            comment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            reimbursable: false,
+            filename,
+        },
+    });
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -4263,28 +4258,24 @@ function createSplitsAndOnyxData(
 
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let splitTransaction = TransactionUtils.buildOptimisticTransaction(
-        amount,
-        currency,
-        CONST.REPORT.SPLIT_REPORTID,
-        comment,
-        [],
-        created,
-        '',
-        '',
-        merchant || Localize.translateLocal('iou.expense'),
-        receipt,
-        undefined,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        undefined,
+    let splitTransaction = TransactionUtils.buildOptimisticTransaction({
         existingTransaction,
-    );
+        transactionParams: {
+            amount,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment,
+            created,
+            merchant: merchant || Localize.translateLocal('iou.expense'),
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
 
     // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
     if (isDistanceRequest) {
@@ -4507,25 +4498,23 @@ function createSplitsAndOnyxData(
         }
 
         // STEP 3: Build optimistic transaction
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
-            currency,
-            oneOnOneIOUReport.reportID,
-            comment,
-            [],
-            created,
-            CONST.IOU.TYPE.SPLIT,
-            splitTransaction.transactionID,
-            merchant || Localize.translateLocal('iou.expense'),
-            undefined,
-            undefined,
-            undefined,
-            category,
-            tag,
-            taxCode,
-            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
-            billable,
-        );
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
+            originalTransactionID: splitTransaction.transactionID,
+            transactionParams: {
+                amount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
+                currency,
+                reportID: oneOnOneIOUReport.reportID,
+                comment,
+                created,
+                merchant: merchant || Localize.translateLocal('iou.expense'),
+                category,
+                tag,
+                taxCode,
+                taxAmount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                billable,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport
@@ -4862,25 +4851,22 @@ function startSplitBill({
     const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
-        0,
-        currency,
-        CONST.REPORT.SPLIT_REPORTID,
-        comment,
-        [],
-        '',
-        '',
-        '',
-        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        receiptObject,
-        filename,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-    );
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount: 0,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -5273,25 +5259,25 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
 
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            isPolicyExpenseChat ? -splitAmount : splitAmount,
-            currency ?? '',
-            oneOnOneIOUReport?.reportID ?? '-1',
-            updatedTransaction?.comment?.comment,
-            [],
-            updatedTransaction?.modifiedCreated,
-            CONST.IOU.TYPE.SPLIT,
-            transactionID,
-            updatedTransaction?.modifiedMerchant,
-            {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
-            updatedTransaction?.filename,
-            undefined,
-            updatedTransaction?.category,
-            updatedTransaction?.tag,
-            updatedTransaction?.taxCode,
-            isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
-            updatedTransaction?.billable,
-        );
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
+            originalTransactionID: transactionID,
+            transactionParams: {
+                amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
+                currency: currency ?? '',
+                reportID: oneOnOneIOUReport?.reportID ?? '-1',
+                comment: updatedTransaction?.comment?.comment,
+                created: updatedTransaction?.modifiedCreated,
+                merchant: updatedTransaction?.modifiedMerchant,
+                receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
+                category: updatedTransaction?.category,
+                tag: updatedTransaction?.tag,
+                taxCode: updatedTransaction?.taxCode,
+                taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                billable: updatedTransaction?.billable,
+                source: CONST.IOU.TYPE.SPLIT,
+                filename: updatedTransaction?.filename,
+            },
+        });
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             ReportUtils.buildOptimisticMoneyRequestEntities(
@@ -6297,7 +6283,14 @@ function getSendMoneyParams(
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, optimisticIOUReport.reportID, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticIOUReport.reportID,
+            comment,
+        },
+    });
     const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -7768,6 +7761,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticReportAction),
                 stateNum,
@@ -7871,6 +7865,8 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal();
+    Report.notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
@@ -7930,6 +7926,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
+    Report.notifyNewAction(iouReport?.reportID ?? '', userAccountID);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
