@@ -1052,8 +1052,8 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(reportID: string): boolean {
-    if (!allReports) {
+function isCurrentUserSubmitter(reportID: string | undefined): boolean {
+    if (!allReports || !reportID) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1455,7 +1455,7 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
         const shouldKeep = !isChatThread(report) || !isHiddenForCurrentUser(report);
         return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
-    return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
+    return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
 
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
@@ -6790,7 +6790,10 @@ function getInvoiceChatByParticipants(receiverID: string | number, receiverType:
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number, policyID: string | undefined): OnyxEntry<Report> {
+    if (!policyID) {
+        return;
+    }
     return Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
         // If the report has been deleted, then skip it
         if (!report) {

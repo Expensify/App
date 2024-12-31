@@ -86,10 +86,10 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -219,7 +219,7 @@ function IOURequestStepScan({
                 }
 
                 if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
                     return false;
                 }
 
@@ -322,7 +322,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? -1;
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -335,10 +335,10 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? -1,
+                        existingSplitChatReportID: reportID ?? CONST.DEFAULT_NUMBER_ID,
                         billable: false,
                         category: '',
                         tag: '',
@@ -616,6 +616,16 @@ function IOURequestStepScan({
         />
     ) : null;
 
+    const getConfirmModalPrompt = () => {
+        if (!attachmentInvalidReason) {
+            return '';
+        }
+        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        }
+        return translate(attachmentInvalidReason);
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -792,7 +802,7 @@ function IOURequestStepScan({
                             onConfirm={hideRecieptModal}
                             onCancel={hideRecieptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />

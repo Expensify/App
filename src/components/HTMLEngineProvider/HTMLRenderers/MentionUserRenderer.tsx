@@ -84,14 +84,16 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <Text
                     suppressHighlighting
                     onLongPress={(event) => {
                         if (isDisabled) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
+                        return onShowContextMenu(() =>
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs)),
+                        );
                     }}
                     onPress={(event) => {
                         event.preventDefault();
