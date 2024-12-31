@@ -1,7 +1,6 @@
 import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
-import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
@@ -13,7 +12,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import computeHorizontalShift, {GUTTER_WIDTH} from './computeHorizontalShift';
-import {ComputeHorizontalShift} from './computeHorizontalShift/types';
 import isOverlappingAtTop from './isOverlappingAtTop';
 import tooltipPlatformStyle from './tooltipPlatformStyles';
 
@@ -55,20 +53,6 @@ type TooltipAnimationProps = {
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles; getTooltipAnimatedStyles: (props: TooltipAnimationProps) => {transform: [{scale: number}]}};
-
-const computeHorizontalShiftNew: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth) => {
-    const tooltipRightEdge = tooltipLeftEdge + tooltipWidth;
-    if (tooltipLeftEdge < GUTTER_WIDTH) {
-        // Tooltip is in left gutter, shift right by a multiple of four.
-        return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);
-    }
-    if (tooltipRightEdge > windowWidth - GUTTER_WIDTH) {
-        // Tooltip is in right gutter, shift left by a multiple of four.
-        return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - tooltipRightEdge);
-    }
-    // Tooltip is not in the gutter, so no need to shift it horizontally
-    return 0;
-};
 
 /**
  * Generate styles for the tooltip component.
@@ -150,7 +134,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
             // Determine if we need to shift the tooltip horizontally to prevent it
             // from displaying too near to the edge of the screen.
-            horizontalShift = computeHorizontalShift(windowWidth, xOffset, tooltipTargetWidth, tooltipWidth, manualShiftHorizontal);
+            horizontalShift = computeHorizontalShift(windowWidth, xOffset, tooltipTargetWidth);
 
             // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
             // We shift it to the right a bit if the tooltip is positioned on the extreme left
@@ -239,7 +223,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
 
-            horizontalShift = computeHorizontalShiftNew(windowWidth, rootWrapperLeft, tooltipWidth);
+            horizontalShift = computeHorizontalShift(windowWidth, rootWrapperLeft, tooltipWidth);
 
             // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
             // We shift it to the right a bit if the tooltip is positioned on the extreme left
