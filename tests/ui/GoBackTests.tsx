@@ -35,54 +35,6 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
     onboardingIsMediumOrLargerScreenWidth: false,
 };
 
-const INITIAL_SETTINGS_STATE: InitialState = {
-    index: 0,
-    routes: [
-        {
-            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-            state: {
-                index: 2,
-                routes: [
-                    {
-                        name: SCREENS.SETTINGS.ROOT,
-                    },
-                    {
-                        name: SCREENS.SETTINGS.PROFILE.ROOT,
-                    },
-                    {
-                        name: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                    },
-                ],
-            },
-        },
-    ],
-};
-
-const INITIAL_REPORTS_STATE: InitialState = {
-    index: 0,
-    routes: [
-        {
-            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-            state: {
-                index: 2,
-                routes: [
-                    {
-                        name: SCREENS.HOME,
-                    },
-                    {
-                        name: SCREENS.REPORT,
-                        params: {reportID: '1'},
-                    },
-                    {
-                        name: SCREENS.REPORT,
-                        params: {reportID: '2'},
-                    },
-                ],
-            },
-        },
-    ],
-};
-
 const PARENT_ROUTE = {key: 'parentRouteKey', name: 'ParentNavigator'};
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
@@ -162,126 +114,350 @@ describe('Go back on the narrow layout', () => {
         mockedUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
     });
 
-    it('Should pop the last page in the navigation state', () => {
-        // Given the initialized navigation on the narrow layout with the settings split navigator
-        render(<TestNavigationContainer initialState={INITIAL_SETTINGS_STATE} />);
+    describe('called without params', () => {
+        it('Should pop the last page in the navigation state', () => {
+            // Given the initialized navigation on the narrow layout with the settings split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
 
-        const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
-        expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
+            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
-        // When go back without specifying fallbackRoute
-        act(() => {
-            Navigation.goBack();
+            // When go back without specifying fallbackRoute
+            act(() => {
+                Navigation.goBack();
+            });
+
+            // Then pop the last screen from the navigation state
+            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
+            expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
-
-        // Then pop the last screen from the navigation state
-        const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
-        expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
     });
 
-    it('Should go back to the page passed to goBack as a fallbackRoute', () => {
-        // Given the initialized navigation on the narrow layout with the settings split navigator
-        render(<TestNavigationContainer initialState={INITIAL_SETTINGS_STATE} />);
+    describe('called with fallbackRoute param', () => {
+        it('Should go back to the page passed to goBack as a fallbackRoute', () => {
+            // Given the initialized navigation on the narrow layout with the settings split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
 
-        const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
-        expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
+            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
 
-        // When go back to the fallbackRoute present in the navigation state
-        act(() => {
-            Navigation.goBack(ROUTES.SETTINGS);
+            // When go back to the fallbackRoute present in the navigation state
+            act(() => {
+                Navigation.goBack(ROUTES.SETTINGS);
+            });
+
+            // Then pop to the fallbackRoute
+            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
+            expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
 
-        // Then pop to the fallbackRoute
-        const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
-        expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
+        it('Should replace the current page with the page passed as a fallbackRoute', () => {
+            // Given the initialized navigation on the narrow layout with the settings split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+
+            // When go back to the fallbackRoute that does not exist in the navigation state
+            act(() => {
+                Navigation.goBack(ROUTES.SETTINGS_ABOUT);
+            });
+
+            // Then replace the current page with the page passed as a fallbackRoute
+            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
+            expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+        });
+
+        it('Should go back to the page from the previous split navigator', () => {
+            // Given the initialized navigation on the narrow layout with reports and settings pages
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 1,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const rootStateBeforeGoBack = navigationRef.current?.getRootState();
+            expect(rootStateBeforeGoBack?.index).toBe(1);
+            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+            // When go back to the page present in the previous split navigator
+            act(() => {
+                Navigation.goBack(ROUTES.SETTINGS);
+            });
+
+            // Then pop the current split navigator
+            const rootStateAfterGoBack = navigationRef.current?.getRootState();
+            expect(rootStateAfterGoBack?.index).toBe(0);
+            expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        });
     });
 
-    it('Should replace the current page with the page passed as a fallbackRoute', () => {
-        // Given the initialized navigation on the narrow layout with the settings split navigator
-        render(<TestNavigationContainer initialState={INITIAL_SETTINGS_STATE} />);
+    describe('called with fallbackRoute param with route params comparison', () => {
+        it('Should go back to the page with matched route params', () => {
+            // Given the initialized navigation on the narrow layout with the reports split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 3,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '3'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
 
-        const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
-        expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
+            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitBeforeGoBack?.state?.index).toBe(3);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
 
-        // When go back to the fallbackRoute that does not exist in the navigation state
-        act(() => {
-            Navigation.goBack(ROUTES.SETTINGS_ABOUT);
+            // When go back to the same page with a different route param
+            act(() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            });
+
+            // Then pop to the page with matching params
+            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitAfterGoBack?.state?.index).toBe(1);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
         });
 
-        // Then replace the current page with the page passed as a fallbackRoute
-        const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(settingsSplitAfterGoBack?.state?.index).toBe(2);
-        expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
-    });
+        it('Should replace the current page with the same one with different params', () => {
+            // Given the initialized navigation on the narrow layout with the reports split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
 
-    it('Should go back to the page with matched route params', () => {
-        // Given the initialized navigation on the narrow layout with the reports split navigator
-        render(<TestNavigationContainer initialState={INITIAL_REPORTS_STATE} />);
+            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitBeforeGoBack?.state?.index).toBe(2);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '2'});
 
-        const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(reportsSplitBeforeGoBack?.state?.index).toBe(2);
-        expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
-        expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '2'});
+            // When go back to the same page with different route params that does not exist in the navigation state
+            act(() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('3'));
+            });
 
-        // When go back to the same page with a different route param
-        act(() => {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            // Then replace the current page with the same one with different params
+            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitAfterGoBack?.state?.index).toBe(2);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
         });
 
-        // Then pop to the page with matching params
-        const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(reportsSplitAfterGoBack?.state?.index).toBe(1);
-        expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
-        expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
-    });
+        it('Should go back without comparing params', () => {
+            // Given the initialized navigation on the narrow layout with reports split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 3,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '3'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
 
-    it('Should replace the current page with the same one with different params', () => {
-        // Given the initialized navigation on the narrow layout with the reports split navigator
-        render(<TestNavigationContainer initialState={INITIAL_REPORTS_STATE} />);
+            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitBeforeGoBack?.state?.index).toBe(3);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
 
-        const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(reportsSplitBeforeGoBack?.state?.index).toBe(2);
-        expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
-        expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '2'});
+            // When go back to the same page with different route params without comparing params
+            act(() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('1'), {compareParams: false});
+            });
 
-        // When go back to the same page with different route params that does not exist in the navigation state
-        act(() => {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('3'));
+            // Then do not go back to the page with matching route params, instead replace the current page
+            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            expect(reportsSplitAfterGoBack?.state?.index).toBe(3);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
         });
-
-        // Then replace the current page with the same one with different params
-        const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
-        expect(reportsSplitAfterGoBack?.state?.index).toBe(2);
-        expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
-        expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
-    });
-
-    it('Should go back to the page from the previous split navigator', () => {
-        const initialState = {
-            index: 1,
-            routes: [...INITIAL_SETTINGS_STATE.routes, ...INITIAL_REPORTS_STATE.routes],
-        };
-
-        // Given the initialized navigation on the narrow layout with reports and settings pages
-        render(<TestNavigationContainer initialState={initialState} />);
-
-        const rootStateBeforeGoBack = navigationRef.current?.getRootState();
-        expect(rootStateBeforeGoBack?.index).toBe(1);
-        expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-
-        // When go back to the page present in the previous split navigator
-        act(() => {
-            Navigation.goBack(ROUTES.SETTINGS);
-        });
-
-        // Then pop the current split navigator
-        const rootStateAfterGoBack = navigationRef.current?.getRootState();
-        expect(rootStateAfterGoBack?.index).toBe(0);
-        expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
     });
 });
