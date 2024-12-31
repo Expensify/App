@@ -1,7 +1,8 @@
 type BankAccountCreateCorpayParams = {
-    inputs: string;
+    type?: number;
     isSavings: boolean;
     isWithdrawal: boolean;
+    inputs: string;
 };
 
 export default BankAccountCreateCorpayParams;
