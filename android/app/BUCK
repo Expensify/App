@@ -31,7 +31,7 @@ android_library(
         ":build_config",
         ":res",
     ],
-)
+)bbbbbnn
 
 android_build_config(
     name = "build_config",
