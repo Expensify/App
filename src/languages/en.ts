@@ -517,6 +517,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -1986,6 +1987,15 @@ const translations = {
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Please enter a valid percentage number.',
         },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: "Where's your bank account located?",
+        accountDetailsStepHeader: 'What are your account details?',
+        accountTypeStepHeader: 'What type of account is this?',
+        bankInformationStepHeader: 'What are your bank details?',
+        accountHolderInformationStepHeader: 'What are the account holder details?',
+        howDoWeProtectYourData: 'How do we protect your data?',
+        currencyHeader: "What's your bank account's currency?",
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
