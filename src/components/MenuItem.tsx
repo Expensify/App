@@ -345,6 +345,9 @@ type MenuItemBaseProps = {
 
     /** Should break word for room title */
     shouldBreakWord?: boolean;
+
+    /** Pressable component Test ID. Used to locate the component in tests. */
+    pressableTestID?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -457,6 +460,7 @@ function MenuItem(
         shouldShowSelectedItemCheck = false,
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
+        pressableTestID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -604,6 +608,7 @@ function MenuItem(
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={variables.pressDimValue}
                                 opacityAnimationDuration={0}
+                                testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,

@@ -205,7 +205,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName);
-    }, [shouldShow, shouldRenderTooltip, tooltipName]);
+    }, [shouldRenderTooltip, tooltipName, shouldShow]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {
