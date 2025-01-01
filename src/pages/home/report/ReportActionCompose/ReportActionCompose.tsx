@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
@@ -130,6 +131,7 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const offsetTop = useViewportOffsetTop();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -459,7 +461,7 @@ function ReportActionCompose({
                         }}
                         wrapperStyle={styles.reportActionComposeTooltipWrapper}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
-                        shiftVertical={variables.composerTooltipShiftVertical}
+                        shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
                     >
                         <View
                             ref={containerRef}
