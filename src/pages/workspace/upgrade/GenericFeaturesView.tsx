@@ -15,9 +15,10 @@ type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onUpgrade: () => void;
+    policyID?: string;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
@@ -61,14 +62,23 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeatur
                     {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
                 </Text>
             </View>
-            <Button
-                isLoading={loading}
-                text={translate('common.upgrade')}
-                success
-                onPress={onUpgrade}
-                isDisabled={buttonDisabled}
-                large
-            />
+            {policyID ? (
+                <Button
+                    isLoading={loading}
+                    text={translate('common.upgrade')}
+                    success
+                    onPress={onUpgrade}
+                    isDisabled={buttonDisabled}
+                    large
+                />
+            ) : (
+                <Button
+                    text={translate('workspace.common.goToWorkspaces')}
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    large
+                />
+            )}
         </View>
     );
 }

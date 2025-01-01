@@ -39,7 +39,7 @@ function getFeatureNameAlias(featureName: string) {
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
 
     const featureNameAlias = route.params.featureName && getFeatureNameAlias(route.params.featureName);
 
@@ -56,7 +56,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const categoryId = route.params?.categoryId;
 
     const goBack = useCallback(() => {
-        if (!feature) {
+        if (!feature || !policyID) {
             Navigation.dismissModal();
             return;
         }
@@ -100,7 +100,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     };
 
     const confirmUpgrade = useCallback(() => {
-        if (!feature) {
+        if (!feature || !policyID) {
             return;
         }
         switch (feature.id) {
@@ -167,7 +167,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    if (!canPerformUpgrade) {
+    if (policyID && !canPerformUpgrade) {
         return <NotFoundPage />;
     }
 
@@ -187,7 +187,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }}
             />
-            {isUpgraded && (
+            {!!policyID && !!policy && isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={goBack}
                     policyName={policy.name}
@@ -195,10 +195,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             )}
             {!isUpgraded && (
                 <UpgradeIntro
+                    policyID={policyID}
                     feature={feature}
                     onUpgrade={upgradeToCorporate}
                     buttonDisabled={isOffline}
-                    loading={policy.isPendingUpgrade}
+                    loading={policy?.isPendingUpgrade}
                 />
             )}
         </ScreenWrapper>

@@ -26,21 +26,23 @@ type Props = {
     feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
+    policyID?: string;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
 
-    if (!feature) {
+    if (!feature || !policyID) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
                 buttonDisabled={buttonDisabled}
                 loading={loading}
+                policyID={policyID}
             />
         );
     }
