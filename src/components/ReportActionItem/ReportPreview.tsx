@@ -149,7 +149,6 @@ function ReportPreview({
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID);
-    const hasHeldExpenses = ReportUtils.hasHeldExpenses(iouReport?.reportID);
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -574,7 +573,6 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
-                                        shouldUseSuccessStyle={!hasHeldExpenses}
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
