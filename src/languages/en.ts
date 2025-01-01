@@ -517,6 +517,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -657,10 +658,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -847,10 +844,6 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -1761,6 +1754,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
+        welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
@@ -1993,6 +1987,15 @@ const translations = {
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Please enter a valid percentage number.',
         },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: "Where's your bank account located?",
+        accountDetailsStepHeader: 'What are your account details?',
+        accountTypeStepHeader: 'What type of account is this?',
+        bankInformationStepHeader: 'What are your bank details?',
+        accountHolderInformationStepHeader: 'What are the account holder details?',
+        howDoWeProtectYourData: 'How do we protect your data?',
+        currencyHeader: "What's your bank account's currency?",
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -4673,7 +4676,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5573,6 +5575,44 @@ const translations = {
             chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
+        },
+        workspaceChatTooltip: {
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
+        },
+        globalCreateTooltip: {
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
         },
     },
 };
