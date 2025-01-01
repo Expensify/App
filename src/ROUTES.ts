@@ -65,7 +65,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
             return getUrlWithBackToParam(baseRoute, backTo);
         },
@@ -297,7 +297,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string) => {
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
             const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
             return `${baseRoute}${referrerParam}` as const;

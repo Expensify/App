@@ -5,7 +5,7 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
 import {getGlobalFetchMock} from '../utils/TestHelper';
