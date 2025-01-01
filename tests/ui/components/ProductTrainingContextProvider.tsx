@@ -136,6 +136,35 @@ describe('ProductTrainingContextProvider', () => {
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
+        it('should hide tooltip when hideProductTrainingTooltip is called', async () => {
+            // When migrated user has dismissed welcome modal
+            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
+            const date = new Date();
+            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
+            });
+            await waitForBatchedUpdatesWithAct();
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            // When the user dismiss the tooltip
+            result.current.hideProductTrainingTooltip();
+            rerender({});
+            // Then tooltip should not show
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+            // And dismissed tooltip should be recorded in Onyx
+            const dismissedTooltipsOnyxState = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+                    callback: (dismissedTooltips) => {
+                        Onyx.disconnect(connection);
+                        resolve(dismissedTooltips);
+                    },
+                });
+            });
+            // Expect dismissed tooltip to be recorded
+            expect(dismissedTooltipsOnyxState).toHaveProperty(testTooltip);
+        });
     });
 
     describe('Layout Specific Behavior', () => {
