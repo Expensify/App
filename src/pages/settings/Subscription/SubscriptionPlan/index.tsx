@@ -1,7 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
@@ -10,25 +9,31 @@ import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
+import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
 
 function SubscriptionPlan() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const currentUserAccountID = getCurrentUserAccountID();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
-
+    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
     const preferredCurrency = usePreferredCurrency();
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
-    function getSubscriptionPrice(plan: Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>): number {
+    function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps): number {
         if (!subscriptionPlan || !privateSubscription?.type) {
             return 0;
         }
@@ -38,6 +43,7 @@ function SubscriptionPlan() {
 
     const plans = [
         {
+            type: CONST.POLICY.TYPE.TEAM,
             title: translate('subscription.yourPlan.collect.title'),
             benefits: [
                 translate('subscription.yourPlan.collect.benefit1'),
@@ -56,6 +62,7 @@ function SubscriptionPlan() {
             isSelected: subscriptionPlan === CONST.POLICY.TYPE.TEAM,
         },
         {
+            type: CONST.POLICY.TYPE.CORPORATE,
             title: translate('subscription.yourPlan.control.title'),
             benefits: [
                 translate('subscription.yourPlan.control.benefit1'),
@@ -74,6 +81,33 @@ function SubscriptionPlan() {
         },
     ];
 
+    const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
+        // If the selected plan and the current plan are the same, and the user has no policies, return.
+        if (planType === subscriptionPlan || !ownerPolicies.length) {
+            return;
+        }
+
+        // If the user has one policy as owner and selected plan is team, navigate to downgrade page.
+        if (ownerPolicies.length === 1 && planType === CONST.POLICY.TYPE.TEAM) {
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(ownerPolicies.at(0)?.id));
+        }
+
+        // If the user has one policy as owner and selected plan is corporate, navigate to upgrade page.
+        if (ownerPolicies.length === 1 && planType === CONST.POLICY.TYPE.CORPORATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(ownerPolicies.at(0)?.id));
+        }
+
+        // If the user has multiple policies as owner and selected plan is team, navigate to downgrade page.
+        if (ownerPolicies.length > 1 && planType === CONST.POLICY.TYPE.TEAM) {
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute());
+        }
+
+        //  If the user has multiple policies as owner and selected plan is corporate, navigate to upgrade page.
+        if (ownerPolicies.length > 1 && planType === CONST.POLICY.TYPE.CORPORATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute());
+        }
+    };
+
     return (
         <Section
             title={translate('subscription.yourPlan.title')}
@@ -85,6 +119,7 @@ function SubscriptionPlan() {
                     <SubscriptionPlanCard
                         index={index}
                         plan={plan}
+                        onPress={handlePlanPress}
                     />
                 ))}
             </View>

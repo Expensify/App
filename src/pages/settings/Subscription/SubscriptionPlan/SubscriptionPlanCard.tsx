@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -9,6 +10,9 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type CONST from '@src/CONST';
+
+type PersonalPolicyTypeExludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
     index: number;
@@ -18,18 +22,21 @@ type SubscriptionPlanCardProps = {
         benefits: string[];
         description: string;
         isSelected: boolean;
+        type: PersonalPolicyTypeExludedProps;
     };
+
+    onPress: (type: PersonalPolicyTypeExludedProps) => void;
 };
-function SubscriptionPlanCard({plan, index}: SubscriptionPlanCardProps) {
+function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
     return (
         <View style={[styles.borderedContentCard, styles.flex1, styles.mt5, styles.p5, index === 0 && styles.mr3]}>
             <PressableWithFeedback
-                disabled={plan.isSelected}
                 accessibilityLabel={plan.title}
                 wrapperStyle={[styles.flex1]}
+                onPress={() => onPress(plan.type)}
             >
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
@@ -68,3 +75,4 @@ function SubscriptionPlanCard({plan, index}: SubscriptionPlanCardProps) {
 SubscriptionPlanCard.displayName = 'SubscriptionPlanCard';
 
 export default SubscriptionPlanCard;
+export type {PersonalPolicyTypeExludedProps};
