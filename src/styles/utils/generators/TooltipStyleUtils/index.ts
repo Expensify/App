@@ -132,14 +132,6 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight)) ||
                 anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
 
-            // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
-            // We shift it to the right a bit if the tooltip is positioned on the extreme left
-            // and shift it to left a bit if the tooltip is positioned on the extreme right.
-            horizontalShiftPointer =
-                horizontalShift > 0
-                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
-                    : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall);
-
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
             // we will use yOffset to position the tooltip relative to the Wrapped Component
@@ -164,7 +156,12 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             //   so that the bottom of the pointer lines up with the top of the tooltip
             pointerWrapperTop = shouldShowBelow ? -POINTER_HEIGHT : tooltipHeight;
 
-            // We'll:
+            // Horizontal tooltip position:
+            // we will use xOffset to position the tooltip relative to the Wrapped Component
+            // To shift the tooltip right, we'll give `left` a positive value.
+            // To shift the tooltip left, we'll give `left` a negative value.
+            //
+            // So we'll:
             //   1) Add the manual horizontal shift passed in as a parameter.
             //   2a) Horizontally align left: No need for shifting.
             //   2b) Horizontally align center:
@@ -202,6 +199,8 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // Determine if we need to shift the tooltip horizontally to prevent it
             // from displaying too near to the edge of the screen.
             horizontalShift = computeHorizontalShift(windowWidth, rootWrapperLeft, tooltipWidth);
+            // Add the horizontal shift (left or right) computed above to keep it out of the gutters.
+            rootWrapperLeft += horizontalShift;
 
             // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
             // We shift it to the right a bit if the tooltip is positioned on the extreme left
@@ -210,14 +209,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 horizontalShift > 0
                     ? Math.max(-horizontalShift, -(tooltipWidth / 2) + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
                     : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall);
-            // Horizontal tooltip position:
-            // we will use xOffset to position the tooltip relative to the Wrapped Component
-            // To shift the tooltip right, we'll give `left` a positive value.
-            // To shift the tooltip left, we'll give `left` a negative value.
-            // So we will add the horizontal shift (left or right) computed above to keep it out of the gutters.
-            rootWrapperLeft += horizontalShift;
-            pointerWrapperLeft += horizontalShiftPointer;
 
+            // Horizontally align left: No need for shifting.
+            pointerWrapperLeft += anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? 0 : horizontalShiftPointer;
             pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
 
             // React Native's measure() is asynchronous, we temporarily hide the tooltip until its bound is calculated
