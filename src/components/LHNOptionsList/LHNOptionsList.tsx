@@ -137,9 +137,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
-            const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
-                ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? '-1'
-                : '-1';
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction) ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 

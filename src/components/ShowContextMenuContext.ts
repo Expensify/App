@@ -46,7 +46,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
     anchor: ContextMenuAnchor,
-    reportID: string,
+    reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,

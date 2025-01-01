@@ -66,7 +66,7 @@ function IOURequestStepDistance({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -122,7 +122,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -148,7 +148,7 @@ function IOURequestStepDistance({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
             IOU.setMoneyRequestAmount(transactionID, amount, currency);
 
-            const participantAccountIDs: number[] | undefined = participants?.map((participant) => Number(participant.accountID ?? -1));
+            const participantAccountIDs: number[] | undefined = participants?.map((participant) => Number(participant.accountID ?? CONST.DEFAULT_NUMBER_ID));
             if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
                 IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
@@ -225,10 +225,10 @@ function IOURequestStepDistance({
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
             if (transactionWasSaved.current) {
-                TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '-1');
+                TransactionEdit.removeBackupTransaction(transaction?.transactionID);
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', IOUUtils.shouldUseTransactionDraft(action));
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID, IOUUtils.shouldUseTransactionDraft(action));
 
             // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
             if (!transaction?.reportID) {
@@ -300,7 +300,7 @@ function IOURequestStepDistance({
         if (report?.reportID && !ReportUtils.isArchivedRoom(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? -1;
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             setDistanceRequestData(participants);
@@ -456,8 +456,8 @@ function IOURequestStepDistance({
                 return;
             }
             IOU.updateMoneyRequestDistance({
-                transactionID: transaction?.transactionID ?? '-1',
-                transactionThreadReportID: report?.reportID ?? '-1',
+                transactionID: transaction?.transactionID,
+                transactionThreadReportID: report?.reportID,
                 waypoints,
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,

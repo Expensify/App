@@ -40,7 +40,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
     /** The ID of the associated taskReport */
-    taskReportID: string;
+    taskReportID: string | undefined;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;

@@ -3065,7 +3065,7 @@ function getUpdateMoneyRequestParams(
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  */
 function getUpdateTrackExpenseParams(
-    transactionID: string,
+    transactionID: string | undefined,
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -3371,8 +3371,8 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
 }
 
 type UpdateMoneyRequestDistanceParams = {
-    transactionID: string;
-    transactionThreadReportID: string;
+    transactionID?: string;
+    transactionThreadReportID?: string;
     waypoints: WaypointCollection;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
