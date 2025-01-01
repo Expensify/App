@@ -33,6 +33,34 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
+type TransactionParams = {
+    amount: number;
+    currency: string;
+    reportID: string;
+    comment?: string;
+    attendees?: Attendee[];
+    created?: string;
+    merchant?: string;
+    receipt?: OnyxEntry<Receipt>;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    reimbursable?: boolean;
+    source?: string;
+    filename?: string;
+};
+
+type BuildOptimisticTransactionParams = {
+    originalTransactionID?: string;
+    existingTransactionID?: string;
+    existingTransaction?: OnyxEntry<Transaction>;
+    policy?: OnyxEntry<Policy>;
+    transactionParams: TransactionParams;
+};
+
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -130,29 +158,27 @@ function isManualRequest(transaction: Transaction): boolean {
  * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
  * it's transactionID match what was already generated.
  */
-function buildOptimisticTransaction(
-    amount: number,
-    currency: string,
-    reportID: string,
-    comment = '',
-    attendees: Attendee[] = [],
-    created = '',
-    source = '',
-    originalTransactionID = '',
-    merchant = '',
-    receipt?: OnyxEntry<Receipt>,
-    filename = '',
-    existingTransactionID: string | null = null,
-    category = '',
-    tag = '',
-    taxCode = '',
-    taxAmount = 0,
-    billable = false,
-    pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
-    reimbursable = true,
-    existingTransaction: OnyxEntry<Transaction> | undefined = undefined,
-    policy: OnyxEntry<Policy> = undefined,
-): Transaction {
+function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
+    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams} = params;
+    const {
+        amount,
+        currency,
+        reportID,
+        comment = '',
+        attendees = [],
+        created = '',
+        merchant = '',
+        receipt,
+        category = '',
+        tag = '',
+        taxCode = '',
+        taxAmount = 0,
+        billable = false,
+        pendingFields,
+        reimbursable = true,
+        source = '',
+        filename = '',
+    } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? NumberUtils.rand64();
@@ -376,6 +402,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
+        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+            updatedTransaction.taxCode = categoryTaxCode;
+            updatedTransaction.taxAmount = categoryTaxAmount;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {
@@ -1258,11 +1289,12 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
 
 function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    if (!taxRules || taxRules?.length === 0) {
+    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
 
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, policy?.taxRates?.defaultExternalID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
+    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
     let categoryTaxAmount;
 

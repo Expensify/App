@@ -1754,6 +1754,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
+        welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
@@ -1996,6 +1997,15 @@ const translations = {
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Please enter a valid percentage number.',
         },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: "Where's your bank account located?",
+        accountDetailsStepHeader: 'What are your account details?',
+        accountTypeStepHeader: 'What type of account is this?',
+        bankInformationStepHeader: 'What are your bank details?',
+        accountHolderInformationStepHeader: 'What are the account holder details?',
+        howDoWeProtectYourData: 'How do we protect your data?',
+        currencyHeader: "What's your bank account's currency?",
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',

@@ -39,6 +39,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
+
+        /** Whether the form is loading */
+        isLoading?: boolean;
     };
 
 function FormWrapper({
@@ -61,6 +64,7 @@ function FormWrapper({
     disablePressOnEnter = false,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
+    isLoading = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -116,7 +120,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                        isLoading={!!formState?.isLoading}
+                        isLoading={!!formState?.isLoading || isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
@@ -148,6 +152,7 @@ function FormWrapper({
             formState?.isLoading,
             shouldHideFixErrorsAlert,
             errorMessage,
+            isLoading,
             onSubmit,
             footerContent,
             onFixTheErrorsLinkPressed,

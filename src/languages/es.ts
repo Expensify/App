@@ -1757,6 +1757,7 @@ const translations = {
     },
     onboarding: {
         welcome: '¡Bienvenido!',
+        welcomeSignOffTitle: '¡Es un placer conocerte!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2018,6 +2019,15 @@ const translations = {
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
         },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',

@@ -250,6 +250,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
