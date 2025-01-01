@@ -81,10 +81,20 @@ describe('actions/IOU', () => {
     });
     describe('trackExpense', () => {
         it('category a distance expense of selfDM report', async () => {
+            /*
+             * This step simulates the following steps:
+             *   - Go to self DM
+             *   - Track a distance expense
+             *   - Go to Troubleshoot > Clear cache and restart > Reset and refresh
+             *   - Go to self DM
+             *   - Click Categorize it (click Upgrade if there is no workspace)
+             *   - Select category and submit the expense to the workspace
+             */
+
             // Given a participant of the report
             const participant = {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID};
 
-            // Given waypoints of the transaction
+            // Given valid waypoints of the transaction
             const fakeWayPoints = {
                 waypoint0: {
                     keyForList: '88 Kearny Street_1735023533854',
@@ -118,7 +128,7 @@ describe('actions/IOU', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const fakePolicy = createRandomPolicy(1);
 
-            // Given a transaction with a distance request type
+            // Given a transaction with a distance request type and valid waypoints
             const fakeTransaction = {
                 ...createRandomTransaction(1),
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
@@ -168,7 +178,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
-            // Then the transaction must remain a distance request
+            // Given transaction after tracked expense
             const transaction = await new Promise<OnyxEntry<OnyxTypes.Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -176,6 +186,8 @@ describe('actions/IOU', () => {
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
+
+                        // Then the transaction must remain a distance request
                         const isDistanceRequest = TransactionUtils.isDistanceRequest(trackedExpenseTransaction);
                         expect(isDistanceRequest).toBe(true);
                         resolve(trackedExpenseTransaction);
@@ -268,7 +280,7 @@ describe('actions/IOU', () => {
                         Onyx.disconnect(connection);
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
-                        // Then the transaction must remain a distance request
+                        // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
                         const isDistanceRequest = TransactionUtils.isDistanceRequest(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
 
