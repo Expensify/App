@@ -291,9 +291,13 @@ function ReportActionsList({
             const isPreviouslyOptimistic =
                 (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
                 (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && isPreviouslyOptimistic;
+            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
-            return !isNewMessage && !shouldIgnoreUnreadForCurrentUserMessage;
+            if (isFromCurrentUser) {
+                return !shouldIgnoreUnreadForCurrentUserMessage;
+            }
+
+            return !isNewMessage || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD;
         };
 
         // If there are message that were recevied while offline,
