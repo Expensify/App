@@ -4,7 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
-    currentReportID: string;
+    currentReportID: string | undefined;
 };
 
 type CurrentReportIDContextProviderProps = {
@@ -19,7 +19,7 @@ const withCurrentReportIDDefaultProps = {
 };
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
-    const [currentReportID, setCurrentReportID] = useState('');
+    const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
 
     /**
      * This function is used to update the currentReportID
@@ -27,7 +27,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            const reportID = Navigation.getTopmostReportId(state) ?? '-1';
+            const reportID = Navigation.getTopmostReportId(state);
 
             /*
              * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
