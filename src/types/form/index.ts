@@ -88,4 +88,6 @@ export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
 export type {WorkspaceConfirmationForm} from './WorkspaceConfirmationForm';
+export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
+export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
