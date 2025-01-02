@@ -26,9 +26,12 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
+        if (!policy) {
+            return;
+        }
         FormActions.clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
-        Policy.updateGeneralSettings(policy?.name ?? '', item.currencyCode, policy?.id);
+        Policy.updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
