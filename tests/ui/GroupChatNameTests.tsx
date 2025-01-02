@@ -66,7 +66,7 @@ const USER_H_EMAIL = 'user_h@test.com';
  */
 function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Promise<void> {
     // Render the App and sign in as a test user.
-    render(<App />);
+    render(<App />); 
 
     const participants: Record<number, Participant> = {};
     participantAccountIDs?.forEach((id) => {
