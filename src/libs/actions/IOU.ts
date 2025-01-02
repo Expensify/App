@@ -5389,7 +5389,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldCreateNewMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
-            oneOnOneIOUReport = participant.policyID
+            oneOnOneIOUReport = isPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID, participant.policyID, sessionAccountID, splitAmount, currency ?? '')
                 : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
