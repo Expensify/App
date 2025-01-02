@@ -3837,8 +3837,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     }
 
     const originalMessage = isChangeLogObject(ReportActionsUtils.getOriginalMessage(parentReportAction));
-    const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(participantAccountIDs, 0);
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.targetAccountIDs ?? [], 0);
 
     const participants = personalDetails.map((personalDetail) => {
         const name = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
