@@ -87,10 +87,4 @@ export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName'
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
-<<<<<<< HEAD
-export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
-=======
-export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
-export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
->>>>>>> a2c8842 (Merge pull request #54729 from Expensify/revert-52322-intl-bank-account)
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
