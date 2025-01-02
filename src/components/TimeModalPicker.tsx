@@ -1,42 +1,40 @@
-import type {ReactNode} from 'react';
 import React, {useState} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
-import CurrencySelectionList from './CurrencySelectionList';
-import type {CurrencyListItem} from './CurrencySelectionList/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
+import TimePicker from './TimePicker/TimePicker';
 
-type CurrencyPickerProps = {
+type TimeModalPickerProps = {
     /** Current value of the selected item */
     value?: string;
-
-    /** Custom content to display in the header */
-    headerContent?: ReactNode;
 
     /** Callback when the list item is selected */
     onInputChange?: (value: string, key?: string) => void;
 
     /** Form Error description */
     errorText?: string;
+
+    /** Label for the picker */
+    label: string;
 };
 
-function CurrencyPicker({value, errorText, headerContent, onInputChange = () => {}}: CurrencyPickerProps) {
-    const {translate} = useLocalize();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
+function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps) {
     const styles = useThemeStyles();
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
 
-    const updateInput = (item: CurrencyListItem) => {
-        onInputChange?.(item.currencyCode);
+    const updateInput = (time: string) => {
+        const newTime = DateUtils.combineDateAndTime(time, value ?? '');
+        onInputChange?.(newTime);
         hidePickerModal();
     };
 
@@ -44,8 +42,8 @@ function CurrencyPicker({value, errorText, headerContent, onInputChange = () => 
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value ? `${value} - ${CurrencyUtils.getCurrencySymbol(value)}` : undefined}
-                description={translate('common.currency')}
+                title={currentTime}
+                description={label}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
@@ -57,30 +55,29 @@ function CurrencyPicker({value, errorText, headerContent, onInputChange = () => 
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
                 useNativeDriver
-                onBackdropPress={Navigation.dismissModal}
             >
                 <ScreenWrapper
-                    style={[styles.pb0]}
+                    style={styles.pb0}
                     includePaddingTop={false}
                     includeSafeAreaPaddingBottom
-                    testID={CurrencyPicker.displayName}
+                    testID={TimeModalPicker.displayName}
                 >
                     <HeaderWithBackButton
-                        title={translate('common.currency')}
-                        shouldShowBackButton
+                        title={label}
                         onBackButtonPress={hidePickerModal}
                     />
-                    {!!headerContent && headerContent}
-                    <CurrencySelectionList
-                        initiallySelectedCurrencyCode={value}
-                        onSelect={updateInput}
-                        searchInputLabel={translate('common.search')}
-                    />
+                    <View style={styles.flex1}>
+                        <TimePicker
+                            defaultValue={value}
+                            onSubmit={updateInput}
+                            shouldValidate={false}
+                        />
+                    </View>
                 </ScreenWrapper>
             </Modal>
         </>
     );
 }
 
-CurrencyPicker.displayName = 'CurrencyPicker';
-export default CurrencyPicker;
+TimeModalPicker.displayName = 'TimeModalPicker';
+export default TimeModalPicker;
