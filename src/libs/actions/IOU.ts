@@ -2643,7 +2643,7 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
         const quantity = subRate.quantity ?? 0;
         return `${quantity}x ${rateComment} @ ${CurrencyUtils.convertAmountToDisplayString(rate, currency)}`;
     });
-    return subRateComments.join(',');
+    return subRateComments.join(', ');
 }
 
 /**
@@ -2732,6 +2732,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         },
     });
+    // This is to differentiate between a normal expense and a per diem expense
+    optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
