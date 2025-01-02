@@ -520,6 +520,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             );
         case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
+        case 'errors':
+            return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         case 'privateNotes':
             return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
@@ -624,6 +626,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
