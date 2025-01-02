@@ -51,9 +51,6 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Callback for measuring child and running a defined callback/action later */
-    onShowContextMenu?: (callback: () => void) => void;
-
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -74,7 +71,6 @@ function MoneyRequestAction({
     reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
-    onShowContextMenu = () => {},
     checkIfContextMenuActive = () => {},
     chatReport,
     iouReport,
@@ -133,7 +129,6 @@ function MoneyRequestAction({
             isTrackExpense={isTrackExpenseAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
-            onShowContextMenu={onShowContextMenu}
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}

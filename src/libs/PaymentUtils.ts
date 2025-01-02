@@ -27,10 +27,10 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
     return validBankAccount || (shouldIncludeDebitCard && validDebitCard);
 }
 
-function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount, bankCurrency?: string): string {
+function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount): string {
     if (account) {
         if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
-            return `${bankCurrency} ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
+            return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT && 'accountNumber' in account) {
             return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
@@ -61,7 +61,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         });
         combinedPaymentMethods.push({
             ...bankAccount,
-            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData, bankAccount.bankCurrency),
+            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
             icon,
             iconSize,
             iconHeight,
