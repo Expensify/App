@@ -3832,15 +3832,17 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     if (!ReportActionsUtils.getOriginalMessage(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
-    if (!ReportActionsUtils.isPolicyChangeLogAction(parentReportAction) || !ReportActionsUtils.isRoomChangeLogAction(parentReportAction)) {
+    if (!ReportActionsUtils.isPolicyChangeLogAction(parentReportAction) && !ReportActionsUtils.isRoomChangeLogAction(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
 
     const originalMessage = isChangeLogObject(ReportActionsUtils.getOriginalMessage(parentReportAction));
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(participantAccountIDs, 0);
 
     const participants = participantAccountIDs.map((id: number) => {
-        const name = getDisplayNameForParticipant(id);
+        const personalDetail = personalDetails.find((personal) => personal.accountID === id);
+        const name = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
         if (name && name?.length > 0) {
             return name;
         }
