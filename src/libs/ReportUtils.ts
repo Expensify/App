@@ -3438,6 +3438,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
 
     if (!transactionID || !reportAction.childReportID) {
+        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
         return;
     }
 
@@ -4293,6 +4294,8 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
 
     if (report?.reportID) {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+    } else {
+        Log.warn('Missing reportID during navigation back to the details page');
     }
 }
 
@@ -8328,6 +8331,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             ]);
             if (policyExpenseReportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            } else {
+                Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
             return;
         }
@@ -8350,6 +8355,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         ]);
         if (policyExpenseReportID) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+        } else {
+            Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
         return;
     }
