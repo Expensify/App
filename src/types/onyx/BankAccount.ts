@@ -59,12 +59,6 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** All data related to the bank account */
     accountData?: AccountData;
 
-    /** Currency code related to the bank account */
-    bankCurrency: string;
-
-    /** Country code related to the bank account */
-    bankCountry: string;
-
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
 }>;
