@@ -42,6 +42,10 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -50,4 +54,5 @@ export default {
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUsePerDiem,
+    canUseMergeAccounts,
 };
