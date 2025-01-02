@@ -127,57 +127,57 @@ class ShareViewController: UIViewController {
         }
     }
 
-    private func handleData(_ data: Any?, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+   private func handleData(_ data: Any?, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         guard let data = data else {
             os_log("Data is nil", type: .error)
             completion(.CouldNotLoad)
             return
         }
+
         if let dataString = data as? String {
-            if !dataString.hasPrefix("file://") {
-                let filename = "text_to_read.txt"
-                if let fileData = dataString.data(using: .utf8) as NSData? {
-                    if let fileFinalPath = self.saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
-                        completion(nil)
-                    }
-                    else {
-                        os_log("Failed to save string data to file", type: .error)
-                        completion(.CouldNotLoad)
-                    }
-                }
-                else {
-                    os_log("Failed to convert string to NSData", type: .error)
-                    completion(.CouldNotLoad)
-                }
-            }
-        }
-        else if let url = data as? NSURL, let fileData = NSData(contentsOf: url as URL) {
-            guard let filename = url.lastPathComponent else {
-                completion(.CouldNotLoad)
-                return
-            }
-            if let fileFinalPath = self.saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
-                completion(nil)
-            }
-            else {
-                os_log("Skipping file %@, failed to save", type: .error, String(describing: filename) as CVarArg) // Safe typecasting
-                completion(.CouldNotLoad)
-            }
-            // Try to get file as UIFile. This is the case when extension is run from screenshot editor.
-        }
-        else if let file = data as? UIImage, let fileData = file.pngData() as NSData? {
-            let filename = "shared_image.png"
-            if let fileFinalPath = self.saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
-                completion(nil)
-            }
-            else {
-                os_log("Skipping file %@, failed to save", type: .error, filename as CVarArg)
-                completion(.CouldNotLoad)
-            }
-        }
-        else {
+            handleStringData(dataString, folder: folder, completion: completion)
+        } else if let url = data as? NSURL {
+            handleURLData(url, folder: folder, completion: completion)
+        } else if let file = data as? UIImage {
+            handleImageData(file, folder: folder, completion: completion)
+        } else {
             os_log("Received data of unhandled type", type: .error)
             completion(.URLError)
+        }
+    }
+
+    private func handleStringData(_ dataString: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        if !dataString.hasPrefix("file://") {
+            let filename = "text_to_read.txt"
+            processAndSave(data: dataString.data(using: .utf8), filename: filename, folder: folder, completion: completion)
+        }
+    }
+
+  private func handleURLData(_ url: NSURL, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+      guard let filename = url.lastPathComponent else {
+          completion(.CouldNotLoad)
+          return
+      }
+      let fileData = NSData(contentsOf: url as URL) as Data?
+      processAndSave(data: fileData, filename: filename, folder: folder, completion: completion)
+  }
+
+    private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        let filename = "shared_image.png"
+        processAndSave(data: image.pngData(), filename: filename, folder: folder, completion: completion)
+    }
+
+    private func processAndSave(data: Data?, filename: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        guard let fileData = data as NSData? else {
+            os_log("Failed to convert data", type: .error)
+            completion(.CouldNotLoad)
+            return
+        }
+        if saveFileToFolder(folder: folder, filename: filename, fileData: fileData) != nil {
+            completion(nil)
+        } else {
+            os_log("Failed to save file: %@", type: .error, filename)
+            completion(.CouldNotLoad)
         }
     }
 
