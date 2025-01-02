@@ -28,21 +28,6 @@ function AddPersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
-
-    const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
-                break;
-            case SCREENS.REPORT:
-                Navigation.closeRHPFlow();
-                break;
-            default:
-                Navigation.goBack();
-                break;
-        }
-    }, [topMostCentralPane]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -63,10 +48,10 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                goBack();
+                Navigation.goBack();
             }
         },
-        [personalBankAccount, goBack],
+        [personalBankAccount],
     );
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
@@ -109,7 +94,7 @@ function AddPersonalBankAccountPage() {
                                 text={translate('walletPage.chooseAccountBody')}
                                 plaidData={plaidData}
                                 isDisplayedInWalletFlow
-                                onExitPlaid={goBack}
+                                onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={selectedPlaidAccountId}
                             />
