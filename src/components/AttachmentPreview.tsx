@@ -24,13 +24,11 @@ type AttachmentPreviewProps = {
 function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
 
-    const originalFileName: string = source.split('/').pop() ?? '';
-
-    const file = originalFileName ? {name: originalFileName} : undefined;
+    const fileName = source.split('/').pop() ?? undefined;
 
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name))) ?? (file?.name && Str.isVideo(file.name));
-    const isFileNameImage = file?.name && Str.isImage(file.name);
+    const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (fileName && Str.isVideo(fileName))) ?? (fileName && Str.isVideo(fileName));
+    const isFileNameImage = fileName && Str.isImage(fileName);
     const isFileImage = isSourceImage || isFileNameImage;
     const isFileVideo = isSourceVideo && typeof source === 'string';
 
@@ -82,14 +80,14 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
                     <ImageView
                         url={source}
-                        fileName={file?.name ?? ''}
+                        fileName={fileName ?? ''}
                     />
                 </View>
             </PressableWithFeedback>
         );
     }
 
-    return <DefaultAttachmentView fileName={file?.name} />;
+    return <DefaultAttachmentView fileName={fileName} />;
 }
 
 AttachmentPreview.displayName = 'AttachmentPreview';
