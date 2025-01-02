@@ -99,15 +99,13 @@ object FileUtils {
      * @return The absolute path of the image
      */
     fun copyUriToStorage(uri: Uri?, context: Context): String? {
-        lateinit var resultingPath: String
         try {
             val imageFile: File = createTemporaryFile(uri, context)
             saveFileFromProviderUri(uri, imageFile, context)
-            resultingPath = imageFile.absolutePath
-
+            return imageFile.absolutePath
         } catch (ex: IOException) {
             Log.e(tag, "Couldn't save image from intent", ex)
         }
-        return resultingPath
+        return null
     }
 }
