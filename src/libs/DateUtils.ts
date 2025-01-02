@@ -906,6 +906,10 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
+function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
+    return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -959,6 +963,7 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    getFormattedDateRangeForPerDiem,
 };
 
 export default DateUtils;

@@ -2619,6 +2619,33 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + (subRate.rate ?? 0), 0);
 }
 
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
+    if (!customUnit.customUnitRateID) {
+        return '';
+    }
+    const policyCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+    const rate = policyCustomUnit?.rates?.[customUnit.customUnitRateID];
+    const locationName = rate?.name ?? '';
+    const startDate = customUnit.attributes?.dates.start;
+    const endDate = customUnit.attributes?.dates.end;
+    if (!startDate || !endDate) {
+        return locationName;
+    }
+    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
+    return `${locationName}, ${formattedTime}`;
+}
+
+function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
+    const subRates = customUnit.subRates ?? [];
+    const subRateComments = subRates.map((subRate) => {
+        const rate = subRate.rate ?? 0;
+        const rateComment = subRate.name ?? '';
+        const quantity = subRate.quantity ?? 0;
+        return `${quantity}x ${rateComment} @ ${CurrencyUtils.convertAmountToDisplayString(rate, currency)}`;
+    });
+    return subRateComments.join(',');
+}
+
 /**
  * Gathers all the data needed to submit a per diem expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
@@ -2630,6 +2657,9 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {comment = '', currency, created, category, tag, customUnit} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
+    const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
+    const finalComment = comment || defaultComment;
 
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2693,9 +2723,10 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
             currency,
             reportID: iouReport.reportID,
-            comment,
+            comment: finalComment,
             created,
             category,
+            merchant,
             tag,
             customUnit,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
