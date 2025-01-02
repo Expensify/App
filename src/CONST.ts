@@ -6503,50 +6503,6 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
-    get SUBSCRIPTION_PRICES() {
-        return {
-            [this.PAYMENT_CARD_CURRENCY.USD]: {
-                [this.POLICY.TYPE.CORPORATE]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1800,
-                },
-                [this.POLICY.TYPE.TEAM]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
-                },
-            },
-            [this.PAYMENT_CARD_CURRENCY.AUD]: {
-                [this.POLICY.TYPE.CORPORATE]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3000,
-                },
-                [this.POLICY.TYPE.TEAM]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
-                },
-            },
-            [this.PAYMENT_CARD_CURRENCY.GBP]: {
-                [this.POLICY.TYPE.CORPORATE]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
-                },
-                [this.POLICY.TYPE.TEAM]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
-                },
-            },
-            [this.PAYMENT_CARD_CURRENCY.NZD]: {
-                [this.POLICY.TYPE.CORPORATE]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
-                },
-                [this.POLICY.TYPE.TEAM]: {
-                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
-                },
-            },
-        };
-    },
     SMART_BANNER_HEIGHT: 152,
 } as const;
 

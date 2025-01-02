@@ -8,10 +8,12 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as Xero from '@libs/actions/connections/Xero';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -41,7 +43,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
 
-    const featureNameAlias = route.params.featureName && getFeatureNameAlias(route.params.featureName);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
+
+    const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
@@ -49,7 +55,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = !!policy && PolicyUtils.isPolicyAdmin(policy);
+    // If there is no policyID, it means the workspace upgrade URL is being accessed directly.
+    // In this case, check if the user is an admin on more than one policy.
+    // If the user is not an admin on multiple policies, they cannot perform the action,
+    // so display the NotFoundPage.
+    const canPerformUpgrade = (!!policy && PolicyUtils.isPolicyAdmin(policy)) || (!policyID && ownerPolicies.length > 1);
     const isUpgraded = useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
@@ -89,10 +99,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 Navigation.dismissModal();
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params.backTo, route.params.featureName]);
+    }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
 
     const upgradeToCorporate = () => {
-        if (!canPerformUpgrade) {
+        if (!canPerformUpgrade || !policy) {
             return;
         }
 
@@ -153,7 +163,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        route.params.featureName,
+        route.params?.featureName,
     ]);
 
     useFocusEffect(
@@ -167,7 +177,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    if (policyID && !canPerformUpgrade) {
+    if (!canPerformUpgrade) {
         return <NotFoundPage />;
     }
 
