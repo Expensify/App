@@ -2719,7 +2719,8 @@ function getTrackExpenseInformation(
         transactionParams: {
             amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
             currency,
-            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
+            // @ts-expect-error TODO: update buildOptimisticTransaction return type to indicate that reportID can be undefined
+            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
             comment,
             created,
             merchant,
@@ -7874,7 +7875,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
     const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, statusNum);
-    const iouReportActions = chatReport.iouReportID ? ReportActionsUtils.getAllReportActions(chatReport.iouReportID) : {};
+    const iouReportActions = ReportActionsUtils.getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = ReportActionsUtils.getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => ReportActionsUtils.isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => ReportActionsUtils.isCreatedAction(action));
