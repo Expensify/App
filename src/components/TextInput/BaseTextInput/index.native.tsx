@@ -106,18 +106,14 @@ function BaseTextInput(
 
     useHtmlPaste(input, undefined, isMarkdownEnabled);
 
-    // AutoFocus which only works on mount:
+    // AutoFocus with delay is executed manually, otherwise it's handled by the TextInput's autoFocus native prop
     useEffect(() => {
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
+        if (!autoFocus || !shouldDelayFocus || !input.current) {
             return;
         }
 
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
-        input.current.focus();
+        const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(focusTimeout);
         // We only want this to run on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -344,6 +340,7 @@ function BaseTextInput(
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={theme.placeholderText}
