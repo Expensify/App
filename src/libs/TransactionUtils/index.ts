@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
@@ -51,6 +51,7 @@ type TransactionParams = {
     reimbursable?: boolean;
     source?: string;
     filename?: string;
+    customUnit?: TransactionCustomUnit;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -194,6 +195,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         reimbursable = true,
         source = '',
         filename = '',
+        customUnit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -211,6 +213,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (isDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+    }
+
+    const isPerDiemTransaction = !!pendingFields?.subRates;
+    if (isPerDiemTransaction) {
+        // Set the custom unit, which comes from the policy per diem rate data
+        lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
     return {
@@ -265,6 +273,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
     return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
+    // Keep this disabled for per diem expense
     // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
@@ -1424,6 +1433,7 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
+    isPerDiemRequest,
 };
 
 export type {TransactionChanges};

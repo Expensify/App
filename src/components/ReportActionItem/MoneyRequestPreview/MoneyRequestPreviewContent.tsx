@@ -122,6 +122,7 @@ function MoneyRequestPreviewContent({
     const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, transactionViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const isPerDiemRequest = TransactionUtils.isPerDiemRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
@@ -197,6 +198,8 @@ function MoneyRequestPreviewContent({
 
         if (isDistanceRequest) {
             message = translate('common.distance');
+        } else if (isPerDiemRequest) {
+            message = translate('common.perDiem');
         } else if (isScanning) {
             message = translate('common.receipt');
         } else if (isBillSplit) {

@@ -3312,12 +3312,20 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         return isAdmin || isManager;
     }
 
+    if (
+        (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) &&
+        TransactionUtils.isPerDiemRequest(transaction)
+    ) {
+        return false;
+    }
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return (
             !isInvoiceReport(moneyRequestReport) &&
             !TransactionUtils.isReceiptBeingScanned(transaction) &&
             !TransactionUtils.isDistanceRequest(transaction) &&
+            !TransactionUtils.isPerDiemRequest(transaction) &&
             (isAdmin || isManager || isRequestor)
         );
     }

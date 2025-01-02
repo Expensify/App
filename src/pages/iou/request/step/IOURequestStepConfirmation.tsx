@@ -35,6 +35,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -266,6 +267,41 @@ function IOURequestStepConfirmation({
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
 
+    const submitPerDiemExpense = useCallback(
+        (selectedParticipants: Participant[], trimmedComment: string) => {
+            if (!transaction) {
+                return;
+            }
+
+            const participant = selectedParticipants.at(0);
+            if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
+                return;
+            }
+            IOU.submitPerDiemExpense({
+                report,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                },
+                transactionParams: {
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    comment: trimmedComment,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    customUnit: transaction.comment?.customUnit,
+                },
+            });
+        },
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+    );
+
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: IOU.GpsPoint) => {
             if (!report || !transaction) {
@@ -360,9 +396,6 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
             setIsConfirmed(true);
-            if (isPerDiemRequest) {
-                return;
-            }
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -501,6 +534,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            if (isPerDiemRequest) {
+                submitPerDiemExpense(selectedParticipants, trimmedComment);
+                return;
+            }
+
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
@@ -532,7 +570,6 @@ function IOURequestStepConfirmation({
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
-            isPerDiemRequest,
             iouType,
             transaction,
             isDistanceRequest,
@@ -540,6 +577,7 @@ function IOURequestStepConfirmation({
             receiptFile,
             isCategorizingTrackExpense,
             isSharingTrackExpense,
+            isPerDiemRequest,
             requestMoney,
             createDistanceRequest,
             currentUserPersonalDetails.login,
@@ -551,6 +589,7 @@ function IOURequestStepConfirmation({
             policyTags,
             policyCategories,
             trackExpense,
+            submitPerDiemExpense,
         ],
     );
 
