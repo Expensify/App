@@ -297,6 +297,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles applied for the title */
+    titleStyles?: StyleProp<TextStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -482,6 +485,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
+    /** Whether to show the default confirm button disabled */
+    isConfirmButtonDisabled?: boolean;
+
     /** Whether to use the default theme for the confirm button */
     shouldUseDefaultTheme?: boolean;
 
@@ -562,6 +568,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /** Styles applid for the title of the list item */
+    listItemTitleStyles?: StyleProp<TextStyle>;
 
     /** This may improve scroll performance for large lists */
     removeClippedSubviews?: boolean;

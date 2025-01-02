@@ -151,6 +151,7 @@ function ProfilePage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
+                shouldUseHeadlineHeader
             />
             <ScrollView
                 style={styles.pt3}

@@ -242,6 +242,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
@@ -364,6 +368,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.ADDRESS]: {
                             path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                        },
+                        [SCREENS.WORKSPACE.PLAN]: {
+                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
@@ -971,6 +978,21 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.PER_DIEM_DETAILS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -1214,6 +1236,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
                                     exact: true,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'per-diem': {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                    exact: true,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1240,6 +1267,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.route,
                         [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
                         [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -1345,6 +1378,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
+                        [SCREENS.TRAVEL.TRIP_DETAILS]: {
+                            path: ROUTES.TRAVEL_TRIP_DETAILS.route,
+                            parse: {
+                                reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

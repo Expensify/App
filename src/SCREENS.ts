@@ -27,6 +27,8 @@ const SCREENS = {
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
+        TRIP_SUMMARY: 'Travel_TripSummary',
+        TRIP_DETAILS: 'Travel_TripDetails',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
@@ -67,6 +69,7 @@ const SCREENS = {
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -228,6 +231,12 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_DESTINATION: 'Money_Request_Destination',
+        STEP_TIME: 'Money_Request_Time',
+        STEP_SUBRATE: 'Money_Request_SubRate',
+        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        STEP_TIME_EDIT: 'Money_Request_Time_Edit',
+        STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -503,6 +512,7 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
+        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -555,6 +565,11 @@ const SCREENS = {
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
         PER_DIEM_SETTINGS: 'Per_Diem_Settings',
+        PER_DIEM_DETAILS: 'Per_Diem_Details',
+        PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
+        PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
+        PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
     },
 
     EDIT_REQUEST: {
