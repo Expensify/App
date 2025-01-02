@@ -677,7 +677,7 @@ Onyx.connect({
 
         reportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
             const reportsMap = all;
-            if (!transaction) {
+            if (!transaction || !transaction.reportID) {
                 return reportsMap;
             }
 
@@ -8412,7 +8412,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
 }
 
 function shouldShowMerchantColumn(transactions: Transaction[]) {
-    return transactions.some((transaction) => isExpenseReport(allReports?.[transaction.reportID] ?? null));
+    return transactions.some((transaction) => isExpenseReport(transaction.reportID ? allReports?.[transaction.reportID] : undefined));
 }
 
 /**

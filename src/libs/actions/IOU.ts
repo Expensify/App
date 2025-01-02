@@ -2719,7 +2719,6 @@ function getTrackExpenseInformation(
         transactionParams: {
             amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
             currency,
-            // @ts-expect-error TODO: update buildOptimisticTransaction return type to indicate that reportID can be undefined
             reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
             comment,
             created,

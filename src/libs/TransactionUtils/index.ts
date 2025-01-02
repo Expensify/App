@@ -36,7 +36,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 type TransactionParams = {
     amount: number;
     currency: string;
-    reportID: string;
+    reportID: string | undefined;
     comment?: string;
     attendees?: Attendee[];
     created?: string;

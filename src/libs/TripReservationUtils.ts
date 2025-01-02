@@ -65,7 +65,7 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string; reservationIndex: number};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
