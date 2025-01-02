@@ -26,7 +26,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
   NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
   NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
 
-  [defaults setObject:NULL forKey:ShareExtensionFilesKey];
+  [defaults removeObjectForKey:ShareExtensionFilesKey];
   [defaults synchronize];
 
   NSError *error = nil;
@@ -55,7 +55,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
       // Check if filename contains "text_to_read"
       if ([fileName containsString:@"text_to_read"]) {
-          NSError *fileError = nil;
+          NSError *fileError;
           NSString *fileContent = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&fileError];
           if (fileError) {
               NSLog(@"Failed to read file: %@, error: %@", filePath, fileError);
@@ -64,7 +64,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
           NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
           NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
-          NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
+          NSString *identifier = [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
 
           NSDictionary *dict = @{
               @"id" : identifier,
@@ -81,8 +81,8 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       NSString *mimeType = type.preferredMIMEType ? : @"application/octet-stream";
       
       NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
-    NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
-      NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
+      NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
+      NSString *identifier = [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
       NSString *fileUriPath = [@"file://" stringByAppendingString:filePath];
 
       CGFloat aspectRatio = 1.0;
