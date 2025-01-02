@@ -624,7 +624,10 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-function clearPolicyErrorField(policyID: string, fieldName: string) {
+function clearPolicyErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
@@ -1193,9 +1196,9 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
+function updateGeneralSettings(name: string, currencyValue?: string, policyID?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    if (!policy) {
+    if (!policy || !policyID) {
         return;
     }
 
