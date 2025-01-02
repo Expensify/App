@@ -4022,7 +4022,23 @@ function prepareOnboardingOptimisticData(
         const selfDMReportID = ReportUtils.findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
-        if (!selfDMReport) {
+        if (selfDMReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: true,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: selfDMReport?.isPinned,
+                },
+            });
+        } else {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = ReportUtils.buildOptimisticSelfDMReport(currentTime);
             createdAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
@@ -4067,22 +4083,6 @@ function prepareOnboardingOptimisticData(
                     },
                 },
             );
-        } else {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: true,
-                },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: selfDMReport?.isPinned,
-                },
-            });
         }
     }
 
