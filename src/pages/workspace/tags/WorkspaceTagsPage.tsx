@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -22,7 +22,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -65,7 +64,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
+    const isFocused = useIsFocused();
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -87,8 +87,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useFocusEffect(fetchTags);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
-    useCleanupSelectedOptions(cleanupSelectedOption);
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedTags({});
+    }, [isFocused]);
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
         if (!policyTagList) {
@@ -172,10 +176,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
-            toggleTag(tag);
-            return;
-        }
         if (tag.orderWeight !== undefined) {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
@@ -302,7 +302,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                    Navigation.navigate(
+                        isQuickSettingsFlow
+                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                    );
                 },
             },
         ];

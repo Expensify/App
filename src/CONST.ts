@@ -665,6 +665,7 @@ const CONST = {
                 HANG_TIGHT: 4,
             },
         },
+        BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -687,6 +688,7 @@ const CONST = {
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         PRODUCT_TRAINING: 'productTraining',
+        NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2358,6 +2360,7 @@ const CONST = {
             DISTANCE: 'distance',
             MANUAL: 'manual',
             SCAN: 'scan',
+            PER_DIEM: 'per-diem',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -2978,6 +2981,50 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
         },
+    },
+    get SUBSCRIPTION_PRICES() {
+        return {
+            [this.PAYMENT_CARD_CURRENCY.USD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1800,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.AUD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3000,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.GBP]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.NZD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                },
+            },
+        };
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
@@ -4612,6 +4659,7 @@ const CONST = {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+        PER_DIEM: 'per-diem',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -6445,6 +6493,18 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        RENAME_SAVED_SEARCH: 'renameSavedSearch',
+        QUICK_ACTION_BUTTON: 'quickActionButton',
+        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
+        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
+        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
+        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
+    },
+    SMART_BANNER_HEIGHT: 152,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
