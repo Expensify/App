@@ -3840,9 +3840,8 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(participantAccountIDs, 0);
 
-    const participants = participantAccountIDs.map((id: number) => {
-        const personalDetail = personalDetails.find((personal) => personal.accountID === id);
-        const name = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+    const participants = personalDetails.map((personalDetail) => {
+        const name = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
         if (name && name?.length > 0) {
             return name;
         }
