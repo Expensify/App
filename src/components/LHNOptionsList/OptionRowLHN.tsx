@@ -45,6 +45,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modal] = useOnyx(ONYXKEYS.MODAL);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -72,7 +73,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
-
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(

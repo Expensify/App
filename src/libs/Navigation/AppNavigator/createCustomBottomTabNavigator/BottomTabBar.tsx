@@ -101,7 +101,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         hideProductTrainingTooltip();
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
-    }, [activeWorkspaceID, selectedTab]);
+    }, [activeWorkspaceID, selectedTab, hideProductTrainingTooltip]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {

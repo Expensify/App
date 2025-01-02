@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];

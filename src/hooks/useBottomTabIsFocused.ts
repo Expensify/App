@@ -10,6 +10,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 
 const useBottomTabIsFocused = () => {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();

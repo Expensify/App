@@ -59,12 +59,12 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const {status, hash} = queryJSON;
-
 
     useFocusEffect(
         useCallback(() => {
