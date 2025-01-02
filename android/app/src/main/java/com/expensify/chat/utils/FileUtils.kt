@@ -23,7 +23,7 @@ object FileUtils {
     }
 
     fun clearInternalStorageDirectory(context: Context) {
-        val internalStorageDirectory = File(context.filesDir.absolutePath, directoryName)
+        val internalStorageDirectory = getInternalStorageDirectory(context)
         if (internalStorageDirectory.exists()) {
             val files = internalStorageDirectory.listFiles()
             if (files != null && files.isNotEmpty()) {
@@ -31,7 +31,7 @@ object FileUtils {
                     file.delete()
                 }
             } else {
-                Log.i(tag, "No files found to delete in directory: $internalStorageDirectory")
+                Log.i(tag, "No files found to delete in directory: ${internalStorageDirectory.absolutePath}")
             }
         }
     }
