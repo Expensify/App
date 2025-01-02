@@ -596,6 +596,12 @@ const translations = {
             subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
             subtitleText3: ' cuando se convierta en client.',
         },
+        default: {
+            title: 'No hay nada que mostrar',
+            subtitleText1: 'Actualmente no hay nada que mostrar aquí',
+            subtitleText2: '',
+            subtitleText3: '',
+        },
     },
     videoChatButtonAndMenu: {
         tooltip: 'Programar una llamada',
