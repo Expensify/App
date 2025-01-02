@@ -20,10 +20,6 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
 
     private fun handleSingleFileIntent(intent: Intent, context: Context) {
         (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            if (fileUri == null) {
-                return
-            }
-
             val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
 
             if (resultingPath != null) {
