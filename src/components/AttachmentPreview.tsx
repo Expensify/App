@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {ResizeMode, Video} from 'expo-av';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -9,17 +9,6 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageView from './ImageView';
 import {PressableWithFeedback} from './Pressable';
-
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
 
 type AttachmentPreviewProps = {
     /** Source (URL, SVG function) for file. */
@@ -35,14 +24,9 @@ type AttachmentPreviewProps = {
 function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
 
-    const file = useMemo<FileObject | undefined>(() => {
-        const originalFileName: string = source.split('/').pop() ?? '';
-        return originalFileName
-            ? {
-                  name: originalFileName,
-              }
-            : undefined;
-    }, [source]);
+    const originalFileName: string = source.split('/').pop() ?? '';
+
+    const file = originalFileName ? {name: originalFileName} : undefined;
 
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name))) ?? (file?.name && Str.isVideo(file.name));
