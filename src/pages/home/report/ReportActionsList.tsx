@@ -414,7 +414,7 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isNewMessageDisplayed = useCallback(() => {
+    const isNewMessageDisplayed = useMemo(() => {
         const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
         const lastPrevAction = prevActions.at(0);
         return lastAction?.reportActionID !== lastPrevAction?.reportActionID;
@@ -424,7 +424,6 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-
             if (!isFromCurrentUser || scrollingVerticalOffset.current === 0 || !isReportScreenTopmostCentralPane()) {
                 return;
             }
@@ -432,7 +431,7 @@ function ReportActionsList({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                 return;
             }
-            if (!isNewMessageDisplayed()) {
+            if (!isNewMessageDisplayed) {
                 setPendingBottomScroll(true);
             } else {
                 InteractionManager.runAfterInteractions(() => {
@@ -448,7 +447,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isNewMessageDisplayed()) {
+        if (isNewMessageDisplayed) {
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
                 setPendingBottomScroll(false);
