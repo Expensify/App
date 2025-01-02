@@ -74,9 +74,9 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
-    const chatReport = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const iouReport = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
-    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {

@@ -363,7 +363,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+        getRoute: (reportID?: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
@@ -399,7 +399,7 @@ const ROUTES = {
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
+        getRoute: (reportID?: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
