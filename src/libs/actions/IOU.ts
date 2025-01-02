@@ -137,7 +137,6 @@ import {
     getCurrency,
     getMerchant,
     getTransaction,
-    getTransactionID,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -7904,7 +7903,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         {optimisticData, successData, failureData},
     );
     Navigation.dismissModal();
-    Report.notifyNewAction(expenseReport.reportID, userAccountID);
+    notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
