@@ -86,8 +86,10 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else {
+        } else if (explicitPolicyID) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
+        } else {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
         }
     };
 
