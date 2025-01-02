@@ -624,7 +624,10 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-function clearPolicyErrorField(policyID: string, fieldName: string) {
+function clearPolicyErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
@@ -1195,7 +1198,7 @@ function clearAvatarErrors(policyID: string) {
  */
 function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    if (!policy) {
+    if (!policy || !policyID) {
         return;
     }
 

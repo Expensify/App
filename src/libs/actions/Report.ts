@@ -3672,6 +3672,20 @@ function prepareOnboardingOptimisticData(
             };
         });
 
+    // Sign-off welcome message
+    const welcomeSignOffComment = ReportUtils.buildOptimisticAddCommentReportAction(
+        Localize.translateLocal('onboarding.welcomeSignOffTitle'),
+        undefined,
+        actorAccountID,
+        tasksData.length + 3,
+    );
+    const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
+    const welcomeSignOffMessage = {
+        reportID: targetChatReportID,
+        reportActionID: welcomeSignOffCommentAction.reportActionID,
+        reportComment: welcomeSignOffComment.commentText,
+    };
+
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
         task: task.type,
@@ -3827,8 +3841,7 @@ function prepareOnboardingOptimisticData(
     }, []);
 
     const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
-    const lastVisibleActionCreated =
-        tasksData.at(-1)?.completedTaskReportAction?.created ?? tasksData.at(-1)?.taskReportAction.reportAction.created ?? videoCommentAction?.created ?? textCommentAction.created;
+    const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
 
     optimisticData.push(
         {
@@ -4019,7 +4032,33 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    guidedSetupData.push(...tasksForParameters);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
+        },
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            } as ReportAction,
+        },
+    });
+
+    guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
 }

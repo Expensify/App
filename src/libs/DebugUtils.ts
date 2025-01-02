@@ -978,6 +978,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
                 value,
                 {
+                    attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
