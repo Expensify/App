@@ -703,10 +703,18 @@ function getReceiptError(
     action?: string,
     retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt,
 ): Errors | ErrorFields {
+    const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
+
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey)
         : ErrorUtils.getMicroSecondOnyxErrorObject(
-              {error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? '', action: action ?? '', retryParams: retryParams ?? ''},
+              {
+                  error: CONST.IOU.RECEIPT_ERROR,
+                  source: receipt.source?.toString() ?? '',
+                  filename: filename ?? '',
+                  action: action ?? '',
+                  retryParams: formattedRetryParams,
+              },
               errorKey,
           );
 }

@@ -83,31 +83,36 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                                 }
 
                                 const handleFileRetry = (file: File) => {
+                                    const retryParams: IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.TrackExpense | IOU.RequestMoneyInformation =
+                                        typeof message.retryParams === 'string'
+                                            ? (JSON.parse(message.retryParams) as IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.TrackExpense | IOU.RequestMoneyInformation)
+                                            : message.retryParams;
+
                                     switch (message.action) {
                                         case 'replaceReceipt': {
                                             dismissError();
-                                            const replaceReceiptParams = {...message.retryParams} as IOU.ReplaceReceipt;
+                                            const replaceReceiptParams = {...retryParams} as IOU.ReplaceReceipt;
                                             replaceReceiptParams.file = file;
                                             IOU.replaceReceipt(replaceReceiptParams);
                                             break;
                                         }
                                         case 'startSplitBill': {
                                             dismissError();
-                                            const startSplitBillParams = {...message.retryParams} as IOU.StartSplitBilActionParams;
+                                            const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
                                             startSplitBillParams.receipt = file;
                                             IOU.startSplitBill(startSplitBillParams);
                                             break;
                                         }
                                         case 'trackExpense': {
                                             dismissError();
-                                            const trackExpenseParams = {...message.retryParams} as IOU.TrackExpense;
+                                            const trackExpenseParams = {...retryParams} as IOU.TrackExpense;
                                             trackExpenseParams.receipt = file;
                                             IOU.trackExpense(trackExpenseParams);
                                             break;
                                         }
                                         case 'moneyRequest': {
                                             dismissError();
-                                            const requestMoneyParams = {...message.retryParams} as IOU.RequestMoneyInformation;
+                                            const requestMoneyParams = {...retryParams} as IOU.RequestMoneyInformation;
                                             requestMoneyParams.transactionParams.receipt = file;
                                             requestMoneyParams.isRetry = true;
                                             IOU.requestMoney(requestMoneyParams);

@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import type {ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams, TrackExpense} from '@libs/actions/IOU';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
@@ -25,7 +24,7 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
 /** Mapping of form fields with error translation keys and variables */
-type Errors = Record<string, string | null | StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt>;
+type Errors = Record<string, string | null>;
 
 /**
  * Types of avatars
