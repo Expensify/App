@@ -3338,7 +3338,7 @@ function getUpdateTrackExpenseParams(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: transactionThread?.parentReportActionID ? {[transactionThread.parentReportActionID]: {originalMessage: {whisperedTo: []}}} : null,
+            value: transactionThread?.parentReportActionID ? {[transactionThread.parentReportActionID]: {originalMessage: {whisperedTo: []}}} : {},
         });
     }
 
@@ -6522,7 +6522,7 @@ function getSendMoneyParams(
     const optimisticTransactionThreadReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-        value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread} : null,
+        value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread} : {},
     };
 
     const successData: OnyxUpdate[] = [];
@@ -6619,7 +6619,7 @@ function getSendMoneyParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}} : null,
+            value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}} : {},
         },
     );
 
@@ -6645,7 +6645,7 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
             value: optimisticCreatedActionForTransactionThread?.reportActionID
                 ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage')}}
-                : null,
+                : {},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
