@@ -2009,6 +2009,15 @@ const translations = {
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
         },
     },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido añadida.',
