@@ -7,6 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
@@ -30,6 +31,7 @@ function SubscriptionPlan() {
     const subscriptionPlan = useSubscriptionPlan();
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
     const preferredCurrency = usePreferredCurrency();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
@@ -114,7 +116,7 @@ function SubscriptionPlan() {
             isCentralPane
             titleStyles={styles.textStrong}
         >
-            <View style={[styles.flexRow]}>
+            <View style={[shouldUseNarrowLayout ? {} : styles.flexRow]}>
                 {plans.map((plan, index) => (
                     <SubscriptionPlanCard
                         index={index}
