@@ -1,7 +1,7 @@
 import {createContext} from 'react';
 
 type MentionReportContextProps = {
-    currentReportID: string;
+    currentReportID?: string;
     exactlyMatch?: boolean;
 };
 

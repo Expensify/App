@@ -122,7 +122,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const customUnitRateID = TransactionUtils.getRateID(transaction);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(

@@ -44,7 +44,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                 if (isDisabled) {
                                     return;
                                 }
-                                return showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
+                                return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
                             });
                         }}
                         shouldUseHapticsOnLongPress

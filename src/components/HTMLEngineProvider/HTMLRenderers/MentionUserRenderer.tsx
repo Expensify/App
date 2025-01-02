@@ -92,7 +92,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             return;
                         }
                         return onShowContextMenu(() =>
-                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs)),
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs)),
                         );
                     }}
                     onPress={(event) => {
