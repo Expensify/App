@@ -3054,10 +3054,14 @@ function getReportFieldKey(reportFieldId: string | undefined) {
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
+    if (!policyID) {
+        return {};
+    }
+
     const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
     const fieldList = policyReportFields?.[1]?.fieldList;
 
-    if (!policyReportFields || !fieldList || !policyID) {
+    if (!policyReportFields || !fieldList) {
         return {};
     }
 

@@ -5746,8 +5746,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     const iouReportID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID)!;
+    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = TransactionUtils.isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -5796,7 +5795,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport: OnyxInputValue<OnyxTypes.Report>;
     const currency = TransactionUtils.getCurrency(transaction);
-    const updatedReportPreviewAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {...reportPreviewAction};
+    const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
@@ -6061,12 +6060,16 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
                 value: {
                     hasOutstandingChildRequest: false,
                     iouReportID: null,
-                    lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID, canUserPerformWriteAction, {
-                        [reportPreviewAction.reportActionID]: null,
-                    })?.lastMessageText,
-                    lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID, canUserPerformWriteAction, {
-                        [reportPreviewAction.reportActionID]: null,
-                    })?.created,
+                    lastMessageText: ReportActionsUtils.getLastVisibleMessage(
+                        iouReport?.chatReportID,
+                        canUserPerformWriteAction,
+                        reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+                    )?.lastMessageText,
+                    lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(
+                        iouReport?.chatReportID,
+                        canUserPerformWriteAction,
+                        reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+                    )?.created,
                 },
             },
             {
@@ -6173,9 +6176,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
-            },
+            value: reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: updatedReportPreviewAction} : {},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6205,10 +6206,16 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID, canUserPerformWriteAction, {[reportPreviewAction.reportActionID]: null})?.lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID, canUserPerformWriteAction, {
-                    [reportPreviewAction.reportActionID]: null,
-                })?.created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(
+                    iouReport?.chatReportID,
+                    canUserPerformWriteAction,
+                    reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+                )?.lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(
+                    iouReport?.chatReportID,
+                    canUserPerformWriteAction,
+                    reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+                )?.created,
             },
         });
         optimisticData.push({
@@ -6237,12 +6244,14 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    pendingAction: null,
-                    errors: null,
-                },
-            },
+            value: reportPreviewAction?.reportActionID
+                ? {
+                      [reportPreviewAction.reportActionID]: {
+                          pendingAction: null,
+                          errors: null,
+                      },
+                  }
+                : {},
         },
     ];
 
@@ -6316,15 +6325,17 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    ...reportPreviewAction,
-                    pendingAction: null,
-                    errors: {
-                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
-                    },
-                },
-            },
+            value: reportPreviewAction?.reportActionID
+                ? {
+                      [reportPreviewAction.reportActionID]: {
+                          ...reportPreviewAction,
+                          pendingAction: null,
+                          errors: {
+                              [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                          },
+                      },
+                  }
+                : {},
         },
     );
 
