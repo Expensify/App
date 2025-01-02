@@ -19,6 +19,9 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Callback to register focus trap container element */
     onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
+
+    /** Whether to show the label when the tab is inactive */
+    shouldShowLabelWhenInactive?: boolean;
 };
 
 type IconAndTitle = {
@@ -42,12 +45,14 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
             return {icon: Expensicons.UploadAlt, title: translate('common.share')};
         case CONST.TAB.SHARE.SUBMIT:
             return {icon: Expensicons.Receipt, title: translate('common.submit')};
+        case CONST.TAB_REQUEST.PER_DIEM:
+            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
 }
 
-function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged}: TabSelectorProps) {
+function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged, shouldShowLabelWhenInactive = true}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -102,6 +107,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             inactiveOpacity={inactiveOpacity}
                             backgroundColor={backgroundColor}
                             isActive={isActive}
+                            shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         />
                     );
                 })}
