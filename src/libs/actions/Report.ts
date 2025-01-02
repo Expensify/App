@@ -112,6 +112,7 @@ import {
     getReportFieldKey,
     getReportIDFromLink,
     getReportLastMessage,
+    getReportMetadata,
     getReportNotificationPreference,
     getReportViolations,
     getRouteFromLink,
@@ -498,7 +499,7 @@ function unsubscribeFromReportChannel(reportID: string) {
 /**
  * Remove our pusher subscriptions to listen for someone leaving a report.
  */
-function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
+function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
     if (!reportID) {
         return;
     }
@@ -576,7 +577,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     const optimisticReport: Partial<Report> = {
         lastVisibleActionCreated: lastAction?.created,
-        lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
@@ -644,17 +644,15 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     ];
 
     let failureReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
-    if (lastMessageText || lastMessageTranslationKey) {
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
@@ -876,7 +874,6 @@ function openReport(
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
                 hasLoadingNewerReportActionsError: false,
-                lastVisitTime: DateUtils.getDBTime(),
             },
         },
     ];
@@ -1375,7 +1372,11 @@ function expandURLPreview(reportID: string, reportActionID: string) {
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker = false) {
+    if (!reportID) {
+        return;
+    }
+
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -1594,19 +1595,17 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     let optimisticReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
+    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    if (lastMessageText || lastMessageTranslationKey) {
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         optimisticReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
@@ -1813,7 +1812,6 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageTranslationKey: '',
             lastMessageText,
         };
         optimisticData.push({
@@ -3133,6 +3131,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 /** Invites people to a room */
 function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportMetadata = getReportMetadata(reportID);
     if (!report) {
         return;
     }
@@ -3159,7 +3158,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     );
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
-    const pendingChatMembers = getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const pendingChatMembers = getPendingChatMembers(inviteeAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const newParticipantAccountCleanUp = newAccountIDs.reduce<Record<number, null>>((participantCleanUp, newAccountID) => {
         // eslint-disable-next-line no-param-reassign
@@ -3173,14 +3172,20 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: participantsAfterInvitation,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
                 pendingChatMembers,
             },
         },
     ];
     optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
 
-    const successPendingChatMembers = report?.pendingChatMembers
-        ? report?.pendingChatMembers?.filter(
+    const successPendingChatMembers = reportMetadata?.pendingChatMembers
+        ? reportMetadata?.pendingChatMembers?.filter(
               (pendingMember) => !(inviteeAccountIDs.includes(Number(pendingMember.accountID)) && pendingMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
           )
         : null;
@@ -3189,8 +3194,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingChatMembers: successPendingChatMembers,
                 participants: newParticipantAccountCleanUp,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                pendingChatMembers: successPendingChatMembers,
             },
         },
     ];
@@ -3199,7 +3210,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 pendingChatMembers:
                     pendingChatMembers.map((pendingChatMember) => {
@@ -3237,12 +3248,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportMetadata = getReportMetadata(reportID);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
         participants: {
             [invitedAccountID]: null,
         },
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+        pendingChatMembers: reportMetadata?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
     });
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [invitedAccountID]: null,
@@ -3300,6 +3313,7 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
  */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportMetadata = getReportMetadata(reportID);
     if (!report) {
         return;
     }
@@ -3308,12 +3322,12 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     targetAccountIDs.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
     });
-    const pendingChatMembers = getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = getPendingChatMembers(targetAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 pendingChatMembers,
             },
@@ -3323,9 +3337,9 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+                pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -3338,7 +3352,13 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: removeParticipantsData,
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -3681,6 +3701,15 @@ function prepareOnboardingOptimisticData(
             };
         });
 
+    // Sign-off welcome message
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(Localize.translateLocal('onboarding.welcomeSignOffTitle'), undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
+    const welcomeSignOffMessage = {
+        reportID: targetChatReportID,
+        reportActionID: welcomeSignOffCommentAction.reportActionID,
+        reportComment: welcomeSignOffComment.commentText,
+    };
+
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
         task: task.type,
@@ -3836,8 +3865,7 @@ function prepareOnboardingOptimisticData(
     }, []);
 
     const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
-    const lastVisibleActionCreated =
-        tasksData.at(-1)?.completedTaskReportAction?.created ?? tasksData.at(-1)?.taskReportAction.reportAction.created ?? videoCommentAction?.created ?? textCommentAction.created;
+    const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
 
     optimisticData.push(
         {
@@ -3890,20 +3918,18 @@ function prepareOnboardingOptimisticData(
     }
 
     let failureReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID, canUserPerformWriteAction);
-    if (lastMessageText || lastMessageTranslationKey) {
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID, canUserPerformWriteAction);
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID, canUserPerformWriteAction);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated: prevLastVisibleActionCreated,
             lastActorAccountID,
@@ -4030,7 +4056,33 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    guidedSetupData.push(...tasksForParameters);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
+        },
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [welcomeSignOffCommentAction.reportActionID]: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            } as ReportAction,
+        },
+    });
+
+    guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
 }
@@ -4205,7 +4257,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,
         lastVisibleActionCreated: report?.lastVisibleActionCreated,
         lastActorAccountID: report?.lastActorAccountID,
@@ -4280,7 +4331,6 @@ function resolveActionableReportMentionWhisper(
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,
         lastVisibleActionCreated: report?.lastVisibleActionCreated,
         lastActorAccountID: report?.lastActorAccountID,

@@ -33,7 +33,6 @@ import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
-    lastMessageTranslationKey?: string;
     lastMessageText: string;
     lastMessageHtml?: string;
 };
@@ -815,7 +814,6 @@ function getLastVisibleMessage(
 
     if (message && isReportMessageAttachment(message)) {
         return {
-            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
             lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
             lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
@@ -933,7 +931,11 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
 }
 
 function getReportAction(reportID: string | undefined, reportActionID: string | undefined): ReportAction | undefined {
-    return reportActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] : undefined;
+    if (!reportID || !reportActionID) {
+        return undefined;
+    }
+
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
 }
 
 function getMostRecentReportActionLastModified(): string {
@@ -1608,7 +1610,11 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
 /**
  * Get the track expense actionable whisper of the corresponding track expense
  */
-function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
+function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined) {
+    if (!transactionID || !chatReportID) {
+        return undefined;
+    }
+
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }

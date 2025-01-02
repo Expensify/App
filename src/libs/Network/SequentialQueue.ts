@@ -136,6 +136,12 @@ function process(): Promise<void> {
     return currentRequestPromise;
 }
 
+/**
+ * @param shouldResetPromise Determines whether the isReadyPromise should be reset.
+ * A READ request will wait until all the WRITE requests are done, using the isReadyPromise promise.
+ * Resetting can cause unresolved READ requests to hang if tied to the old promise,
+ * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
+ */
 function flush(shouldResetPromise = true) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
@@ -206,6 +212,11 @@ function unpause() {
     const numberOfPersistedRequests = getAllPersistedRequests().length || 0;
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
+
+    // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
+    // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
+    // the pending READ request never received the resolved callback. That's why we don't want to recreate
+    // the promise when unpausing the queue.
     flush(false);
 }
 
