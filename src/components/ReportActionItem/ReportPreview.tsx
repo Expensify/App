@@ -70,9 +70,6 @@ type ReportPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Callback for measuring child and running a defined callback/action later */
-    onShowContextMenu: (callback: () => void) => void;
-
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
 
@@ -98,7 +95,6 @@ function ReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onShowContextMenu = () => {},
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -496,7 +492,7 @@ function ReportPreview({
                     onPress={openReportFromPreview}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive))}
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"

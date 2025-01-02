@@ -175,7 +175,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
@@ -1231,6 +1230,50 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: IOUAction;
+        pageIndex: string;
+        transactionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: IOUAction;
+        pageIndex: string;
+        transactionID: string;
     };
 };
 
