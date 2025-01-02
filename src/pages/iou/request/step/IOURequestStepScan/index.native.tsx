@@ -314,7 +314,7 @@ function IOURequestStepScan({
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? CONST.DEFAULT_NUMBER_ID,
+                        existingSplitChatReportID: reportID,
                         billable: false,
                         category: '',
                         tag: '',
