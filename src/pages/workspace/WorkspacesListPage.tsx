@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -28,7 +29,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -38,6 +41,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -114,6 +118,8 @@ function WorkspacesListPage() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -150,7 +156,11 @@ function WorkspacesListPage() {
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policyIDToDelete) {
             setActiveWorkspaceID(undefined);
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
+            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
+            if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
+                Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
+            }
         }
     };
 
@@ -431,22 +441,26 @@ function WorkspacesListPage() {
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <FeatureList
-                            menuItems={workspaceFeatures}
-                            title={translate('workspace.emptyWorkspace.title')}
-                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                            ctaText={translate('workspace.new.newWorkspace')}
-                            ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                            illustration={LottieAnimations.WorkspacePlanet}
-                            // We use this style to vertically center the illustration, as the original illustration is not centered
-                            illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
-                            titleStyles={styles.textHeadlineH1}
-                        />
-                    </View>
-                </ScrollView>
+                {shouldShowLoadingIndicator ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <ScrollView contentContainerStyle={styles.pt3}>
+                        <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            <FeatureList
+                                menuItems={workspaceFeatures}
+                                title={translate('workspace.emptyWorkspace.title')}
+                                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                                ctaText={translate('workspace.new.newWorkspace')}
+                                ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
+                                onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                                illustration={LottieAnimations.WorkspacePlanet}
+                                // We use this style to vertically center the illustration, as the original illustration is not centered
+                                illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         );
     }
