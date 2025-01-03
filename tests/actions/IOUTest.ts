@@ -21,7 +21,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -3676,6 +3676,98 @@ describe('actions/IOU', () => {
                                 // Then the duplicate transaction should correctly be set on hold.
                                 expect(transaction?.comment?.hold).toBeDefined();
                                 resolve();
+                            },
+                        });
+                    });
+                });
+        });
+    });
+
+    describe('putOnHold and unHoldRequest', () => {
+        test("putOnHold and unHoldRequest should properly update the transaction thread report's lastVisibleActionCreated to the optimistically added last report action created timestamp", () => {
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: OnyxTypes.ReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                transaction.amount,
+                transaction.currency,
+                '',
+                [],
+                transaction.transactionID,
+            );
+            const transactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport);
+
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const comment = 'hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When an expense is put on hold
+                    IOU.putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                const lastVisibleActionCreated = report?.lastVisibleActionCreated;
+                                const connection2 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection2);
+                                        resolve();
+                                        const lastAction = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        const message = ReportActionsUtils.getReportActionMessage(lastAction);
+                                        // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
+                                        expect(message?.text).toBe(comment);
+                                        expect(lastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
+                            },
+                        });
+                    });
+                })
+                .then(() => {
+                    // When an expense is unhold
+                    IOU.unholdRequest(transaction.transactionID, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                const lastVisibleActionCreated = report?.lastVisibleActionCreated;
+                                const connection2 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection2);
+                                        resolve();
+                                        const lastAction = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        // Then the transaction thread report lastVisibleActionCreated should equal the unhold action created timestamp.
+                                        expect(lastAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.UNHOLD);
+                                        expect(lastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
                             },
                         });
                     });
