@@ -55,7 +55,8 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const previousSessionAge = useRef<number | undefined>();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validSessionAge: number | undefined = useMemo(() => {
-        // for performance gain, the processing is reserved to attachments images only
+        // Authentication is required only for certain types of images (attachments and receipts),
+        // so we only calculate the session age for those
         if (!isAuthTokenRequired) {
             return undefined;
         }
@@ -86,7 +87,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
      */
-    // source could be a result of require or a number or an object but all are expected so no unsafe-assignment
     const source = useMemo(() => {
         if (typeof propsSource === 'object' && 'uri' in propsSource) {
             if (typeof propsSource.uri === 'number') {
@@ -138,7 +138,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             {...forwardedProps}
             onLoad={handleLoad}
             style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             source={source}
         />
     );
