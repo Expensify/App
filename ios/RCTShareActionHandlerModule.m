@@ -11,115 +11,119 @@ NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 RCT_EXPORT_MODULE(RCTShareActionHandlerModule);
 
-RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
-{
+RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
   RCTLogInfo(@"Processing share extension files");
-  NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupIdentifier];
+  NSArray *fileFinalPaths = [self fileListFromSharedContainer];
+  NSArray *processedFiles = [self processFileList:fileFinalPaths];
+  callback(@[processedFiles]);
+}
 
-  NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupIdentifier];
-
-  if (groupURL == NULL) {
-      NSLog(@"handleShareExtension Missing app group url");
-      return;
-  }
-
-  NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
-  NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
-
-  [defaults removeObjectForKey:ShareExtensionFilesKey];
-  [defaults synchronize];
-
-  NSError *error = nil;
-  NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
-  if (fileSrcPath.count == 0) {
-      NSLog(@"handleShareAction Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
-      return;
-  }
-
-  NSMutableArray *fileFinalPaths = [NSMutableArray array];
-
-  for (NSString *source in fileSrcPath) {
-    if (source == NULL) {
-        NSLog(@"handleShareAction Invalid file");
-        continue;
+- (NSArray *)fileListFromSharedContainer {
+    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupIdentifier];
+    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupIdentifier];
+    if (groupURL == NULL) {
+        NSLog(@"Missing app group url");
+        return @[];
     }
-    NSString *srcFileAbsolutePath = [sharedFilesFolderPath stringByAppendingPathComponent:source];
-    [fileFinalPaths addObject:srcFileAbsolutePath];
-  }
-  
-  NSMutableArray *fileObjectsArray = [[NSMutableArray alloc] init];
+    NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
+    NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
+    [defaults removeObjectForKey:ShareExtensionFilesKey];
+    [defaults synchronize];
 
-  for (NSString *filePath in fileFinalPaths) {
-      NSString *extension = [filePath pathExtension];
-      NSString *fileName = [filePath lastPathComponent];
+    NSError *error = nil;
+    NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
+    if (fileSrcPath.count == 0) {
+        NSLog(@"Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
+        return @[];
+    }
 
-      // Check if filename contains "text_to_read"
-      if ([fileName containsString:@"text_to_read"]) {
-          NSError *fileError;
-          NSString *fileContent = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&fileError];
-          if (fileError) {
-              NSLog(@"Failed to read file: %@, error: %@", filePath, fileError);
-              continue;
-          }
+    NSMutableArray *fileFinalPaths = [NSMutableArray array];
+    for (NSString *source in fileSrcPath) {
+        if (source == NULL) {
+            NSLog(@"Invalid file");
+            continue;
+        }
+        NSString *srcFileAbsolutePath = [sharedFilesFolderPath stringByAppendingPathComponent:source];
+        [fileFinalPaths addObject:srcFileAbsolutePath];
+    }
 
-          NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
-          NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
-          NSString *identifier = [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
+    return fileFinalPaths;
+}
 
-          NSDictionary *dict = @{
-              @"id" : identifier,
-              @"content" : fileContent,
-              @"mimeType" : @"txt",
-              @"processedAt" : timestamp
-          };
+- (NSArray *)processFileList:(NSArray *)filePaths {
+    NSMutableArray *fileObjectsArray = [[NSMutableArray alloc] init];
+    for (NSString *filePath in filePaths) {
+        NSDictionary *fileDict = [self processSingleFile:filePath];
+        if (fileDict) {
+            [fileObjectsArray addObject:fileDict];
+        }
+    }
+    return fileObjectsArray;
+}
 
-          [fileObjectsArray addObject:dict];
-          continue;
-      }
+- (NSDictionary *)processSingleFile:(NSString *)filePath {
+    NSString *extension = [filePath pathExtension];
+    NSString *fileName = [filePath lastPathComponent];
+    NSString *fileContent, *mimeType;
+    CGFloat aspectRatio = 1.0;
+    BOOL isTextToReadFromFile = [fileName containsString:@"text_to_read"];
+    NSDictionary *dict;
+    NSError *error;
 
-      UTType *type = [UTType typeWithFilenameExtension:extension conformingToType:UTTypeData];
-      NSString *mimeType = type.preferredMIMEType ? : @"application/octet-stream";
-      
-      NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
-      NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
-      NSString *identifier = [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
-      NSString *fileUriPath = [@"file://" stringByAppendingString:filePath];
+    if (isTextToReadFromFile) {
+        fileContent = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&error];
+        if (error) {
+            NSLog(@"Failed to read file: %@, error: %@", filePath, error);
+            return nil;
+        }
+        mimeType = @"txt";
+    } else {
+        UTType *type = [UTType typeWithFilenameExtension:extension];
+        mimeType = type.preferredMIMEType ?: @"application/octet-stream";
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        if ([mimeType hasPrefix:@"video/"]) {
+            aspectRatio = [self videoAspectRatio:fileURL];
+        } else if ([mimeType hasPrefix:@"image/"]) {
+            aspectRatio = [self imageAspectRatio:fileURL];
+        }
+        fileContent = [@"file://" stringByAppendingString:filePath];
+    }
 
-      CGFloat aspectRatio = 1.0;
-      if ([mimeType hasPrefix:@"video/"]) {
-          AVURLAsset *asset = [AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:filePath] options:nil];
-          AVAssetTrack *track = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
-          if (track) {
-              CGSize size = CGSizeApplyAffineTransform(track.naturalSize, track.preferredTransform);
-              if (size.height != 0) {
-                  aspectRatio = fabs(size.width / size.height);
-              }
-          }
-      } else if ([mimeType hasPrefix:@"image/"]) {
-          UIImage *image = [UIImage imageWithContentsOfFile:filePath];
-          if (image) {
-              CGFloat width = image.size.width;
-              CGFloat height = image.size.height;
-              if (height != 0) {
-                  aspectRatio = width / height;
-              }
-          } else {
-              NSLog(@"Failed to load image from path: %@", filePath);
-          }
-      }
+    NSString *identifier = [self uniqueIdentifierForFilePath:filePath];
+    NSString *timestamp = [NSString stringWithFormat:@"%.0f", ([[NSDate date] timeIntervalSince1970] * 1000)];
 
-    NSDictionary *dict = @{
-        @"id" : identifier,
-        @"content" : fileUriPath,
-        @"mimeType" : mimeType,
-        @"processedAt" : timestamp,
-        @"aspectRatio" : @(aspectRatio)
+    dict = @{
+        @"id": identifier,
+        @"content": fileContent,
+        @"mimeType": mimeType,
+        @"processedAt": timestamp,
+        @"aspectRatio": @(aspectRatio)
     };
+    return dict;
+}
 
-    [fileObjectsArray addObject:dict];
+- (CGFloat)videoAspectRatio:(NSURL *)url {
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
+    AVAssetTrack *track = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+    if (track) {
+        CGSize size = CGSizeApplyAffineTransform(track.naturalSize, track.preferredTransform);
+        return size.height != 0 ? fabs(size.width / size.height) : 1;
     }
+    return 1;
+}
 
-    callback(@[fileObjectsArray]);
+- (CGFloat)imageAspectRatio:(NSURL *)url {
+    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+    if (image) {
+        return image.size.height != 0 ? image.size.width / image.size.height : 1;
+    }
+    return 1;
+}
+
+- (NSString *)uniqueIdentifierForFilePath:(NSString *)filePath {
+    NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
+    NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
+    return [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
 }
 
 @end
