@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
+import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -17,7 +18,13 @@ jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
-
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigationState: () => {},
+    };
+});
 describe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({

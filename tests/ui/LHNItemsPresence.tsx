@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
+import type Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
@@ -23,6 +24,13 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigationState: () => {},
+    };
+});
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
