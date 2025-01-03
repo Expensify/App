@@ -67,7 +67,6 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
-        isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
@@ -766,7 +765,7 @@ function BaseSelectionList<TItem extends ListItem>(
         {
             captureOnInputs: true,
             shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
-            isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused,
         },
     );
 
@@ -849,7 +848,6 @@ function BaseSelectionList<TItem extends ListItem>(
                         onPress={onConfirm}
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
-                        isDisabled={isConfirmButtonDisabled}
                     />
                 </FixedFooter>
             )}
