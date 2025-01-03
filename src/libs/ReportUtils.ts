@@ -677,7 +677,7 @@ Onyx.connect({
 
         reportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
             const reportsMap = all;
-            if (!transaction || !transaction.reportID) {
+            if (!transaction?.reportID) {
                 return reportsMap;
             }
 
@@ -8411,10 +8411,6 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
-function shouldShowMerchantColumn(transactions: Transaction[]) {
-    return transactions.some((transaction) => isExpenseReport(transaction.reportID ? allReports?.[transaction.reportID] : undefined));
-}
-
 /**
  * Whether a given report is used for onboarding tasks. In the past, it could be either the Concierge chat or the system
  * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
@@ -8896,7 +8892,6 @@ export {
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
-    shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
     changeMoneyRequestHoldStatus,
