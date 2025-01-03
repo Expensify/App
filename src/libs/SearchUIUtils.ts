@@ -66,7 +66,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = TransactionUtils.getMerchant(transactionItem);
-    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
         formattedFrom,
@@ -106,7 +106,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
     });
@@ -264,7 +264,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.hasError || report.hasError) {
+    if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -305,9 +305,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
+    const hasOnlyPendingTransactions =
+        allReportTransactions.length > 0 && allReportTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
 
     const isAllowedToApproveExpenseReport = ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy);
-    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
+    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
@@ -333,6 +335,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 if (ReportActionsUtils.isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+                if (!ReportActionsUtils.isAddCommentAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
@@ -372,7 +378,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 action: getAction(data, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
