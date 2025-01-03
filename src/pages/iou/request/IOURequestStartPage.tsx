@@ -15,6 +15,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import Performance from '@libs/Performance';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -25,7 +26,9 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
+import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
+import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
@@ -45,11 +48,12 @@ function IOURequestStartPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canUseCombinedTrackSubmit} = usePermissions();
+    const {canUseCombinedTrackSubmit, canUsePerDiem} = usePermissions();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -101,6 +105,24 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
+    const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email)
+        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: PolicyUtils.getPerDiemCustomUnit(mappedPolicy)}))
+        .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
+
+    const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
+
+    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
+
+    const currentPolicyPerDiemUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+
+    const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
+
+    const shouldShowPerDiemOption =
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        canUsePerDiem &&
+        ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
         // which will lead to briefly displaying the Not Found page without this loader.
@@ -145,6 +167,7 @@ function IOURequestStartPage({
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
+                                shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -177,6 +200,27 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
+                                {!!shouldShowPerDiemOption && (
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                {moreThanOnePerDiemExist && !doesCurrentPolicyPerDiemExist ? (
+                                                    <IOURequestStepPerDiemWorkspace
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                ) : (
+                                                    <IOURequestStepDestination
+                                                        openedFromStartPage
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                )}
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
+                                )}
                             </OnyxTabNavigator>
                         ) : (
                             <FocusTrapContainerElement

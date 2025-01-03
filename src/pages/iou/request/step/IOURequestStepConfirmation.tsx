@@ -77,6 +77,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = TransactionUtils.getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
 
     const receiptFilename = transaction?.filename;
@@ -183,6 +184,10 @@ function IOURequestStepConfirmation({
             Navigation.goBack();
             return;
         }
+        if (isPerDiemRequest) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
@@ -191,7 +196,7 @@ function IOURequestStepConfirmation({
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action, participantsAutoAssignedFromRoute]);
+    }, [action, isPerDiemRequest, transaction?.participantsAutoAssigned, transaction?.reportID, participantsAutoAssignedFromRoute, requestType, iouType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -359,6 +364,9 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
             setIsConfirmed(true);
+            if (isPerDiemRequest) {
+                return;
+            }
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -528,24 +536,25 @@ function IOURequestStepConfirmation({
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
-            transaction,
-            report,
+            isPerDiemRequest,
             iouType,
-            receiptFile,
+            transaction,
             isDistanceRequest,
+            isMovingTransactionFromTrackExpense,
+            receiptFile,
+            isCategorizingTrackExpense,
+            isSharingTrackExpense,
             requestMoney,
+            createDistanceRequest,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            trackExpense,
-            createDistanceRequest,
-            isSharingTrackExpense,
-            isCategorizingTrackExpense,
-            isMovingTransactionFromTrackExpense,
+            report,
+            transactionTaxCode,
+            transactionTaxAmount,
             policy,
             policyTags,
             policyCategories,
-            transactionTaxAmount,
-            transactionTaxCode,
+            trackExpense,
         ],
     );
 
@@ -664,6 +673,7 @@ function IOURequestStepConfirmation({
                     iouMerchant={transaction?.merchant}
                     iouCreated={transaction?.created}
                     isDistanceRequest={isDistanceRequest}
+                    isPerDiemRequest={isPerDiemRequest}
                     shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                     action={action}
                     payeePersonalDetails={payeePersonalDetails}

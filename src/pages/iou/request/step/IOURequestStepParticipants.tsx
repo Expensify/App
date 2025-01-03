@@ -5,7 +5,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
+import * as Browser from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,9 +18,11 @@ import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestPar
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -38,7 +42,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -71,6 +75,8 @@ function IOURequestStepParticipants({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isMobileSafari = Browser.isMobileSafari();
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
@@ -112,6 +118,19 @@ function IOURequestStepParticipants({
         [iouType, reportID, transactionID],
     );
 
+    const handleNavigation = useCallback(
+        (route: Route) => {
+            if (isAndroidNative || isMobileSafari) {
+                KeyboardUtils.dismiss().then(() => {
+                    Navigation.navigate(route);
+                });
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isAndroidNative, isMobileSafari],
+    );
+
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
@@ -137,13 +156,14 @@ function IOURequestStepParticipants({
             transactionID,
             selectedReportID.current || reportID,
         );
+
+        const route = isCategorizing
+            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            : iouConfirmationPageRoute;
+
         Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
-        if (isCategorizing) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
-    }, [iouType, transactionID, transaction, reportID, action, participants]);
+        handleNavigation(route);
+    }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
@@ -160,7 +180,8 @@ function IOURequestStepParticipants({
         IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-        Navigation.navigate(iouConfirmationPageRoute);
+
+        handleNavigation(iouConfirmationPageRoute);
     };
 
     useEffect(() => {
