@@ -17,6 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {PressableWithoutFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import { useNavigationState } from '@react-navigation/native';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
+import SCREENS from '@src/SCREENS';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 AnimatedPath.displayName = 'AnimatedPath';
@@ -69,9 +72,12 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const isFocused = useBottomTabIsFocused();
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
+    const activeRoute = useNavigationState(getTopmostRouteName);
+    const isActiveRouteHome = activeRoute === SCREENS.HOME;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
-        isFocused && isSidebarLoaded,
+        // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
+        isFocused && (!isActiveRouteHome || isSidebarLoaded),
     );
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
