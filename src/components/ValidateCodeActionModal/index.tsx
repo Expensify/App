@@ -49,7 +49,10 @@ function ValidateCodeActionModal({
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
+        // We only want to send validate code on first render not on change of hasMagicCodeBeenSent, so we don't add it as a dependency.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible, sendValidateCode]);
 
     return (
         <Modal
