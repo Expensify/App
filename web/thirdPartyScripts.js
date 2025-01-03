@@ -1,4 +1,6 @@
 /* eslint-disable */
+/* prettier-ignore */
+
 // Google Tag Manager
 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
