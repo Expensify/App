@@ -1,8 +1,8 @@
 type GetCorpayBankAccountFieldsParams = {
     countryISO: string;
-    currency?: string;
-    isWithdrawal?: boolean;
-    isBusinessBankAccount?: boolean;
+    currency: string;
+    isWithdrawal: boolean;
+    isBusinessBankAccount: boolean;
 };
 
 export default GetCorpayBankAccountFieldsParams;
