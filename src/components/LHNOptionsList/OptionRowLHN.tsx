@@ -1,5 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -34,6 +35,7 @@ import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -53,9 +55,15 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
+    const activeRoute = useNavigationState(getTopmostRouteName);
 
-    const tooltipToRender = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused : true;
+    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
+        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        const isActiveRouteHome = activeRoute === SCREENS.HOME;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return {tooltipToRender: tooltip, shouldShowTooltip: shouldUseNarrowLayout ? isScreenFocused && isActiveRouteHome : isActiveRouteHome};
+    }, [shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout, activeRoute]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
     const {translate} = useLocalize();
