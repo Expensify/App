@@ -35,7 +35,8 @@ function getExportMenuItem(
         currency: '',
     };
 
-    const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, reimbursableExpensesExportDestination, reimbursableExpensesAccount} =
+        policy?.connections?.quickbooksOnline?.config ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
     const config = policy?.connections?.netsuite?.options.config;
@@ -44,16 +45,22 @@ function getExportMenuItem(
 
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO: {
-            const type = nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined;
+            const typeNonReimbursable = nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined;
+            const typeReimbursable = reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined;
+            const type = typeNonReimbursable ?? typeReimbursable;
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let data: Account[];
-            let shouldShowMenuItem = true;
+            let shouldShowMenuItem = nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
             let title: string | undefined = '';
             let selectedAccount: string | undefined = '';
-            const defaultAccount = nonReimbursableExpensesAccount?.name;
+            const defaultAccount = nonReimbursableExpensesAccount?.name ?? reimbursableExpensesAccount?.name;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
-            switch (nonReimbursableExpensesExportDestination) {
+            const qboConfig = nonReimbursableExpensesExportDestination ?? reimbursableExpensesExportDestination;
+            switch (qboConfig) {
+                case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+                case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+                case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD: {
                     data = creditCards ?? [];
                     isDefaultTitle = !!(
@@ -129,9 +136,13 @@ function getExportMenuItem(
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
-            const type = config?.nonreimbursableExpensesExportDestination
+            const typeNonreimbursable = config?.nonreimbursableExpensesExportDestination
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined;
+            const typeReimbursable = config?.reimbursableExpensesExportDestination
+                ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`)
+                : undefined;
+            const type = typeNonreimbursable ?? typeReimbursable;
             let title: string | undefined = '';
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             let shouldShowMenuItem = true;
@@ -140,7 +151,9 @@ function getExportMenuItem(
             let defaultAccount: string | undefined = '';
             let isDefaultTitle = false;
 
-            switch (config?.nonreimbursableExpensesExportDestination) {
+            const netSuiteConfig = config?.nonreimbursableExpensesExportDestination ?? config?.reimbursableExpensesExportDestination;
+
+            switch (netSuiteConfig) {
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL: {
                     const vendors = policy?.connections?.netsuite.options.data.vendors;
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -204,7 +217,11 @@ function getExportMenuItem(
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
-            const type = exportConfig?.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined;
+            const isNonReimbursable = !!exportConfig?.nonReimbursable;
+            const isReimbursable = !!exportConfig?.reimbursable;
+            const typeNonReimbursable = isNonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined;
+            const typeReimbursable = isReimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`) : undefined;
+            const type = typeNonReimbursable ?? typeReimbursable;
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             let title: string | undefined = '';
@@ -213,9 +230,12 @@ function getExportMenuItem(
             let shouldShowMenuItem = true;
             let data: SelectorType[];
 
-            switch (exportConfig?.nonReimbursable) {
-                case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
-                    const defaultAccount = PolicyUtils.getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+            const sageConfig = exportConfig?.nonReimbursable ?? exportConfig?.reimbursable;
+
+            switch (sageConfig) {
+                case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL:
+                case CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
+                    const defaultAccount = isNonReimbursable ? PolicyUtils.getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
                     isDefaultTitle = !!(
                         companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
                         (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_vendor)
@@ -261,7 +281,6 @@ function getExportMenuItem(
                         };
                     });
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_CHARGE_CARD;
-
                     break;
                 }
                 default:
