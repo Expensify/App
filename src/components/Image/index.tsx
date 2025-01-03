@@ -85,7 +85,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      * to the source.
      */
     // source could be a result of require or a number or an object but all are expected so no unsafe-assignment
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const source = useMemo(() => {
         if (typeof propsSource === 'object' && 'uri' in propsSource) {
             if (typeof propsSource.uri === 'number') {
@@ -110,7 +109,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
-        // but we still need the image to reload sometimes (exemple : when the current session is expired)
+        // but we still need the image to reload sometimes (example : when the current session is expired)
         // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired, validSessionAge]);

@@ -780,7 +780,7 @@ function invalidateAuthToken() {
 }
 
 /**
- * Send an expired session to FE and invalidate the session in the BE. Action is delayed for 15s
+ * Send an expired session to FE and invalidate the session in the BE perspective. Action is delayed for 15s
  */
 function expireSessionWithDelay() {
     // expires the session after 15s
