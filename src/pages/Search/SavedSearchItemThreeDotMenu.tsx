@@ -8,9 +8,10 @@ import CONST from '@src/CONST';
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
+    hideProductTrainingTooltip?: () => void;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
     const styles = useThemeStyles();
@@ -22,6 +23,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchIte
             <ThreeDotsMenu
                 menuItems={menuItems}
                 onIconPress={() => {
+                    hideProductTrainingTooltip?.();
                     threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
                         setThreeDotsMenuPosition({
                             horizontal: x + width,
