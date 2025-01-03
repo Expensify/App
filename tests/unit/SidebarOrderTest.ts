@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
-import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';

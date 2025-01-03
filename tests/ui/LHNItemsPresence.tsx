@@ -6,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
-import type Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
