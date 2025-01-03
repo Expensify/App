@@ -1466,7 +1466,7 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
-    // the number of milliseconds for an idle session to expire
+    // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
