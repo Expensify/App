@@ -2562,6 +2562,8 @@ const translations = {
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
+            setAsDefault: 'Set as default workspace',
+            defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
