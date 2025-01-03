@@ -1302,7 +1302,7 @@ function getValidOptions(
 
                 if (reportPreviewAction) {
                     const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                    const iouReportActions = allSortedReportActions[iouReportID] ?? [];
+                    const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
                     const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                     if (lastIOUAction) {
                         reportOption.lastIOUCreationDate = lastIOUAction.lastModified;
