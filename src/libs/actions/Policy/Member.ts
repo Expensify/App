@@ -28,6 +28,7 @@ import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmplo
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
+import type {Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
@@ -570,11 +571,11 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 
     const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
     if (adminRoom) {
-        const failureDataParticipants = {...adminRoom.participants};
-        const optimisticParticipants = {};
+        const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
+        const optimisticParticipants: Record<number, Participant | null> = {};
         if (newRole === CONST.POLICY.ROLE.ADMIN) {
             accountIDs.forEach((accountID) => {
-                if (adminRoom?.participants[accountID]) {
+                if (adminRoom?.participants?.[accountID]) {
                     return;
                 }
                 optimisticParticipants[accountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
@@ -582,7 +583,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             });
         } else {
             accountIDs.forEach((accountID) => {
-                if (!adminRoom?.participants[accountID]) {
+                if (!adminRoom?.participants?.[accountID]) {
                     return;
                 }
                 optimisticParticipants[accountID] = null;
