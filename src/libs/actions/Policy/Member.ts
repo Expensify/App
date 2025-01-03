@@ -573,7 +573,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
-        if (newRole === CONST.POLICY.ROLE.ADMIN) {
+        if (newRole === CONST.POLICY.ROLE.ADMIN || newRole === CONST.POLICY.ROLE.AUDITOR) {
             accountIDs.forEach((accountID) => {
                 if (adminRoom?.participants?.[accountID]) {
                     return;

@@ -149,8 +149,8 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await waitForBatchedUpdates();
-            // When an admin is demoted from their admin role to an auditor role
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.AUDITOR);
+            // When an admin is demoted from their admin role to a user role
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -160,8 +160,8 @@ describe('actions/PolicyMember', () => {
                         Onyx.disconnect(connection);
                         resolve();
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
-                        // Then the policy employee role of the user should be set to auditor.
-                        expect(employee?.role).toBe(CONST.POLICY.ROLE.AUDITOR);
+                        // Then the policy employee role of the user should be set to user.
+                        expect(employee?.role).toBe(CONST.POLICY.ROLE.USER);
                     },
                 });
             });
