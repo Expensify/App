@@ -59,8 +59,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         }
         if (session?.creationDate) {
             if (previousSessionAge.current) {
-                // most likely a reauthentication happens
-                // but unless the calculated source is different from the previous, the image wont reload
+                // Most likely a reauthentication happened, but unless the calculated source is different from the previous, the image won't reload
                 if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
                     return session.creationDate;
                 }
@@ -93,7 +92,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
-                    // session valid
                     return {
                         ...propsSource,
                         headers: {
