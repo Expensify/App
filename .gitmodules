@@ -1,3 +1,3 @@
 [submodule "Mobile-Expensify"]
 	path = Mobile-Expensify
-	url = https://github.com/Expensify/Mobile-Expensify.git
+	url = git@github.com:Expensify/Mobile-Expensify.git
