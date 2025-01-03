@@ -41,8 +41,10 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         [onLoad, updateAspectRatio],
     );
 
-    // an accepted session is either received less than 60s after the previous
-    // or is the first valid session since previous session expired
+    // accepted sessions are sessions of a certain criteria that we think can necessitate a reload of the images
+    // because images sources barely changes unless specific events occur like network issues (offline/online) per example.
+    // Here we target new session received less than 60s after the previous session (that could be from fresh reauthentication, the previous session was not necessarily expired)
+    // or new session after the previous session was expired (based on timestamp gap between the 2 creationDate and the freshness of the new session).
     const isAcceptedSession = useCallback((sessionCreationDateDiff: number, sessionCreationDate: number) => {
         return sessionCreationDateDiff < 60000 || (sessionCreationDateDiff >= CONST.SESSION_EXPIRATION_TIME_MS && new Date().getTime() - sessionCreationDate < 60000);
     }, []);
@@ -66,6 +68,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 return previousSessionAge.current;
             }
             if (isExpiredSession(session.creationDate)) {
+                // reset the countdown to now so future sessions creationDate can be compared to that time
                 return new Date().getTime();
             }
             return session.creationDate;
