@@ -230,6 +230,12 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_DESTINATION: 'Money_Request_Destination',
+        STEP_TIME: 'Money_Request_Time',
+        STEP_SUBRATE: 'Money_Request_SubRate',
+        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        STEP_TIME_EDIT: 'Money_Request_Time_Edit',
+        STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
