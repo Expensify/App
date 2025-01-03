@@ -93,7 +93,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
-                    // session valid
                     return {
                         ...propsSource,
                         headers: {
