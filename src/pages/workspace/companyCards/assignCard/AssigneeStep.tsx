@@ -73,8 +73,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             data: {
                 email: selectedMember,
                 cardName: CardUtils.getDefaultCardName(memberName),
-                cardNumber: Object.keys(filteredCardList).at(0),
-                encryptedCardNumber: Object.values(filteredCardList).at(0),
             },
             isEditing: false,
         });
