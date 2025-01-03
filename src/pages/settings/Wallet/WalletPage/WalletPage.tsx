@@ -140,7 +140,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
-        description?: string,
     ) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
@@ -162,14 +161,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: description ?? PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: description ?? PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -178,7 +177,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
+                methodID: methodID ?? '-1',
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
@@ -233,9 +232,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,

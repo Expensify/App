@@ -1,5 +1,5 @@
 type BankAccountCreateCorpayParams = {
-    type?: number;
+    type: number;
     isSavings: boolean;
     isWithdrawal: boolean;
     inputs: string;
