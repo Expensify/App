@@ -312,6 +312,25 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
+
+            test('Invited/Removed Room Member Action', () => {
+                const threadOfRemovedRoomMemberAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    parentReportID: '101',
+                    parentReportActionID: '102',
+                    policyID: policy.id,
+                };
+                const removedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+                    originalMessage: {
+                        targetAccountIDs: [1],
+                    },
+                } as ReportAction;
+
+                expect(ReportUtils.getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
+            });
         });
     });
 
