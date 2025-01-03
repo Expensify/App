@@ -4944,7 +4944,7 @@ function getRejectedReportMessage() {
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
     const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
-    return message;
+    return Str.htmlEncode(message);
 }
 
 /**
