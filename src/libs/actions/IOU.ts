@@ -2763,7 +2763,7 @@ function getTrackExpenseInformation(
     if (!filename) {
         filename = existingTransaction?.filename;
     }
-    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -7149,6 +7149,7 @@ function getPayMoneyRequestParams(
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
         {
@@ -7172,6 +7173,7 @@ function getPayMoneyRequestParams(
                 reimbursed: null,
                 partial: null,
             },
+            errors: null,
         },
     });
 

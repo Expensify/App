@@ -1,6 +1,6 @@
 type VerifyIdentityForBankAccountParams = {
     bankAccountID: number;
     onfidoData: string;
-    policyID: string | undefined;
+    policyID?: string;
 };
 export default VerifyIdentityForBankAccountParams;

@@ -771,7 +771,11 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, canUserPerformWriteAction?: boolean, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(
+    reportID: string | undefined,
+    canUserPerformWriteAction?: boolean,
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
         reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
@@ -804,7 +808,7 @@ function formatLastMessageText(lastMessageText: string | undefined) {
 }
 
 function getLastVisibleMessage(
-    reportID: string,
+    reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
@@ -901,7 +905,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
         return '';
     }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
-    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID : '';
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID : undefined;
 }
 
 /**
@@ -1567,7 +1571,8 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
  * Check if the linked transaction is on hold
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
-    return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID));
+    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
+    return linkedTransactionID ? TransactionUtils.isOnHoldByTransactionID(linkedTransactionID) : false;
 }
 
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
@@ -1601,7 +1606,7 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === transactionID;
     });
     return action;

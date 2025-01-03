@@ -17,7 +17,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import {isDeletedAction} from './ReportActionsUtils';
+import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
 
@@ -264,7 +264,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.hasError || report.hasError) {
+    if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -331,6 +331,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 if (isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+                if (!isAddCommentAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
