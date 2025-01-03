@@ -1,7 +1,6 @@
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,14 +14,9 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('@src/components/Icon/Expensicons');
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigationState: () => {},
-    };
-});
+
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
 

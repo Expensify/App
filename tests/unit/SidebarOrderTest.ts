@@ -18,13 +18,8 @@ jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigationState: () => {},
-    };
-});
+jest.mock('@src/hooks/useIsCurrentRouteHome');
+
 describe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({

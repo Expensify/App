@@ -24,13 +24,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigationState: () => {},
-    };
-});
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
