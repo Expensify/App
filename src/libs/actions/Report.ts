@@ -2359,6 +2359,13 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: true},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -2406,6 +2413,13 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
         },
     ];
 
