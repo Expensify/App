@@ -121,7 +121,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         const shouldShowPayOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
                 : selectedTransactionsKeys.every(
@@ -173,6 +172,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
                 },
+                disabled: isAnyTransactionOnHold,
             });
         }
 
