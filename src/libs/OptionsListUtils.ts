@@ -367,7 +367,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  * Get the participant option for a report.
  */
 function getParticipantsOption(participant: ReportUtils.OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
-    const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
+    const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails)[participant.accountID ?? CONST.DEFAULT_NUMBER_ID];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     const displayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
@@ -375,7 +375,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     return {
         keyForList: String(detail?.accountID),
         login,
-        accountID: detail?.accountID ?? -1,
+        accountID: detail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         text: displayName,
         firstName: detail?.firstName ?? '',
         lastName: detail?.lastName ?? '',
@@ -503,10 +503,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const reportID = report?.reportID;
-    const lastReportAction = lastVisibleReportActions[reportID] ?? null;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    const lastOriginalReportAction = lastReportActions[reportID] ?? null;
+    const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
     if (report?.private_isArchived) {
@@ -536,7 +536,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
+        const iouReportActions = iouReport?.reportID ? allSortedReportActions[iouReport.reportID] : [];
+        const lastIOUMoneyReportAction = iouReportActions?.find(
             (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key, ReportUtils.canUserPerformWriteAction(report)) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
@@ -558,9 +559,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '-1')) {
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID)) {
         lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
-    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, type: ''})) {
+    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
@@ -700,7 +701,7 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isGroupChat(report);
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? -1] ?? null;
+        const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
@@ -915,7 +916,13 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}, {showPersonalDetails: true}),
+        ...createOption(
+            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            personalDetails,
+            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            {},
+            {showPersonalDetails: true},
+        ),
     }));
 
     return {
@@ -1142,7 +1149,7 @@ function getValidOptions(
         shouldBoldTitleByDefault = true,
     }: GetOptionsConfig = {},
 ): Options {
-    const topmostReportId = Navigation.getTopmostReportId() ?? '-1';
+    const topmostReportId = Navigation.getTopmostReportId();
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
@@ -1256,7 +1263,7 @@ function getValidOptions(
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID, policies) &&
                 !reportOption.private_isArchived &&
                 PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 
@@ -1396,8 +1403,8 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         ],
         descriptiveText: amountText ?? '',
         login: personalDetail?.login ?? '',
-        accountID: personalDetail?.accountID ?? -1,
-        keyForList: String(personalDetail?.accountID ?? -1),
+        accountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        keyForList: String(personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID),
     };
 }
 
@@ -1475,14 +1482,14 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        keyForList: member.keyForList || String(accountID ?? -1) || '',
+        keyForList: member.keyForList || String(accountID ?? CONST.DEFAULT_NUMBER_ID) || '',
         isSelected: member.isSelected ?? false,
         isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportID: member.reportID ?? '-1',
+        reportID: member.reportID,
     };
 }
 
