@@ -44,9 +44,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const StyleUtils = useStyleUtils();
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
@@ -58,6 +55,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
 
     const tooltipToRender = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused : true;
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
+
+    const {translate} = useLocalize();
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -67,12 +69,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             };
         }, []),
     );
-
-    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused && !isModalVisible : !isModalVisible;
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
-    const {translate} = useLocalize();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(

@@ -58,11 +58,13 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
+    );
 
     const {status, hash} = queryJSON;
 
@@ -297,11 +299,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         styles.textWrap,
         lastPaymentMethods,
     ]);
-
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isScreenFocused && !isModalVisible && !!queryJSON && headerButtonsOptions.length === 0,
-    );
 
     if (shouldUseNarrowLayout) {
         if (selectionMode?.isEnabled) {

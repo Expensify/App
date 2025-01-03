@@ -119,11 +119,7 @@ function ReportFooter({
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
-
-    const shouldShowEducationalTooltip = !isModalVisible && ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
+    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
