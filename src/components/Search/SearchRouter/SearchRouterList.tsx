@@ -387,6 +387,7 @@ function SearchRouterList(
      * Builds a suffix tree and returns a function to search in it.
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const filteredOptions = useMemo(() => filterOptions(autocompleteQueryValue), [autocompleteQueryValue, filterOptions]);
 
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
@@ -394,7 +395,6 @@ function SearchRouterList(
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = OptionsListUtils.combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatroomsOverThreads: true,
@@ -402,11 +402,8 @@ function SearchRouterList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
-        }
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filterOptions, searchOptions]);
+    }, [autocompleteQueryValue, filteredOptions, searchOptions]);
 
     useEffect(() => {
         ReportUserActions.searchInServer(autocompleteQueryValue.trim());
@@ -425,6 +422,12 @@ function SearchRouterList(
 
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
+    }
+
+    if (filteredOptions.userToInvite) {
+        const styledUserToInvite = [filteredOptions.userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
+
+        sections.push({title: undefined, data: styledUserToInvite});
     }
 
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
