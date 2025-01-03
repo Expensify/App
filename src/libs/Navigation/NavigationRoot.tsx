@@ -72,6 +72,10 @@ function parseAndLogRoute(state: NavigationState) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
         Log.info('Navigating to route', false, {path: currentPath});
+        if (currentPath === '/r') {
+            const stackTrace = new Error().stack;
+            Log.info('Navigated to invalid report route', false, {stackTrace});
+        }
     }
 
     Navigation.setIsNavigationReady();
