@@ -5,8 +5,8 @@ type CreatePerDiemRequestParams = {
     customUnitRateID: string;
     subRates: string;
     currency: string;
-    startTime: string;
-    endTime: string;
+    startDateTime: string;
+    endDateTime: string;
     category?: string;
     description: string;
     tag?: string;
