@@ -60,6 +60,7 @@ function ThreeDotsMenu({
             <View>
                 <Tooltip
                     text={translate(iconTooltip)}
+                    // We need to hide the extra "More" tooltip when we have an educational tooltip
                     shouldRender={!hideProductTrainingTooltip}
                 >
                     <PressableWithoutFeedback
