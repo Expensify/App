@@ -86,61 +86,54 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
     ];
 
-    // eslint-disable-next-line guard-for-in
-    for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]) {
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]).forEach(([fieldName, field]) => {
         summaryItems.push({
-            description:
-                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][fieldName].label +
-                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][fieldName].isRequired ? '' : ` (${translate('common.optional')})`),
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
         });
-    }
+    });
 
-    // eslint-disable-next-line guard-for-in
-    for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]) {
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]).forEach(([fieldName, field]) => {
         summaryItems.push({
-            description:
-                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE][fieldName].label +
-                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE][fieldName].isRequired ? '' : ` (${translate('common.optional')})`),
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
             },
         });
-    }
+    });
 
-    // eslint-disable-next-line guard-for-in
-    for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]) {
-        summaryItems.push({
-            description:
-                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][fieldName].label +
-                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][fieldName].isRequired ? '' : ` (${translate('common.optional')})`),
-            title: formValues[fieldName],
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(STEP_INDEXES.BANK_INFORMATION);
-            },
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION])
+        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2))
+        .forEach(([fieldName, field]) => {
+            summaryItems.push({
+                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+                title: formValues[fieldName],
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(STEP_INDEXES.BANK_INFORMATION);
+                },
+            });
         });
-    }
 
-    // eslint-disable-next-line guard-for-in
-    for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]) {
-        summaryItems.push({
-            description:
-                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][fieldName].label +
-                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][fieldName].isRequired ? '' : ` (${translate('common.optional')})`),
-            title: formValues[fieldName],
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
-            },
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION])
+        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2))
+        .forEach(([fieldName, field]) => {
+            summaryItems.push({
+                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+                title: formValues[fieldName],
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
+                },
+                interactive: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
+            });
         });
-    }
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {

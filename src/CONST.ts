@@ -6494,6 +6494,7 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
+        ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
