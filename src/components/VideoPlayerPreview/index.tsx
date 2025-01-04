@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import * as Attachment from '@libs/actions/Attachment';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -18,6 +19,7 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
+    attachmentID?: string;
     /** Url to a video. */
     videoUrl: string;
 
@@ -43,7 +45,7 @@ type VideoPlayerPreviewProps = {
     isDeleted?: boolean;
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -56,6 +58,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
+        const isLocalOrCachedSource = typeof videoUrl === 'string' && /^file:|^blob:/.test(videoUrl);
+        if (isLocalOrCachedSource || !attachmentID) {
+            return;
+        }
+        Attachment.cacheAttachment(videoUrl.toString(), attachmentID);
     };
 
     const handleOnPress = () => {
@@ -66,6 +73,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     useEffect(() => {
+        console.log('sdsd', videoUrl, currentlyPlayingURL);
         if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }

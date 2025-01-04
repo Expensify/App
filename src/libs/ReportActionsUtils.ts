@@ -10,6 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type Attachment from '@src/types/onyx/Attachment';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -68,6 +69,15 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let attachments: OnyxCollection<Attachment>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.ATTACHMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        attachments = value;
     },
 });
 
@@ -1421,6 +1431,34 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     return actionMessage ? [actionMessage] : [];
 }
 
+function optimizeAttachments(fragment: Message): Message {
+    const pattern = /<(img|video|a)\b[^>]*>|([^<]*)/g;
+    const matches = fragment?.html?.matchAll(pattern);
+    let result = '';
+
+    if (!matches) {
+        return fragment;
+    }
+
+    for (const match of matches) {
+        const tag = match[0];
+        if (tag) {
+            const sourceVal = tag.match(/(src|href)=["'](.+?)["']/)?.[2];
+            const attachmentID = tag.match(/data-attachment-id=["'](.+?)["']/)?.[2];
+            const attachment = attachments?.[attachmentID ?? CONST.DEFAULT_NUMBER_ID];
+            const source = attachment?.localSource ?? attachment?.cachedSource ?? attachment?.source ?? sourceVal;
+            result += tag.replace(/(src|href)='(?:[^'\/]*\/)*([^']+)'/g, `$1='${source}'`);
+        } else {
+            result += match[0];
+        }
+    }
+
+    return {
+        ...fragment,
+        html: result,
+    };
+}
+
 /**
  * Helper method to determine if the provided accountID has submitted an expense on the specified report.
  *
@@ -1896,6 +1934,7 @@ export {
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
+    optimizeAttachments,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,

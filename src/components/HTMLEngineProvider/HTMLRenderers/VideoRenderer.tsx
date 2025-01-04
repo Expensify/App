@@ -22,6 +22,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
     const fileName = FileUtils.getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
@@ -35,6 +36,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                     {({accountID, type}) => (
                         <VideoPlayerPreview
                             key={key}
+                            attachmentID={attachmentID}
                             videoUrl={sourceURL}
                             reportID={currentReportIDValue?.currentReportID ?? '-1'}
                             fileName={fileName}

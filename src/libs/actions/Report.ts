@@ -96,6 +96,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Attachment,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -115,6 +116,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as NumberUtils from '../NumberUtils';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
@@ -505,10 +507,13 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
+    let attachmentID: string | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
+    let optimisticAttachment: Attachment | undefined;
+
     if (text && !file) {
-        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -517,8 +522,14 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        attachmentID = NumberUtils.rand64();
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, attachmentID, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
+
+        optimisticAttachment = {
+            attachmentID,
+            localSource: file.uri,
+        };
     }
 
     if (text && file) {
@@ -563,6 +574,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     }
 
     const parameters: AddCommentOrAttachementParams = {
+        /** TODO: require BE changes
+        attachmentID,
+        */
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
@@ -588,6 +602,14 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: optimisticReportActions as ReportActions,
         },
     ];
+
+    if (file) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`,
+            value: optimisticAttachment,
+        });
+    }
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
@@ -3585,7 +3607,7 @@ function prepareOnboardingOptimisticData(
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
     // Text message
-    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
+    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
@@ -3596,7 +3618,7 @@ function prepareOnboardingOptimisticData(
     let videoCommentAction: OptimisticAddCommentReportAction | null = null;
     let videoMessage: AddCommentOrAttachementParams | null = null;
     if ('video' in data && data.video) {
-        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, undefined, actorAccountID, 2);
         videoCommentAction = videoComment.reportAction;
         videoMessage = {
             reportID: targetChatReportID,
@@ -3675,6 +3697,7 @@ function prepareOnboardingOptimisticData(
     // Sign-off welcome message
     const welcomeSignOffComment = ReportUtils.buildOptimisticAddCommentReportAction(
         Localize.translateLocal('onboarding.welcomeSignOffTitle'),
+        undefined,
         undefined,
         actorAccountID,
         tasksData.length + 3,

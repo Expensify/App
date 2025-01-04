@@ -1576,7 +1576,9 @@ const CONST = {
 
     YOUR_LOCATION_TEXT: 'Your Location',
 
+    ATTACHMENT_REGEX: /<(img|video|a)[^>]*>(?:(?!<\/\1>).)*<\/\1>/g,
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',

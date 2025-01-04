@@ -3,6 +3,7 @@ import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard} from './AssignCard';
+import type Attachment from './Attachment';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -115,6 +116,7 @@ import type WalletTransfer from './WalletTransfer';
 
 export type {
     TryNewDot,
+    Attachment,
     Account,
     AccountData,
     AssignCard,

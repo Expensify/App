@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import * as Attachment from '@libs/actions/Attachment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -38,6 +39,8 @@ type ThumbnailImageProps = {
 
     /** Height of the thumbnail image */
     imageHeight?: number;
+
+    attachmentID?: string;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
@@ -77,6 +80,7 @@ function ThumbnailImage({
     altText,
     style,
     isAuthTokenRequired,
+    attachmentID,
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
@@ -125,6 +129,15 @@ function ThumbnailImage({
         [previewSourceURL, imageDimensions, shouldDynamicallyResize],
     );
 
+    const onImageLoaded = () => {
+        const source = previewSourceURL.toString();
+        const isLocalOrCachedSource = typeof source === 'string' && /^file:|^blob:/.test(source);
+        if (isLocalOrCachedSource || !attachmentID) {
+            return;
+        }
+        Attachment.cacheAttachment(source.toString(), attachmentID);
+    };
+
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
     if (failedToLoad || previewSourceURL === '') {
@@ -151,6 +164,7 @@ function ThumbnailImage({
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
+                    onLoaded={() => onImageLoaded()}
                     onMeasure={(args) => {
                         updateImageSize(args);
                         onMeasure?.();
