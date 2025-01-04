@@ -28,7 +28,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
         onNext,
-        shouldSaveDraft: true,
+        shouldSaveDraft: isEditing,
     });
 
     const onCurrencySelected = useCallback(
@@ -86,6 +86,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                             defaultValue={formValues[field.id]}
                             label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
                             items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                            shouldSaveDraft={!isEditing}
                         />
                     </View>
                 ))}

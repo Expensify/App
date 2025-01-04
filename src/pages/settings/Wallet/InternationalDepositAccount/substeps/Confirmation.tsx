@@ -171,6 +171,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     inputID="acceptTerms"
                     LabelComponent={TermsAndConditionsLabel}
                     style={[styles.mt3]}
+                    shouldSaveDraft
                 />
                 <FormHelpMessage
                     style={[styles.mt3, styles.mbn1]}

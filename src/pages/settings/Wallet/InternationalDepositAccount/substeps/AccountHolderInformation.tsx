@@ -50,7 +50,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]),
         onNext,
-        shouldSaveDraft: true,
+        shouldSaveDraft: isEditing,
     });
 
     const validate = useCallback(
@@ -107,6 +107,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 items={getItems(field)}
                                 disabled={field.id === ACCOUNT_HOLDER_COUNTRY}
                                 interactive={field.id === ACCOUNT_HOLDER_COUNTRY ? false : undefined}
+                                shouldSaveDraft={!isEditing}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
                                     street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',

@@ -44,7 +44,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]),
         onNext,
-        shouldSaveDraft: true,
+        shouldSaveDraft: isEditing,
     });
 
     const validate = useCallback(
@@ -95,6 +95,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                                 defaultValue={formValues[field.id]}
                                 label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
                                 items={getItems(field)}
+                                shouldSaveDraft={!isEditing}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
                                     street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',

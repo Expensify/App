@@ -31,9 +31,15 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
         onNext();
     }, [currentAccountType, fieldData.isRequired, formValues, isEditing, onNext]);
 
-    const onSelectionChange = useCallback((country: Option) => {
-        setCurrentAccountType(country.value);
-    }, []);
+    const onSelectionChange = useCallback(
+        (country: Option) => {
+            if (!isEditing) {
+                FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
+            }
+            setCurrentAccountType(country.value);
+        },
+        [currentAccountType, isEditing],
+    );
 
     const options = useMemo(
         () =>
