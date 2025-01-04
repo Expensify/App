@@ -98,12 +98,12 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
         if (fieldsMap[fieldName].isRequired && (values[fieldName] ?? '') === '') {
             return false;
         }
-        fieldsMap[fieldName].validationRules.forEach((rule) => {
+        for (const rule of fieldsMap[fieldName].validationRules) {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName] ?? '')) {
                 return false;
             }
-        });
+        }
     }
     return true;
 }
