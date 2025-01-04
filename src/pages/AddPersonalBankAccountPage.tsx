@@ -83,7 +83,7 @@ function AddPersonalBankAccountPage() {
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
-                        onBackButtonPress={exitFlow}
+                        onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
                     />
                     {shouldShowSuccess ? (
                         <ConfirmationPage
