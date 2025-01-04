@@ -19,11 +19,11 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -33,7 +33,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
@@ -55,7 +55,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const outputCurrency = policy?.outputCurrency ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.currency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? '';
+    const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
@@ -171,7 +171,12 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            Navigation.dismissModal();
+            const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
+            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
+            if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
+                Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
+            }
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
