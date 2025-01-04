@@ -3683,8 +3683,8 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('putOnHold and unHoldRequest', () => {
-        test("putOnHold and unHoldRequest should properly update the transaction thread report's lastVisibleActionCreated to the optimistically added last report action created timestamp", () => {
+    describe('putOnHold', () => {
+        test("putOnHold should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction = TransactionUtils.buildOptimisticTransaction({
                 transactionParams: {
@@ -3744,6 +3744,47 @@ describe('actions/IOU', () => {
                             },
                         });
                     });
+                });
+        });
+    });
+
+    describe('unHoldRequest', () => {
+        test("unHoldRequest should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: OnyxTypes.ReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                transaction.amount,
+                transaction.currency,
+                '',
+                [],
+                transaction.transactionID,
+            );
+            const transactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport);
+
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const comment = 'hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    IOU.putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // When an expense is unhold
