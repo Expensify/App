@@ -9,6 +9,8 @@ import * as FormActions from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -64,10 +66,26 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
+    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+
+    const goBack = useCallback(() => {
+        switch (topMostCentralPane?.name) {
+            case SCREENS.SETTINGS.WALLET.ROOT:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+                break;
+            case SCREENS.REPORT:
+                Navigation.closeRHPFlow();
+                break;
+            default:
+                Navigation.goBack();
+                break;
+        }
+    }, [topMostCentralPane]);
+
     const handleFinishStep = useCallback(() => {
         FormActions.clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-        Navigation.goBack();
-    }, []);
+        goBack();
+    }, [goBack]);
 
     const {
         componentToRender: SubStep,
@@ -88,14 +106,14 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             FormActions.clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            Navigation.goBack();
+            goBack();
             return;
         }
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
             FormActions.clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            Navigation.goBack();
+            goBack();
             return;
         }
         prevScreen();
