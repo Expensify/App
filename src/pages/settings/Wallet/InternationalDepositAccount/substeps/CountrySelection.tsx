@@ -43,16 +43,18 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
 
     const countries = useMemo(
         () =>
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
+            Object.keys(CONST.ALL_COUNTRIES)
+                .filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO))
+                .map((countryISO) => {
+                    const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+                    return {
+                        value: countryISO,
+                        keyForList: countryISO,
+                        text: countryName,
+                        isSelected: currentCountry === countryISO,
+                        searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                    };
+                }),
         [translate, currentCountry],
     );
 

@@ -72,6 +72,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         value={formValues.bankCurrency}
                         onInputChange={onCurrencySelected}
                         headerContent={currencyHeaderContent}
+                        excludeCurrencies={CONST.CORPAY_FIELDS.EXCLUDED_CURRENCIES}
                     />
                 </View>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (

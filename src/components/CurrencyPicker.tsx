@@ -24,9 +24,12 @@ type CurrencyPickerProps = {
 
     /** Form Error description */
     errorText?: string;
+
+    /** List of currencies to exclude from the list */
+    excludeCurrencies?: string[];
 };
 
-function CurrencyPicker({value, errorText, headerContent, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -75,6 +78,7 @@ function CurrencyPicker({value, errorText, headerContent, onInputChange = () => 
                         initiallySelectedCurrencyCode={value}
                         onSelect={updateInput}
                         searchInputLabel={translate('common.search')}
+                        excludedCurrencies={excludeCurrencies}
                     />
                 </ScreenWrapper>
             </Modal>
