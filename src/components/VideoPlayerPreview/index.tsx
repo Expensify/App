@@ -73,7 +73,6 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     };
 
     useEffect(() => {
-        console.log('sdsd', videoUrl, currentlyPlayingURL);
         if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }

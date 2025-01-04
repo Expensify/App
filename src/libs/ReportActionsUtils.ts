@@ -1432,11 +1432,10 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 }
 
 function optimizeAttachments(fragment: Message): Message {
-    const pattern = /<(img|video|a)\b[^>]*>|([^<]*)/g;
-    const matches = fragment?.html?.matchAll(pattern);
+    const matches = fragment?.html?.matchAll(CONST.ATTACHMENT_REGEX);
     let result = '';
 
-    if (!matches) {
+    if (isEmptyObject(matches)) {
         return fragment;
     }
 
@@ -1447,7 +1446,7 @@ function optimizeAttachments(fragment: Message): Message {
             const attachmentID = tag.match(/data-attachment-id=["'](.+?)["']/)?.[2];
             const attachment = attachments?.[attachmentID ?? CONST.DEFAULT_NUMBER_ID];
             const source = attachment?.localSource ?? attachment?.cachedSource ?? attachment?.source ?? sourceVal;
-            result += tag.replace(/(src|href)='(?:[^'\/]*\/)*([^']+)'/g, `$1='${source}'`);
+            result += tag.replace(/(src|href)=['"](?:[^'\/]*\/)*([^'"]+)['"]/g, `$1='${source}'`);
         } else {
             result += match[0];
         }
