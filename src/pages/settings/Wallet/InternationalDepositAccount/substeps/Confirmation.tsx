@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -17,6 +18,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
+
+type MenuItemProps = {
+    description: string;
+    title: string;
+    shouldShowRightIcon: boolean;
+    onPress: () => void;
+    interactive?: boolean;
+};
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
@@ -34,6 +43,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const {isOffline} = useNetwork();
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setError('');
@@ -55,22 +65,24 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     };
 
-    const summaryItems = [
+    const summaryItems: MenuItemProps[] = [
         {
             description: translate('common.country'),
             title: formValues.bankCountry,
-            shouldShowRightIcon: true,
+            shouldShowRightIcon: !isOffline,
             onPress: () => {
                 onMove(STEP_INDEXES.COUNTRY_SELECTOR);
             },
+            interactive: !isOffline,
         },
         {
             description: translate('common.currency'),
             title: formValues.bankCurrency,
-            shouldShowRightIcon: true,
+            shouldShowRightIcon: !isOffline,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
+            interactive: !isOffline,
         },
     ];
 
@@ -145,13 +157,14 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress}) => (
+            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, onPress}) => (
                 <MenuItemWithTopDescription
                     key={`${title}_${description}`}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
+                    interactive={interactive}
                 />
             ))}
             <FormProvider
