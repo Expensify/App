@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -48,6 +49,19 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
         [fieldData.valueSet, currentAccountType],
     );
 
+    const button = useMemo(() => {
+        const buttonText = isEditing ? translate('common.confirm') : translate('common.next');
+        return (
+            <FormAlertWithSubmitButton
+                isDisabled={fieldData.isRequired && !currentAccountType}
+                buttonText={buttonText}
+                onSubmit={onAccountTypeSelected}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+            />
+        );
+    }, [currentAccountType, fieldData.isRequired, isEditing, onAccountTypeSelected, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+
     return (
         <>
             <View style={styles.ph5}>
@@ -56,15 +70,13 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
             <SelectionList
                 sections={[{data: options}]}
                 onSelectRow={onSelectionChange}
-                onConfirm={onAccountTypeSelected}
                 ListItem={RadioListItem}
                 initiallyFocusedOptionKey={currentAccountType}
+                footerContent={button}
                 shouldSingleExecuteRowSelect
                 shouldStopPropagation
                 shouldUseDynamicMaxToRenderPerBatch
-                showConfirmButton
                 shouldUpdateFocusedIndex
-                confirmButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             />
         </>
     );
