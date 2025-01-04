@@ -3684,7 +3684,7 @@ describe('actions/IOU', () => {
     });
 
     describe('putOnHold', () => {
-        test("putOnHold should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
+        test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction = TransactionUtils.buildOptimisticTransaction({
                 transactionParams: {
@@ -3749,7 +3749,7 @@ describe('actions/IOU', () => {
     });
 
     describe('unHoldRequest', () => {
-        test("unHoldRequest should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
+        test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction = TransactionUtils.buildOptimisticTransaction({
                 transactionParams: {
