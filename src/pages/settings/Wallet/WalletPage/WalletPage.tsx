@@ -580,7 +580,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 {shouldShowMakeDefaultButton && (
                                     <MenuItem
                                         title={translate('walletPage.setDefaultConfirmation')}
-                                        icon={Expensicons.Mail}
+                                        icon={Expensicons.Star}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
                                                 Modal.close(() => {
