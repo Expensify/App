@@ -33,9 +33,9 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
             onNext();
             return;
         }
-        BankAccounts.fetchCorpayFields(currentCountry, formValues.bankCurrency);
+        BankAccounts.fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [currentCountry, formValues.bankCountry, formValues.bankCurrency, isEditing, onNext, resetScreenIndex]);
+    }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);
