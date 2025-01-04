@@ -29,7 +29,7 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
-    shouldHideExtraTooltip = false,
+    hideProductTrainingTooltip,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -60,7 +60,7 @@ function ThreeDotsMenu({
             <View>
                 <Tooltip
                     text={translate(iconTooltip)}
-                    shouldRender={!shouldHideExtraTooltip}
+                    shouldRender={!hideProductTrainingTooltip}
                 >
                     <PressableWithoutFeedback
                         onPress={() => {
@@ -68,6 +68,7 @@ function ThreeDotsMenu({
                                 hidePopoverMenu();
                                 return;
                             }
+                            hideProductTrainingTooltip?.();
                             buttonRef.current?.blur();
                             showPopoverMenu();
                             if (onIconPress) {

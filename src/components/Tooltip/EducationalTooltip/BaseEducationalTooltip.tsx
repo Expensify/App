@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
@@ -16,27 +16,18 @@ function BaseEducationalTooltip({children, shouldRender = false, ...props}: Educ
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
 
-    const closeTooltip = useCallback(() => {
-        hideTooltipRef.current?.();
+    useEffect(() => {
+        return () => {
+            hideTooltipRef.current?.();
+        };
     }, []);
-
-    useEffect(
-        () => () => {
-            if (!hideTooltipRef.current) {
-                return;
-            }
-
-            hideTooltipRef.current();
-        },
-        [],
-    );
 
     useEffect(() => {
         if (!shouldMeasure) {
             return;
         }
         if (!shouldRender) {
-            closeTooltip();
+            hideTooltipRef.current?.();
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
@@ -45,19 +36,8 @@ function BaseEducationalTooltip({children, shouldRender = false, ...props}: Educ
         }, 500);
         return () => {
             clearTimeout(timerID);
-            closeTooltip();
         };
-    }, [shouldMeasure, shouldRender, closeTooltip]);
-
-    useEffect(
-        () => closeTooltip,
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
-
-    if (!shouldRender) {
-        return children as React.ReactElement;
-    }
+    }, [shouldMeasure, shouldRender]);
 
     return (
         <GenericTooltip
