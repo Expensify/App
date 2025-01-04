@@ -37,6 +37,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
+                // We need to hide the extra "More" tooltip when we have an educational tooltip
+                shouldHideExtraTooltip={!!hideProductTrainingTooltip}
             />
         </View>
     );

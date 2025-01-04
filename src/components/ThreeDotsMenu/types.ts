@@ -38,6 +38,9 @@ type ThreeDotsMenuProps = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
+
+    /** Should hide the extra "More" tooltip */
+    shouldHideExtraTooltip?: boolean;
 };
 
 export default ThreeDotsMenuProps;

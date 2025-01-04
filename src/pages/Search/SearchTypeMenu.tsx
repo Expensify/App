@@ -146,7 +146,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        hideProductTrainingTooltip={index === 0 ? hideProductTrainingTooltip : undefined}
+                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
                     />
                 ),
                 styles: [styles.alignItemsCenter],

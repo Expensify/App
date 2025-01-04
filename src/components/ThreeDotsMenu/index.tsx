@@ -29,6 +29,7 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
+    shouldHideExtraTooltip = false,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -57,7 +58,10 @@ function ThreeDotsMenu({
     return (
         <>
             <View>
-                <Tooltip text={translate(iconTooltip)}>
+                <Tooltip
+                    text={translate(iconTooltip)}
+                    shouldRender={!shouldHideExtraTooltip}
+                >
                     <PressableWithoutFeedback
                         onPress={() => {
                             if (isPopupMenuVisible) {
