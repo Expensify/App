@@ -870,6 +870,7 @@ const translations = {
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
         chooseRecipient: 'Choose recipient',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -2571,6 +2572,8 @@ const translations = {
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
+            setAsDefault: 'Set as default workspace',
+            defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
@@ -4366,8 +4369,6 @@ const translations = {
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
-                collect: '$5 ',
-                amount: '$9 ',
                 perActiveMember: 'per active member per month.',
             },
             note: {
