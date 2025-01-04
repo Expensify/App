@@ -34,11 +34,11 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
     const onSelectionChange = useCallback(
         (country: Option) => {
             if (!isEditing) {
-                FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
+                FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: country.value});
             }
             setCurrentAccountType(country.value);
         },
-        [currentAccountType, isEditing],
+        [isEditing],
     );
 
     const options = useMemo(
