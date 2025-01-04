@@ -143,7 +143,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
+            <Text style={[styles.mb6, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
             {summaryItems.map(({description, title, shouldShowRightIcon, onPress}) => (
                 <MenuItemWithTopDescription
                     key={`${title}_${description}`}
