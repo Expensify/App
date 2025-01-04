@@ -127,7 +127,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
             summaryItems.push({
                 description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
                 title: formValues[fieldName],
-                shouldShowRightIcon: true,
+                shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
                 onPress: () => {
                     onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
                 },
