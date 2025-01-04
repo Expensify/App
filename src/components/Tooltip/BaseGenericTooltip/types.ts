@@ -30,6 +30,9 @@ type BaseGenericTooltipProps = {
 
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
+
+    /** Whether the tooltip should teleport to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 } & Pick<SharedTooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay'>;
 
 // eslint-disable-next-line import/prefer-default-export

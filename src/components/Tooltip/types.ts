@@ -39,6 +39,9 @@ type SharedTooltipProps = {
 
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
+
+    /** Whether the tooltip should teleport to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type GenericTooltipState = {

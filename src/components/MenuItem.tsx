@@ -348,6 +348,9 @@ type MenuItemBaseProps = {
 
     /** Pressable component Test ID. Used to locate the component in tests. */
     pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -461,6 +464,7 @@ function MenuItem(
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
         pressableTestID,
+        shouldTeleportPortalToModalLayer,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -596,6 +600,7 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
             >
                 <View>
                     <Hoverable>

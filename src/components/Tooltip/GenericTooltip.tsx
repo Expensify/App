@@ -34,6 +34,7 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
+    shouldTeleportPortalToModalLayer,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -181,6 +182,7 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
+                    shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                 />
             )}

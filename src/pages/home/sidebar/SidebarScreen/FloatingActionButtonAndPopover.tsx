@@ -380,6 +380,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,
+            shouldTeleportPortalToModalLayer: true,
         };
 
         if (quickAction?.action) {
