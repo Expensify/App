@@ -16,6 +16,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -36,6 +38,22 @@ function AddPersonalBankAccountPage() {
         }
     }, [plaidData, selectedPlaidAccountId]);
 
+    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+
+    const goBack = useCallback(() => {
+        switch (topMostCentralPane?.name) {
+            case SCREENS.SETTINGS.WALLET.ROOT:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+                break;
+            case SCREENS.REPORT:
+                Navigation.closeRHPFlow();
+                break;
+            default:
+                Navigation.goBack();
+                break;
+        }
+    }, [topMostCentralPane]);
+
     const exitFlow = useCallback(
         (shouldContinue = false) => {
             const exitReportID = personalBankAccount?.exitReportID;
@@ -46,10 +64,10 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack();
+                goBack();
             }
         },
-        [personalBankAccount],
+        [personalBankAccount, goBack],
     );
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
