@@ -61,6 +61,9 @@ type GenericTooltipState = {
 type GenericTooltipProps = SharedTooltipProps & {
     children: React.FC<GenericTooltipState>;
 
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
+
     /** Whether to ignore TooltipSense activity and always triger animation */
     shouldForceAnimate?: boolean;
 };

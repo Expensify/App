@@ -35,6 +35,7 @@ function GenericTooltip({
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
     shouldTeleportPortalToModalLayer,
+    shouldRender = true,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -160,7 +161,7 @@ function GenericTooltip({
 
     return (
         <>
-            {isRendered && (
+            {shouldRender && isRendered && (
                 <BaseGenericTooltip
                     // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation}
