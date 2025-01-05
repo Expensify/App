@@ -166,7 +166,7 @@ function SecuritySettingsPage() {
                         title: personalDetail?.displayName ?? formattedEmail,
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
-                        avatarID: personalDetail?.accountID ?? -1,
+                        avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         icon: personalDetail?.avatar ?? FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
@@ -195,7 +195,7 @@ function SecuritySettingsPage() {
                     title: personalDetail?.displayName ?? formattedEmail,
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
-                    avatarID: personalDetail?.accountID ?? -1,
+                    avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     icon: personalDetail?.avatar ?? FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
@@ -303,7 +303,7 @@ function SecuritySettingsPage() {
                                             icon={Expensicons.UserPlus}
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                             shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />
                                     )}
                                     {hasDelegators && (
