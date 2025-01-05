@@ -11,10 +11,12 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +36,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
+    const preferredCurrency = usePreferredCurrency();
+
+    const formattedPrice = React.useMemo(() => {
+        const upgradePlan = isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE;
+        const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+        const upgradePrice = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][upgradePlan][CONST.SUBSCRIPTION.TYPE.ANNUAL];
+        return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
+    }, [preferredCurrency, isCategorizing]);
 
     if (!feature) {
         return (
@@ -77,9 +87,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>
-                            {isCategorizing ? translate(`workspace.upgrade.pricing.collect`) : translate(`workspace.upgrade.pricing.amount`)}
-                        </Text>
+                        <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
                         {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>

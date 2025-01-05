@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -13,9 +15,11 @@ import ROUTES from '@src/ROUTES';
 type FreeTrialProps = {
     badgeStyles?: StyleProp<ViewStyle>;
     pressable?: boolean;
+    addSpacing?: boolean;
 };
 
-function FreeTrial({badgeStyles, pressable = false}: FreeTrialProps) {
+function FreeTrial({badgeStyles, pressable = false, addSpacing = false}: FreeTrialProps) {
+    const styles = useThemeStyles();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -35,7 +39,7 @@ function FreeTrial({badgeStyles, pressable = false}: FreeTrialProps) {
         return null;
     }
 
-    return pressable ? (
+    const freeTrial = pressable ? (
         <Button
             icon={Expensicons.Star}
             success
@@ -49,6 +53,8 @@ function FreeTrial({badgeStyles, pressable = false}: FreeTrialProps) {
             badgeStyles={badgeStyles}
         />
     );
+
+    return addSpacing ? <View style={[styles.pb3, styles.ph5]}>{freeTrial}</View> : freeTrial;
 }
 
 FreeTrial.displayName = 'FreeTrial';
