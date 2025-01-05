@@ -118,9 +118,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', allViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', allViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID ?? '-1', allViolations, true);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, allViolations, true);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, allViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -254,7 +254,7 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1'))) {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};

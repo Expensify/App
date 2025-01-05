@@ -71,7 +71,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? CONST.DEFAULT_NUMBER_ID];
     const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
     return originalMessage?.IOUTransactionID ?? undefined;
 };

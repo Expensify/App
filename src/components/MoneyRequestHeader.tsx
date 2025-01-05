@@ -107,14 +107,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
                     <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID ?? '-1'}
+                        transactionID={transaction?.transactionID}
                         report={report}
                         policy={policy}
                     />
                 ),
             };
         }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1'))) {
+        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID))) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {

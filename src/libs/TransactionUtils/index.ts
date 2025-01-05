@@ -751,7 +751,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
  * Get all transaction violations of the transaction with given tranactionID.
  */
 function getTransactionViolations(transactionID: string | undefined): TransactionViolations | null {
-    if (transactionID) {
+    if (!transactionID) {
         return null;
     }
     return allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((v) => !isViolationDismissed(transactionID, v)) ?? null;
@@ -945,6 +945,9 @@ function isViolationDismissed(transactionID: string | undefined, violation: Tran
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
