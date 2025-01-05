@@ -750,8 +750,11 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given tranactionID.
  */
-function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+function getTransactionViolations(transactionID: string | undefined): TransactionViolations | null {
+    if (transactionID) {
+        return null;
+    }
+    return allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((v) => !isViolationDismissed(transactionID, v)) ?? null;
 }
 
 /**
@@ -771,7 +774,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(transactionID?: string): boolean {
-    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    const violations = getTransactionViolations(transactionID);
     return !!violations?.find(
         (violation) =>
             violation.name === CONST.VIOLATIONS.RTER &&
@@ -928,7 +931,10 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
 /**
  * Checks if a violation is dismissed for the given transaction
  */
-function isViolationDismissed(transactionID: string, violation: TransactionViolation): boolean {
+function isViolationDismissed(transactionID: string | undefined, violation: TransactionViolation): boolean {
+    if (!transactionID) {
+        return false;
+    }
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
 }
 
