@@ -23,13 +23,11 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
         translation = translate(`parentReportAction.${action}` as TranslationPaths);
     }
 
-    Object.values(CONST.REPORT.ACTION_TYPE);
-
     const getIcon = () => {
         // This needs to be updated with new icons
         switch (action) {
             case CONST.REPORT.ACTION_TYPE.DELETED_MESSAGE:
-                return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
+                return {icon: Expensicons.ChatBubbleSlash, width: 18, height: 18};
             case CONST.REPORT.ACTION_TYPE.DELETED_EXPENSE:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
             case CONST.REPORT.ACTION_TYPE.DELETED_REPORT:
@@ -47,7 +45,7 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
 
     const icon = getIcon();
     return (
-        <View style={[styles.p4, styles.mt1, styles.border, {borderColor: theme.border}, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
+        <View style={[styles.p4, styles.mt1, styles.appBG, styles.border, {borderColor: theme.border}, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
             <Icon
                 width={icon.height}
                 height={icon.width}
