@@ -96,7 +96,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
-                    {({reportID, accountID, type}) => (
+                    {({accountID, type}) => (
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
@@ -105,7 +105,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(report?.reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
@@ -115,7 +115,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 showContextMenuForReport(
                                     event,
                                     anchor,
-                                    report?.reportID ?? '-1',
+                                    report?.reportID,
                                     action,
                                     checkIfContextMenuActive,
                                     ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),

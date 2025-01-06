@@ -792,7 +792,7 @@ function shouldShowBrokenConnectionViolation(transactionID: string | undefined, 
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[]): boolean {
+function allHavePendingRTERViolation(transactionIds: Array<string | undefined>): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
         const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);

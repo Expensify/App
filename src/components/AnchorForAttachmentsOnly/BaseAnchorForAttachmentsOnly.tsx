@@ -51,14 +51,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         if (isDisabled) {
                             return;
                         }
-                        showContextMenuForReport(
-                            event,
-                            anchor,
-                            report?.reportID ?? '-1',
-                            action,
-                            checkIfContextMenuActive,
-                            ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
-                        );
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
