@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -20,7 +21,6 @@ import Navigation from './Navigation/Navigation';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
-import { OnyxCollection } from 'react-native-onyx';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -308,12 +308,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
-    const allViolations = Object.entries(data)
-        .filter(([itemKey]) => isViolationEntry(itemKey))
-        .map((item) => ({[item[0]]: item[1]}));
-    console.log('over here', allViolations);
+    const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
 
-    if (ReportUtils.hasViolations(report.reportID, allViolations, true, allReportTransactions)) {
+    if (ReportUtils.hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
