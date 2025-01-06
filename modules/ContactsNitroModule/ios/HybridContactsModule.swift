@@ -4,7 +4,7 @@ import Foundation
 
 final class HybridContactsModule: HybridContactsModuleSpec {
     public var hybridContext = margelo.nitro.HybridContext()
-    public var memorySize: Int { MemoryLayout<HybridContactsModule>.size }
+    public override var memorySize: Int { MemoryLayout<HybridContactsModule>.size }
     
     private let contactStore = CNContactStore()
     private let imageDirectory: URL
@@ -19,7 +19,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         .givenNameKey: CNContactGivenNameKey as CNKeyDescriptor
     ]
     
-    init() {
+    override init() {
         imageDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("ContactImages")
         try? FileManager.default.createDirectory(at: imageDirectory, withIntermediateDirectories: true)
     }
