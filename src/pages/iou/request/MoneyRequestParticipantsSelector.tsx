@@ -61,7 +61,8 @@ type MoneyRequestParticipantsSelectorProps = {
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     onTrackExpensePress,
-    onFinish,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
     onParticipantsAdded,
     iouType,
     action,
@@ -250,7 +251,7 @@ function MoneyRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newParticipants);
-            onFinish?.();
+            onFinish();
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
@@ -321,7 +322,7 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
-            onFinish?.(CONST.IOU.TYPE.SPLIT);
+            onFinish(CONST.IOU.TYPE.SPLIT);
         },
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
     );
@@ -395,7 +396,7 @@ function MoneyRequestParticipantsSelector({
                     <Button
                         success
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => onFinish?.()}
+                        onPress={() => onFinish()}
                         pressOnEnter
                         large
                     />
