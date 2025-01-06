@@ -34,6 +34,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -281,6 +282,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const didSubscribeToReportLeavingEvents = useRef(false);
     const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
+    const renderCount = useRef(0);
+    useEffect(() => {
+        renderCount.current += 1;
+        console.log(`+++++++++++ Unique rerenders: SCREEN #${renderCount.current}`);
+    });
     useEffect(() => {
         if (!report?.reportID || shouldHideReport) {
             wasReportAccessibleRef.current = false;
@@ -870,4 +876,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 }
 
 ReportScreen.displayName = 'ReportScreen';
-export default withCurrentReportID(memo(ReportScreen, (prevProps, nextProps) => prevProps.currentReportID === nextProps.currentReportID && lodashIsEqual(prevProps.route, nextProps.route)));
+const MemoizedReportScreen = memo(ReportScreen, (prevProps, nextProps) => prevProps.currentReportID === nextProps.currentReportID && lodashIsEqual(prevProps.route, nextProps.route));
+const WithCurrentReportID = withCurrentReportID(MemoizedReportScreen);
+
+export default Performance.withRenderTrace({id: CONST.PERFORMANCE.SCREEN_KEYS.REPORT_SCREEN})(WithCurrentReportID as React.ComponentType);
+export type {ReportScreenProps, ReportScreenNavigationProps};

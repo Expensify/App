@@ -8,6 +8,7 @@ const TEST_NAMES = {
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
+    ChatRerenering: 'Chat rerendering',
 };
 
 /**
@@ -99,6 +100,13 @@ export default {
             reportID: '8268282951170052',
             linkedReportID: '5421294415618529',
             linkedReportActionID: '2845024374735019929',
+        },
+        [TEST_NAMES.ChatRerenering]: {
+            name: TEST_NAMES.ChatRerenering,
+            reportScreen: {
+                autoFocus: false,
+            },
+            reportID: '8268282951170052',
         },
     },
 };
