@@ -1037,4 +1037,14 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
     });
+
+    describe('filterReports', () => {
+        it('should match a user with an accented name when searching using non-accented characters', () => {
+            const reports = [{text: 'Álex Timón'} as ReportUtils.OptionData];
+            const searchTerms = ['Alex Timon'];
+            const filteredReports = OptionsListUtils.filterReports(reports, searchTerms);
+
+            expect(filteredReports).toEqual(reports);
+        });
+    });
 });

@@ -1708,7 +1708,6 @@ function filterReports(reports: ReportUtils.OptionData[], searchTerms: string[])
                 }
 
                 if (item.login) {
-                    values.push(item.login);
                     values.push(StringUtils.normalizeAccents(item.login));
                     values.push(StringUtils.normalizeAccents(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
@@ -1981,6 +1980,7 @@ export {
     getAlternateText,
     hasReportErrors,
     combineOrderingOfReportsAndPersonalDetails,
+    filterReports,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
