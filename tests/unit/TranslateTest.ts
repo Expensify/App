@@ -97,19 +97,8 @@ describe('translate', () => {
 });
 
 describe('Translation Keys', () => {
-    function traverseKeyPath(source: FlatTranslationsObject, path?: string, keyPaths?: string[]): string[] {
-        const pathArray = keyPaths ?? [];
-        const keyPath = path ? `${path}.` : '';
-        (Object.keys(source) as TranslationPaths[]).forEach((key) => {
-            if (typeof source[key] === 'object' && typeof source[key] !== 'function') {
-                // @ts-expect-error - We are modifying the translations object for testing purposes
-                traverseKeyPath(source[key], keyPath + key, pathArray);
-            } else {
-                pathArray.push(keyPath + key);
-            }
-        });
-
-        return pathArray;
+    function traverseKeyPath(source: FlatTranslationsObject): string[] {
+        return Object.keys(source);
     }
 
     const excludeLanguages = [CONST.LOCALES.EN, CONST.LOCALES.ES_ES];
@@ -136,6 +125,48 @@ describe('Translation Keys', () => {
                 Error(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
             }
             expect(hasAllKeys).toEqual([]);
+        });
+    });
+});
+
+describe('Duplicate Translation values', () => {
+    function traverseKeyValuePairs(source: FlatTranslationsObject): Record<string, string[]> {
+        const pairsObject: Record<string, string[]> = {};
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.entries(source).forEach(([key, value]) => {
+            if (typeof value !== 'function') {
+                pairsObject[value] = pairsObject[value] ?? [];
+                pairsObject[value].push(key);
+            }
+        });
+
+        return pairsObject;
+    }
+
+    function testDuplicates(valueIndexedObj: Record<string, string[]>): string {
+        const result: string[] = [];
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.entries(valueIndexedObj).forEach(([value, keys]) => {
+            if (keys.length > 1) {
+                result.push(`🔥 [ ${keys.join(', ')} ] are using the same value [ ${value} ]`);
+            }
+        });
+        return result.join('\n');
+    }
+
+    const excludeLanguages = [CONST.LOCALES.ES_ES];
+    const languages = Object.keys(originalTranslations.default).filter((ln) => !excludeLanguages.some((excludeLanguage) => excludeLanguage === ln));
+
+    languages.forEach((ln) => {
+        const languageValueIndex = traverseKeyValuePairs(originalTranslations.default[ln as keyof typeof originalTranslations.default]);
+
+        it(`Does ${ln} locale have duplicate keys`, () => {
+            const errorMessage = testDuplicates(languageValueIndex);
+            if (errorMessage) {
+                console.debug(errorMessage);
+                Error(errorMessage);
+            }
+            expect(errorMessage).toBe('');
         });
     });
 });
