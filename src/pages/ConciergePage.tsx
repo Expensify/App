@@ -54,7 +54,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate();
             }
-        }, [session, isLoadingReportData]),
+        }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
     );
 
     useEffect(() => {
