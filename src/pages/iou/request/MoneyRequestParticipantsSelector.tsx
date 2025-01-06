@@ -173,7 +173,16 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        [chatOptions.personalDetails, chatOptions.recentReports, chatOptions?.userToInvite, cleanSearchTerm, debouncedSearchTerm, participants],
+        [
+            chatOptions.personalDetails,
+            chatOptions.recentReports,
+            chatOptions.selfDMChat,
+            chatOptions?.userToInvite,
+            chatOptions.workspaceChats,
+            cleanSearchTerm,
+            debouncedSearchTerm,
+            participants,
+        ],
     );
     /**
      * Returns the sections needed for the OptionsSelector
