@@ -42,6 +42,9 @@ type SharedTooltipProps = {
 
     /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
+
+    /** Whether the tooltip should hide when navigating */
+    shouldHideOnNavigate?: boolean;
 };
 
 type GenericTooltipState = {

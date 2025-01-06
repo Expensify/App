@@ -127,6 +127,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
             shiftHorizontal={isNarrowScreenOnWeb ? 0 : variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
+            shouldHideOnNavigate={false}
         >
             <PressableWithoutFeedback
                 ref={(el) => {

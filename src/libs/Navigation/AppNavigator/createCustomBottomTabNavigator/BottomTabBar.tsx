@@ -156,6 +156,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnNavigate={false}
                 >
                     <PressableWithFeedback
                         onPress={navigateToChats}
