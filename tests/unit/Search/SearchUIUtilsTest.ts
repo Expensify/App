@@ -1,7 +1,6 @@
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const accountID = 18439984;
