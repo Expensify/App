@@ -116,6 +116,21 @@ function getQueryWithoutAutocompletedPart(searchQuery: string) {
     return searchQuery.slice(0, sliceEnd);
 }
 
+/**
+ * Returns updated search query string with special case of comma after autocomplete handled.
+ * If prev query value had autocomplete, and the last thing user typed is a comma
+ * then we allow to continue autocompleting the next value by omitting the whitespace
+ */
+function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
+    const prevParsedQuery = parseForAutocomplete(prevQuery);
+
+    if (prevParsedQuery?.autocomplete && newQuery.endsWith(',')) {
+        return `${newQuery.slice(0, newQuery.length - 1).trim()},`;
+    }
+
+    return newQuery;
+}
+
 export {
     parseForAutocomplete,
     getAutocompleteTags,
@@ -124,4 +139,5 @@ export {
     getAutocompleteRecentCategories,
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
+    getAutocompleteQueryWithComma,
 };

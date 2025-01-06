@@ -26,9 +26,15 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: CompanyCardFeed;
+
+    /** Whether to show assign card button */
+    shouldShowAssignCardButton?: boolean;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -36,8 +42,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const feedName = CardUtils.getCardFeedName(selectedFeed);
-    const formattedFeedName = translate('workspace.companyCards.feedName', {feedName});
+    const formattedFeedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const isCustomFeed = CardUtils.isCustomFeed(selectedFeed);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
@@ -52,12 +57,13 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <PressableWithFeedback
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
-                    accessibilityLabel={formattedFeedName}
+                    accessibilityLabel={formattedFeedName ?? ''}
                 >
                     <Icon
                         src={CardUtils.getCardFeedIcon(selectedFeed)}
-                        width={variables.iconSizeExtraLarge}
-                        height={variables.iconSizeExtraLarge}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
                     />
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
@@ -76,14 +82,16 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 </PressableWithFeedback>
 
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Button
-                        success
-                        isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.companyCards.assignCard')}
-                        style={shouldChangeLayout && styles.flex1}
-                    />
+                    {!!shouldShowAssignCardButton && (
+                        <Button
+                            success
+                            isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
+                            onPress={handleAssignCard}
+                            icon={Expensicons.Plus}
+                            text={translate('workspace.companyCards.assignCard')}
+                            style={shouldChangeLayout && styles.flex1}
+                        />
+                    )}
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                         icon={Expensicons.Gear}

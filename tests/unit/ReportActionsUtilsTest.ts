@@ -306,7 +306,7 @@ describe('ReportActionsUtils', () => {
             // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             expect(result).toStrictEqual(expectedOutput);
         });
 
@@ -401,7 +401,7 @@ describe('ReportActionsUtils', () => {
             // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             expect(result).toStrictEqual(expectedOutput);
         });
 
@@ -445,9 +445,102 @@ describe('ReportActionsUtils', () => {
                     message: [{html: '', type: 'Action type', text: 'Action text'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             input.pop();
             expect(result).toStrictEqual(input);
+        });
+
+        it('should filter actionable whisper actions e.g. "join", "create room" when room is archived', () => {
+            // Given several different action types, including actionable whispers for creating, inviting and joining rooms, as well as non-actionable whispers
+            // - ADD_COMMENT
+            // - ACTIONABLE_REPORT_MENTION_WHISPER
+            // - ACTIONABLE_MENTION_WHISPER
+            const input: ReportAction[] = [
+                {
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    originalMessage: {
+                        html: '<mention-user accountID="18414674"/>',
+                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                        mentionedAccountIDs: [18301266],
+                    },
+                    message: [
+                        {
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@as',
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                },
+                {
+                    created: '2024-11-19 08:00:14.352',
+                    reportActionID: '4655978522337302598',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    originalMessage: {
+                        html: '#join',
+                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:00:14.352',
+                    },
+                    message: [
+                        {
+                            html: '#join',
+                            text: '#join',
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                },
+                {
+                    created: '2022-11-09 22:27:01.825',
+                    reportActionID: '8049485084562457',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                    originalMessage: {
+                        lastModified: '2024-11-19 08:00:14.353',
+                        mentionedAccountIDs: [],
+                        whisperedTo: [18301266],
+                    },
+                    message: {
+                        html: "Heads up, <mention-report>#join</mention-report> doesn't exist yet. Do you want to create it?",
+                        text: "Heads up, #join doesn't exist yet. Do you want to create it?",
+                        type: 'COMMENT',
+                        whisperedTo: [18301266],
+                    },
+                },
+
+                {
+                    created: '2022-11-12 22:27:01.825',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    originalMessage: {
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
+                    },
+                    message: [
+                        {
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
+                        },
+                    ],
+                },
+            ];
+
+            // When the report actions are sorted for display with the second parameter (canUserPerformWriteAction) set to false (to simulate a report that has been archived)
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
+            // The output should correctly filter out the actionable whisper types for "join," "invite," and "create room" because the report is archived.
+            // Taking these actions not only doesn't make sense from a UX standpoint,  but also leads to server errors since such actions are not possible.
+            const expectedOutput: ReportAction[] = input.filter(
+                (action) =>
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+            );
+
+            expect(result).toStrictEqual(expectedOutput);
         });
     });
 
@@ -501,6 +594,46 @@ describe('ReportActionsUtils', () => {
                             }),
                     )
             );
+        });
+    });
+
+    describe('getReportActionMessageFragments', () => {
+        it('should return the correct fragment for the REIMBURSED action', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '1',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'Concierge',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' reimbursed this report',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' on behalf of you',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' from the bank account ending in 1111',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
+                    },
+                ],
+            };
+            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
     });
 });

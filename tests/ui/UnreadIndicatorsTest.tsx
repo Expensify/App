@@ -25,6 +25,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -80,16 +81,6 @@ function navigateToSidebar(): Promise<void> {
         fireEvent(reportHeaderBackButton, 'press');
     }
     return waitForBatchedUpdates();
-}
-
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
-    if (!optionRow) {
-        return;
-    }
-    fireEvent(optionRow, 'press');
-    await waitForBatchedUpdatesWithAct();
 }
 
 function areYouOnChatListScreen(): boolean {
@@ -191,7 +182,11 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
 }
 
 describe('Unread Indicators', () => {
-    afterEach(() => {
+    beforeAll(() => {
+        PusherHelper.setup();
+    });
+
+    beforeEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
 
@@ -551,5 +546,66 @@ describe('Unread Indicators', () => {
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
                 })
         );
+    });
+
+    it('Move the new line indicator to the next message when the unread message is deleted', async () => {
+        let reportActions: OnyxEntry<ReportActions>;
+        const connection = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: (val) => (reportActions = val),
+        });
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOption(0);
+
+        Report.addComment(REPORT_ID, 'Comment 1');
+
+        await waitForBatchedUpdates();
+
+        const firstNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+
+        if (firstNewReportAction) {
+            Report.markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
+
+            await waitForBatchedUpdates();
+
+            Report.addComment(REPORT_ID, 'Comment 2');
+
+            await waitForBatchedUpdates();
+
+            Report.deleteReportComment(REPORT_ID, firstNewReportAction);
+
+            await waitForBatchedUpdates();
+        }
+
+        const secondNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+
+        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(1);
+        const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
+        expect(reportActionID).toBe(secondNewReportAction?.reportActionID);
+
+        Onyx.disconnect(connection);
+    });
+
+    it('Do not display the new line indicator when receiving a new message from another user', async () => {
+        // Given a read report
+        await signInAndGetAppWithUnreadChat();
+
+        Report.readNewestAction(REPORT_ID, true);
+
+        await waitForBatchedUpdates();
+
+        await navigateToSidebarOption(0);
+
+        // When another user adds a new message
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            10: TestHelper.buildTestReportComment(DateUtils.getDBTime(), USER_B_ACCOUNT_ID, '10'),
+        });
+
+        // Then the new line indicator shouldn't be displayed
+        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(0);
     });
 });

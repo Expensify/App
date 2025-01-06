@@ -24,10 +24,12 @@ type ExpenseItemHeaderNarrowProps = {
     containerStyle?: StyleProp<ViewStyle>;
     onButtonPress: () => void;
     canSelectMultiple?: boolean;
+    shouldUseSuccessStyle?: boolean;
     isSelected?: boolean;
     isDisabled?: boolean | null;
     isDisabledCheckbox?: boolean;
     handleCheckboxPress?: () => void;
+    isLoading?: boolean;
 };
 
 function ExpenseItemHeaderNarrow({
@@ -40,10 +42,12 @@ function ExpenseItemHeaderNarrow({
     canSelectMultiple,
     containerStyle,
     isDisabledCheckbox,
+    shouldUseSuccessStyle = true,
     isSelected,
     isDisabled,
     handleCheckboxPress,
     text,
+    isLoading = false,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -99,9 +103,11 @@ function ExpenseItemHeaderNarrow({
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     action={action}
+                    shouldUseSuccessStyle={shouldUseSuccessStyle}
                     goToItem={onButtonPress}
                     isLargeScreenWidth={false}
                     isSelected={isSelected}
+                    isLoading={isLoading}
                 />
             </View>
         </View>

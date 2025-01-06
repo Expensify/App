@@ -6,6 +6,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -183,7 +184,14 @@ function signOut() {
         shouldRetry: false,
     };
 
-    API.write(WRITE_COMMANDS.LOG_OUT, params);
+    API.write(
+        WRITE_COMMANDS.LOG_OUT,
+        params,
+        {},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.LOG_OUT),
+        },
+    );
 }
 
 /**
@@ -481,7 +489,16 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: number) {
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
+function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
 
     const {
@@ -530,11 +547,11 @@ function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: n
             )
             .then(() => {
                 if (clearOnyxOnStart === 'true') {
-                    // We clear Onyx when this flag is set to true so we have to download all data
-                    App.openApp();
-                } else {
-                    App.reconnectApp(lastUpdateId);
+                    return App.openApp();
                 }
+                return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
+                    return App.reconnectApp(lastUpdateId);
+                });
             })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
@@ -1146,6 +1163,43 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
+/**
+ * Validates user account and returns a list of accessible policies.
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: true,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
+}
+
+function isUserOnPrivateDomain() {
+    // TODO: Implement this function later, and skip the check for now
+    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    return false;
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1183,4 +1237,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
+    validateUserAndGetAccessiblePolicies,
+    isUserOnPrivateDomain,
 };

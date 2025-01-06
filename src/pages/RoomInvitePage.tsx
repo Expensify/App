@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -24,6 +23,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -40,7 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 function RoomInvitePage({
@@ -63,7 +63,7 @@ function RoomInvitePage({
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && participant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+            .filter(([, participant]) => participant && !ReportUtils.isHiddenForCurrentUser(participant.notificationPreference))
             .map(([accountID]) => Number(accountID));
         return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
             PhoneNumber.addSMSDomainIfPhoneNumber(participant),
@@ -72,10 +72,10 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -95,7 +95,6 @@ function RoomInvitePage({
             selectedOptions: newSelectedOptions,
             recentReports: [],
             currentUserOption: null,
-            categoryOptions: [],
         };
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 
@@ -103,7 +102,7 @@ function RoomInvitePage({
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
@@ -242,7 +241,7 @@ function RoomInvitePage({
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report)}

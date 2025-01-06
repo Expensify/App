@@ -3,13 +3,14 @@ import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0),
@@ -19,6 +20,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
     ...createRandomReportAction(0),
     originalMessage: undefined,
 };
+
+const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
@@ -43,7 +46,7 @@ const TEST_OBJECT_TYPE = {
     d: 'object',
     e: 'boolean',
     f: 'boolean',
-} satisfies ObjectType;
+} satisfies ObjectType<Record<string, unknown>>;
 
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
@@ -251,6 +254,12 @@ describe('DebugUtils', () => {
             }).not.toThrow();
         });
 
+        it('does not throw SyntaxError when value is an empty string', () => {
+            expect(() => {
+                DebugUtils.validateConstantEnum('', MOCK_CONST_ENUM);
+            }).not.toThrow();
+        });
+
         it('does not throw SyntaxError when value is a valid string representation of a constant enum', () => {
             expect(() => {
                 DebugUtils.validateConstantEnum('foo', MOCK_CONST_ENUM);
@@ -321,7 +330,7 @@ describe('DebugUtils', () => {
 
         it('throws SyntaxError when value is not a valid string representation of a constant enum array', () => {
             expect(() => {
-                DebugUtils.validateArray('["a"]', MOCK_CONST_ENUM);
+                DebugUtils.validateArray<'constantEnum'>('["a"]', MOCK_CONST_ENUM);
             }).toThrow();
         });
 
@@ -376,6 +385,14 @@ describe('DebugUtils', () => {
             it('does not throw SyntaxError', () => {
                 expect(() => {
                     DebugUtils.validateObject('undefined', {});
+                }).not.toThrow();
+            });
+        });
+
+        describe('value is null', () => {
+            it('does not throw SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject('null', {});
                 }).not.toThrow();
             });
         });
@@ -570,6 +587,49 @@ describe('DebugUtils', () => {
             it('does not throw SyntaxError when valid', () => {
                 expect(() => {
                     DebugUtils.validateReportActionDraftProperty(key, DebugUtils.onyxDataToString(MOCK_REPORT_ACTION[key]));
+                }).not.toThrow();
+            });
+        });
+    });
+
+    describe('validateTransactionDraftProperty', () => {
+        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+            it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
+                if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).toThrow();
+                } else {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).not.toThrow();
+                }
+            });
+
+            it('throws SyntaxError when invalid', () => {
+                const value = MOCK_TRANSACTION[key];
+                let invalidValue: unknown;
+
+                switch (typeof value) {
+                    case 'number':
+                        invalidValue = 'a';
+                        break;
+                    case 'boolean':
+                    case 'object':
+                        invalidValue = 2;
+                        break;
+                    default:
+                        invalidValue = [];
+                }
+
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(invalidValue));
+                }).toThrow();
+            });
+
+            it('does not throw SyntaxError when valid', () => {
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(MOCK_TRANSACTION[key]));
                 }).not.toThrow();
             });
         });

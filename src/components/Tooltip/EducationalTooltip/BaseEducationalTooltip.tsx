@@ -2,10 +2,8 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
-import onyxSubscribe from '@libs/onyxSubscribe';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
 import measureTooltipCoordinate from './measureTooltipCoordinate';
+import * as TooltipManager from './TooltipManager';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
@@ -13,37 +11,22 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, onHideTooltip: onHideTooltipProp, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
-    const [modal, setModal] = useState<Modal>({
-        willAlertModalBecomeVisible: false,
-        isVisible: false,
-    });
+    const removeActiveTooltipRef = useRef(() => {});
+    const removePendingTooltipRef = useRef(() => {});
 
-    const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible && shouldRender;
+    const didShow = useRef(false);
 
-    useEffect(() => {
+    const onHideTooltip = useCallback(() => {
         if (!shouldRender) {
             return;
         }
-        const unsubscribeOnyxModal = onyxSubscribe({
-            key: ONYXKEYS.MODAL,
-            callback: (modalArg) => {
-                if (modalArg === undefined) {
-                    return;
-                }
-                setModal(modalArg);
-            },
-        });
-        return () => {
-            unsubscribeOnyxModal();
-        };
-    }, [shouldRender]);
-
-    const didShow = useRef(false);
+        onHideTooltipProp?.();
+    }, [onHideTooltipProp, shouldRender]);
 
     const closeTooltip = useCallback(() => {
         if (!didShow.current) {
@@ -51,6 +34,7 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
         }
         hideTooltipRef.current?.();
         onHideTooltip?.();
+        removeActiveTooltipRef.current();
     }, [onHideTooltip]);
 
     useEffect(
@@ -70,12 +54,6 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
             return;
         }
 
-        // If the modal is open, hide the tooltip immediately and clear the timeout
-        if (!shouldShow) {
-            closeTooltip();
-            return;
-        }
-
         // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
         const timerID = setTimeout(() => {
             closeTooltip();
@@ -83,21 +61,25 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldAutoDismiss, shouldShow, closeTooltip]);
+    }, [shouldAutoDismiss, closeTooltip]);
 
     useEffect(() => {
-        if (!shouldMeasure || !shouldShow || didShow.current) {
+        if (!shouldMeasure || !shouldRender || didShow.current) {
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
+            removePendingTooltipRef.current();
             show.current?.();
             didShow.current = true;
+            removeActiveTooltipRef.current = TooltipManager.addActiveTooltip(closeTooltip);
         }, 500);
+        removePendingTooltipRef.current = TooltipManager.addPendingTooltip(timerID);
         return () => {
+            removePendingTooltipRef.current();
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldShow]);
+    }, [shouldMeasure, shouldRender, closeTooltip]);
 
     useEffect(
         () => closeTooltip,

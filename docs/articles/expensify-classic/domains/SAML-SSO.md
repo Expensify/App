@@ -17,7 +17,7 @@ Once the domain is verified, you can access the SSO settings by navigating to Se
 **Below are instructions for setting up Expensify for specific SSO providers:**
 - [Amazon Web Services (AWS SSO)](https://static.global.sso.amazonaws.com/app-202a715cb67cddd9/instructions/index.htm)
 - [Google SAML](https://support.google.com/a/answer/7371682) (for GSuite, not Google SSO)
-- [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/documentation/articles/active-directory-saas-expensify-tutorial/)
+- [Microsoft Entra ID (formerly Azure Active Directory)](https://learn.microsoft.com/en-us/entra/identity/saas-apps/expensify-tutorial)
 - [Okta](https://saml-doc.okta.com/SAML_Docs/How-to-Configure-SAML-2.0-for-Expensify.html)
 - [OneLogin](https://onelogin.service-now.com/support?id=kb_article&sys_id=e44c9e52db187410fe39dde7489619ba)
 - [Oracle Identity Cloud Service](https://docs.oracle.com/en/cloud/paas/identity-cloud/idcsc/expensify.html#Expensify)
@@ -39,13 +39,13 @@ The entityID for Expensify is https://expensify.com. Remember not to copy and pa
 ## Can you have multiple domains with only one entity ID?
 Yes. Please send a message to the Concierge or your account manager, and we will enable the use of the same entity ID with multiple domains.
 
-## How can I update the Microsoft Azure SSO Certificate?
+## How can I update the Microsoft Entra ID SSO Certificate?
 Expensify's SAML configuration doesn't support multiple active certificates. This means that if you create the new certification ahead of time without first removing the old one, the respective IDP will include two unique x509 certificates instead of one, and the connection will break. Should you need to access Expensify, switching back to the old certificate will continue to allow access while that certificate is still valid.
 
-**To transfer from one Microsoft Azure certificate to another, please follow the below steps:**
-1. In Azure Directory, create your new certificate.
-2. In Azure Director, remove the old, expiring certificate.
-3. In Azure Directory, activate the remaining certificate and get a new IDP for Expensify from it.
+**To transfer from one Microsoft Entra certificate to another, please follow the below steps:**
+1. In Microsoft Entra, create your new certificate.
+2. In Microsoft Entra, remove the old, expiring certificate.
+3. In Microsoft Entra, activate the remaining certificate and get a new IDP for Expensify from it.
 4. In Expensify, replace the previous IDP with the new IDP.
 5. Log in via SSO. If login continues to fail, write to Concierge for assistance.
 
@@ -88,7 +88,7 @@ Before getting started, you will need a verified domain and Control plan to set 
 6. The new trust is now created. Highlight the trust, then click *Edit claim rules* on the right.
 7. Click *Add a Rule*.
 8. The default option should be *Send LDAP Attributes as Claims*. Click Next. 
-9. Depending upon how your Active Directory is set up, you may or may not have a useful email address associated with each user, or you may have a policy to use the UPN as the user attribute for authentication. If so, using the UPN user attribute may be appropriate for you. If not, you can use the email address attribute.
+9. Depending upon how your Active Directory is set up, you may or may not have a useful email address associated with each user, or you may have a workspace to use the UPN as the user attribute for authentication. If so, using the UPN user attribute may be appropriate for you. If not, you can use the email address attribute.
 10. Give the rule a name like *Get email address from AD*. Choose Active Directory as the attribute store from the dropdown list. Choose your source user attribute to pass to Expensify that has users’ email address info in it, usually either *E-Mail-Address* or *User-Principal-Name*. Select the outgoing claim type as “E-Mail Address”. Click OK. 
 11. Add another rule; this time, we want to *Transform an Incoming Claim*. Click Next. 
 12. Name the rule *Send email address*. The Incoming claim type should be *E-Mail Address*. The outgoing claim type should be *Name ID*, and the outgoing name ID format should be *Email*. Click OK.

@@ -163,12 +163,12 @@ function DetailsStep({policyID}: DetailsStepProps) {
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FormProvider

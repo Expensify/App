@@ -32,20 +32,20 @@ function AnimatedSettlementButton({
     const height = useSharedValue<number>(variables.componentSizeNormal);
     const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
     const buttonStyles = useAnimatedStyle(() => ({
-        transform: [{scale: buttonScale.value}],
-        opacity: buttonOpacity.value,
+        transform: [{scale: buttonScale.get()}],
+        opacity: buttonOpacity.get(),
     }));
     const paymentCompleteTextStyles = useAnimatedStyle(() => ({
-        transform: [{scale: paymentCompleteTextScale.value}],
-        opacity: paymentCompleteTextOpacity.value,
+        transform: [{scale: paymentCompleteTextScale.get()}],
+        opacity: paymentCompleteTextOpacity.get(),
         position: 'absolute',
         alignSelf: 'center',
     }));
     const containerStyles = useAnimatedStyle(() => ({
-        height: height.value,
+        height: height.get(),
         justifyContent: 'center',
         overflow: 'hidden',
-        marginTop: buttonMarginTop.value,
+        marginTop: buttonMarginTop.get(),
     }));
     const buttonDisabledStyle =
         isPaidAnimationRunning || isApprovedAnimationRunning
@@ -56,13 +56,12 @@ function AnimatedSettlementButton({
             : undefined;
 
     const resetAnimation = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = 1;
-        buttonOpacity.value = 1;
-        paymentCompleteTextScale.value = 0;
-        paymentCompleteTextOpacity.value = 1;
-        height.value = variables.componentSizeNormal;
-        buttonMarginTop.value = styles.expenseAndReportPreviewTextButtonContainer.gap;
+        buttonScale.set(1);
+        buttonOpacity.set(1);
+        paymentCompleteTextScale.set(0);
+        paymentCompleteTextOpacity.set(1);
+        height.set(variables.componentSizeNormal);
+        buttonMarginTop.set(styles.expenseAndReportPreviewTextButtonContainer.gap);
     }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
 
     useEffect(() => {
@@ -70,23 +69,22 @@ function AnimatedSettlementButton({
             resetAnimation();
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
-        buttonOpacity.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
-        paymentCompleteTextScale.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
+        buttonScale.set(withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
+        buttonOpacity.set(withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
+        paymentCompleteTextScale.set(withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION}));
 
         // Wait for the above animation + 1s delay before hiding the component
         const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
         const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
-        height.value = withDelay(
-            totalDelay,
-            withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
+        height.set(
+            withDelay(
+                totalDelay,
+                withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
+            ),
         );
-        buttonMarginTop.value = withDelay(
-            totalDelay,
-            withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION}),
-        );
-        paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
+        buttonMarginTop.set(withDelay(totalDelay, withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION})));
+        buttonMarginTop.set(withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
+        paymentCompleteTextOpacity.set(withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
     }, [
         isPaidAnimationRunning,
         isApprovedAnimationRunning,

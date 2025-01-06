@@ -20,8 +20,6 @@ type CategorizeTrackedExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
-    waypoints?: string;
-    customUnitRateID?: string;
 };
 
 export default CategorizeTrackedExpenseParams;

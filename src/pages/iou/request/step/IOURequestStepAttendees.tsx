@@ -40,7 +40,7 @@ function IOURequestStepAttendees({
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(TransactionUtils.getAttendees(transaction));
+    const [attendees, setAttendees] = useState<Attendee[]>(() => TransactionUtils.getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);

@@ -1722,7 +1722,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.14.1):
+  - react-native-keyboard-controller (1.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1766,7 +1766,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.5.0):
+  - react-native-pager-view (6.5.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1779,7 +1779,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-pager-view/common (= 6.5.0)
+    - react-native-pager-view/common (= 6.5.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1788,7 +1788,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view/common (6.5.0):
+  - react-native-pager-view/common (6.5.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1981,8 +1981,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-view-shot (3.8.0):
+  - react-native-view-shot (4.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-webview (13.8.6):
     - DoubleConversion
     - glog
@@ -2266,7 +2285,7 @@ PODS:
     - React-utils (= 0.75.2)
   - RNAppleAuthentication (2.2.2):
     - React-Core
-  - RNCClipboard (1.14.0):
+  - RNCClipboard (1.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2391,7 +2410,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.183):
+  - RNLiveMarkdown (0.1.209):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2411,9 +2430,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.183)
+    - RNLiveMarkdown/newarch (= 0.1.209)
+    - RNReanimated/worklets
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.183):
+  - RNLiveMarkdown/newarch (0.1.209):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2433,6 +2453,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - RNReanimated/worklets
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
@@ -2503,7 +2524,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.16.1):
+  - RNReanimated (3.16.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2523,10 +2544,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.16.1)
-    - RNReanimated/worklets (= 3.16.1)
+    - RNReanimated/reanimated (= 3.16.4)
+    - RNReanimated/worklets (= 3.16.4)
     - Yoga
-  - RNReanimated/reanimated (3.16.1):
+  - RNReanimated/reanimated (3.16.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2546,9 +2567,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 3.16.1)
+    - RNReanimated/reanimated/apple (= 3.16.4)
     - Yoga
-  - RNReanimated/reanimated/apple (3.16.1):
+  - RNReanimated/reanimated/apple (3.16.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2569,7 +2590,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.16.1):
+  - RNReanimated/worklets (3.16.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2661,7 +2682,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (15.6.0):
+  - RNSVG (15.9.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2681,9 +2702,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.6.0)
+    - RNSVG/common (= 15.9.0)
     - Yoga
-  - RNSVG/common (15.6.0):
+  - RNSVG/common (15.9.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2717,27 +2738,12 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.0)
   - Turf (2.8.0)
-  - VisionCamera (4.0.0-beta.13):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
+  - VisionCamera (4.6.1):
+    - VisionCamera/Core (= 4.6.1)
+    - VisionCamera/React (= 4.6.1)
+  - VisionCamera/Core (4.6.1)
+  - VisionCamera/React (4.6.1):
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3236,17 +3242,17 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: 902c07f41a415b632583b384427a71770a8b02a3
+  react-native-keyboard-controller: 3428e4761623fd6a242d9bf3573112f8ebe92238
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
-  react-native-pager-view: c64a744211a46202619a77509f802765d1659dba
+  react-native-pager-view: abc5ef92699233eb726442c7f452cac82f73d0cb
   react-native-pdf: dd6ae39a93607a80919bef9f3499e840c693989d
   react-native-performance: 3c608307be10964f8a97d3af462f37125b6d8fa5
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
   react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
-  react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
+  react-native-view-shot: 6bafd491eb295b5834e05c469a37ecbd796d5b22
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
   React-nativeconfig: 57781b79e11d5af7573e6f77cbf1143b71802a6d
   React-NativeModulesApple: 7ff2e2cfb2e5fa5bdedcecf28ce37e696c6ef1e1
@@ -3275,7 +3281,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 60973d382704c793c605b9be0fc7f31cb279442f
   ReactCommon: 6ef348087d250257c44c0204461c03f036650e9b
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
-  RNCClipboard: c84275d07e3f73ff296b17e6c27e9ccdc194a0bb
+  RNCClipboard: 8212ca9e8370d0e23bfb7f5a591380da5a63456d
   RNCPicker: 21ae0659666767a5c1253aef985ee5b7c527e345
   RNDeviceInfo: 130237d8e97a89b68f2202d5dd18ac6bb68e7648
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
@@ -3286,25 +3292,25 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: fa9c6451960d09209bb5698745a0a66330ec53cc
+  RNLiveMarkdown: f19d3c962fba4fb87bb9bc27ce9119216d86d92e
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
-  RNReanimated: 2d728bad3a69119be89c3431ee0ccda026ecffdc
+  RNReanimated: d95f865e1e42c34ca56b987e0719a8c72fc02dbc
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 1079f96b39a35753d481a20e30603fd6fc4f6fa9
+  RNSVG: b2fbe96b2bb3887752f8abc1f495953847e90384
   SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
-  VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
+  VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
-PODFILE CHECKSUM: 15e2f095b9c80d658459723edf84005a6867debf
+PODFILE CHECKSUM: 615266329434ea4a994dccf622008a2197313c88
 
 COCOAPODS: 1.15.2

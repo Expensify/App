@@ -133,7 +133,7 @@ function SearchRouterInputWrapper() {
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SearchRouterInput
                 value={value}
-                updateSearch={(searchTerm) => setValue(searchTerm)}
+                onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
             />
         </ComposeProviders>

@@ -6,7 +6,11 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from './OnyxCommon';
+import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
+import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -51,6 +55,10 @@ type SearchResultsInfo = {
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
+
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
@@ -79,7 +87,10 @@ type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 /** Model of report search result */
 type SearchReport = {
     /** The ID of the report */
-    reportID?: string;
+    reportID: string;
+
+    /** ID of the chat report */
+    chatReportID?: string;
 
     /** The name of the report */
     reportName?: string;
@@ -107,6 +118,49 @@ type SearchReport = {
 
     /** The action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The type of chat if this is a chat report */
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+
+    /** Invoice room receiver data */
+    invoiceReceiver?: InvoiceReceiver;
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
+
+    /** The state that the report is currently in */
+    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the current report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** For expense reports, this is the total amount requested */
+    unheldTotal?: number;
+
+    /** Whether the report is archived */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    private_isArchived?: string;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of report participants, indexed by their accountID */
+    participants?: Participants;
 };
 
 /** Model of report action search result */
@@ -140,6 +194,64 @@ type SearchReportAction = {
 
     /** The ID of the report */
     reportID: string;
+};
+
+/** Model of policy search result */
+type SearchPolicy = {
+    /** The policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Whether the auto reporting is enabled */
+    autoReporting?: boolean;
+
+    /**
+     * The scheduled submit frequency set up on this policy.
+     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
+     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
+     */
+    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** The maximum report total allowed to trigger auto reimbursement */
+    autoReimbursementLimit?: number;
+
+    /** The verified bank account linked to the policy */
+    achAccount?: ACHAccount;
+
+    /** The current user's role in the policy */
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The employee list of the policy */
+    employeeList?: Record<string, Record<string, string>>;
+
+    /** Detailed settings for the autoReimbursement */
+    autoReimbursement?: {
+        /** The auto reimbursement limit */
+        limit: number;
+    };
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApproval?: boolean;
+
+    /** The email of the policy owner */
+    owner: string;
+
+    /** The approver of the policy */
+    approver?: string;
+
+    /** A set of rules related to the workpsace */
+    rules?: {
+        /** A set of rules related to the workpsace approvals */
+        approvalRules?: ApprovalRule[];
+
+        /** A set of rules related to the workpsace expenses */
+        expenseRules?: ExpenseRule[];
+    };
 };
 
 /** Model of transaction search result */
@@ -217,7 +329,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -225,8 +337,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;
@@ -251,6 +363,12 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
+
+    /** Whether the transaction has violations or errors */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Types of searchable transactions */
@@ -272,7 +390,9 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -280,4 +400,15 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport, SearchReportAction};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTransaction,
+    SearchTransactionType,
+    SearchTransactionAction,
+    SearchPersonalDetails,
+    SearchDataTypes,
+    SearchReport,
+    SearchReportAction,
+    SearchPolicy,
+};

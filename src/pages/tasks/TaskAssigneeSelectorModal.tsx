@@ -1,5 +1,4 @@
 /* eslint-disable es/no-optional-chaining */
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -23,6 +22,7 @@ import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
@@ -40,14 +40,16 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
-            reports: optionsList.reports,
-            personalDetails: optionsList.personalDetails,
-            betas,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-
-            maxRecentReportsToShow: 0,
-        });
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
+            {
+                reports: optionsList.reports,
+                personalDetails: optionsList.personalDetails,
+            },
+            {
+                betas,
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
+            },
+        );
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 
@@ -62,12 +64,11 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            categoryOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -88,7 +89,7 @@ function useOptions() {
 
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
-    const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
+    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
     const backTo = route.params?.backTo;

@@ -27,6 +27,9 @@ type ReportActionItemImagesProps = {
 
     /** if the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Callback to be called on onPress */
+    onPress?: () => void;
 };
 
 /**
@@ -38,7 +41,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -67,7 +70,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
                 <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={false}>
-                    {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
+                    {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                         // Show a border to separate multiple images. Shown to the right for each except the last.
                         const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                         const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
@@ -81,11 +84,13 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                                     fileExtension={fileExtension}
                                     image={image}
                                     isLocalFile={isLocalFile}
+                                    isEmptyReceipt={isEmptyReceipt}
                                     filename={filename}
                                     transaction={transaction}
                                     isThumbnail={isThumbnail}
                                     isSingleImage={numberOfShownImages === 1}
                                     shouldMapHaveBorderRadius={false}
+                                    onPress={onPress}
                                 />
                             </View>
                         );

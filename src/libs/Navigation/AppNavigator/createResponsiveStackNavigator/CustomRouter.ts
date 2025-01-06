@@ -3,7 +3,6 @@ import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation
 import type {ParamListBase} from '@react-navigation/routers';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as Localize from '@libs/Localize';
-import syncBrowserHistory from '@libs/Navigation/AppNavigator/createCustomStackNavigator/syncBrowserHistory';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import linkingConfig from '@libs/Navigation/linkingConfig';
@@ -15,6 +14,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import syncBrowserHistory from './syncBrowserHistory';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
     const nonModalRoutes = state.routes.filter(

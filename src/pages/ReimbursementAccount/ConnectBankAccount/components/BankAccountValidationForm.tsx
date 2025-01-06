@@ -96,6 +96,8 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
         },
         [reimbursementAccount, policyID, permittedDecimalSeparator],
     );
+    // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+    // See https://github.com/Expensify/App/issues/51868 for more information
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -114,6 +116,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     shouldSaveDraft
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
+                    autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 1`}
                     maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
@@ -123,6 +126,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     shouldSaveDraft
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
+                    autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 2`}
                     maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
@@ -132,6 +136,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     inputID={INPUT_IDS.AMOUNT3}
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
+                    autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 3`}
                     maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
