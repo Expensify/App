@@ -67,7 +67,6 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
-        isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
@@ -333,6 +332,15 @@ function BaseSelectionList<TItem extends ListItem>(
         },
         isFocused,
     });
+
+    useEffect(() => {
+        const selectedItemIndex = flattenedSections.allOptions.findIndex((option) => option.isSelected);
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+            return;
+        }
+        setFocusedIndex(selectedItemIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [flattenedSections]);
 
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
@@ -766,7 +774,7 @@ function BaseSelectionList<TItem extends ListItem>(
         {
             captureOnInputs: true,
             shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
-            isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused,
         },
     );
 
@@ -849,7 +857,6 @@ function BaseSelectionList<TItem extends ListItem>(
                         onPress={onConfirm}
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
-                        isDisabled={isConfirmButtonDisabled}
                     />
                 </FixedFooter>
             )}
