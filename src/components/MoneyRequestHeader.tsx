@@ -157,11 +157,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
-                    report={{
-                        ...report,
-                        reportID: reportID ?? '',
-                        ownerAccountID: parentReport?.ownerAccountID,
-                    }}
+                    report={
+                        reportID
+                            ? {
+                                  ...report,
+                                  reportID: reportID ?? '',
+                                  ownerAccountID: parentReport?.ownerAccountID,
+                              }
+                            : undefined
+                    }
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter={shouldDisplaySearchRouter}
@@ -181,6 +185,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0, styles.ml2]}
                             onPress={() => {
+                                if (!reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
                             }}
                         />
@@ -203,6 +210,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
+                                if (!reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
                             }}
                         />
