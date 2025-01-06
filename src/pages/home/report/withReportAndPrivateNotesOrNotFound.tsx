@@ -32,7 +32,7 @@ export default function (pageTitle: TranslationPaths) {
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
             const {route, report, reportMetadata} = props;
-            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
