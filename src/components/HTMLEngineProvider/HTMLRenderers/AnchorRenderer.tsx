@@ -57,6 +57,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         const finalSource = Attachment.getAttachmentSource(attachmentID) ?? source;
         return (
             <AnchorForAttachmentsOnly
+                attachmentID={attachmentID}
                 source={finalSource}
                 displayName={displayName}
             />

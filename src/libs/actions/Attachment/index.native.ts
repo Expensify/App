@@ -28,6 +28,10 @@ function getAttachmentSource(attachmentID: number) {
 
 function cacheAttachment({attachmentID, src, fileName}: CacheAttachmentProps) {
     const attachment = attachments?.[attachmentID];
+    // Exit from the function if the cachedSource is exist and the img version is same to remote source version
+    if (attachment?.cachedSource && attachment.cachedVersion === attachment.remoteVersion) {
+        return;
+    }
     fetch(src)
         .then((response) => response.blob())
         .then((blob) => {
@@ -35,11 +39,14 @@ function cacheAttachment({attachmentID, src, fileName}: CacheAttachmentProps) {
             const finalFileName = fileName ? fileName : `${attachmentID}.${blob.type}`;
             const cachePath = `file://${RNFS.PicturesDirectoryPath}/${finalFileName}`;
             RNFS.exists(cachePath).then((isExists) => {
-                // Exit from the function if the cachedSource is exist and the img version is same to remote source version
-                if (isExists && attachment?.cachedSource && attachment.cachedVersion === attachment.remoteVersion) {
-                    return;
+                if (isExists) {
+                    // If the cache file path is exist, remove it and create new one
+                    RNFS.unlink(cachePath).then(() => {
+                        RNFS.writeFile(cachePath, fileUrl);
+                    });
+                } else {
+                    RNFS.writeFile(cachePath, fileUrl);
                 }
-                RNFS.writeFile(cachePath, fileUrl);
                 Onyx.merge(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                     cachedSource: fileUrl,
                     cachedVersion: attachment?.remoteVersion,

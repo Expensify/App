@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
@@ -23,7 +24,7 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
     onPressOut?: () => void;
 };
 
-function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted = false}: BaseAnchorForAttachmentsOnlyProps) {
+function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', displayName = '', onPressIn, onPressOut, isDeleted = false}: BaseAnchorForAttachmentsOnlyProps) {
     const finalSourceURL = FileUtils.isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
@@ -33,6 +34,21 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const styles = useThemeStyles();
 
     const isDownloading = download?.isDownloading ?? false;
+
+    const cacheAttachmentFile = () => {
+        if (FileUtils.isLocalFile(source) || !attachmentID) {
+            return;
+        }
+        Attachment.cacheAttachment({
+            attachmentID,
+            src: finalSourceURL,
+        });
+    };
+
+    useEffect(() => {
+        // This is to improve the loading perfomance by caching the remote source
+        cacheAttachmentFile();
+    }, []);
 
     return (
         <ShowContextMenuContext.Consumer>
