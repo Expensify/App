@@ -27,7 +27,7 @@ type DebugTabViewProps = {
     selectedTab?: string;
     chatTabBrickRoad: BrickRoad;
     activeWorkspaceID?: string;
-    currentReportID: string | null;
+    currentReportID: string | undefined;
     reports: OnyxCollection<Report>;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;

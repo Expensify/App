@@ -60,7 +60,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                                 showContextMenuForReport(
                                     event,
                                     anchor,
-                                    report?.reportID ?? '-1',
+                                    report?.reportID,
                                     action,
                                     checkIfContextMenuActive,
                                     ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
