@@ -362,7 +362,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
@@ -398,7 +398,7 @@ const ROUTES = {
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
@@ -896,7 +896,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_DESCRIPTION: {
         route: 'settings/workspaces/:policyID/profile/description',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/description` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/profile/description` as const,
     },
     WORKSPACE_PROFILE_SHARE: {
         route: 'settings/workspaces/:policyID/profile/share',
@@ -1221,7 +1221,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/company-cards` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
@@ -1472,7 +1472,7 @@ const ROUTES = {
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
+        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
