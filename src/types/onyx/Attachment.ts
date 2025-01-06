@@ -1,9 +1,15 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 type Attachment = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    attachmentID: string;
+    attachmentID: number;
 
     localSource?: string;
+
+    localVersion?: number;
+
+    cachedVersion?: number;
+
+    remoteVersion?: number;
 
     cachedSource?: string;
 

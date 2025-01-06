@@ -28,6 +28,7 @@ const ONYXKEYS = {
 
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 

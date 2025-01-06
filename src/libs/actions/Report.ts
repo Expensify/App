@@ -1742,6 +1742,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         return;
     }
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
+    console.log('test', videoAttributeCache, textForNewComment);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 

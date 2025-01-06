@@ -72,15 +72,6 @@ Onyx.connect({
     },
 });
 
-let attachments: OnyxCollection<Attachment>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        attachments = value;
-    },
-});
-
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,

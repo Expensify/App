@@ -93,32 +93,29 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
      * @returns report action item fragments
      */
     const renderReportActionItemFragments = (shouldWrapInText: boolean): ReactElement | ReactElement[] => {
-        const reportActionItemFragments = fragments.map((fragment, index) => {
-            const optimizedFragment = ReportActionsUtils.optimizeAttachments(fragment);
-            return (
-                <ReportActionItemFragment
-                    /* eslint-disable-next-line react/no-array-index-key */
-                    key={`actionFragment-${action.reportActionID}-${index}`}
-                    fragment={optimizedFragment}
-                    iouMessage={iouMessage}
-                    isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
-                    pendingAction={action.pendingAction}
-                    actionName={action.actionName}
-                    source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
-                    accountID={action.actorAccountID ?? -1}
-                    style={style}
-                    displayAsGroup={displayAsGroup}
-                    isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
-                    isHoldReportAction={isHoldReportAction}
-                    // Since system messages from Old Dot begin with the person who performed the action,
-                    // the first fragment will contain the person's display name and their email. We'll use this
-                    // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
-                    // formatting.
-                    isFragmentContainingDisplayName={index === 0}
-                    moderationDecision={ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision}
-                />
-            );
-        });
+        const reportActionItemFragments = fragments.map((fragment, index) => (
+            <ReportActionItemFragment
+                /* eslint-disable-next-line react/no-array-index-key */
+                key={`actionFragment-${action.reportActionID}-${index}`}
+                fragment={fragment}
+                iouMessage={iouMessage}
+                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
+                pendingAction={action.pendingAction}
+                actionName={action.actionName}
+                source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
+                accountID={action.actorAccountID ?? -1}
+                style={style}
+                displayAsGroup={displayAsGroup}
+                isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
+                isHoldReportAction={isHoldReportAction}
+                // Since system messages from Old Dot begin with the person who performed the action,
+                // the first fragment will contain the person's display name and their email. We'll use this
+                // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
+                // formatting.
+                isFragmentContainingDisplayName={index === 0}
+                moderationDecision={ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision}
+            />
+        ));
 
         // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
         // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
