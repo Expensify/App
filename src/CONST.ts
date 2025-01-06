@@ -1197,7 +1197,7 @@ const CONST = {
                 TEXT: 'TEXT',
             },
         },
-        ACTION_TYPE: {
+        DELETED_ACTION_TYPE: {
             DELETED_MESSAGE: 'deletedMessage',
             DELETED_REPORT: 'deletedReport',
             DELETED_EXPENSE: 'deletedExpense',

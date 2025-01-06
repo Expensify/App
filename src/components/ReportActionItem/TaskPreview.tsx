@@ -100,7 +100,8 @@ function TaskPreview({
 
     const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
-        return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
+        // return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
+        return <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_TASK}"></deleted-action>`} />;
     }
 
     return (

@@ -131,7 +131,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader={draftMessage === undefined}
                             report={report}
                         >
-                            <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                            <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_TASK}"></deleted-action>`} />
                         </ReportActionItemSingle>
                     </OfflineWithFeedback>
                     <View style={styles.reportHorizontalRule} />

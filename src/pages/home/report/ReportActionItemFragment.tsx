@@ -106,7 +106,7 @@ function ReportActionItemFragment({
             // immediately display "[Deleted message]" while the delete action is pending.
 
             if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment?.isDeletedParentAction) {
-                return <RenderHTML html={`<deleted-action action="${fragment.type}"></deleted-action>`} />;
+                return <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_MESSAGE}"></deleted-action>`} />;
             }
 
             if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {

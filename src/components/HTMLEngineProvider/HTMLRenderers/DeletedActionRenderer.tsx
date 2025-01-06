@@ -15,7 +15,7 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const actionTypes = Object.values(CONST.REPORT.ACTION_TYPE);
+    const actionTypes = Object.values(CONST.REPORT.DELETED_ACTION_TYPE);
     const action = tnode.attributes.action;
     let translation = action;
 
@@ -26,17 +26,17 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
     const getIcon = () => {
         // This needs to be updated with new icons
         switch (action) {
-            case CONST.REPORT.ACTION_TYPE.DELETED_MESSAGE:
+            case CONST.REPORT.DELETED_ACTION_TYPE.DELETED_MESSAGE:
                 return {icon: Expensicons.ChatBubbleSlash, width: 18, height: 18};
-            case CONST.REPORT.ACTION_TYPE.DELETED_EXPENSE:
+            case CONST.REPORT.DELETED_ACTION_TYPE.DELETED_EXPENSE:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
-            case CONST.REPORT.ACTION_TYPE.DELETED_REPORT:
+            case CONST.REPORT.DELETED_ACTION_TYPE.DELETED_REPORT:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
-            case CONST.REPORT.ACTION_TYPE.DELETED_TASK:
+            case CONST.REPORT.DELETED_ACTION_TYPE.DELETED_TASK:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
-            case CONST.REPORT.ACTION_TYPE.HIDDEN_MESSAGE:
+            case CONST.REPORT.DELETED_ACTION_TYPE.HIDDEN_MESSAGE:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
-            case CONST.REPORT.ACTION_TYPE.REVERSED_TRANSACTION:
+            case CONST.REPORT.DELETED_ACTION_TYPE.REVERSED_TRANSACTION:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
             default:
                 return {icon: Expensicons.ReceiptSlash, width: 18, height: 18};
