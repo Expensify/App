@@ -161,7 +161,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         reportID
                             ? {
                                   ...report,
-                                  reportID: reportID ?? '',
+                                  reportID,
                                   ownerAccountID: parentReport?.ownerAccountID,
                               }
                             : undefined
@@ -188,7 +188,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                                 if (!reportID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     )}
@@ -213,7 +213,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                                 if (!reportID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>
