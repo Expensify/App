@@ -1418,12 +1418,12 @@ const ROUTES = {
     },
     SHARE_ROOT: 'share/root',
     SHARE_DETAILS: {
-        route: 'share/share-details/:reportID',
-        getRoute: (reportID: string) => `share/share-details/${reportID}` as const,
+        route: 'share/share-details/:reportOrAccountID',
+        getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}`,
     },
     SHARE_SUBMIT_DETAILS: {
-        route: 'share/submit-details/:reportID',
-        getRoute: (reportID: string) => `share/submit-details/${reportID}` as const,
+        route: 'share/submit-details/:reportOrAccountID',
+        getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}`,
     },
 
     PROCESS_MONEY_REQUEST_HOLD: {

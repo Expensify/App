@@ -14,7 +14,7 @@ function SubmitTab() {
                 const participant = value.at(0);
                 const reportID = participant?.reportID;
                 const accountID = participant?.accountID;
-                if (accountID && !reportID && participant) {
+                if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
                 }
                 Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));

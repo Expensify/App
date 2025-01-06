@@ -29,14 +29,14 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 function SubmitDetailsPage({
     route: {
-        params: {reportID},
+        params: {reportOrAccountID},
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOrAccountID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onyxReport?.policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
@@ -46,12 +46,12 @@ function SubmitDetailsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
-    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
-    const report = onyxReport ?? optimisticReport;
-
     useEffect(() => {
-        IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
-    }, [reportID, policy]);
+        IOU.initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+    }, [reportOrAccountID, policy]);
+
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportOrAccountID, 10));
+    const report = onyxReport ?? optimisticReport;
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, report);
     const participants = selectedParticipants.map((participant) =>
@@ -147,7 +147,7 @@ function SubmitDetailsPage({
 
     return (
         <ScreenWrapper testID={SubmitDetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!reportID}>
+            <FullPageNotFoundView shouldShow={!reportOrAccountID}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -172,7 +172,7 @@ function SubmitDetailsPage({
                         onConfirm={() => onConfirm(true)}
                         receiptPath={currentAttachment?.content}
                         receiptFilename={FileUtils.getFileName(currentAttachment?.content ?? '')}
-                        reportID={reportID}
+                        reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                     />
                 </View>

@@ -13,7 +13,7 @@ function ShareTab() {
                 const participant = value.at(0);
                 const reportID = participant?.reportID;
                 const accountID = participant?.accountID;
-                if (accountID && !reportID && participant) {
+                if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
                 }
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));

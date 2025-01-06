@@ -30,18 +30,18 @@ type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SC
 
 function ShareDetailsPage({
     route: {
-        params: {reportID},
+        params: {reportOrAccountID},
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOrAccountID}`, {allowStaleData: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const currentUserID = Report.getCurrentUserAccountID();
 
-    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportOrAccountID, 10));
     const report = onyxReport ?? optimisticReport;
     const displayReport = OptionsListUtils.getReportDisplayOption(report);
 
@@ -103,7 +103,7 @@ function ShareDetailsPage({
                     }
                 }
 
-                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
                 Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
             },
             () => {},
