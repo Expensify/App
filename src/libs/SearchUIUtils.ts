@@ -253,7 +253,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 }
 
 /**
- * @private
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -295,7 +294,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
     const hasViolations = ReportUtils.hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
-
+    console.log('over here', {allViolations, allReportTransactions, hasViolations})
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors || hasViolations) {
@@ -628,4 +627,5 @@ export {
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,
+    getAction,
 };
