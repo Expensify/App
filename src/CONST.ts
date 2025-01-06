@@ -731,6 +731,9 @@ const CONST = {
         SHIFT: {
             DEFAULT: 'shift',
         },
+        ENTER: {
+            DEFAULT: 'enter',
+        },
     },
     KEYBOARD_SHORTCUTS: {
         SEARCH: {

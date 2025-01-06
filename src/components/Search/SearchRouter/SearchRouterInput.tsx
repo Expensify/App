@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -123,6 +124,24 @@ function SearchRouterInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
+                        onKeyPress={(event) => {
+                            const isWebPlatform = getPlatform() === CONST.PLATFORM.WEB;
+
+                            // Exit early if not on the web platform
+                            if (!isWebPlatform) {
+                                return;
+                            }
+
+                            const isEnterKey = event.nativeEvent.key.toLowerCase() === CONST.PLATFORM_SPECIFIC_KEYS.ENTER.DEFAULT;
+
+                            // Exit if the pressed key is not Enter
+                            if (!isEnterKey) {
+                                return;
+                            }
+
+                            // Perform the submit action
+                            onSubmit();
+                        }}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
