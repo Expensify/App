@@ -34,6 +34,8 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import * as FormActions from './actions/FormActions';
+import * as Member from './actions/Policy/Member';
 import {getCategoryApproverRule} from './CategoryUtils';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -1190,6 +1192,11 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
+function clearInviteDraft(policyID: string) {
+    Member.setWorkspaceInviteMembersDraft(policyID, {});
+    FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1318,6 +1325,7 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
+    clearInviteDraft,
 };
 
 export type {MemberEmailsToAccountIDs};

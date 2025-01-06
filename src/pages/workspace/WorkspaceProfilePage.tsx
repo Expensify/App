@@ -19,7 +19,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,7 +28,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -133,11 +131,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     }, [policyDraft?.id, route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
-
-    const clearInviteDraft = useCallback(() => {
-        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-    }, [route.params.policyID]);
 
     // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
     // as well as in the wide layout when looking at policy settings.
@@ -358,7 +351,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
                                         onPress={() => {
-                                            clearInviteDraft();
+                                            PolicyUtils.clearInviteDraft(route.params.policyID);
                                             Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
                                         }}
                                         icon={Expensicons.UserPlus}
