@@ -6147,6 +6147,11 @@ const translations = {
             part3: '\ny mucho más!',
         },
     },
+    discardChangesConfirmation: {
+        title: '¿Descartar cambios?',
+        body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
+        confirmText: 'Descartar cambios',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;
