@@ -63,14 +63,18 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH);
+    const {isOffline} = useNetwork();
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
+        shouldShowSavedSearchesMenuItemTitle,
+    );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -245,7 +249,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             />
         );
     }
-    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
         <ScrollView

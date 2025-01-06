@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
@@ -64,7 +65,7 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
+type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
     /** A method to call when the form is submitted */
     onSubmit: (newComment: string) => void;
 
@@ -88,6 +89,15 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
+
+    /** Whether to show the keyboard on focus */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
+
+    /** Whether the main composer was hidden */
+    didHideComposerInput?: boolean;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -107,16 +117,19 @@ function ReportActionCompose({
     report,
     reportID,
     isReportReadyForDisplay = true,
-    isEmptyChat,
     lastReportAction,
     shouldShowEducationalTooltip,
+    showSoftInputOnFocus,
     onComposerFocus,
     onComposerBlur,
+    setShowSoftInputOnFocus,
+    didHideComposerInput,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const offsetTop = useViewportOffsetTop();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -324,7 +337,7 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
+            if (!EmojiPickerActions.isActive(report?.reportID)) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
@@ -431,7 +444,7 @@ function ReportActionCompose({
                         }}
                         wrapperStyle={styles.reportActionComposeTooltipWrapper}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
-                        shiftVertical={variables.composerTooltipShiftVertical}
+                        shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
                     >
                         <View
                             ref={containerRef}
@@ -487,12 +500,9 @@ function ReportActionCompose({
                                             isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
-                                            policyID={report?.policyID ?? '-1'}
-                                            parentReportID={report?.parentReportID}
-                                            parentReportActionID={report?.parentReportActionID}
+                                            policyID={report?.policyID}
                                             includeChronos={ReportUtils.chatIncludesChronos(report)}
                                             isGroupPolicyReport={isGroupPolicyReport}
-                                            isEmptyChat={isEmptyChat}
                                             lastReportAction={lastReportAction}
                                             isMenuVisible={isMenuVisible}
                                             inputPlaceholder={inputPlaceholder}
@@ -507,7 +517,10 @@ function ReportActionCompose({
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
+                                            showSoftInputOnFocus={showSoftInputOnFocus}
+                                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                             onValueChange={onValueChange}
+                                            didHideComposerInput={didHideComposerInput}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {

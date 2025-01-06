@@ -9,11 +9,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {ProductTrainingTooltipName} from './PRODUCT_TRAINING_TOOLTIP_DATA';
-import PRODUCT_TRAINING_TOOLTIP_DATA from './PRODUCT_TRAINING_TOOLTIP_DATA';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {ProductTrainingTooltipName} from './TOOLTIPS';
+import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
@@ -30,11 +31,10 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
@@ -58,7 +58,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         const sortedTooltips = Array.from(activeTooltips)
             .map((name) => ({
                 name,
-                priority: PRODUCT_TRAINING_TOOLTIP_DATA[name]?.priority ?? 0,
+                priority: TOOLTIPS[name]?.priority ?? 0,
             }))
             .sort((a, b) => b.priority - a.priority);
 
@@ -73,14 +73,22 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            const isDismissed = !!dismissedProductTraining?.[tooltipName];
-
-            if (isDismissed || !Permissions.shouldShowProductTrainingElements(allBetas)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
                 return false;
             }
-            const tooltipConfig = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
 
-            if (!isOnboardingCompleted && !hasBeenAddedToNudgeMigration) {
+            const isDismissed = !!dismissedProductTraining?.[tooltipName];
+
+            if (isDismissed) {
+                return false;
+            }
+            const tooltipConfig = TOOLTIPS[tooltipName];
+
+            // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
+            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
+                return false;
+            }
+            if (isOnboardingCompleted === false) {
                 return false;
             }
 
@@ -88,7 +96,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 shouldUseNarrowLayout,
             });
         },
-        [allBetas, dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
+        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout],
     );
 
     const registerTooltip = useCallback(
@@ -156,21 +164,21 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const renderProductTrainingTooltip = useCallback(() => {
-        const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+        const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
                 <Icon
                     src={Expensicons.Lightbulb}
                     fill={theme.tooltipHighlightText}
                     medium
                 />
-                <Text style={[styles.quickActionTooltipSubtitle]}>
+                <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
                     {tooltip.content.map(({text, isBold}) => {
                         const translatedText = translate(text);
                         return (
                             <Text
                                 key={text}
-                                style={[styles.quickActionTooltipSubtitle, isBold && styles.textBold]}
+                                style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
                             >
                                 {translatedText}
                             </Text>
@@ -183,23 +191,25 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.alignItemsCenter,
         styles.flexRow,
         styles.flexWrap,
-        styles.gap1,
+        styles.gap3,
         styles.justifyContentCenter,
+        styles.mw100,
         styles.p2,
-        styles.quickActionTooltipSubtitle,
+        styles.productTrainingTooltipText,
         styles.textAlignCenter,
         styles.textBold,
+        styles.textWrap,
         theme.tooltipHighlightText,
         tooltipName,
         translate,
     ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName]);
+        return shouldShow && shouldRenderTooltip(tooltipName);
+    }, [shouldRenderTooltip, tooltipName, shouldShow]);
 
     const hideProductTrainingTooltip = useCallback(() => {
-        const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+        const tooltip = TOOLTIPS[tooltipName];
         tooltip.onHideTooltip();
         unregisterTooltip(tooltipName);
     }, [tooltipName, unregisterTooltip]);
@@ -207,7 +217,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     return {
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
-        shouldShowProductTrainingTooltip: shouldShow && shouldShowProductTrainingTooltip,
+        shouldShowProductTrainingTooltip,
     };
 };
 
