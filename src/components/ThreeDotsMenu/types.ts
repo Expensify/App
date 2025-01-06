@@ -38,6 +38,9 @@ type ThreeDotsMenuProps = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
+
+    /** Function to hide the product training tooltip */
+    hideProductTrainingTooltip?: () => void;
 };
 
 export default ThreeDotsMenuProps;
