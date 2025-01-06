@@ -189,12 +189,11 @@ const ViolationsUtils = {
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const categoryKey = updatedTransaction.category;
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
-            const inputDate = new Date(updatedTransaction.created);
-            const isInputDateInTheFuture = DateUtils.isFutureDate(inputDate);
-            const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
             const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
             const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
-            const policyMaxExpenseAmount = policy.maxExpenseAmount;
+            const shouldShowReceiptRequiredViolation =
+                policy.maxExpenseAmountNoReceipt && Math.abs(updatedTransaction.amount) > policy.maxExpenseAmountNoReceipt && !updatedTransaction.receipt?.receiptID;
+            const shouldShowOverLimitViolation = policy.maxExpenseAmount && Math.abs(updatedTransaction.amount) > policy.maxExpenseAmount;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
@@ -216,21 +215,7 @@ const ViolationsUtils = {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
 
-            // Add 'futureDate' violation if transaction date is in the future
-            if (!hasFutureDateViolation && isInputDateInTheFuture) {
-                newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
-            }
-
-            if (hasFutureDateViolation && !isInputDateInTheFuture) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
-            }
-
-            if (
-                !hasReceiptRequiredViolation &&
-                policy.maxExpenseAmountNoReceipt &&
-                Math.abs(updatedTransaction.amount) > policy.maxExpenseAmountNoReceipt &&
-                !updatedTransaction.receipt?.receiptID
-            ) {
+            if (!hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
                     data: {
@@ -241,25 +226,22 @@ const ViolationsUtils = {
                 });
             }
 
-            if (
-                hasReceiptRequiredViolation &&
-                (!!updatedTransaction.receipt?.receiptID || !policy.maxExpenseAmountNoReceipt || Math.abs(updatedTransaction.amount) <= policy.maxExpenseAmountNoReceipt)
-            ) {
+            if (hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
             }
 
-            if (!hasOverLimitViolation && policyMaxExpenseAmount && Math.abs(updatedTransaction.amount) > policyMaxExpenseAmount) {
+            if (!hasOverLimitViolation && shouldShowOverLimitViolation) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.OVER_LIMIT,
                     data: {
-                        formattedLimit: CurrencyUtils.convertAmountToDisplayString(policyMaxExpenseAmount),
+                        formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmount),
                     },
                     type: CONST.VIOLATION_TYPES.VIOLATION,
                     showInReview: true,
                 });
             }
 
-            if (hasOverLimitViolation && (!policyMaxExpenseAmount || Math.abs(updatedTransaction.amount) <= policyMaxExpenseAmount)) {
+            if (hasOverLimitViolation && !shouldShowOverLimitViolation) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
             }
         }
@@ -275,6 +257,19 @@ const ViolationsUtils = {
 
         if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+        }
+
+        const inputDate = new Date(updatedTransaction.created);
+        const shouldDisplayFutureDateViolation = DateUtils.isFutureDate(inputDate) && policy.type === CONST.POLICY.TYPE.CORPORATE;
+        const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
+        // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
+        if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
+            newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+        }
+
+        // Remove 'futureDate' violation if transaction date is not in the future
+        if (hasFutureDateViolation && !shouldDisplayFutureDateViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
         }
 
         return {

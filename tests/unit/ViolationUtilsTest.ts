@@ -138,6 +138,32 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
+    describe('futureDateViolations', () => {
+        beforeEach(() => {
+            transaction.created = '9999-12-31T23:59:59Z';
+            policy.type = 'corporate';
+        });
+
+        it('should not add futureDate violation if the policy is not corporate', () => {
+            policy.type = 'personal';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            expect(result.value).toEqual(transactionViolations);
+        });
+
+        it('should add futureDate violation if the transaction has a future date and policy is corporate', () => {
+            policy.type = 'corporate';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            expect(result.value).toEqual(expect.arrayContaining([futureDateViolation, ...transactionViolations]));
+        });
+
+        it('should remove futureDate violation if the policy is downgraded', () => {
+            policy.type = 'personal';
+            transactionViolations = [futureDateViolation];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            expect(result.value).not.toContainEqual(futureDateViolation);
+        });
+    });
+
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policy.requiresCategory = true;
@@ -152,14 +178,6 @@ describe('getViolationsOnyxData', () => {
             transaction.category = undefined;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
-        });
-
-        it('should add futureDate violation if the transaction has a future date', () => {
-            const futureDate = new Date();
-            futureDate.setDate(futureDate.getDate() + 1);
-            transaction.created = futureDate.toISOString();
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
-            expect(result.value).toEqual(expect.arrayContaining([futureDateViolation, ...transactionViolations]));
         });
 
         it('should add receiptRequired violation if the transaction has no receipt', () => {
