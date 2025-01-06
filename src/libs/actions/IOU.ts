@@ -56,7 +56,7 @@ import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -700,7 +700,7 @@ function getReceiptError(
     filename?: string,
     isScanRequest = true,
     errorKey?: number,
-    action?: string,
+    action?: IOUActionParams,
     retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
