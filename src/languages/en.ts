@@ -870,6 +870,7 @@ const translations = {
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
         chooseRecipient: 'Choose recipient',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
