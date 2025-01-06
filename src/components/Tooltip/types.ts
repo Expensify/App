@@ -42,9 +42,6 @@ type SharedTooltipProps = {
 
     /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
-
-    /** Whether the tooltip should hide when navigating */
-    shouldHideOnNavigate?: boolean;
 };
 
 type GenericTooltipState = {
@@ -81,6 +78,9 @@ type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
+
+        /** Whether the tooltip should hide when navigating */
+        shouldHideOnNavigate?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
