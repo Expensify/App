@@ -122,7 +122,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         }
         if (reportForContextualSearch.isPolicyExpenseChat) {
             roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            autocompleteID = reportForContextualSearch.policyID ?? '';
+            if (reportForContextualSearch.policyID) {
+                autocompleteID = reportForContextualSearch.policyID;
+            } else {
+                autocompleteID = '';
+            }
         }
 
         additionalSections.push({
