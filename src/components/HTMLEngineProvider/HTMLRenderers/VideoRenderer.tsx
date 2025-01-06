@@ -27,7 +27,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
-    const videoSource = Attachment.getAttachmentSource(attachmentID) ?? sourceURL;
+    const videoSource = Attachment.getAttachmentSource(attachmentID) || sourceURL;
     const currentReportIDValue = useCurrentReportID();
     const isDeleted = isDeletedNode(tnode);
 

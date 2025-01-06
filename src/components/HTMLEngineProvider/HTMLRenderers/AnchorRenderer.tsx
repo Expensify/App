@@ -54,11 +54,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     if (isAttachment && !isVideo) {
         const source = tryResolveUrlFromApiRoot(attrHref);
-        const finalSource = Attachment.getAttachmentSource(attachmentID) ?? source;
+        const attachmentSource = Attachment.getAttachmentSource(attachmentID) || source;
         return (
             <AnchorForAttachmentsOnly
                 attachmentID={attachmentID}
-                source={finalSource}
+                source={attachmentSource}
                 displayName={displayName}
             />
         );

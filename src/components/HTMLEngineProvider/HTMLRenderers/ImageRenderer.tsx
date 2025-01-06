@@ -57,16 +57,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
-    // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
-    const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
-    const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] ?? CONST.DEFAULT_NUMBER_ID);
+    const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || CONST.DEFAULT_NUMBER_ID);
 
-    const imageSource = Attachment.getAttachmentSource(attachmentID) ?? previewSource;
+    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
+    const imageSource = Attachment.getAttachmentSource(attachmentID) || source;
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
