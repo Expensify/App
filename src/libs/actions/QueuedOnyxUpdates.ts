@@ -34,6 +34,12 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.IS_SIDEBAR_LOADED,
+            ONYXKEYS.ACCOUNT,
+            ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.MODAL,
+            ONYXKEYS.NETWORK,
+            ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            ONYXKEYS.PRESERVED_USER_SESSION,
         ];
 
         queuedOnyxUpdates = queuedOnyxUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
