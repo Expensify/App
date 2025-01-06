@@ -272,12 +272,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors || report?.errors) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    }
-
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
@@ -287,7 +281,30 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!ReportUtils.isMoneyRequestReport(report) || (isTransaction && !data[key].isFromOneTransactionReport)) {
+    if (!ReportUtils.isMoneyRequestReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    const allReportTransactions = (
+        isReportEntry(key)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
+                  .map((item) => item[1])
+            : [transaction]
+    ) as SearchTransaction[];
+
+    const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    const hasViolations = ReportUtils.hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
+
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.errors || report?.errors || hasViolations) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
+    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
+    // If this condition is not met, return early for performance reasons
+    if (isTransaction && !data[key].isFromOneTransactionReport) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -298,21 +315,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
 
-    const allReportTransactions = (
-        isReportEntry(key)
-            ? Object.entries(data)
-                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
-                  .map((item) => item[1])
-            : [transaction]
-    ) as SearchTransaction[];
-
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
-    const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
-
-    if (ReportUtils.hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    }
 
     if (
         IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) &&
