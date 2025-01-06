@@ -20,6 +20,7 @@ import Navigation from './Navigation/Navigation';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import { OnyxCollection } from 'react-native-onyx';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -48,6 +49,8 @@ type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 /**
  * @private
@@ -89,6 +92,13 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
+
+/**
+ * @private
+ */
+function isViolationEntry(key: string): key is ViolationKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
 
 /**
@@ -298,6 +308,14 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
+    const allViolations = Object.entries(data)
+        .filter(([itemKey]) => isViolationEntry(itemKey))
+        .map((item) => ({[item[0]]: item[1]}));
+    console.log('over here', allViolations);
+
+    if (ReportUtils.hasViolations(report.reportID, allViolations, true, allReportTransactions)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
 
     if (
         IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) &&
