@@ -248,8 +248,6 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
-    console.log(action);
-
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
