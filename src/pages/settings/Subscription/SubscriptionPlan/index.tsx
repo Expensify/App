@@ -122,6 +122,7 @@ function SubscriptionPlan() {
             <View style={[shouldUseNarrowLayout ? {} : styles.flexRow]}>
                 {plans.map((plan, index) => (
                     <SubscriptionPlanCard
+                        key={plan.type}
                         index={index}
                         plan={plan}
                         onPress={handlePlanPress}
