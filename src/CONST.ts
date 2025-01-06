@@ -125,21 +125,6 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
         },
-        {
-            type: 'addBankAccount',
-            autoCompleted: false,
-            title: 'Add personal bank account',
-            description:
-                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                '\n' +
-                'Here’s how to set up your bank account:\n' +
-                '\n' +
-                '1. Click the settings tab.\n' +
-                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                '3. Connect your bank account.\n' +
-                '\n' +
-                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
-        },
     ],
 };
 
@@ -163,21 +148,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '5. Click *Submit*.\n' +
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
-        },
-        {
-            type: 'addBankAccount',
-            autoCompleted: false,
-            title: 'Add personal bank account',
-            description:
-                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                '\n' +
-                'Here’s how to set up your bank account:\n' +
-                '\n' +
-                '1. Click the settings tab.\n' +
-                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                '3. Connect your bank account.\n' +
-                '\n' +
-                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
         },
     ],
 };
@@ -5186,21 +5156,6 @@ const CONST = {
                         '5. Create the expense by selecting Manual, Scan or Distance.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
-                },
-                {
-                    type: 'addBankAccount',
-                    autoCompleted: false,
-                    title: 'Add personal bank account',
-                    description:
-                        'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                        '\n' +
-                        'Here’s how to set up your bank account:\n' +
-                        '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                        '3. Connect your bank account.\n' +
-                        '\n' +
-                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
                 },
             ],
         },
