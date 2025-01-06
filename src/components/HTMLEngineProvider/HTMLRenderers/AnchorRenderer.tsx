@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
@@ -8,6 +8,7 @@ import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
+    const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || CONST.DEFAULT_NUMBER_ID);
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
@@ -51,11 +53,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     }
 
     if (isAttachment && !isVideo) {
+        const source = tryResolveUrlFromApiRoot(attrHref);
+        const finalSource = Attachment.getAttachmentSource(attachmentID) ?? source;
         return (
             <AnchorForAttachmentsOnly
-                source={tryResolveUrlFromApiRoot(attrHref)}
+                source={finalSource}
                 displayName={displayName}
-                isDeleted={isDeleted}
             />
         );
     }

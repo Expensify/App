@@ -11,6 +11,7 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -58,13 +59,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || undefined;
+    const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] ?? CONST.DEFAULT_NUMBER_ID);
+
+    const imageSource = Attachment.getAttachmentSource(attachmentID) ?? previewSource;
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
@@ -78,11 +80,12 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={previewSource}
+            previewSourceURL={imageSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
             attachmentID={attachmentID}
+            fileName={fileName}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
             isDeleted={isDeleted}
@@ -102,12 +105,12 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
-                                if (!source || !type) {
+                                if (!imageSource || !type) {
                                     return;
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, imageSource, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {

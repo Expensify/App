@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import * as Attachment from '@libs/actions/Attachment';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -19,7 +20,7 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
-    attachmentID?: string;
+    attachmentID?: number;
     /** Url to a video. */
     videoUrl: string;
 
@@ -58,11 +59,15 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
-        const isLocalOrCachedSource = typeof videoUrl === 'string' && /^file:|^blob:/.test(videoUrl);
+        const isLocalOrCachedSource = FileUtils.isLocalFile(videoUrl);
         if (isLocalOrCachedSource || !attachmentID) {
             return;
         }
-        Attachment.cacheAttachment(videoUrl.toString(), attachmentID);
+        Attachment.cacheAttachment({
+            attachmentID,
+            src: videoUrl,
+            fileName,
+        });
     };
 
     const handleOnPress = () => {

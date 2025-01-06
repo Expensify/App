@@ -4394,7 +4394,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         : lodashEscape(text);
 }
 
-function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): string {
+function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: number): string {
     if (!file || typeof file.uri !== 'string') {
         return '';
     }
@@ -4446,7 +4446,7 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 function buildOptimisticAddCommentReportAction(
     text?: string,
     file?: FileObject,
-    attachmentID?: string,
+    attachmentID?: number,
     actorAccountID?: number,
     createdOffset = 0,
     shouldEscapeText?: boolean,

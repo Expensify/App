@@ -5,6 +5,7 @@ import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import * as Attachment from '@libs/actions/Attachment';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
@@ -22,10 +23,11 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
     const fileName = FileUtils.getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
+    const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] ?? CONST.DEFAULT_NUMBER_ID);
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
+    const videoSource = Attachment.getAttachmentSource(attachmentID) ?? sourceURL;
     const currentReportIDValue = useCurrentReportID();
     const isDeleted = isDeletedNode(tnode);
 
@@ -37,7 +39,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                         <VideoPlayerPreview
                             key={key}
                             attachmentID={attachmentID}
-                            videoUrl={sourceURL}
+                            videoUrl={videoSource}
                             reportID={currentReportIDValue?.currentReportID ?? '-1'}
                             fileName={fileName}
                             thumbnailUrl={thumbnailUrl}
@@ -45,10 +47,10 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                             videoDuration={duration}
                             isDeleted={isDeleted}
                             onShowModalPress={() => {
-                                if (!sourceURL || !type) {
+                                if (!videoSource || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', type, sourceURL, accountID);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', type, videoSource, accountID);
                                 Navigation.navigate(route);
                             }}
                         />

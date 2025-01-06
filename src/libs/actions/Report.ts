@@ -507,7 +507,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let attachmentID: string | undefined;
+    let attachmentID: number | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     let optimisticAttachment: Attachment | undefined;
@@ -522,13 +522,14 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        attachmentID = NumberUtils.rand64();
+        attachmentID = Number(NumberUtils.rand64());
         const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, attachmentID, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
 
         optimisticAttachment = {
             attachmentID,
             localSource: file.uri,
+            localVersion: Number(NumberUtils.rand64()),
         };
     }
 

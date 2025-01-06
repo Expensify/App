@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
@@ -22,8 +23,8 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
     onPressOut?: () => void;
 };
 
-function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
+function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted = false}: BaseAnchorForAttachmentsOnlyProps) {
+    const finalSourceURL = FileUtils.isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
@@ -43,7 +44,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(finalSourceURL, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -58,8 +59,9 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
-                        source={sourceURLWithAuth}
+                        source={finalSourceURL}
                         file={{name: displayName}}
+                        isAuthTokenRequired={true}
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment

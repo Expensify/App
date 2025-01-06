@@ -28,7 +28,6 @@ const ONYXKEYS = {
 
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
-
     /** Boolean flag set whenever we are searching for reports in the server */
     IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -466,6 +465,7 @@ const ONYXKEYS = {
 
     /** Collection Keys */
     COLLECTION: {
+        ATTACHMENT: 'attachment_',
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
@@ -830,6 +830,7 @@ type OnyxFormDraftValuesMapping = {
 };
 
 type OnyxCollectionValuesMapping = {
+    [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;

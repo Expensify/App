@@ -7,6 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import * as Attachment from '@libs/actions/Attachment';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -40,7 +41,9 @@ type ThumbnailImageProps = {
     /** Height of the thumbnail image */
     imageHeight?: number;
 
-    attachmentID?: string;
+    attachmentID?: number;
+
+    fileName: string;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
@@ -81,6 +84,7 @@ function ThumbnailImage({
     style,
     isAuthTokenRequired,
     attachmentID,
+    fileName,
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
@@ -131,11 +135,15 @@ function ThumbnailImage({
 
     const onImageLoaded = () => {
         const source = previewSourceURL.toString();
-        const isLocalOrCachedSource = typeof source === 'string' && /^file:|^blob:/.test(source);
+        const isLocalOrCachedSource = FileUtils.isLocalFile(source);
         if (isLocalOrCachedSource || !attachmentID) {
             return;
         }
-        Attachment.cacheAttachment(source.toString(), attachmentID);
+        Attachment.cacheAttachment({
+            attachmentID,
+            src: source.toString(),
+            fileName,
+        });
     };
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
