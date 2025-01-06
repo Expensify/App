@@ -51,17 +51,19 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
-    const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
+    const shouldShowWokspaceChatTooltip = ReportUtils.isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
     const isActiveRouteHome = useIsCurrentRouteHome();
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
         const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        const shouldShowTooltips = shouldShowWokspaceChatTooltip || shouldShowGetStartedTooltip;
+        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isActiveRouteHome : isActiveRouteHome;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return {tooltipToRender: tooltip, shouldShowTooltip: shouldUseNarrowLayout ? isScreenFocused && isActiveRouteHome : isActiveRouteHome};
-    }, [shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout, isActiveRouteHome]);
+        return {tooltipToRender: tooltip, shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible};
+    }, [shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isActiveRouteHome]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
@@ -162,14 +164,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         >
             <EducationalTooltip
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                shouldRender={shouldShowProductTrainingTooltip && (isActiveWorkspaceChat || shouldShowGetStartedTooltip)}
+                shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
-                    horizontal: isActiveWorkspaceChat ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    horizontal: shouldShowWokspaceChatTooltip ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shiftHorizontal={isActiveWorkspaceChat ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
-                shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
+                shiftHorizontal={shouldShowWokspaceChatTooltip ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
+                shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
             >
                 <View>
