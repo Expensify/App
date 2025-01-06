@@ -38,6 +38,7 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
+    SetNameValuePairParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -824,6 +825,37 @@ function leaveWorkspace(policyID?: string) {
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
 
+function updateDefaultPolicy(newPolicyID?: string, oldPolicyID?: string) {
+    if (!newPolicyID) {
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: newPolicyID,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: oldPolicyID,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+        value: newPolicyID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 function addBillingCardAndRequestPolicyOwnerChange(
     policyID: string,
     cardData: {
@@ -1196,7 +1228,7 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(name: string, currencyValue?: string, policyID?: string) {
+function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     if (!policy || !policyID) {
         return;
@@ -4797,6 +4829,7 @@ export {
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
+    updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
 };

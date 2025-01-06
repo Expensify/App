@@ -687,7 +687,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
-        PRODUCT_TRAINING: 'productTraining',
+        NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -939,7 +939,6 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
-    ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -2360,6 +2359,7 @@ const CONST = {
             DISTANCE: 'distance',
             MANUAL: 'manual',
             SCAN: 'scan',
+            PER_DIEM: 'per-diem',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -2980,6 +2980,50 @@ const CONST = {
             PAYPERUSE: 'monthly2018',
         },
     },
+    get SUBSCRIPTION_PRICES() {
+        return {
+            [this.PAYMENT_CARD_CURRENCY.USD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1800,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.AUD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3000,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.GBP]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.NZD]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                },
+            },
+        };
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -3167,6 +3211,7 @@ const CONST = {
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 1000,
+    SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
 
@@ -3204,6 +3249,7 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
+        GO_TO_WORKSPACE: 'goToWorkspace',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4613,6 +4659,7 @@ const CONST = {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+        PER_DIEM: 'per-diem',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -6438,50 +6485,6 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
-        },
-    },
-
-    CORPAY_FIELDS: {
-        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
-        ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
-        BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
-        ACCOUNT_HOLDER_FIELDS: [
-            'accountHolderName',
-            'accountHolderAddress1',
-            'accountHolderAddress2',
-            'accountHolderCity',
-            'accountHolderRegion',
-            'accountHolderCountry',
-            'accountHolderPostal',
-            'accountHolderPhoneNumber',
-            'accountHolderEmail',
-            'ContactName',
-            'BeneficiaryCPF',
-            'BeneficiaryRUT',
-            'BeneficiaryCedulaID',
-            'BeneficiaryTaxID',
-        ] as string[],
-        SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
-        SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
-        STEPS_NAME: {
-            COUNTRY_SELECTOR: 'CountrySelector',
-            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
-            ACCOUNT_TYPE: 'AccountType',
-            BANK_INFORMATION: 'BankInformation',
-            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
-            CONFIRMATION: 'Confirmation',
-            SUCCESS: 'Success',
-        },
-        INDEXES: {
-            MAPPING: {
-                COUNTRY_SELECTOR: 0,
-                BANK_ACCOUNT_DETAILS: 1,
-                ACCOUNT_TYPE: 2,
-                BANK_INFORMATION: 3,
-                ACCOUNT_HOLDER_INFORMATION: 4,
-                CONFIRMATION: 5,
-                SUCCESS: 6,
-            },
         },
     },
 
