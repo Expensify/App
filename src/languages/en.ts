@@ -4381,7 +4381,8 @@ const translations = {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
+                    startsAt: 'The Control plan starts at ',
+                    perMember: 'per active member per month.',
                     learnMore: 'Learn more',
                     pricing: 'about our plans and pricing.',
                     benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',

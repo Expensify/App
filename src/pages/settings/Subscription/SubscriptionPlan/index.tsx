@@ -36,7 +36,7 @@ function SubscriptionPlan() {
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
     function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps): number {
-        if (!subscriptionPlan || !privateSubscription?.type) {
+        if (!privateSubscription?.type) {
             return 0;
         }
 
@@ -92,16 +92,19 @@ function SubscriptionPlan() {
         // If the user has one policy as owner and selected plan is team, navigate to downgrade page.
         if (ownerPolicies.length === 1 && planType === CONST.POLICY.TYPE.TEAM) {
             Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(ownerPolicies.at(0)?.id));
+            return;
         }
 
         // If the user has one policy as owner and selected plan is corporate, navigate to upgrade page.
         if (ownerPolicies.length === 1 && planType === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(ownerPolicies.at(0)?.id));
+            return;
         }
 
         // If the user has multiple policies as owner and selected plan is team, navigate to downgrade page.
         if (ownerPolicies.length > 1 && planType === CONST.POLICY.TYPE.TEAM) {
             Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute());
+            return;
         }
 
         //  If the user has multiple policies as owner and selected plan is corporate, navigate to upgrade page.

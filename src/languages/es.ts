@@ -4447,7 +4447,8 @@ const translations = {
                 title: 'Mejorar al plan Controlar',
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
-                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    startsAt: 'El plan Controlar comienza desde ',
+                    perMember: 'por miembro activo al mes.',
                     learnMore: 'Más información',
                     pricing: 'sobre nuestros planes y precios.',
                     benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
