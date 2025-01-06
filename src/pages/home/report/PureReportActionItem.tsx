@@ -718,7 +718,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = isClosedExpenseReportWithNoExpenses ? (
-                <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
+                <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_REPORT}"></deleted-action>`} />
             ) : (
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}

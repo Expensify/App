@@ -12,14 +12,12 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import type {ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
-import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -49,8 +47,6 @@ type ReportActionItemContentCreatedProps = {
 
 function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
     const {report, action, transactionThreadReport} = contextValue;
 
     const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
@@ -80,12 +76,11 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
         if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
-            let message: TranslationPaths;
-
+            let deleteActionType;
             if (isReversedTransaction) {
-                message = 'parentReportAction.reversedTransaction';
+                deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.REVERSED_TRANSACTION;
             } else {
-                message = 'parentReportAction.deletedExpense';
+                deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.DELETED_EXPENSE;
             }
 
             return (
@@ -97,7 +92,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                         >
-                            <RenderHTML html={`<comment>${translate(message)}</comment>`} />
+                            <RenderHTML html={`<deleted-action action="${deleteActionType}"></deleted-action>`} />
                         </ReportActionItemSingle>
                         <View style={styles.threadDividerLine} />
                     </OfflineWithFeedback>
