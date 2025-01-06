@@ -42,13 +42,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
-    const availableCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
-    const feeds: CardFeedListItem[] = (Object.keys(availableCards) as CompanyCardFeed[]).map((feed) => ({
+    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => ({
         value: feed,
         text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
         keyForList: feed,
         isSelected: feed === selectedFeed,
+        isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: companyFeeds[feed]?.pendingAction,
         brickRoadIndicator: companyFeeds[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         canShowSeveralIndicators: !!companyFeeds[feed]?.errors,
         leftElement: (
