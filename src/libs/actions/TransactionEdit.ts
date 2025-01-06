@@ -39,11 +39,19 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
 /**
  * Removes a transaction from Onyx that was only used temporary in the edit flow
  */
-function removeBackupTransaction(transactionID: string) {
+function removeBackupTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, null);
 }
 
-function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
+function restoreOriginalTransactionFromBackup(transactionID: string | undefined, isDraft: boolean) {
+    if (!transactionID) {
+        return;
+    }
+
     connection = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
