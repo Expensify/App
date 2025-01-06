@@ -242,14 +242,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '-1';
+            const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);

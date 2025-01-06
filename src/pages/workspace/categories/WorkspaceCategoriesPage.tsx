@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -23,7 +23,6 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -71,8 +70,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
+    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '-1';
+    const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
@@ -98,25 +98,35 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, [fetchCategories]),
     );
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
-    useCleanupSelectedOptions(cleanupSelectedOption);
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedCategories({});
+    }, [isFocused]);
 
-    const categoryList = useMemo<PolicyOption[]>(
-        () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? undefined,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                };
-            }),
-        [policyCategories, selectedCategories, canSelectMultiple, translate],
-    );
+    const categoryList = useMemo<PolicyOption[]>(() => {
+        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        return categories.reduce<PolicyOption[]>((acc, value) => {
+            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            if (!isOffline && isDisabled) {
+                return acc;
+            }
+
+            acc.push({
+                text: value.name,
+                keyForList: value.name,
+                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isDisabled,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
+                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+            });
+
+            return acc;
+        }, []);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
@@ -147,10 +157,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
-            toggleCategory(category);
-            return;
-        }
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
@@ -248,6 +254,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategoriesArray.length}
+                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
                 />
             );
         }
@@ -315,7 +322,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
+                    Navigation.navigate(
+                        isQuickSettingsFlow
+                            ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
+                            : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
+                    );
                 },
             });
         }
