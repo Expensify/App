@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -18,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import { StyleProp, ViewStyle } from 'react-native';
 
 type ExportWithDropdownMenuProps = {
     policy: OnyxEntry<Policy>;
@@ -76,7 +76,7 @@ function ExportWithDropdownMenu({
                 ...optionTemplate,
             },
         ];
-        const exportMethod = exportMethods?.[report?.policyID ?? ''] ?? null;
+        const exportMethod = report?.policyID && exportMethods ? exportMethods[report.policyID] : null;
         if (exportMethod) {
             options.sort((method) => (method.value === exportMethod ? -1 : 0));
         }
