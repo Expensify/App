@@ -117,6 +117,7 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -170,6 +171,7 @@ function WorkspacesListPage() {
         ({item, index}: GetMenuItem) => {
             const isAdmin = PolicyUtils.isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
+            const isDefault = activePolicyID === item.policyID;
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
@@ -222,6 +224,14 @@ function WorkspacesListPage() {
                 });
             }
 
+            if (!isDefault && !item?.isJoinRequestPending) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Star,
+                    text: translate('workspace.common.setAsDefault'),
+                    onSelected: () => Policy.updateDefaultPolicy(item.policyID, activePolicyID),
+                });
+            }
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -252,6 +262,7 @@ function WorkspacesListPage() {
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
+                                isDefault={isDefault}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -268,6 +279,7 @@ function WorkspacesListPage() {
             styles.offlineFeedback.deleted,
             session?.accountID,
             session?.email,
+            activePolicyID,
             isSupportalAction,
         ],
     );
