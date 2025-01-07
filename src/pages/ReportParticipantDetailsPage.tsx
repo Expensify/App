@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -26,24 +25,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
-type ReportParticipantDetailsOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
+type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
-type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
-    PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
-    ReportParticipantDetailsOnyxProps;
-
-function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {
+function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -54,7 +47,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
@@ -149,10 +142,4 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
 
 ReportParticipantDetails.displayName = 'ReportParticipantDetails';
 
-export default withReportOrNotFound()(
-    withOnyx<ReportParticipantDetailsPageProps, ReportParticipantDetailsOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(ReportParticipantDetails),
-);
+export default withReportOrNotFound()(ReportParticipantDetails);

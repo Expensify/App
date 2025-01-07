@@ -149,7 +149,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '-1';
+    const policyIDParam = route.params?.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -265,7 +265,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
         const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+
+        if (policyIDParam) {
+            BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+        }
     }
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));

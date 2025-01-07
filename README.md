@@ -456,12 +456,12 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails with a https-related error add this to your `~/.gitconfig` file:
+2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
+- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
-    [url "ssh://git@github.com/"]
-        insteadOf = https://github.com/
+    [url "https://github.com/"]
+        insteadOf = ssh://git@github.com/
     ```
 
 At this point, the default behavior of some `npm` scripts will change to target HybridApp:
@@ -472,7 +472,7 @@ At this point, the default behavior of some `npm` scripts will change to target 
 - `npm run pod-install` - install pods for HybridApp
 - `npm run clean` - clean native code of HybridApp
 
-If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). 
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
 
 ## Working with HybridApp
 Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
@@ -500,7 +500,7 @@ It's important to emphasise that a git submodule is just a **regular git reposit
 > #### For external contributors
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
-> 
+>
 > `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
 >
 > This way, you'll attach the submodule to your fork repository.

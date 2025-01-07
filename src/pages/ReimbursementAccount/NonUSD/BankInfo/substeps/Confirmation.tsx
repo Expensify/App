@@ -91,10 +91,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
 
     return (
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.flexGrow1]}
+            submitButtonStyles={styles.mh5}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('bankInfoStep.letsDoubleCheck')}</Text>

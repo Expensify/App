@@ -92,7 +92,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         if (isEmptyObject(policy)) {
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
+        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo), true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
@@ -103,13 +103,18 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-        Navigation.dismissModal();
+        if ((route.params?.backTo as string)?.endsWith('members')) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)));
     };
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         event?.preventDefault();
-        Link.openExternalLink(CONST.PRIVACY_URL);
+        Link.openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
@@ -141,7 +146,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -155,7 +160,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                             style={[styles.mv2, styles.alignSelfStart]}
                         >
                             <View style={[styles.flexRow]}>
