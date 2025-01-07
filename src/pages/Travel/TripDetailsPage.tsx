@@ -67,7 +67,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}
+                shouldShow={!reservation || (!canUseSpotnanaTravel && !NativeModules.HybridAppModule)}
             >
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
