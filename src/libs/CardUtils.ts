@@ -309,7 +309,6 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
 
     const customFeedName = companyCardNicknames?.[feed];
 
-    // temporary fix for https://github.com/Expensify/App/issues/54141 - if customFeedName is not a string return an empty string
     if (customFeedName && typeof customFeedName !== 'string') {
         return '';
     }
