@@ -587,4 +587,25 @@ describe('Unread Indicators', () => {
 
         Onyx.disconnect(connection);
     });
+
+    it('Do not display the new line indicator when receiving a new message from another user', async () => {
+        // Given a read report
+        await signInAndGetAppWithUnreadChat();
+
+        Report.readNewestAction(REPORT_ID, true);
+
+        await waitForBatchedUpdates();
+
+        await navigateToSidebarOption(0);
+
+        // When another user adds a new message
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            10: TestHelper.buildTestReportComment(DateUtils.getDBTime(), USER_B_ACCOUNT_ID, '10'),
+        });
+
+        // Then the new line indicator shouldn't be displayed
+        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(0);
+    });
 });
