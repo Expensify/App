@@ -96,7 +96,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
             return (
                 <View
-                    style={[styles.flex2, styles.mb6]}
+                    style={styles.mb6}
                     key={field.id}
                 >
                     <InputWrapper
@@ -111,7 +111,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 </View>
             );
         });
-    }, [accountHolderDetailsFields, styles.flex2, styles.mb6, styles.mhn5, defaultValues, isEditing, translate]);
+    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, translate]);
 
     return (
         <FormProvider
