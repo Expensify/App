@@ -22,8 +22,8 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
     const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as keyof FormOnyxValues;
     const stepFields = [firstNameInputID, lastNameInputID];
     const defaultValues = {
-        firstName: reimbursementAccountDraft?.[firstNameInputID] ?? '',
-        lastName: reimbursementAccountDraft?.[lastNameInputID] ?? '',
+        firstName: String(reimbursementAccountDraft?.[firstNameInputID] ?? ''),
+        lastName: String(reimbursementAccountDraft?.[lastNameInputID] ?? ''),
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({

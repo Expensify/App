@@ -25,10 +25,10 @@ function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}:
     } as const;
 
     const defaultValues = {
-        street: reimbursementAccountDraft?.[inputKeys.street] ?? '',
-        city: reimbursementAccountDraft?.[inputKeys.city] ?? '',
-        state: reimbursementAccountDraft?.[inputKeys.state] ?? '',
-        zipCode: reimbursementAccountDraft?.[inputKeys.zipCode] ?? '',
+        street: String(reimbursementAccountDraft?.[inputKeys.street] ?? ''),
+        city: String(reimbursementAccountDraft?.[inputKeys.city] ?? ''),
+        state: String(reimbursementAccountDraft?.[inputKeys.state] ?? ''),
+        zipCode: String(reimbursementAccountDraft?.[inputKeys.zipCode] ?? ''),
     };
 
     const stepFields = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode];
