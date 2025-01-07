@@ -1,6 +1,7 @@
 import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
+import type {SharedValue} from 'react-native-reanimated';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -68,10 +69,16 @@ const useSafeAreaPaddings = () => {
     return {top: paddingTop, bottom: paddingBottom};
 };
 
-function ActionSheetKeyboardSpace(props: ViewProps) {
+type ActionSheetKeyboardSpaceProps = ViewProps & {
+    /** scroll offset of the parent ScrollView */
+    position: SharedValue<number>;
+};
+
+function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     const styles = useThemeStyles();
     const safeArea = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
+    const {position} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -174,7 +181,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 if (elementOffset < 0) {
-                    return isClosingKeyboard ? 0 : lastKeyboardHeight - keyboardHeight;
+                    return isClosingKeyboard ? 0 : lastKeyboardHeight + Math.min(elementOffset + position.get(), 0);
                 }
 
                 return lastKeyboardHeight;
