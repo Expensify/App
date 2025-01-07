@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -6,13 +7,10 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import Header from '@components/Header';
-import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import Text from '@components/Text';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,101 +18,25 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import SearchButton from './SearchRouter/SearchButton';
-import SearchRouterInput from './SearchRouter/SearchRouterInput';
-import type {SearchQueryJSON} from './types';
+import SearchPageHeaderInput from './SearchPageHeaderInput';
+import type {PaymentData, SearchQueryJSON} from './types';
 
-type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
-    text: string;
-    value: string;
-    isCannedQuery: boolean;
-    onSubmit: () => void;
-    setValue: (input: string) => void;
-};
-
-function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, setValue}: HeaderWrapperProps) {
-    const styles = useThemeStyles();
-    // If the icon is present, the header bar should be taller and use different font.
-    const isCentralPaneSettings = !!icon;
-
-    return (
-        <View
-            dataSet={{dragArea: false}}
-            style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
-        >
-            {isCannedQuery ? (
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            width={variables.iconHeader}
-                            height={variables.iconHeader}
-                            additionalStyles={[styles.mr2]}
-                        />
-                    )}
-                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap2]}>{children}</View>
-                </View>
-            ) : (
-                <View style={styles.pr5}>
-                    <SearchRouterInput
-                        value={value}
-                        onSubmit={onSubmit}
-                        updateSearch={setValue}
-                        autoFocus={false}
-                        isFullWidth
-                        wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                        wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                        rightComponent={children}
-                        routerListRef={undefined}
-                    />
-                </View>
-            )}
-        </View>
-    );
-}
-
-type SearchPageHeaderProps = {
-    queryJSON: SearchQueryJSON;
-    hash: number;
-};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-type HeaderContent = {
-    icon: IconAsset;
-    titleText: TranslationPaths;
-};
-
-function getHeaderContent(type: SearchDataTypes): HeaderContent {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-            return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        default:
-            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
-    }
-}
-
-function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -132,22 +54,30 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {status, type} = queryJSON;
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates);
-    const [inputValue, setInputValue] = useState(headerText);
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
 
-    useEffect(() => {
-        setInputValue(headerText);
-    }, [headerText]);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
+    );
+
+    const {status, hash} = queryJSON;
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
-    const headerIcon = getHeaderContent(type).icon;
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
@@ -170,6 +100,92 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
+        const shouldShowApproveOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+
+        if (shouldShowApproveOption) {
+            options.push({
+                icon: Expensicons.ThumbsUp,
+                text: translate('search.bulkActions.approve'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const reportIDList = !selectedReports.length
+                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
+                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                },
+            });
+        }
+
+        const shouldShowPayOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                : selectedTransactionsKeys.every(
+                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                  ));
+
+        if (shouldShowPayOption) {
+            options.push({
+                icon: Expensicons.MoneyBag,
+                text: translate('search.bulkActions.pay'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const activeRoute = Navigation.getActiveRoute();
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+                    for (const item of items) {
+                        const policyID = item.policyID;
+                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+
+                        if (!lastPolicyPaymentMethod) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+
+                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
+
+                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+                    }
+
+                    const paymentData = (
+                        selectedReports.length
+                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            : Object.values(selectedTransactions).map((transaction) => ({
+                                  reportID: transaction.reportID,
+                                  amount: transaction.amount,
+                                  paymentType: lastPaymentMethods[transaction.policyID],
+                              }))
+                    ) as PaymentData[];
+
+                    SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                },
+            });
+        }
 
         options.push({
             icon: Expensicons.Download,
@@ -182,7 +198,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {
@@ -281,6 +297,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
+        lastPaymentMethods,
     ]);
 
     if (shouldUseNarrowLayout) {
@@ -327,41 +344,19 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         return null;
     }
 
-    const onPress = () => {
+    const onFiltersButtonPress = () => {
+        hideProductTrainingTooltip();
         const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const onSubmit = () => {
-        if (!inputValue) {
-            return;
-        }
-        const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON(inputValue);
-        if (inputQueryJSON) {
-            // Todo traverse the tree to update all the display values into id values; this is only temporary until autocomplete code from SearchRouter is implement here
-            // After https://github.com/Expensify/App/pull/51633 is merged, autocomplete functionality will be included into this component, and `getFindIDFromDisplayValue` can be removed
-            const computeNodeValueFn = SearchQueryUtils.getFindIDFromDisplayValue(cardList, taxRates);
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(inputQueryJSON, computeNodeValueFn);
-            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-            SearchActions.clearAllFilters();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-        } else {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, inputValue, false);
-        }
-    };
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>
-            <HeaderWrapper
-                icon={headerIcon}
-                text={headerText}
-                value={inputValue}
-                isCannedQuery={isCannedQuery}
-                onSubmit={onSubmit}
-                setValue={setInputValue}
-            >
+            <SearchPageHeaderInput queryJSON={queryJSON}>
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu
                         onPress={() => null}
@@ -373,15 +368,25 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         shouldUseStyleUtilityForAnchorPosition
                     />
                 ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onPress}
-                    />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        anchorAlignment={{
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        }}
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                    >
+                        <Button
+                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onFiltersButtonPress}
+                        />
+                    </EducationalTooltip>
                 )}
-                {isCannedQuery && <SearchButton />}
-            </HeaderWrapper>
+            </SearchPageHeaderInput>
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}

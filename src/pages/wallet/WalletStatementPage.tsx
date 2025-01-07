@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -16,6 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {addTrailingForwardSlash} from '@libs/Url';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type WalletStatementPageProps = StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
+type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);

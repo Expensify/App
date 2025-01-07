@@ -1,7 +1,7 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import ImportSpreedsheet from '@components/ImportSpreadsheet';
+import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ImportTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT>;
+type ImportTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT>;
 
 function ImportTagsPage({route}: ImportTagsPageProps) {
     const policyID = route.params.policyID;
@@ -24,8 +24,8 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreedsheet
-                backTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID)}
+            <ImportSpreadsheet
+                backTo={backTo}
                 goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
             />
         </AccessOrNotFoundWrapper>

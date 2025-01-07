@@ -27,19 +27,23 @@ import type * as OnyxTypes from '@src/types/onyx';
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
 type AssigneeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Selected feed */
+    feed: OnyxTypes.CompanyCardFeed;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
+function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${assignCard?.data?.bankName ?? ''}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const isEditing = assignCard?.isEditing;
 
@@ -68,7 +72,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data: {
                 email: selectedMember,
-                cardName: `${memberName}'s card`,
+                cardName: CardUtils.getDefaultCardName(memberName),
             },
             isEditing: false,
         });

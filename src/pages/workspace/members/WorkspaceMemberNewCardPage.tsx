@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -12,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -33,7 +33,7 @@ type CardFeedListItem = ListItem & {
     value: string;
 };
 
-type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
+type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
@@ -49,10 +49,10 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
-    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -97,17 +97,19 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
+        text: CardUtils.getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
         keyForList: key,
+        isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: companyFeeds[key]?.pendingAction,
         isSelected: selectedFeed === key,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
@@ -146,7 +148,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList

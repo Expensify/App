@@ -596,4 +596,44 @@ describe('ReportActionsUtils', () => {
             );
         });
     });
+
+    describe('getReportActionMessageFragments', () => {
+        it('should return the correct fragment for the REIMBURSED action', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '1',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'Concierge',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' reimbursed this report',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' on behalf of you',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' from the bank account ending in 1111',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
+                    },
+                ],
+            };
+            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+    });
 });

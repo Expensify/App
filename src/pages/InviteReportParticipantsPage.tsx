@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -19,6 +18,7 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -38,7 +38,7 @@ type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigat
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
 function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
-    const route = useRoute<RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -66,11 +66,11 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return OptionsListUtils.getEmptyOptions();
         }
 
-        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, false, options.reports, true);
+        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(
-        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
         [debouncedSearchTerm, defaultOptions, excludedUsers],
     );
 
@@ -222,7 +222,6 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}

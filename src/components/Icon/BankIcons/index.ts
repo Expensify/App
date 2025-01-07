@@ -34,9 +34,9 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
         bankIcon.iconSize = variables.iconSizeExtraLarge;
         bankIcon.iconStyles = [styles.bankIconContainer];
     } else {
-        bankIcon.iconHeight = variables.bankCardHeight;
-        bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconHeight = variables.cardIconHeight;
+        bankIcon.iconWidth = variables.cardIconWidth;
+        bankIcon.iconStyles = [styles.cardIcon];
     }
 
     return bankIcon;

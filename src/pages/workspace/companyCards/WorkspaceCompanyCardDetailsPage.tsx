@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -20,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -37,7 +37,7 @@ import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
+type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo, bank} = route.params;
@@ -58,13 +58,15 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const card = allBankCards?.[cardID];
 
     const cardBank = card?.bank ?? '';
-    const cardholder = personalDetails?.[card?.accountID ?? -1];
+    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
+        if (card) {
+            CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
+        }
         Navigation.goBack();
     };
 
@@ -124,7 +126,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                    title={customCardNames?.[cardID] ?? ''}
+                                    title={customCardNames?.[cardID] ?? CardUtils.getDefaultCardName(cardholder?.firstName)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
@@ -146,7 +148,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                         description={exportMenuItem.description}
                                         title={exportMenuItem.title}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()))}
                                     />
                                 </OfflineWithFeedback>
                             ) : null}

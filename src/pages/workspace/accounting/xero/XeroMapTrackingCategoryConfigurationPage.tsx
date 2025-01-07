@@ -59,7 +59,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const updateMapping = useCallback(
         (option: {value: string}) => {
-            if (option.value !== categoryName) {
+            if (option.value !== currentTrackingCategoryValue) {
                 if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD && !isControlPolicy(policy)) {
                     const backToRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
                         policyID,
@@ -77,7 +77,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, currentTrackingCategoryValue, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, policy, policyID],
     );
 
     return (

@@ -1,10 +1,8 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {NavigationContext} from '@react-navigation/native';
+import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
-import onyxSubscribe from '@libs/onyxSubscribe';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
 import measureTooltipCoordinate from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
@@ -13,104 +11,56 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
-    const [modal, setModal] = useState<Modal>({
-        willAlertModalBecomeVisible: false,
-        isVisible: false,
-    });
 
-    const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible && shouldRender;
+    const navigator = useContext(NavigationContext);
 
     useEffect(() => {
+        return () => {
+            hideTooltipRef.current?.();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!shouldMeasure) {
+            return;
+        }
         if (!shouldRender) {
-            return;
-        }
-        const unsubscribeOnyxModal = onyxSubscribe({
-            key: ONYXKEYS.MODAL,
-            callback: (modalArg) => {
-                if (modalArg === undefined) {
-                    return;
-                }
-                setModal(modalArg);
-            },
-        });
-        return () => {
-            unsubscribeOnyxModal();
-        };
-    }, [shouldRender]);
-
-    const didShow = useRef(false);
-
-    const closeTooltip = useCallback(() => {
-        if (!didShow.current) {
-            return;
-        }
-        hideTooltipRef.current?.();
-        onHideTooltip?.();
-    }, [onHideTooltip]);
-
-    useEffect(
-        () => () => {
-            if (!hideTooltipRef.current) {
-                return;
-            }
-
-            hideTooltipRef.current();
-        },
-        [],
-    );
-
-    // Automatically hide tooltip after 5 seconds
-    useEffect(() => {
-        if (!shouldAutoDismiss) {
-            return;
-        }
-
-        // If the modal is open, hide the tooltip immediately and clear the timeout
-        if (!shouldShow) {
-            closeTooltip();
-            return;
-        }
-
-        // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
-        const timerID = setTimeout(() => {
-            closeTooltip();
-        }, 5000);
-        return () => {
-            clearTimeout(timerID);
-        };
-    }, [shouldAutoDismiss, shouldShow, closeTooltip]);
-
-    useEffect(() => {
-        if (!shouldMeasure || !shouldShow || didShow.current) {
+            hideTooltipRef.current?.();
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
-            didShow.current = true;
         }, 500);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldShow]);
+    }, [shouldMeasure, shouldRender]);
 
-    useEffect(
-        () => closeTooltip,
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
+    useEffect(() => {
+        if (!navigator) {
+            return;
+        }
+        const unsubscribe = navigator.addListener('blur', () => {
+            if (!shouldHideOnNavigate) {
+                return;
+            }
+            hideTooltipRef.current?.();
+        });
+        return unsubscribe;
+    }, [navigator, shouldHideOnNavigate]);
 
     return (
         <GenericTooltip
             shouldForceAnimate
+            shouldRender={shouldRender}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onHideTooltip={onHideTooltip}
         >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
                 // eslint-disable-next-line react-compiler/react-compiler

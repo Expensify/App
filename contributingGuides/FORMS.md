@@ -320,14 +320,17 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 
 ### Safe Area Padding
 
-Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>`, we will want to disable the default safe area padding applied there e.g.
+Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).
+If you have custom requirements and can't use `<ScreenWrapper includeSafeAreaPaddingBottom={true}>`, you can use the `useStyledSafeAreaInsets()` hook:
 
 ```jsx
-<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useStyledSafeAreaInsets();
+
+<View styles={[safeAreaPaddingBottomStyle, styles.pb5]}>
     <FormProvider>
         {...}
     </FormProvider>
-</ScreenWrapper>
+</View>
 ```
 
 ### Handling nested Pickers in Form
