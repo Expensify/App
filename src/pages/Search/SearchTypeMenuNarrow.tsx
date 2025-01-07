@@ -78,23 +78,28 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
-    const [currentScreen, setCurrentScreen] = useState<string | undefined>();
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
     const removeListener = useRef<() => void>();
 
     useEffect(() => {
-        removeListener.current?.();
+        if (removeListener.current !== undefined) {
+            removeListener.current?.();
+            removeListener.current = undefined;
+        }
         Navigation.isNavigationReady().then(() => {
-            const initialRoute = navigationRef.current?.getCurrentRoute();
-            setCurrentScreen(initialRoute?.name);
             removeListener.current = navigationRef.current?.addListener('state', (event) => {
-                setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
+                if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
+                    setIsScreenFocused(true);
+                    return;
+                }
+                setIsScreenFocused(false);
             });
         });
     }, []);
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        currentScreen === SCREENS.SEARCH.CENTRAL_PANE,
+        isScreenFocused,
     );
 
     const onPress = () => {
