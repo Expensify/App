@@ -48,6 +48,7 @@ runs:
 
     - name: Remove ND node_modules if needed for hybrid app build
       if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
+      shell: bash
       run: rm -rf node_modules
 
     - name: Install root project node packages
