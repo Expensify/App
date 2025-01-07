@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef} from 'react';
+import {Alert} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
@@ -49,6 +50,10 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
+
+    useEffect(() => {
+        Alert.alert('cardFeeds?.settings?.oAuthAccountDetails', JSON.stringify(cardFeeds?.settings?.oAuthAccountDetails));
+    }, [cardFeeds?.settings?.oAuthAccountDetails]);
 
     useEffect(() => {
         if (!url) {
