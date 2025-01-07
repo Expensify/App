@@ -37,6 +37,10 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
+
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
     const unregisterTooltip = useCallback(
@@ -92,11 +96,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
+            if (tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON && isModalVisible) {
+                return false;
+            }
+
             return tooltipConfig.shouldShow({
                 shouldUseNarrowLayout,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout],
+        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible],
     );
 
     const registerTooltip = useCallback(
@@ -156,11 +165,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     useEffect(() => {
         if (shouldShow) {
             registerTooltip(tooltipName);
-            return () => {
-                unregisterTooltip(tooltipName);
-            };
         }
-        return () => {};
+        return () => {
+            unregisterTooltip(tooltipName);
+        };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const renderProductTrainingTooltip = useCallback(() => {
@@ -205,14 +213,17 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName]);
+        return shouldShow && shouldRenderTooltip(tooltipName);
+    }, [shouldRenderTooltip, tooltipName, shouldShow]);
 
     const hideProductTrainingTooltip = useCallback(() => {
+        if (!shouldShowProductTrainingTooltip) {
+            return;
+        }
         const tooltip = TOOLTIPS[tooltipName];
         tooltip.onHideTooltip();
         unregisterTooltip(tooltipName);
-    }, [tooltipName, unregisterTooltip]);
+    }, [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip]);
 
     return {
         renderProductTrainingTooltip,

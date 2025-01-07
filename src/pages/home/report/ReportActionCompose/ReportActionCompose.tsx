@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -27,6 +26,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
@@ -128,11 +128,11 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const offsetTop = useViewportOffsetTop();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
 
@@ -148,7 +148,6 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
-    const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -240,11 +239,12 @@ function ReportActionCompose({
     );
 
     const onAddActionPressed = useCallback(() => {
+        hideProductTrainingTooltip();
         if (!willBlurTextInputOnTapOutside) {
             isKeyboardVisibleWhenShowingModalRef.current = !!composerRef.current?.isFocused();
         }
         composerRef.current?.blur();
-    }, []);
+    }, [hideProductTrainingTooltip]);
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
@@ -344,13 +344,6 @@ function ReportActionCompose({
         [],
     );
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setShouldHideEducationalTooltip(true);
-        });
-        return unsubscribe;
-    }, [navigation]);
-
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
@@ -432,17 +425,15 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender={!shouldHideEducationalTooltip && shouldShowProductTrainingTooltip}
+                        shouldRender={shouldShowProductTrainingTooltip}
                         renderTooltipContent={renderProductTrainingTooltip}
-                        shouldUseOverlay
-                        onHideTooltip={hideProductTrainingTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         wrapperStyle={styles.reportActionComposeTooltipWrapper}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
-                        shiftVertical={variables.composerTooltipShiftVertical}
+                        shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
                     >
                         <View
                             ref={containerRef}
