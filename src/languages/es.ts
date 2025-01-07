@@ -1094,7 +1094,7 @@ const translations = {
         tripLengthText: ({days}: TripLengthTextParams) => `Viaje: ${days} días completos`,
     },
     share: {
-        shareToExpensify: 'Compartir para expensify',
+        shareToExpensify: 'Compartir para Expensify',
         messageInputLabel: 'Mensaje',
     },
     notificationPreferencesPage: {
