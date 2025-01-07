@@ -830,6 +830,11 @@ const CONST = {
                 [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
             },
         },
+        BACKSPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Backspace',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
