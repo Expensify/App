@@ -188,8 +188,11 @@ function ReportPreview({
         ReportUtils.hasActionsWithErrors(iouReportID);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, action, currentUserAccountID);
-    const lastThreeTransactions = allTransactions.slice(-3).filter((t) => TransactionUtils.hasReceipt(t) || shouldShowReceiptEmptyState);
+    const lastThreeTransactions = allTransactions.slice(-3).filter((t) => {
+        const iouAction = ReportActionsUtils.getIOUActionForReportID(iouReport?.reportID, t.transactionID);
+        const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, iouAction, currentUserAccountID);
+        return TransactionUtils.hasReceipt(t) || shouldShowReceiptEmptyState;
+    });
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
