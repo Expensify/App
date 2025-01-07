@@ -823,6 +823,31 @@ function joinAccessiblePolicy(policyID: string) {
 }
 
 /**
+ * Request access to the specified policyID
+ */
+function requestPolicyAccess(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.REQUEST_POLICY_ACCESS, {policyID}, {optimisticData, failureData});
+}
+
+/**
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
@@ -1019,6 +1044,7 @@ export {
     isApprover,
     importPolicyMembers,
     downloadMembersCSV,
+    requestPolicyAccess,
 };
 
 export type {NewCustomUnit};

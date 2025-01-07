@@ -32,6 +32,9 @@ type User = {
 
     /** Whether the debug mode is currently enabled */
     isDebugModeEnabled?: boolean;
+
+    /** If user has accesible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
 };
 
 export default User;

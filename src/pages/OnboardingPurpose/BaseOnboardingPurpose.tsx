@@ -20,7 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,8 +51,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+    const [user] = useOnyx(ONYXKEYS.USER);
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -112,7 +112,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={isPrivateDomain ? 60 : 20}
+                            progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 60 : 20}
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
