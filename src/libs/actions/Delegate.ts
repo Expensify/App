@@ -7,7 +7,6 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -206,22 +205,33 @@ function disconnect() {
                 return;
             }
 
+            if (!response?.requesterID || !response?.requesterEmail) {
+                Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                return;
+            }
+
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
-                    Onyx.set(ONYXKEYS.CREDENTIALS, stashedCredentials);
-                    Onyx.set(ONYXKEYS.SESSION, stashedSession);
+                    Onyx.set(ONYXKEYS.CREDENTIALS, {
+                        ...stashedCredentials,
+                        accountID: response.requesterID,
+                    });
+                    Onyx.set(ONYXKEYS.SESSION, {
+                        ...stashedSession,
+                        accountID: response.requesterID,
+                        email: response.requesterEmail,
+                        authToken: response.authToken,
+                        encryptedAuthToken: response.encryptedAuthToken,
+                    });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '', response?.authToken ?? '', activePolicyID ?? '', '');
+                        NativeModules.HybridAppModule.switchAccount(response.requesterEmail ?? '', response.authToken ?? '', '', '');
                     });
                 });
         })
