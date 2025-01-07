@@ -25,29 +25,29 @@ function Accordion({isExpanded, children, duration = 300, style}: AccordionProps
     const styles = useThemeStyles();
 
     const derivedHeight = useDerivedValue(() =>
-        withTiming(height.value * Number(isExpanded.value), {
+        withTiming(height.get() * Number(isExpanded.get()), {
             duration,
             easing: Easing.inOut(Easing.quad),
         }),
     );
 
     const derivedOpacity = useDerivedValue(() =>
-        withTiming(isExpanded.value ? 1 : 0, {
+        withTiming(isExpanded.get() ? 1 : 0, {
             duration,
             easing: Easing.inOut(Easing.quad),
         }),
     );
 
     const bodyStyle = useAnimatedStyle(() => ({
-        height: derivedHeight.value,
-        opacity: derivedOpacity.value,
+        height: derivedHeight.get(),
+        opacity: derivedOpacity.get(),
     }));
 
     return (
         <Animated.View style={[bodyStyle, style]}>
             <View
                 onLayout={(e) => {
-                    height.value = e.nativeEvent.layout.height;
+                    height.set(e.nativeEvent.layout.height);
                 }}
                 style={[styles.pAbsolute, styles.l0, styles.r0, styles.t0]}
             >
