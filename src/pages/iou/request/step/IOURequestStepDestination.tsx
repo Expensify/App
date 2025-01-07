@@ -62,7 +62,7 @@ function IOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates);
+    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
