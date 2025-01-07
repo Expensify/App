@@ -12,6 +12,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -182,7 +183,7 @@ function SearchRouterList(
         if (currentUser) {
             autocompleteOptions.push({
                 name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID.toString(),
+                accountID: currentUser.accountID?.toString(),
             });
         }
 
@@ -386,21 +387,30 @@ function SearchRouterList(
         };
     });
 
+    /**
+     * Builds a suffix tree and returns a function to search in it.
+     */
+    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const filteredOptions = filterOptions(autocompleteQueryValue);
+        const orderedOptions = OptionsListUtils.combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
+            sortByReportTypeInSearch: true,
+            preferChatroomsOverThreads: true,
+        });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
         ReportUserActions.searchInServer(autocompleteQueryValue.trim());

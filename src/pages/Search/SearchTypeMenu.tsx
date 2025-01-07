@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -63,7 +64,12 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
+    const {isOffline} = useNetwork();
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
+        shouldShowSavedSearchesMenuItemTitle,
+    );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -73,7 +79,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
-    const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -145,6 +150,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
                     />
                 ),
                 styles: [styles.alignItemsCenter],
@@ -156,7 +162,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: index === 0 && shouldShowSavedSearchRenameTooltip === true,
+                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -164,41 +170,25 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    onHideTooltip: SearchActions.dismissSavedSearchRenameTooltip,
-                    renderTooltipContent: () => {
-                        return (
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Expensicons.Lightbulb
-                                    width={16}
-                                    height={16}
-                                    fill={styles.colorGreenSuccess.color}
-                                />
-                                <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
-                            </View>
-                        );
-                    },
+                    renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
-
             return baseMenuItem;
         },
         [
             allCards,
-            getOverflowMenu,
             hash,
-            personalDetails,
-            reports,
-            shouldShowSavedSearchRenameTooltip,
+            getOverflowMenu,
             styles.alignItemsCenter,
             styles.bgPaleGreen,
-            styles.colorGreenSuccess.color,
-            styles.flexRow,
             styles.mh4,
-            styles.ml1,
             styles.pv2,
-            styles.quickActionTooltipSubtitle,
+            personalDetails,
+            reports,
             taxRates,
-            translate,
+            shouldShowProductTrainingTooltip,
+            hideProductTrainingTooltip,
+            renderProductTrainingTooltip,
         ],
     );
 
@@ -264,7 +254,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             />
         );
     }
-    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
         <ScrollView

@@ -111,7 +111,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                                     return;
                                 }
                                 if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el);
+                                    updateMultilineInputRange(el, false);
                                 }
                                 reportDescriptionInputRef.current = el;
                             }}
