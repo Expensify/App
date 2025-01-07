@@ -1,5 +1,5 @@
 type ExpandURLPreviewParams = {
-    reportID: string;
+    reportID?: string;
     reportActionID: string;
 };
 

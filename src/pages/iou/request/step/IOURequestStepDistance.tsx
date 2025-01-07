@@ -138,9 +138,15 @@ function IOURequestStepDistance({
 
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
-            const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+            let mileageRate: MileageRate | undefined;
+
+            if (TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
+                mileageRate = DistanceRequestUtils.getRateForP2P(policyCurrency, transaction);
+            } else if (customUnitRateID) {
+                mileageRate = mileageRates?.[customUnitRateID];
+            } else {
+                mileageRate = defaultMileageRate;
+            }
 
             const {unit, rate} = mileageRate ?? {};
             const distance = TransactionUtils.getDistanceInMeters(transaction, unit);

@@ -1319,7 +1319,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
 /**
  * Gets metadata info about links in the provided report action
  */
-function expandURLPreview(reportID: string, reportActionID: string) {
+function expandURLPreview(reportID: string | undefined, reportActionID: string) {
     const parameters: ExpandURLPreviewParams = {
         reportID,
         reportActionID,
@@ -1829,7 +1829,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
 }
 
 /** Deletes the draft for a comment report action. */
-function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }

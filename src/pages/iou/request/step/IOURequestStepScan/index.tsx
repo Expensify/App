@@ -335,10 +335,10 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? -1,
+                        existingSplitChatReportID: reportID ?? CONST.DEFAULT_NUMBER_ID,
                         billable: false,
                         category: '',
                         tag: '',

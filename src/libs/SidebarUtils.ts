@@ -100,7 +100,7 @@ function ensureSingleSpacing(text: string) {
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
@@ -108,7 +108,7 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
-): (string | undefined)[] {
+): string | undefined {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;

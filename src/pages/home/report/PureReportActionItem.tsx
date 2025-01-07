@@ -173,7 +173,7 @@ type PureReportActionItemProps = {
     originalReportID?: string;
 
     /** Function to deletes the draft for a comment report action. */
-    deleteReportActionDraft?: (reportID: string, action: OnyxTypes.ReportAction) => void;
+    deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
 
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
