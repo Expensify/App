@@ -3,13 +3,13 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import switchPolicyAfterInteractions from '@pages/WorkspaceSwitcherPage/switchPolicyAfterInteractions';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -21,20 +21,6 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/home/sidebar/BottomTabAvatar');
 
-const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
-    shouldUseNarrowLayout: true,
-    isSmallScreenWidth: true,
-    isInNarrowPaneModal: false,
-    isExtraSmallScreenHeight: false,
-    isMediumScreenWidth: false,
-    isLargeScreenWidth: false,
-    isExtraSmallScreenWidth: false,
-    isSmallScreen: false,
-    onboardingIsMediumOrLargerScreenWidth: false,
-};
-
-const PARENT_ROUTE = {key: 'parentRouteKey', name: 'ParentNavigator'};
-
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
@@ -43,7 +29,7 @@ function ReportsSplitNavigator() {
         <ReportsSplit.Navigator
             sidebarScreen={SCREENS.HOME}
             defaultCentralScreen={SCREENS.REPORT}
-            parentRoute={PARENT_ROUTE}
+            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <ReportsSplit.Screen
                 name={SCREENS.HOME}
@@ -82,7 +68,7 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
 describe('Switch policy ID', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
-        mockedUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
     });
 
     describe('from the global to the specific workspace', () => {
