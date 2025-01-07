@@ -253,7 +253,7 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
+        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID, transactionViolations))) {

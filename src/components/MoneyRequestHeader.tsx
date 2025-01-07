@@ -64,15 +64,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {translate} = useLocalize();
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const transactionIDList = transaction ? [transaction.transactionID] : [];
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transactionIDList);
 
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', parentReport, policy);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transactionIDList, parentReport, policy);
 
     const shouldShowMarkAsCashButton =
         hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(parentReport?.reportID ?? '')));
