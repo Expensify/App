@@ -7408,9 +7408,15 @@ function canSubmitReport(
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transactionIDList, allViolations);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', report, policy);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
 
-    return isOpenExpenseReport && reimbursableSpend !== 0 && !hasAllPendingRTERViolations && !shouldShowBrokenConnectionViolation && (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID);
+    return (
+        isOpenExpenseReport &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        !shouldShowBrokenConnectionViolation &&
+        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
+    );
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
