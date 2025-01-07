@@ -83,6 +83,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
+            removeListener.current?.();
             const initialRoute = navigationRef.current?.getCurrentRoute();
             setCurrentScreen(initialRoute?.name);
             removeListener.current = navigationRef.current?.addListener('state', (event) => {
