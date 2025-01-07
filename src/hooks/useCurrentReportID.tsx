@@ -63,5 +63,5 @@ export default function useCurrentReportID(): CurrentReportIDContextValue | null
     return useContext(CurrentReportIDContext);
 }
 
-export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
+export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider};
 export type {CurrentReportIDContextValue};
