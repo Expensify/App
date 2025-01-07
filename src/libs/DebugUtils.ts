@@ -468,6 +468,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -513,11 +514,14 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
         case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
+        case 'errors':
+            return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         case 'privateNotes':
             return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
@@ -621,6 +625,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -975,6 +981,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
                 value,
                 {
+                    attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -114,6 +114,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a distance expense */
     isDistanceRequest?: boolean;
 
+    /** Whether the expense is a per diem expense */
+    isPerDiemRequest?: boolean;
+
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
@@ -151,6 +154,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     isDistanceRequest = false,
+    isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
@@ -231,11 +235,11 @@ function MoneyRequestConfirmationList({
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend && !isPerDiemRequest;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isPerDiemRequest;
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
     const previousTransactionCurrency = usePrevious(transaction?.currency);
@@ -425,16 +429,16 @@ function MoneyRequestConfirmationList({
                 text = translate('common.next');
             }
         } else if (isTypeTrackExpense) {
-            text = translate('iou.trackExpense');
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
+        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.submitExpense');
             if (iouAmount !== 0) {
                 text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.submitAmount';
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
@@ -443,7 +447,20 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, policy, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
+    }, [
+        isTypeInvoice,
+        isTypeTrackExpense,
+        isTypeSplit,
+        iouAmount,
+        receiptPath,
+        isTypeRequest,
+        isDistanceRequestWithPendingRoute,
+        isPerDiemRequest,
+        iouType,
+        policy,
+        translate,
+        formattedAmount,
+    ]);
 
     const onSplitShareChange = useCallback(
         (accountID: number, value: number) => {
@@ -762,6 +779,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
+                setFormError('iou.error.invalidSubrateLength');
+                return;
+            }
+
             if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
@@ -809,6 +831,7 @@ function MoneyRequestConfirmationList({
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
+            isPerDiemRequest,
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
@@ -916,6 +939,7 @@ function MoneyRequestConfirmationList({
             iouType={iouType}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
+            isPerDiemRequest={isPerDiemRequest}
             isEditingSplitBill={isEditingSplitBill}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
@@ -937,6 +961,7 @@ function MoneyRequestConfirmationList({
             shouldShowCategories={shouldShowCategories}
             shouldShowMerchant={shouldShowMerchant}
             shouldShowSmartScanFields={shouldShowSmartScanFields}
+            shouldShowAmountField={!isPerDiemRequest}
             shouldShowTax={shouldShowTax}
             transaction={transaction}
             transactionID={transactionID}

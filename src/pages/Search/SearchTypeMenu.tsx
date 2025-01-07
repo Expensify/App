@@ -146,6 +146,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
                     />
                 ),
                 styles: [styles.alignItemsCenter],
@@ -165,7 +166,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    onHideTooltip: hideProductTrainingTooltip,
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
