@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +31,7 @@ const {
     FORMATION_INCORPORATION_COUNTRY_CODE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
+    TRADE_VOLUME,
     BUSINESS_CATEGORY,
 } = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -47,6 +50,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -61,6 +65,10 @@ function Confirmation({onNext, onMove}: SubStepProps) {
     const businessType = useMemo(
         () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]),
         [corpayOnboardingFields?.picklists.ApplicantType, values],
+    );
+    const tradeVolumeRange = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], values[TRADE_VOLUME]),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange, values],
     );
 
     return (
@@ -151,10 +159,26 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                             onMove(7);
                         }}
                     />
+                    <MenuItemWithTopDescription
+                        description={translate('businessInfoStep.averageReimbursementAmount')}
+                        title={tradeVolumeRange}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(8);
+                        }}
+                    />
                     <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
+                        {!!error && error.length > 0 && (
+                            <DotIndicatorMessage
+                                textStyles={[styles.formError]}
+                                type="error"
+                                messages={{error}}
+                            />
+                        )}
                         <Button
                             success
-                            style={[styles.w100]}
+                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingCompanyFields}
+                            style={[styles.w100, styles.mt2]}
                             onPress={onNext}
                             large
                             text={translate('common.confirm')}

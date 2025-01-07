@@ -461,11 +461,11 @@ const ONYXKEYS = {
     /** Corpay fieds to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
-    /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
-    CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
-
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
+
+    /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
+    CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
 
     /** Collection Keys */
     COLLECTION: {

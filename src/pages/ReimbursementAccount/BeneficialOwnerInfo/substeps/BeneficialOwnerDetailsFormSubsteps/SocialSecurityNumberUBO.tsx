@@ -20,12 +20,12 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}` as const;
-    const defaultSsnLast4 = reimbursementAccountDraft?.[ssnLast4InputID] ?? '';
+    const defaultSsnLast4 = String(reimbursementAccountDraft?.[ssnLast4InputID] ?? '');
     const stepFields = [ssnLast4InputID];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
-        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
+        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(String(values[ssnLast4InputID]))) {
             errors[ssnLast4InputID] = translate('bankAccount.error.ssnLast4');
         }
         return errors;

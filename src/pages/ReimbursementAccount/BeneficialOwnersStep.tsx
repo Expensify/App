@@ -37,7 +37,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = String(reimbursementAccount?.achData?.policyID);
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -59,13 +59,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                 return acc;
             }, {} as Record<string, string | undefined>),
         );
 
         BankAccounts.updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),

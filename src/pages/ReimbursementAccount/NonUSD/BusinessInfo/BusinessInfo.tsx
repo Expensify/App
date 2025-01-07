@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Address from './substeps/Address';
+import AverageReimbursement from './substeps/AverageReimbursement';
 import BusinessType from './substeps/BusinessType';
 import Confirmation from './substeps/Confirmation';
 import ContactInformation from './substeps/ContactInformation';
@@ -37,6 +38,7 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [
     IncorporationLocation,
     BusinessType,
     PaymentVolume,
+    AverageReimbursement,
     Confirmation,
 ];
 
@@ -55,6 +57,7 @@ const INPUT_KEYS = {
     BUSINESS_CATEGORY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY,
     APPLICANT_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID,
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
+    TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
 };
 
@@ -63,14 +66,13 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const country =
-        reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     useEffect(() => {
         BankAccounts.getCorpayOnboardingFields(country);
@@ -97,13 +99,28 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
                 fundDestinationCountries: onyxValues[INPUT_KEYS.STATE],
                 natureOfBusiness: onyxValues[INPUT_KEYS.BUSINESS_CATEGORY],
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
-                tradeVolume: onyxValues[INPUT_KEYS.ANNUAL_VOLUME],
+                tradeVolume: onyxValues[INPUT_KEYS.TRADE_VOLUME],
                 taxIDEINNumber: onyxValues[INPUT_KEYS.TAX_ID_EIN_NUMBER],
             },
             bankAccountID,
         );
-        onSubmit();
-    }, [bankAccountID, currency, onSubmit, onyxValues]);
+    }, [bankAccountID, currency, onyxValues]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            onSubmit();
+            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+        }
+
+        return () => {
+            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+        };
+    }, [reimbursementAccount, onSubmit]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
@@ -132,6 +149,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                screenIndex={screenIndex}
             />
         </InteractiveStepWrapper>
     );
