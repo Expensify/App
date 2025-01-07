@@ -15,9 +15,10 @@ type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onUpgrade: () => void;
+    formattedPrice: string;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
@@ -51,7 +52,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeatur
                     </View>
                 ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.upgrade.commonFeatures.benefits.note')}{' '}
+                    {translate('workspace.upgrade.commonFeatures.benefits.note', {price: formattedPrice})}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
