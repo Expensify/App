@@ -461,7 +461,7 @@ function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
-function markAsCash(transactionID: string, transactionThreadReportID: string) {
+function markAsCash(transactionThreadReportID: string | undefined, transactionID: string | undefined = '') {
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.RTER,
