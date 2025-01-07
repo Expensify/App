@@ -58,13 +58,15 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const card = allBankCards?.[cardID];
 
     const cardBank = card?.bank ?? '';
-    const cardholder = personalDetails?.[card?.accountID ?? -1];
+    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
+        if (card) {
+            CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
+        }
         Navigation.goBack();
     };
 
@@ -146,7 +148,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                         description={exportMenuItem.description}
                                         title={exportMenuItem.title}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()))}
                                     />
                                 </OfflineWithFeedback>
                             ) : null}
