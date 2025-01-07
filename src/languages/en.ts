@@ -870,7 +870,6 @@ const translations = {
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
         chooseRecipient: 'Choose recipient',
-        createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -5627,6 +5626,11 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more!',
         },
+    },
+    discardChangesConfirmation: {
+        title: 'Discard changes?',
+        body: 'Are you sure you want to discard the changes you made?',
+        confirmText: 'Discard changes',
     },
 };
 

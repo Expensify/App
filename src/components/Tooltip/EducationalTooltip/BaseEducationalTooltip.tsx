@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import {NavigationContext} from '@react-navigation/native';
+import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
@@ -17,7 +17,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
 
-    const navigation = useNavigation();
+    const navigator = useContext(NavigationContext);
 
     useEffect(() => {
         return () => {
@@ -43,14 +43,17 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     }, [shouldMeasure, shouldRender]);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
+        if (!navigator) {
+            return;
+        }
+        const unsubscribe = navigator.addListener('blur', () => {
             if (!shouldHideOnNavigate) {
                 return;
             }
             hideTooltipRef.current?.();
         });
         return unsubscribe;
-    }, [navigation, shouldHideOnNavigate]);
+    }, [navigator, shouldHideOnNavigate]);
 
     return (
         <GenericTooltip
