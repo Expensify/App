@@ -309,6 +309,11 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     }
 
     const customFeedName = companyCardNicknames?.[feed];
+
+    if (customFeedName && typeof customFeedName !== 'string') {
+        return '';
+    }
+
     const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
     return customFeedName ?? formattedFeedName;
 }
