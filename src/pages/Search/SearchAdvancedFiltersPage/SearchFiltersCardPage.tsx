@@ -29,6 +29,10 @@ type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilt
 
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
 
+function isCardIssued(card: Card) {
+    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
     for (const key of workspaceCardFeedsKeys) {
@@ -72,14 +76,16 @@ function buildIndividualCardsData(
     selectedCards: string[],
     iconStyles: StyleProp<ViewStyle>,
 ): ItemsGroupedBySelection {
-    const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {}).map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
+    const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
+        .filter((card) => isCardIssued(card))
+        .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
+                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID] && isCardIssued(card))
                 .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
         });
 
@@ -167,8 +173,9 @@ function buildCardFeedsData(
     Object.entries(workspaceCardFeeds)
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
         .forEach(([cardFeedKey, cardFeed]) => {
-            const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
-            if (!representativeCard) {
+            const cardFeedArray = Object.values(cardFeed ?? {});
+            const representativeCard = cardFeedArray.find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
+            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => CardUtils.isCard(cardFeedItem) && isCardIssued(cardFeedItem))) {
                 return;
             }
             const {domainName, bank} = representativeCard;
@@ -220,7 +227,7 @@ function SearchFiltersCardPage() {
         () =>
             Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
                 // Cards in cardList can also be domain cards, we use them to compute domain feed
-                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
+                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && isCardIssued(currentCard)) {
                     if (accumulator[currentCard.domainName]) {
                         accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
                     } else {
