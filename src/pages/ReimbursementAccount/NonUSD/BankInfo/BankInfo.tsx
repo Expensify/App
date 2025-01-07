@@ -15,7 +15,7 @@ import Confirmation from './substeps/Confirmation';
 import UploadStatement from './substeps/UploadStatement';
 import type {BankInfoSubStepProps} from './types';
 
-const {DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type BankInfoProps = {
     /** Handles back button press */
@@ -34,7 +34,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const country = reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
+    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const submit = () => {
         onSubmit();

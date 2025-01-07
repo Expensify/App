@@ -63,7 +63,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         return bankAccountDetailsFields?.map((field) => {
             return (
                 <View
-                    style={[styles.flex2, styles.mb6]}
+                    style={styles.mb6}
                     key={field.id}
                 >
                     <InputWrapper
@@ -77,7 +77,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles.flex2, styles.mb6, isEditing]);
+    }, [bankAccountDetailsFields, styles.mb6, isEditing]);
 
     return (
         <FormProvider

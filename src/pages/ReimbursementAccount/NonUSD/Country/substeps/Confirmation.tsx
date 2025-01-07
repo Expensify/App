@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-const {BANK_CURRENCY, DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 function Confirmation({onNext}: SubStepProps) {
     const {translate} = useLocalize();
@@ -36,7 +36,7 @@ function Confirmation({onNext}: SubStepProps) {
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
@@ -49,26 +49,27 @@ function Confirmation({onNext}: SubStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 
-    const handleSelectingCountry = (country: unknown) => {
-        setSelectedCountry(typeof country === 'string' ? country : '');
+    const handleSelectingCountry = (country: string) => {
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: country});
+        setSelectedCountry(country);
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [BANK_CURRENCY]);
+        return ValidationUtils.getFieldRequiredErrors(values, [COUNTRY]);
     }, []);
 
     useEffect(() => {
+        FormActions.clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+    });
+
+    useEffect(() => {
         if (currency === CONST.CURRENCY.EUR) {
-            if (countryDefaultValue !== '') {
-                FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: countryDefaultValue});
-                setSelectedCountry(countryDefaultValue);
-            }
             return;
         }
 
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: currencyMappedToCountry, [BANK_CURRENCY]: currency});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
-    }, [countryDefaultValue, currency, currencyMappedToCountry]);
+    }, [currency, currencyMappedToCountry]);
 
     return (
         <SafeAreaConsumer>
@@ -104,14 +105,13 @@ function Confirmation({onNext}: SubStepProps) {
                         <InputWrapper
                             InputComponent={PushRowWithModal}
                             optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
-                            onValueChange={handleSelectingCountry}
+                            onValueChange={(value) => handleSelectingCountry(value as string)}
                             description={translate('common.country')}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
-                            inputID={BANK_CURRENCY}
-                            shouldSaveDraft
+                            inputID={COUNTRY}
                         />
                     </FormProvider>
                 </ScrollView>
