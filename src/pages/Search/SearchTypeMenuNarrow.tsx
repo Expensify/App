@@ -1,3 +1,4 @@
+import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -79,24 +80,17 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
-    const removeListener = useRef<() => void>();
 
     useEffect(() => {
-        if (removeListener.current !== undefined) {
-            removeListener.current?.();
-            removeListener.current = undefined;
-        }
-        Navigation.isNavigationReady().then(() => {
-            const initialRoute = navigationRef.current?.getCurrentRoute();
-            setIsScreenFocused(initialRoute?.name === SCREENS.SEARCH.CENTRAL_PANE);
-            removeListener.current = navigationRef.current?.addListener('state', (event) => {
-                if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
-                    setIsScreenFocused(true);
-                    return;
-                }
-                setIsScreenFocused(false);
-            });
-        });
+        const listener = (event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>) => {
+            if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
+                setIsScreenFocused(true);
+                return;
+            }
+            setIsScreenFocused(false);
+        };
+        navigationRef.addListener('state', listener);
+        return () => navigationRef.removeListener('state', listener);
     }, []);
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
