@@ -34,7 +34,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOrAccountID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);

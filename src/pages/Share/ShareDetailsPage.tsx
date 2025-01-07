@@ -67,7 +67,7 @@ function ShareDetailsPage({
         displayReport.alternateText = participant?.login;
     }
 
-    const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
 

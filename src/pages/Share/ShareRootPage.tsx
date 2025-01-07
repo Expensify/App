@@ -11,7 +11,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ShareActions from '@userActions/Share';
 import CONST from '@src/CONST';
 import ShareActionHandlerModule from '@src/modules/ShareActionHandlerModule';
-import type {TempShareFile} from '@src/types/onyx';
+import type {ShareTempFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
 
@@ -26,7 +26,7 @@ function ShareRootPage() {
 
     const handleProcessFiles = useCallback(() => {
         ShareActionHandlerModule.processFiles((processedFiles) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
+            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
                 Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
                     {

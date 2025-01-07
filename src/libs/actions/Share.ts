@@ -1,17 +1,17 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TempShareFile} from '@src/types/onyx';
+import type {ShareTempFile} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 function clearShareData() {
     Onyx.multiSet({
-        [ONYXKEYS.TEMP_SHARE_FILE]: null,
+        [ONYXKEYS.SHARE_TEMP_FILE]: null,
         [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: null,
     });
 }
 
-function addTempShareFile(file: TempShareFile) {
-    Onyx.merge(ONYXKEYS.TEMP_SHARE_FILE, file);
+function addTempShareFile(file: ShareTempFile) {
+    Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, file);
 }
 
 function saveUnknownUserDetails(user: Participant) {

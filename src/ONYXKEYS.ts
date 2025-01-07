@@ -462,7 +462,7 @@ const ONYXKEYS = {
     SHARE_UNKNOWN_USER_DETAILS: 'shareUnknownUserDetails',
 
     /** Temporary file to be shared from outside the app */
-    TEMP_SHARE_FILE: 'tempShareFile',
+    SHARE_TEMP_FILE: 'shareTempFile',
 
     /* Corpay fieds to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
@@ -1045,7 +1045,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
-    [ONYXKEYS.TEMP_SHARE_FILE]: OnyxTypes.TempShareFile;
+    [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;

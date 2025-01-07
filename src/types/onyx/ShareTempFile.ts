@@ -1,5 +1,5 @@
 /** Model of the file shared from the external source */
-type TempShareFile = {
+type ShareTempFile = {
     /** ID of the share file */
     id: string;
 
@@ -19,4 +19,4 @@ type TempShareFile = {
     aspectRatio?: number;
 };
 
-export default TempShareFile;
+export default ShareTempFile;
