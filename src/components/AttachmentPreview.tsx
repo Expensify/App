@@ -11,7 +11,7 @@ import ImageView from './ImageView';
 import {PressableWithFeedback} from './Pressable';
 
 type AttachmentPreviewProps = {
-    /** Source (URL, SVG function) for file. */
+    /** Source for file. */
     source: string;
 
     /** Media's aspect ratio to calculate the thumbnail */
