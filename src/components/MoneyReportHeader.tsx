@@ -208,9 +208,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (requestParentReportAction) {
             const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
                 ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-                : '-1';
+                : undefined;
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '-1', iouTransactionID, requestParentReportAction, true);
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
             } else {
                 navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
@@ -346,7 +346,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             text={translate('iou.reviewDuplicates')}
                             style={styles.p0}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>
@@ -414,7 +414,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 text={translate('iou.reviewDuplicates')}
                                 style={[styles.flex1, styles.pr0]}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                                 }}
                             />
                         )}
