@@ -503,6 +503,8 @@ Here are some common cases you may face when fixing your code to remove the old/
 
 #### **Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 
+##### 1. Utility function
+
 ```diff
 -Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
 +Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
@@ -518,6 +520,31 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 +    if (!reportID || !reportActionID) {
 +        return;
 +    }
+```
+
+##### 2. Routes `getRoute()` function
+
+```diff
+-Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policyID ?? '-1'))
++Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policyID))
+```
+
+> error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
+
+We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error.
+Besides that, we should add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
+
+```diff
+WORKSPACE_PROFILE_ADDRESS: {
+    route: 'settings/workspaces/:policyID/profile/address',
+-   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
++   getRoute: (policyID: string | undefined, backTo?: string) => {
++       if (!policyID) {
++           Log.warn("Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route")
++       }
++       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
++   },
+},
 ```
 
 #### **Case 2**: Type 'undefined' cannot be used as an index type.
