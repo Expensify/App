@@ -25,6 +25,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboardingWorkspacesProps) {
@@ -47,8 +48,12 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const handleJoinWorkspace = useCallback(
-        (policyID: string) => {
-            MemberAction.joinAccessiblePolicy(policyID);
+        (policy: JoinablePolicy) => {
+            if (policy.automaticJoiningEnabled) {
+                MemberAction.joinAccessiblePolicy(policy.policyID);
+            } else {
+                MemberAction.requestPolicyAccess(policy.policyID);
+            }
             Report.completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
@@ -56,12 +61,13 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 onboardingPersonalDetails?.lastName ?? '',
             );
             Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID(policyID);
+            Welcome.setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
         },
         [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );
+
     const policyIDItems = useMemo(() => {
         return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
             return {
@@ -76,7 +82,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                         medium
                         text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
                         onPress={() => {
-                            handleJoinWorkspace(policyInfo.policyID);
+                            handleJoinWorkspace(policyInfo);
                         }}
                     />
                 ),

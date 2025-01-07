@@ -23,7 +23,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Onboarding from '@userActions/Onboarding';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,15 +37,17 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [user] = useOnyx(ONYXKEYS.USER);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+
+    const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -83,14 +84,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
          * 3. If an onboarding purpose is selected and the person is on a private domain,
          * skip the personal details step as it was already filled.
          */
-        const skippedPrivateDomainFlow = isPrivateDomain && onboardingPurposeSelected;
+        const skippedPrivateDomainFlow = isPrivateDomainAndHasAccesiblePolicies && onboardingPurposeSelected;
 
         if (!skippedPrivateDomainFlow || !onboardingPersonalDetails?.firstName || !onboardingPersonalDetails?.lastName) {
             return;
         }
 
         completeOnboarding(onboardingPersonalDetails.firstName, onboardingPersonalDetails.lastName);
-    }, [onboardingPersonalDetails, isPrivateDomain, onboardingPurposeSelected, completeOnboarding]);
+    }, [onboardingPersonalDetails, isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, completeOnboarding]);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -101,14 +102,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             Onboarding.clearPersonalDetailsDraft();
             Onboarding.setPersonalDetails(firstName, lastName);
 
-            if (isPrivateDomain && !onboardingPurposeSelected) {
+            if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
                 return;
             }
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomain, onboardingPurposeSelected, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -153,8 +154,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isPrivateDomain}
-                progressBarPercentage={isPrivateDomain ? 20 : 80}
+                shouldShowBackButton={!isPrivateDomainAndHasAccesiblePolicies}
+                progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 20 : 80}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
