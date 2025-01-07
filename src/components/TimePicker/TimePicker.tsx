@@ -37,6 +37,9 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
+    /** Whether the time value should be validated for future time only */
+    shouldValidateFutureTime?: boolean;
+
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
     showFullFormat?: boolean;
 };
@@ -118,7 +121,10 @@ function clearSelectedValue(
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, showFullFormat = false}: TimePickerProps, ref: ForwardedRef<TimePickerRef>) {
+function TimePicker(
+    {defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps,
+    ref: ForwardedRef<TimePickerRef>,
+) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -166,12 +172,15 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 setErrorMessage(translate('common.error.invalidTimeRange'));
                 return false;
             }
+            if (!shouldValidateFutureTime) {
+                return true;
+            }
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
             setError(!isValid);
             setErrorMessage(translate('common.error.invalidTimeShouldBeFuture'));
             return isValid;
         },
-        [shouldValidate, hours, minutes, amPmValue, defaultValue, translate],
+        [shouldValidate, hours, minutes, amPmValue, shouldValidateFutureTime, defaultValue, translate],
     );
 
     const resetHours = () => {
