@@ -3,6 +3,7 @@ import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import Log from './libs/Log';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -1221,7 +1222,13 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_COMPANY_CARDS');
+            }
+
+            return `settings/workspaces/${policyID}/company-cards` as const;
+        },
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
@@ -1473,7 +1480,13 @@ const ROUTES = {
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string | undefined | null, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID ?? ''}/duplicates/review` as const, backTo),
+        getRoute: (threadReportID: string | undefined | null, backTo?: string) => {
+            if (!threadReportID) {
+                Log.warn('Invalid threadReportID while building route TRANSACTION_DUPLICATE_REVIEW_PAGE');
+            }
+
+            return getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo);
+        },
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
