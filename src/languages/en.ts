@@ -5628,6 +5628,11 @@ const translations = {
             part3: '\nand more!',
         },
     },
+    discardChangesConfirmation: {
+        title: 'Discard changes?',
+        body: 'Are you sure you want to discard the changes you made?',
+        confirmText: 'Discard changes',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;
