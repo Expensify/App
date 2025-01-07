@@ -10,10 +10,10 @@ type MoneyRequestPreviewProps = {
     iouReportID: string;
 
     /** The associated chatReport */
-    chatReportID?: string;
+    chatReportID: string;
 
     /** The ID of the current report */
-    reportID?: string;
+    reportID: string;
 
     /** Callback for the preview pressed */
     onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;

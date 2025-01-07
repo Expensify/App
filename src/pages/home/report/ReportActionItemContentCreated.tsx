@@ -30,7 +30,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps & {
-        report: OnyxEntry<OnyxTypes.Report>;
+        report: OnyxTypes.Report;
         action: OnyxTypes.ReportAction;
     };
 
@@ -53,8 +53,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     const {report, action, transactionThreadReport} = contextValue;
 
-    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
@@ -62,7 +62,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         () =>
             shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
-                    reportActionID={report?.reportID}
+                    reportActionID={report.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
@@ -71,7 +71,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
                 />
             ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
+        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
     );
 
     const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
@@ -160,7 +160,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             policy={policy}
                             isCombinedReport
                             pendingAction={action.pendingAction}
-                            shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
+                            shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
@@ -187,8 +187,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     return (
         <ReportActionItemCreated
-            reportID={report?.reportID}
-            policyID={report?.policyID}
+            reportID={report.reportID}
+            policyID={report.policyID}
         />
     );
 }

@@ -31,7 +31,7 @@ type ReportActionItemMessageProps = {
     isHidden?: boolean;
 
     /** The ID of the report */
-    reportID?: string;
+    reportID: string;
 };
 
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
@@ -99,11 +99,11 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 key={`actionFragment-${action.reportActionID}-${index}`}
                 fragment={fragment}
                 iouMessage={iouMessage}
-                isThreadParentMessage={!!reportID && ReportActionsUtils.isThreadParentMessage(action, reportID)}
+                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
                 source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
-                accountID={action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                accountID={action.actorAccountID ?? -1}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
@@ -132,8 +132,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
-    const shouldShowAddBankAccountButton =
-        action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !!reportID && ReportUtils.hasMissingInvoiceBankAccount(reportID) && !ReportUtils.isSettled(reportID);
+    const shouldShowAddBankAccountButton = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && !ReportUtils.isSettled(reportID);
 
     return (
         <View style={[styles.chatItemMessage, style]}>

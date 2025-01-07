@@ -38,9 +38,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
-    policyID?: string;
+    policyID: string;
     /** The ID of the associated taskReport */
-    taskReportID?: string;
+    taskReportID: string;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;
@@ -49,7 +49,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     action: OnyxEntry<ReportAction>;
 
     /** The chat report associated with taskReport */
-    chatReportID?: string;
+    chatReportID: string;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: ContextMenuAnchor;
@@ -74,7 +74,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName));
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAssignee = taskAssigneeAccountID > 0;
@@ -93,20 +93,10 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                onPress={() => {
-                    if (!taskReportID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
-                }}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => {
-                    if (!chatReportID) {
-                        return;
-                    }
-                    showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                }}
+                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}

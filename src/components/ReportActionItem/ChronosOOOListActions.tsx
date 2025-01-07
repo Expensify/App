@@ -13,7 +13,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */
-    reportID?: string;
+    reportID: string;
 
     /** All the data of the action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
@@ -61,12 +61,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                             <Button
                                 small
                                 style={styles.pl2}
-                                onPress={() => {
-                                    if (!reportID) {
-                                        return;
-                                    }
-                                    Chronos.removeEvent(reportID, action.reportActionID, event.id, events);
-                                }}
+                                onPress={() => Chronos.removeEvent(reportID, action.reportActionID, event.id, events)}
                             >
                                 <Text style={styles.buttonSmallText}>{translate('common.remove')}</Text>
                             </Button>

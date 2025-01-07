@@ -29,7 +29,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
-    report: OnyxEntry<Report>;
+    report: Report;
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
@@ -52,15 +52,15 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isSettled = ReportUtils.isSettled(report?.reportID);
+    const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
     const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report?.currency);
-    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report?.currency);
-    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report?.currency);
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
+    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
+    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
     const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -70,11 +70,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report.reportID}`);
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+        return fields.filter((field) => field.target === report.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
@@ -88,7 +88,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         () =>
             shouldHideThreadDividerLine && !isCombinedReport ? (
                 <UnreadActionIndicator
-                    reportActionID={report?.reportID}
+                    reportActionID={report.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
@@ -97,7 +97,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                     style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
                 />
             ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule, isCombinedReport],
+        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule, isCombinedReport],
     );
 
     return (
@@ -124,28 +124,25 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 return (
                                     <OfflineWithFeedback
                                         // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                                        pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
-                                        errors={report?.errorFields?.[fieldKey]}
+                                        pendingAction={pendingAction ? undefined : report.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
+                                        errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
-                                        onClose={() => {
-                                            if (!report?.reportID) {
-                                                return;
-                                            }
-                                            reportActions.clearReportFieldKeyErrors(report?.reportID, fieldKey);
-                                        }}
+                                        onClose={() => reportActions.clearReportFieldKeyErrors(report.reportID, fieldKey)}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
-                                            onPress={() => {
-                                                if (!report?.reportID || !report?.policyID) {
-                                                    return;
-                                                }
+                                            onPress={() =>
                                                 Navigation.navigate(
-                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
-                                                );
-                                            }}
+                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(
+                                                        report.reportID,
+                                                        report.policyID ?? '-1',
+                                                        reportField.fieldID,
+                                                        Navigation.getReportRHPActiveRoute(),
+                                                    ),
+                                                )
+                                            }
                                             shouldShowRightIcon
                                             disabled={isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
