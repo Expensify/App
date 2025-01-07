@@ -1741,7 +1741,6 @@ describe('actions/IOU', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`,
                     callback: (report) => {
                         Onyx.disconnect(connection);
-                        console.log(report);
                         expect(report?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
                         resolve(report);
                     },
