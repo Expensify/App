@@ -13,7 +13,6 @@ export default function ShareTabParticipantsSelector({detailsPageRouteObject}: S
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
-            onFinish={() => {}}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
                 const reportID = participant?.reportID;
