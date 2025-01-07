@@ -105,13 +105,12 @@ function IOURequestStepSubrate({
         const quantityValue = String(values[`quantity${pageIndex}`] ?? '');
         const subrateValue = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityValue, 10);
-        if (quantityValue === '') {
-            ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
-        }
         if (subrateValue === '' || !validOptions.some(({value}) => value === subrateValue)) {
             ErrorUtils.addErrorMessage(errors, `subrate${pageIndex}`, translate('common.error.fieldRequired'));
         }
-        if (Number.isNaN(quantityInt)) {
+        if (quantityValue === '') {
+            ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
+        } else if (Number.isNaN(quantityInt)) {
             ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.invalidQuantity'));
         } else if (quantityInt <= 0) {
             ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.quantityGreaterThanZero'));
@@ -204,8 +203,8 @@ function IOURequestStepSubrate({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
-                    shouldValidateOnChange={false}
-                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange
+                    shouldValidateOnBlur
                     submitButtonText={translate('common.save')}
                 >
                     <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
@@ -226,6 +225,7 @@ function IOURequestStepSubrate({
                         label={translate('iou.quantity')}
                         defaultValue={currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
                     />
                 </FormProvider>
             </FullPageNotFoundView>
