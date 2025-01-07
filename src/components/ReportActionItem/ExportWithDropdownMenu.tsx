@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -54,6 +55,7 @@ function ExportWithDropdownMenu({
     const canBeExported = ReportUtils.canBeExported(report);
     const isExported = ReportUtils.isExported(reportActions);
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
+    const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -128,7 +130,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={[styles.flex1, wrapperStyle]}
+                wrapperStyle={flattenedWrapperStyle}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
