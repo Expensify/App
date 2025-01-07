@@ -286,7 +286,7 @@ function ReportPreview({
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
-            return translate('iou.receiptScanning');
+            return translate('iou.receiptScanning', {count: numberOfScanningReceipts});
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
             return translate('iou.fieldPending');
@@ -603,6 +603,7 @@ function ReportPreview({
                                         policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
+                                        wrapperStyle={styles.flexReset}
                                         dropdownAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
