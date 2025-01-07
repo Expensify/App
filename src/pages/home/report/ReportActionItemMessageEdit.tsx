@@ -545,7 +545,11 @@ function ReportActionItemMessageEdit(
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || EmojiPickerAction.isActive(action.reportActionID)) {
+                                if (
+                                    relatedTargetId === CONST.COMPOSER.NATIVE_ID ||
+                                    relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID ||
+                                    EmojiPickerAction.isActive(action.reportActionID)
+                                ) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
