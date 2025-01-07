@@ -11,6 +11,7 @@ const useBottomTabIsFocused = () => {
     const isFocused = useIsFocused();
     const topmostFullScreenName = useNavigationState<RootStackParamList, NavigationPartialRoute<FullScreenName> | undefined>(getTopmostFullScreenRoute);
     const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
+
     // If there is a full screen view such as Workspace Settings or Not Found screen, the bottom tab should not be considered focused
     if (topmostFullScreenName) {
         return false;
