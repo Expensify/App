@@ -59,7 +59,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                 return acc;
             }, {} as Record<string, string | undefined>),
         );
