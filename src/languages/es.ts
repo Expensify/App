@@ -866,6 +866,7 @@ const translations = {
         trackExpense: 'Seguimiento de gastos',
         chooseRecipient: 'Elige destinatario',
         confirmDetails: 'Confirma los detalles',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Crear un gasto de ${amount}`,
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
         cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
@@ -883,7 +884,10 @@ const translations = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        receiptScanning: 'Escaneando recibo...',
+        receiptScanning: () => ({
+            one: 'Escaneando recibo...',
+            other: 'Escaneando recibos...',
+        }),
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
         defaultRate: 'Tasa predeterminada',
@@ -2589,6 +2593,8 @@ const translations = {
                 other: (count: number) => `${count} seleccionados`,
             }),
             settlementFrequency: 'Frecuencia de liquidación',
+            setAsDefault: 'Establecer como espacio de trabajo predeterminado',
+            defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             unavailable: 'Espacio de trabajo no disponible',
@@ -6144,6 +6150,11 @@ const translations = {
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
         },
+    },
+    discardChangesConfirmation: {
+        title: '¿Descartar cambios?',
+        body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
+        confirmText: 'Descartar cambios',
     },
 };
 
