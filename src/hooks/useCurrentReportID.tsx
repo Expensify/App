@@ -14,10 +14,6 @@ type CurrentReportIDContextProviderProps = {
 
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
 
-const withCurrentReportIDDefaultProps = {
-    currentReportID: '',
-};
-
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
 
@@ -63,5 +59,5 @@ export default function useCurrentReportID(): CurrentReportIDContextValue | null
     return useContext(CurrentReportIDContext);
 }
 
-export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider};
+export {CurrentReportIDContextProvider};
 export type {CurrentReportIDContextValue};
