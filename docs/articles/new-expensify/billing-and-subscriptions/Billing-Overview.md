@@ -45,7 +45,7 @@ Rates for pay-per-use plans are applied at full price:
 - **Collect plan:** $20 per active member per month
 - **Control plan:** $36 per active member per month
 
-## Transfer Ownership of Billing
+# Transfer Ownership of Billing
 
 If another member needs to own the billing on a given workspace, they must first be a Workspace Admin. Then, from their account, the Admin will head to **Settings > Workspaces > [Workspace Name] > Members** > click on the current workspace owner > select **Transfer Ownership**.
 
