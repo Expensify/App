@@ -10,16 +10,19 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
     const position = useScrollViewOffset(scrollViewAnimatedRef);
 
-    const onRef = useCallback((assignedRef: Reanimated.ScrollView) => {
-        if (typeof ref === 'function') {
-            ref(assignedRef);
-        } else if (ref) {
-            // eslint-disable-next-line no-param-reassign
-            ref.current = assignedRef;
-        }
+    const onRef = useCallback(
+        (assignedRef: Reanimated.ScrollView) => {
+            if (typeof ref === 'function') {
+                ref(assignedRef);
+            } else if (ref) {
+                // eslint-disable-next-line no-param-reassign
+                ref.current = assignedRef;
+            }
 
-        scrollViewAnimatedRef(assignedRef);
-    }, []);
+            scrollViewAnimatedRef(assignedRef);
+        },
+        [ref, scrollViewAnimatedRef],
+    );
 
     return (
         <Reanimated.ScrollView
