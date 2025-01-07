@@ -26,7 +26,6 @@ type SwitchProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
-
 };
 
 const OFFSET_X = {

@@ -1,5 +1,5 @@
-import { ReactNode, useEffect } from "react";
-import React, {useMemo} from 'react';
+import type {ReactNode} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
