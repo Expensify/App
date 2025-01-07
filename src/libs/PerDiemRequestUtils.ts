@@ -147,7 +147,11 @@ function getDestinationListSections({
     const selectedOptionRateID = selectedOptions.map((selectedOption) => selectedOption.rateID);
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const data = getDestinationOptionTree(sortedDestinations);
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateID.includes(rateID));
+        if (filteredNonSelectedDestinations.length === 0) {
+            return destinationSections;
+        }
+        const data = getDestinationOptionTree(filteredNonSelectedDestinations);
         destinationSections.push({
             // "All" section when items amount less than the threshold
             title: '',
