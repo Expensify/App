@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -33,6 +33,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -77,8 +78,22 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
+    const [currentScreen, setCurrentScreen] = useState<string | undefined>();
+    const removeListener = useRef<() => void>();
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => {
+            const initialRoute = navigationRef.current?.getCurrentRoute();
+            setCurrentScreen(initialRoute?.name);
+            removeListener.current = navigationRef.current?.addListener('state', (event) => {
+                setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
+            });
+        });
+    }, []);
+
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        currentScreen === SCREENS.SEARCH.CENTRAL_PANE,
     );
 
     const onPress = () => {
