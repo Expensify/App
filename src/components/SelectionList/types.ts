@@ -485,9 +485,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
-    /** Whether to show the default confirm button disabled */
-    isConfirmButtonDisabled?: boolean;
-
     /** Whether to use the default theme for the confirm button */
     shouldUseDefaultTheme?: boolean;
 
@@ -644,6 +641,7 @@ type SelectionListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    getFocusedOption: () => ListItem | undefined;
 };
 
 type ItemLayout = {

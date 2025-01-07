@@ -8,6 +8,7 @@ import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
@@ -299,7 +300,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
         },
     ];
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const failureData: OnyxUpdate[] = createOnyxData({errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
@@ -319,7 +320,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     ];
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const failureData: OnyxUpdate[] = createOnyxData({errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
