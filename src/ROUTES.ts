@@ -1420,11 +1420,11 @@ const ROUTES = {
     SHARE_ROOT: 'share/root',
     SHARE_DETAILS: {
         route: 'share/share-details/:reportOrAccountID',
-        getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}`,
+        getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
     },
     SHARE_SUBMIT_DETAILS: {
         route: 'share/submit-details/:reportOrAccountID',
-        getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}`,
+        getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
     },
 
     PROCESS_MONEY_REQUEST_HOLD: {
