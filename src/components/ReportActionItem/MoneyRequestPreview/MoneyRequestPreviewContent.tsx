@@ -203,7 +203,7 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (TransactionUtils.hasPendingUI(transaction)) {
+        if (TransactionUtils.isPending(transaction) || TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transactionID, transactionViolations))) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
@@ -254,14 +254,8 @@ function MoneyRequestPreviewContent({
         if (isScanning) {
             return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
-        if (TransactionUtils.isPending(transaction)) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
         if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID, transactionViolations))) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
     };
