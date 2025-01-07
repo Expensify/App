@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,10 +13,10 @@ const ANIMATED_SCREEN_TRANSITION = 400;
 
 type AnimatedStepProviderProps = ChildrenProps & {
     initialStep: string;
-    renderStep: (name: string) => React.ReactNode;
+    steps: Record<string, ReactNode>;
 };
 
-function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepProviderProps): React.ReactNode {
+function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProviderProps): React.ReactNode {
     const [animationDirection, setAnimationDirection] = useState<AnimationDirection>(CONST.ANIMATION_DIRECTION.IN);
     const [currentStep, setCurrentStep] = useState<string>(initialStep);
     const [previousStep, setPreviousStep] = useState<string | null>(null);
@@ -30,6 +31,10 @@ function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepP
 
     const setStep = useCallback(
         (newStep: string, direction: AnimationDirection) => {
+            if (currentStep === newStep || !!previousStep) {
+                return;
+            }
+
             setAnimationDirection(direction);
             setPreviousStep(currentStep);
             setCurrentStep(newStep);
@@ -44,7 +49,7 @@ function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepP
             prevTranslateX.set(0);
             prevTranslateX.set(withTiming(previousStepPosition, {duration: ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
         },
-        [currentStep, currentTranslateX, prevTranslateX, isSmallScreenWidth, windowWidth],
+        [currentStep, previousStep, isSmallScreenWidth, windowWidth, currentTranslateX, prevTranslateX],
     );
 
     const currentScreenAnimatedStyle = useAnimatedStyle(() => ({
@@ -63,9 +68,16 @@ function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepP
             setStep,
             currentScreenAnimatedStyle,
             previousScreenAnimatedStyle,
-            renderStep,
+            renderStep: () => {
+                return (
+                    <>
+                        {steps[currentStep]}
+                        {previousStep && steps[previousStep]}
+                    </>
+                );
+            },
         }),
-        [currentStep, previousStep, setStep, currentScreenAnimatedStyle, previousScreenAnimatedStyle, renderStep],
+        [currentStep, previousStep, setStep, currentScreenAnimatedStyle, previousScreenAnimatedStyle, steps],
     );
 
     return <AnimatedStepContext.Provider value={contextValue}>{children}</AnimatedStepContext.Provider>;

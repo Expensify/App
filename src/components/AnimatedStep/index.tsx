@@ -41,10 +41,7 @@ function AnimatedStep({stepName, title = '', stepCounter, onBackButtonPress, chi
     }, [onEntryTransitionEnd, previousStep]);
 
     return (
-        <Animated.View
-            style={[styles.animatedStep, stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle]}
-            key={stepName}
-        >
+        <Animated.View style={[styles.animatedStep, stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle]}>
             <ScreenWrapper
                 shouldShowOfflineIndicator={false}
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}

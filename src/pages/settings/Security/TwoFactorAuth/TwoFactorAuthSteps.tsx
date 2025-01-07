@@ -7,7 +7,7 @@ import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 
 function TwoFactorAuthSteps() {
-    const {currentStep, previousStep, renderStep, setStep} = useAnimatedStepContext();
+    const {renderStep, setStep} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
 
@@ -20,12 +20,7 @@ function TwoFactorAuthSteps() {
         [setStep],
     );
 
-    return (
-        <TwoFactorAuthContext.Provider value={contextValue}>
-            {renderStep(currentStep)}
-            {previousStep && renderStep(previousStep)}
-        </TwoFactorAuthContext.Provider>
-    );
+    return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
 export default TwoFactorAuthSteps;

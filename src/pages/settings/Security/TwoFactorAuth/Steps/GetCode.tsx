@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AnimatedStep from '@components/AnimatedStep';
@@ -22,6 +22,14 @@ function GetCode() {
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const {setStep} = useTwoFactorAuthContext();
+
+    useEffect(() => {
+        if (account?.requiresTwoFactorAuth) {
+            return;
+        }
+
+        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLED);
+    }, [account?.requiresTwoFactorAuth, setStep]);
 
     return (
         <AnimatedStep

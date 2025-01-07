@@ -1,4 +1,5 @@
-import React from 'react';
+import type {ReactNode} from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AnimatedStepProvider from '@components/AnimatedStep/AnimatedStepProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -26,29 +27,28 @@ function TwoFactorAuthPage({route}: TwoFactorAuthPageProps) {
     const backTo = route.params?.backTo ?? '';
     const forwardTo = route.params?.forwardTo ?? '';
 
-    const renderStep = (name: string) => {
-        switch (name) {
-            case CONST.TWO_FACTOR_AUTH_STEPS.CODES:
-                return <CodesStep backTo={backTo} />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
-                return <VerifyStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return (
-                    <SuccessStep
-                        backTo={backTo}
-                        forwardTo={forwardTo}
-                    />
-                );
-            case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
-                return <EnabledStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
-                return <DisabledStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.GETCODE:
-                return <GetCodeStep />;
-            default:
-                return <CodesStep backTo={backTo} />;
-        }
-    };
+    const steps: Record<string, ReactNode> = useMemo(
+        () => ({
+            [CONST.TWO_FACTOR_AUTH_STEPS.CODES]: (
+                <CodesStep
+                    backTo={backTo}
+                    key={CONST.TWO_FACTOR_AUTH_STEPS.CODES}
+                />
+            ),
+            [CONST.TWO_FACTOR_AUTH_STEPS.VERIFY]: <VerifyStep key={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY} />,
+            [CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS]: (
+                <SuccessStep
+                    backTo={backTo}
+                    forwardTo={forwardTo}
+                    key={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
+                />
+            ),
+            [CONST.TWO_FACTOR_AUTH_STEPS.ENABLED]: <EnabledStep key={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED} />,
+            [CONST.TWO_FACTOR_AUTH_STEPS.DISABLED]: <DisabledStep key={CONST.TWO_FACTOR_AUTH_STEPS.DISABLED} />,
+            [CONST.TWO_FACTOR_AUTH_STEPS.GETCODE]: <GetCodeStep key={CONST.TWO_FACTOR_AUTH_STEPS.GETCODE} />,
+        }),
+        [backTo, forwardTo],
+    );
 
     if (isActingAsDelegate) {
         return (
@@ -65,7 +65,7 @@ function TwoFactorAuthPage({route}: TwoFactorAuthPageProps) {
     return (
         <AnimatedStepProvider
             initialStep={initialStep}
-            renderStep={renderStep}
+            steps={steps}
         >
             <TwoFactorAuthSteps />
         </AnimatedStepProvider>

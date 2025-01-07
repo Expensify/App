@@ -9,7 +9,7 @@ type StepContext = {
     currentStep: string;
     previousStep: string | null;
     setStep: (newStep: string, direction: AnimationDirection) => void;
-    renderStep: (stepName: string) => React.ReactNode;
+    renderStep: () => React.ReactNode;
     currentScreenAnimatedStyle: StyleProp<ViewStyle>;
     previousScreenAnimatedStyle: StyleProp<ViewStyle>;
 };
