@@ -21,7 +21,8 @@ export default function ShareTabParticipantsSelector({detailsPageRouteObject}: S
                 if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
                 }
-                Navigation.navigate(detailsPageRouteObject.getRoute(`${!reportID ? accountID : reportID}`));
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.navigate(detailsPageRouteObject.getRoute(`${reportID || accountID}`));
             }}
             action="create"
         />

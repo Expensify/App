@@ -27,7 +27,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
     const fileName = source.split('/').pop() ?? undefined;
 
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (fileName && Str.isVideo(fileName))) ?? (fileName && Str.isVideo(fileName));
+    const isSourceVideo = (typeof source === 'string' && Str.isVideo(source)) || (fileName && Str.isVideo(fileName));
     const isFileNameImage = fileName && Str.isImage(fileName);
     const isFileImage = isSourceImage || isFileNameImage;
     const isFileVideo = isSourceVideo && typeof source === 'string';
