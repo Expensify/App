@@ -39,7 +39,7 @@ function IOURequestStepPerDiemWorkspace({
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActivePolicies(allPolicies, currentUserLogin).filter((policy) => PolicyUtils.canSubmitPerDiemExpenseFromWorkspace(policy));
+        const availableWorkspaces = PolicyUtils.getActivePolicies(allPolicies, currentUserLogin, false).filter((policy) => PolicyUtils.canSubmitPerDiemExpenseFromWorkspace(policy));
 
         return availableWorkspaces
             .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))

@@ -100,7 +100,7 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email)
+    const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email, false)
         .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: PolicyUtils.getPerDiemCustomUnit(mappedPolicy)}))
         .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
 
