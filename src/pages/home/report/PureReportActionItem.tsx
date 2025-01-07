@@ -828,6 +828,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getWorkspaceFrequencyUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.updatedWorkspaceCorporatePlan')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+            children = <ReportActionItemBasicMessage message={translate('workspaceActions.updatedWorkspaceCorporatePlanDowngrade')} />;
         } else if (
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||

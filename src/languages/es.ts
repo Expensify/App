@@ -4682,6 +4682,7 @@ const translations = {
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `actualizó la frecuencia de generación automática de informes de "${oldFrequency}" a "${newFrequency}"`,
         updatedWorkspaceCorporatePlan: 'mejoró este espacio de trabajo al plan Controlar',
+        updatedWorkspaceCorporatePlanDowngrade: 'degradó este espacio de trabajo al plan Collect',
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `Actualizó el Modo de Aprobación de "${oldValue}" a "${newValue}".`,
     },
     roomMembersPage: {

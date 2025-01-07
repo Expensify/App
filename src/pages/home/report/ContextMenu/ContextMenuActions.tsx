@@ -421,6 +421,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(ReportActionsUtils.getWorkspaceFrequencyUpdateMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     Clipboard.setString(Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+                    Clipboard.setString(Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlanDowngrade'));
                 } else if (
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||

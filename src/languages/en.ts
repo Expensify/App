@@ -4631,6 +4631,7 @@ const translations = {
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
         updatedWorkspaceCorporatePlan: 'upgraded this workspace to the Control plan',
+        updatedWorkspaceCorporatePlanDowngrade: 'downgraded this workspace to the Collect plan',
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the Approval Mode from "${oldValue}" to "${newValue}".`,
     },
     roomMembersPage: {
