@@ -1491,9 +1491,15 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Account balance */
         stripeConnectAccountBalance?: number;
 
+        /** AccountID */
+        stripeConnectAccountID?: string;
+
         /** bankAccountID of selected BBA for payouts */
         transferBankAccountID?: number;
     };
+
+    /** The markUp */
+    markUp?: number;
 }>;
 
 /** Names of policy features */
@@ -1630,6 +1636,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         harvesting?: {
             /** Whether the scheduled submit is enabled */
             enabled: boolean;
+
+            /** The ID of the Bedrock job that runs harvesting */
+            jobID?: number;
         };
 
         /** Whether the self approval or submitting is enabled */
@@ -1936,4 +1945,5 @@ export type {
     ExpenseRule,
     NetSuiteConnectionConfig,
     MccGroup,
+    Subrate,
 };

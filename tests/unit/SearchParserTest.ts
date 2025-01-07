@@ -459,8 +459,108 @@ const tests = [
     },
 ];
 
+/*
+ * Test keywords with special characters and wrapped in quotes
+ */
+
+const keywordTests = [
+    {
+        query: '" " "  "', // Multiple whitespaces wrapped in quotes
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: [' ', '  '],
+            },
+        },
+    },
+    {
+        query: '"https://expensify.com" "https://new.expensify.com"',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['https://expensify.com', 'https://new.expensify.com'],
+            },
+        },
+    },
+    {
+        query: '""https://expensify.com"" to ""https://new.expensify.com""', // Nested quotes with a colon
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['"https://expensify.com"', 'to', '"https://new.expensify.com"'],
+            },
+        },
+    },
+    {
+        query: '"""https://expensify.com" to "https://new.expensify.com"""', // Mismatched quotes
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['""https://expensify.com', 'to', 'https://new.expensify.com""'],
+            },
+        },
+    },
+    {
+        query: 'date>2024-01-01 from:usera@user.com "https://expensify.com" "https://new.expensify.com"',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'and',
+                    left: {
+                        operator: 'gt',
+                        left: 'date',
+                        right: '2024-01-01',
+                    },
+                    right: {
+                        operator: 'eq',
+                        left: 'from',
+                        right: 'usera@user.com',
+                    },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'keyword',
+                    right: ['https://expensify.com', 'https://new.expensify.com'],
+                },
+            },
+        },
+    },
+];
+
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
+        const result = searchParser.parse(query) as SearchQueryJSON;
+        expect(result).toEqual(expected);
+    });
+});
+
+describe('Testing search parser with special characters and wrapped in quotes.', () => {
+    test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
         const result = searchParser.parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });
