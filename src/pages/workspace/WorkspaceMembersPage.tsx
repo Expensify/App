@@ -201,7 +201,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
-        PolicyUtils.clearInviteDraft(route.params.policyID);
+        Member.clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
     }, [route.params.policyID]);
 
@@ -420,7 +420,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
         selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
-        PolicyUtils.clearInviteDraft(route.params.policyID);
+        Member.clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
     const getHeaderMessage = () => {

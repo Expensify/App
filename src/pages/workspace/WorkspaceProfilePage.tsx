@@ -28,6 +28,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -351,7 +352,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
                                         onPress={() => {
-                                            PolicyUtils.clearInviteDraft(route.params.policyID);
+                                            Member.clearInviteDraft(route.params.policyID);
                                             Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
                                         }}
                                         icon={Expensicons.UserPlus}

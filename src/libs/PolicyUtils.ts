@@ -1192,11 +1192,6 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
-function clearInviteDraft(policyID: string) {
-    Member.setWorkspaceInviteMembersDraft(policyID, {});
-    FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-}
-
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1325,7 +1320,6 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
-    clearInviteDraft,
 };
 
 export type {MemberEmailsToAccountIDs};
