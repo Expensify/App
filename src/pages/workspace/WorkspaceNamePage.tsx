@@ -58,7 +58,7 @@ function WorkspaceNamePage({policy}: Props) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? '-1'}
+            policyID={policy?.id}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
@@ -67,7 +67,7 @@ function WorkspaceNamePage({policy}: Props) {
                 testID={WorkspaceNamePage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.editor.nameInputLabel')}
+                    title={translate('workspace.common.workspaceName')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
 
@@ -85,8 +85,8 @@ function WorkspaceNamePage({policy}: Props) {
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            label={translate('workspace.common.workspaceName')}
+                            accessibilityLabel={translate('workspace.common.workspaceName')}
                             defaultValue={policy?.name}
                             spellCheck={false}
                             autoFocus
