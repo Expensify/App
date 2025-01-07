@@ -3,7 +3,6 @@ import {InteractionManager, NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Session from '@userActions/Session';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
@@ -30,11 +29,10 @@ function useOnboardingFlowRouter() {
     const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
-    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
@@ -42,7 +40,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
                 const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
@@ -85,8 +83,6 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
         isPrivateDomain,
-        allBetas,
-        allBetasMetadata,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
