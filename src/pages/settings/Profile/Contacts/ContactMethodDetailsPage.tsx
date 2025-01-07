@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, Platform} from 'react-native';
+import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -177,6 +177,24 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
 
+    const getDeleteConfirmationModal = () => (
+        <ConfirmModal
+            title={translate('contacts.removeContactMethod')}
+            onConfirm={confirmDeleteAndHideModal}
+            onCancel={() => toggleDeleteModal(false)}
+            onModalHide={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    validateCodeFormRef.current?.focusLastSelected?.();
+                });
+            }}
+            prompt={translate('contacts.removeAreYouSure')}
+            confirmText={translate('common.yesContinue')}
+            cancelText={translate('common.cancel')}
+            isVisible={isDeleteModalOpen && !isDefaultContactMethod}
+            danger
+        />
+    );
+
     const getMenuItems = () => (
         <>
             {canChangeDefaultContactMethod ? (
@@ -216,6 +234,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
+            {getDeleteConfirmationModal()}
         </>
     );
 
@@ -257,48 +276,18 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                    shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('common.remove'),
-                            onSelected: () => {
-                                if (Platform.OS === 'ios') {
-                                    setIsValidateCodeActionModalVisible(false);
-                                }
-                                toggleDeleteModal(true);
-                            },
+                            onSelected: () => toggleDeleteModal(true),
                         },
                     ]}
-                    shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
+                    footer={getDeleteConfirmationModal}
                 />
 
-                {!isValidateCodeActionModalVisible && !!loginData && !!loginData.validatedDate && getMenuItems()}
-                <ConfirmModal
-                    title={translate('contacts.removeContactMethod')}
-                    onConfirm={confirmDeleteAndHideModal}
-                    onCancel={() => {
-                        toggleDeleteModal(false);
-                        // On iOS, if the secondary login is not validated, reopen the ValidateCodeActionModal
-                        if (Platform.OS === 'ios' && !!loginData && !loginData.validatedDate) {
-                            // Ensure the ConfirmModal is fully closed before showing the ValidateCodeActionModal
-                            InteractionManager.runAfterInteractions(() => {
-                                setTimeout(() => {
-                                    setIsValidateCodeActionModalVisible(true);
-                                }, 0);
-                            });
-                        }
-                    }}
-                    onModalHide={() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            validateCodeFormRef.current?.focusLastSelected?.();
-                        });
-                    }}
-                    prompt={translate('contacts.removeAreYouSure')}
-                    confirmText={translate('common.yesContinue')}
-                    cancelText={translate('common.cancel')}
-                    isVisible={isDeleteModalOpen && !isDefaultContactMethod}
-                    danger
-                />
+                {!isValidateCodeActionModalVisible && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
