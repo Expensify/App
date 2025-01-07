@@ -12,6 +12,7 @@ import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -116,6 +117,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     });
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const canModifyTask = Task.canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
         switch (type) {
@@ -149,7 +153,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               Link.openExternalLink(navatticURL);
                                               Welcome.setSelfTourViewed();
-                                              Task.completeTask(viewTourTaskReport);
+                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
+                                                  Task.completeTask(viewTourTaskReport);
+                                              }
                                           },
                                       },
                                   ]
@@ -187,7 +193,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               Link.openExternalLink(navatticURL);
                                               Welcome.setSelfTourViewed();
-                                              Task.completeTask(viewTourTaskReport);
+                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
+                                                  Task.completeTask(viewTourTaskReport);
+                                              }
                                           },
                                       },
                                   ]
