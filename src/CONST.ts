@@ -658,6 +658,7 @@ const CONST = {
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
+        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
