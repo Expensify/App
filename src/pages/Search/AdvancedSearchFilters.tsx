@@ -221,8 +221,8 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         : undefined;
 }
 
-function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList) {
-    const selectedPersonalDetails = accountIDs.map((id) => personalDetails[id]);
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined) {
+    const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
 
     return selectedPersonalDetails
         .map((personalDetail) => {
@@ -437,11 +437,6 @@ function AdvancedSearchFilters() {
             // If the search is already saved, return early to prevent unnecessary API calls
             Navigation.dismissModal();
             return;
-        }
-
-        // We only want to show the tooltip once, the NVP will not be set if the user has not saved a search yet
-        if (!savedSearches) {
-            SearchActions.showSavedSearchRenameTooltip();
         }
 
         SearchActions.saveSearch({

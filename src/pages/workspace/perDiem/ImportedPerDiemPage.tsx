@@ -59,8 +59,8 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         const roles = [];
         roles.push(
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('workspace.perDiem.destination'), value: CONST.CSV_IMPORT_COLUMNS.DESTINATION, isRequired: true},
-            {text: translate('workspace.perDiem.subrate'), value: CONST.CSV_IMPORT_COLUMNS.SUBRATE, isRequired: true},
+            {text: translate('common.destination'), value: CONST.CSV_IMPORT_COLUMNS.DESTINATION, isRequired: true},
+            {text: translate('common.subrate'), value: CONST.CSV_IMPORT_COLUMNS.SUBRATE, isRequired: true},
             {text: translate('common.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
             {text: translate('workspace.perDiem.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
         );
@@ -98,7 +98,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const importPerDiemRates = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
-        if (Object.keys(errors).length > 0) {
+        if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
             return;
         }
 
@@ -122,7 +122,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits, rowsLength);
+            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 

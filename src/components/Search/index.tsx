@@ -78,7 +78,10 @@ function mapToItemWithSelectionInfo(
     shouldAnimateInHighlight: boolean,
 ) {
     if (SearchUIUtils.isReportActionListItemType(item)) {
-        return item;
+        return {
+            ...item,
+            shouldAnimateInHighlight,
+        };
     }
 
     return SearchUIUtils.isTransactionListItemType(item)
@@ -134,6 +137,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const previousReportActions = usePrevious(reportActions);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -211,6 +216,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         previousTransactions,
         queryJSON,
         offset,
+        reportActions,
+        previousReportActions,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
@@ -323,15 +330,20 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const ListItem = SearchUIUtils.getListItem(type, status);
     const sortedData = SearchUIUtils.getSortedSections(type, status, data, sortBy, sortOrder);
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
-        const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+        const baseKey = isChat
+            ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+            : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
         // Check if the base key matches the newSearchResultKey (TransactionListItemType)
         const isBaseKeyMatch = baseKey === newSearchResultKey;
         // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
-        const isAnyTransactionMatch = (item as ReportListItemType)?.transactions?.some((transaction) => {
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-            return transactionKey === newSearchResultKey;
-        });
+        const isAnyTransactionMatch =
+            !isChat &&
+            (item as ReportListItemType)?.transactions?.some((transaction) => {
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                return transactionKey === newSearchResultKey;
+            });
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
