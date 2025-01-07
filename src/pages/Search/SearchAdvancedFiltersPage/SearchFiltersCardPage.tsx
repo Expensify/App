@@ -248,27 +248,33 @@ function SearchFiltersCardPage() {
         cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >
         CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
 
+    const searchFunction = useCallback(
+        (item: CardFilterItem) =>
+            !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()),
+        [debouncedSearchTerm],
+    );
+
     const sections = useMemo(() => {
         const newSections = [];
         const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
 
         newSections.push({
             title: undefined,
-            data: selectedItems.filter((item) => item && item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            data: selectedItems.filter(searchFunction),
             shouldShow: selectedItems.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
-            data: cardFeedsSectionData.unselected.filter((item) => item && item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            data: cardFeedsSectionData.unselected.filter(searchFunction),
             shouldShow: cardFeedsSectionData.unselected.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.individualCards'),
-            data: individualCardsSectionData.unselected.filter((item) => item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            data: individualCardsSectionData.unselected.filter(searchFunction),
             shouldShow: individualCardsSectionData.unselected.length > 0,
         });
         return newSections;
-    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, translate, debouncedSearchTerm]);
+    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
 
     const handleConfirmSelection = useCallback(() => {
         SearchActions.updateAdvancedFilters({
