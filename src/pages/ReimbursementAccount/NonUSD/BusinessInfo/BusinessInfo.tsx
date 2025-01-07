@@ -72,8 +72,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
-    const country =
-        reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     useEffect(() => {
         BankAccounts.getCorpayOnboardingFields(country);
