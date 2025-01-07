@@ -25,6 +25,7 @@ import type {BankIcon} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CardFilterItem = Partial<OptionData> & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean; isCardFeed?: boolean; correspondingCards?: string[]};
+type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
 
@@ -70,7 +71,7 @@ function buildIndividualCardsData(
     userCardList: CardList,
     selectedCards: string[],
     iconStyles: StyleProp<ViewStyle>,
-): CardFilterItem[] {
+): ItemsGroupedBySelection {
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {}).map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
@@ -81,7 +82,18 @@ function buildIndividualCardsData(
                 .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
                 .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
         });
-    return [...userAssignedCards, ...allWorkspaceCards];
+
+    const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
+    const selectedCardItems: CardFilterItem[] = [];
+    const unselectedCardItems: CardFilterItem[] = [];
+    allCardItems.forEach((card) => {
+        if (card.isSelected) {
+            selectedCardItems.push(card);
+        } else {
+            unselectedCardItems.push(card);
+        }
+    });
+    return {selected: selectedCardItems, unselected: unselectedCardItems};
 }
 
 function createCardFeedItem({
@@ -100,7 +112,7 @@ function createCardFeedItem({
     selectedCards: string[];
     iconStyles: StyleProp<ViewStyle>;
     translate: LocaleContextProps['translate'];
-}) {
+}): CardFilterItem {
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
     const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
@@ -127,14 +139,16 @@ function buildCardFeedsData(
     selectedCards: string[],
     iconStyles: StyleProp<ViewStyle>,
     translate: LocaleContextProps['translate'],
-): CardFilterItem[] {
+): ItemsGroupedBySelection {
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
+    const selectedFeeds: CardFilterItem[] = [];
+    const unselectedFeeds: CardFilterItem[] = [];
 
-    const domainFeeds: CardFilterItem[] = Object.values(domainFeedsData).map((domainFeed) => {
+    Object.values(domainFeedsData).forEach((domainFeed) => {
         const {domainName, bank, correspondingCardIDs} = domainFeed;
         const isBankRepeating = repeatingBanks.includes(bank);
 
-        return createCardFeedItem({
+        const feedItem = createCardFeedItem({
             bank,
             correspondingCardIDs,
             iconStyles,
@@ -143,11 +157,16 @@ function buildCardFeedsData(
             keyForList: `${domainName}-${bank}`,
             selectedCards,
         });
+        if (feedItem.isSelected) {
+            selectedFeeds.push(feedItem);
+        } else {
+            unselectedFeeds.push(feedItem);
+        }
     });
 
-    const workspaceFeeds: CardFilterItem[] = Object.entries(workspaceCardFeeds)
+    Object.entries(workspaceCardFeeds)
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
-        .map(([cardFeedKey, cardFeed]) => {
+        .forEach(([cardFeedKey, cardFeed]) => {
             const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
             if (!representativeCard) {
                 return;
@@ -158,7 +177,7 @@ function buildCardFeedsData(
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
             const correspondingCardIDs = Object.keys(cardFeed ?? {}).filter((cardKey) => cardKey !== 'cardList');
 
-            return createCardFeedItem({
+            const feedItem = createCardFeedItem({
                 bank,
                 correspondingCardIDs,
                 iconStyles,
@@ -167,10 +186,14 @@ function buildCardFeedsData(
                 keyForList: cardFeedKey,
                 selectedCards,
             });
-        })
-        .filter((feed) => feed) as CardFilterItem[];
+            if (feedItem.isSelected) {
+                selectedFeeds.push(feedItem);
+            } else {
+                unselectedFeeds.push(feedItem);
+            }
+        });
 
-    return [...domainFeeds, ...workspaceFeeds];
+    return {selected: selectedFeeds, unselected: unselectedFeeds};
 }
 
 function SearchFiltersCardPage() {
@@ -214,23 +237,31 @@ function SearchFiltersCardPage() {
         [domainFeedsData, workspaceCardFeeds, selectedCards, styles.cardIcon, translate],
     );
 
-    const shouldShowSearchInput = cardFeedsSectionData.length + individualCardsSectionData.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
+    const shouldShowSearchInput =
+        cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >
+        CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
 
     const sections = useMemo(() => {
         const newSections = [];
+        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
 
         newSections.push({
+            title: undefined,
+            data: selectedItems.filter((item) => item && item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            shouldShow: selectedItems.length > 0,
+        });
+        newSections.push({
             title: translate('search.filters.card.cardFeeds'),
-            data: cardFeedsSectionData.filter((item) => item && item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
-            shouldShow: cardFeedsSectionData.length > 0,
+            data: cardFeedsSectionData.unselected.filter((item) => item && item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            shouldShow: cardFeedsSectionData.unselected.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.individualCards'),
-            data: individualCardsSectionData.filter((item) => item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
-            shouldShow: individualCardsSectionData.length > 0,
+            data: individualCardsSectionData.unselected.filter((item) => item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+            shouldShow: individualCardsSectionData.unselected.length > 0,
         });
         return newSections;
-    }, [translate, cardFeedsSectionData, individualCardsSectionData, debouncedSearchTerm]);
+    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, translate, debouncedSearchTerm]);
 
     const handleConfirmSelection = useCallback(() => {
         SearchActions.updateAdvancedFilters({
