@@ -7397,11 +7397,18 @@ function canIOUBePaid(
     );
 }
 
-function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy) {
+function canSubmitReport(
+    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
+    transactionIDList: string[],
+    allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
+) {
     const currentUserAccountID = Report.getCurrentUserAccountID();
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(report);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transactionIDList, allViolations);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', report, policy);
 
     return isOpenExpenseReport && reimbursableSpend !== 0 && !hasAllPendingRTERViolations && !shouldShowBrokenConnectionViolation && (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID);
 }
