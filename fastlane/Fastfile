@@ -116,7 +116,7 @@ platform :android do
 
   desc "Generate a new local HybridApp APK"
     lane :build_local_hybrid do
-      ENV["ENVFILE"]=".env.production"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
