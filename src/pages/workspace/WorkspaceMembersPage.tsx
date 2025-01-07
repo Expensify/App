@@ -208,7 +208,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
      */
     const inviteUser = () => {
         clearInviteDraft();
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
     };
 
     /**

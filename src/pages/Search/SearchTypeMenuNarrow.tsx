@@ -9,9 +9,11 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -21,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
@@ -68,9 +71,18 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
 
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+    );
+
     const onPress = () => {
+        hideProductTrainingTooltip();
         const values = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
@@ -200,10 +212,22 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                     </Animated.View>
                 )}
             </PressableWithFeedback>
-            <Button
-                icon={Expensicons.Filters}
-                onPress={onPress}
-            />
+            <EducationalTooltip
+                shouldRender={shouldShowProductTrainingTooltip}
+                anchorAlignment={{
+                    horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                shiftHorizontal={isWebOrDesktop ? 0 : variables.searchFiltersTooltipShiftHorizontalNarrow}
+                shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                renderTooltipContent={renderProductTrainingTooltip}
+            >
+                <Button
+                    icon={Expensicons.Filters}
+                    onPress={onPress}
+                />
+            </EducationalTooltip>
             <PopoverMenu
                 menuItems={allMenuItems as PopoverMenuItem[]}
                 isVisible={isPopoverVisible}
