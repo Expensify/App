@@ -46,6 +46,7 @@ import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getClearIsReportActionLinked} from '@src/pages/home/report/clearReportAction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -248,6 +249,8 @@ function ReportActionCompose({
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
+        // Clear the highlighted report item when an action from the + menu is taken
+        getClearIsReportActionLinked()();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -293,6 +296,8 @@ function ReportActionCompose({
                 Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
             }
+            // Clear the highlighted report item when a new comment or attachment is sent
+            getClearIsReportActionLinked()();
         },
         [onSubmit, reportID],
     );

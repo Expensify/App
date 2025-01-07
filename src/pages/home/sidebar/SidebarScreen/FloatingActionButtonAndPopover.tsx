@@ -43,6 +43,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getClearIsReportActionLinked} from '@src/pages/home/report/clearReportAction';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -448,13 +449,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
+    const onItemSelected = useCallback(() => {
+        hideCreateMenu();
+        // Clear the highlighted report item when an action from the + menu is taken
+        getClearIsReportActionLinked()();
+    }, [hideCreateMenu]);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={hideCreateMenu}
+                onItemSelected={onItemSelected}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     ...expenseMenuItems,
