@@ -98,9 +98,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (selectedTab === SCREENS.HOME) {
             return;
         }
+        hideProductTrainingTooltip();
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
-    }, [activeWorkspaceID, selectedTab]);
+    }, [activeWorkspaceID, selectedTab, hideProductTrainingTooltip]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
@@ -153,10 +154,9 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
-                    shouldUseOverlay
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
-                    onHideTooltip={hideProductTrainingTooltip}
+                    shouldHideOnNavigate={false}
                 >
                     <PressableWithFeedback
                         onPress={navigateToChats}

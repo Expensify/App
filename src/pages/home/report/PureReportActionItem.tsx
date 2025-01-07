@@ -721,7 +721,8 @@ function PureReportActionItem({
                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
             ) : (
                 <ReportPreview
-                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action) as string}
                     chatReportID={reportID}
                     policyID={report?.policyID ?? '-1'}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
