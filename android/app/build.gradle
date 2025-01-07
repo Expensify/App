@@ -247,7 +247,7 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 
-    implementation("com.google.code.gson:gson:2.8.8")
+    implementation("com.google.code.gson:gson:2.8.9")
 }
 
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
