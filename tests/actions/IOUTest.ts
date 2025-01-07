@@ -155,7 +155,7 @@ describe('actions/IOU', () => {
                 merchant: fakeTransaction.merchant,
                 payeeEmail: participant.login,
                 payeeAccountID: participant.accountID,
-                participant: participant,
+                participant,
                 comment: '',
                 isDraftPolicy: true,
                 receipt: undefined,
