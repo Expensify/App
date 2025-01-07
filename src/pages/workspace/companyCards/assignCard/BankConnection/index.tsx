@@ -20,6 +20,7 @@ import openBankConnection from './openBankConnection';
 let customWindow: Window | null = null;
 
 type BankConnectionStepProps = {
+    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed */

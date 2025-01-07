@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type BankConnectionStepProps = {
+    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed */
