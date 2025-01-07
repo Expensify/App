@@ -8,6 +8,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
@@ -174,7 +175,7 @@ describe('ReportUtils', () => {
 
         describe('Default Policy Room', () => {
             const baseAdminsRoom = {
-                reportID: '',
+                reportID: '101',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
@@ -183,7 +184,7 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedAdminsRoom = {
                     ...baseAdminsRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -191,6 +192,20 @@ describe('ReportUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 };
+
+                const reportNameValuePairs = {
+                    private_isArchived: DateUtils.getDBTime(),
+                };
+
+                const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`]: reportNameValuePairs,
+                };
+
+                await Onyx.multiSet({...reportNameValuePairsCollection});
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs).then(() =>
+                    expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)'),
+                );
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
