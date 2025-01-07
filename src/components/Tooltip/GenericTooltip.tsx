@@ -34,7 +34,8 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
-    onHideTooltip = () => {},
+    shouldTeleportPortalToModalLayer,
+    shouldRender = true,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -150,8 +151,7 @@ function GenericTooltip({
         }
         setShouldUseOverlay(false);
         hideTooltip();
-        onHideTooltip();
-    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
+    }, [shouldUseOverlay, hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
@@ -161,7 +161,7 @@ function GenericTooltip({
 
     return (
         <>
-            {isRendered && (
+            {shouldRender && isRendered && (
                 <BaseGenericTooltip
                     // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation}
@@ -183,6 +183,7 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
+                    shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                 />
             )}
