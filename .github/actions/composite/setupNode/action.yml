@@ -46,13 +46,17 @@ runs:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
 
+    - name: Remove ND node_modules if needed for hybrid app build
+      if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
+      run: rm -rf node_modules
+
     - name: Install root project node packages
-      if:  (steps.cache-node-modules.outputs.cache-hit != 'true') || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true') 
+      if:  steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30
         max_attempts: 3
-        command: rm -rf node_modules && npm ci # if we want to build hybrid app then we have to remove ND node_modules first
+        command: npm ci
 
     - name: Install node packages for desktop submodule
       if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
