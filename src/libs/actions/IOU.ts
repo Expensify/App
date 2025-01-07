@@ -847,6 +847,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
+                ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
                 iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
@@ -1106,6 +1107,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 iouReportID: chat.report?.iouReportID,
                 lastReadTime: chat.report?.lastReadTime,
+                lastVisibleActionCreated: chat.report?.lastVisibleActionCreated,
                 pendingFields: null,
                 hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
                 ...(isNewChatReport
