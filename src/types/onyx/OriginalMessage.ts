@@ -362,6 +362,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
+
+    /** New desciption */
+    newDescription?: string;
+
+    /** Old desciption */
+    oldDescription?: string;
 };
 
 /** Model of `join policy changelog` report action */

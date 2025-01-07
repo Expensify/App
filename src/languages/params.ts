@@ -286,6 +286,8 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
+type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
+
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
@@ -835,6 +837,7 @@ export type {
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyDescriptionParams,
     FirstDayTextParams,
     LastDayTextParams,
     TripLengthTextParams,

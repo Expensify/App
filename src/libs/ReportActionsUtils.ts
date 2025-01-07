@@ -1762,6 +1762,15 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     return message;
 }
 
+function getWorkspaceDescriptionUpdatedMessage(action: ReportAction) {
+    const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
+    const message =
+        typeof oldDescription === 'string' && newDescription
+            ? Localize.translateLocal('workspaceActions.updateWorkspaceDescription', {newDescription, oldDescription})
+            : getReportActionText(action);
+    return message;
+}
+
 function getWorkspaceCurrencyUpdateMessage(action: ReportAction) {
     const {oldCurrency, newCurrency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
     const message = oldCurrency && newCurrency ? Localize.translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency}) : getReportActionText(action);
@@ -2168,6 +2177,7 @@ export {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getWorkspaceDescriptionUpdatedMessage,
 };
 
 export type {LastVisibleMessage};
