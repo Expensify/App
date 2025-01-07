@@ -16,9 +16,11 @@ type FreeTrialProps = {
     badgeStyles?: StyleProp<ViewStyle>;
     pressable?: boolean;
     addSpacing?: boolean;
+    success?: boolean;
+    inARow?: boolean;
 };
 
-function FreeTrial({badgeStyles, pressable = false, addSpacing = false}: FreeTrialProps) {
+function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success = true, inARow = false}: FreeTrialProps) {
     const styles = useThemeStyles();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -42,19 +44,19 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false}: FreeTri
     const freeTrial = pressable ? (
         <Button
             icon={Expensicons.Star}
-            success
+            success={success}
             text={freeTrialText}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
         />
     ) : (
         <Badge
-            success
+            success={success}
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />
     );
 
-    return addSpacing ? <View style={[styles.pb3, styles.ph5]}>{freeTrial}</View> : freeTrial;
+    return addSpacing ? <View style={inARow ? [styles.pb3, styles.pr5, styles.w50, styles.pl1] : [styles.pb3, styles.ph5]}>{freeTrial}</View> : freeTrial;
 }
 
 FreeTrial.displayName = 'FreeTrial';

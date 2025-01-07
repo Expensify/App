@@ -174,10 +174,17 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
             onPress={() => {
                 openExternalLink(account?.guideDetails?.calendarLink ?? '');
             }}
-            style={isChatUsedForOnboarding && styles.mr2}
+            style={!shouldUseNarrowLayout && isChatUsedForOnboarding && styles.mr2}
             icon={Expensicons.CalendarSolid}
         />
     );
+
+    const getGuideBookButtonStyles = () => {
+        if (isChatUsedForOnboarding) {
+            return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
+        }
+        return [styles.pb3, styles.ph5];
+    };
 
     return (
         <View
@@ -313,7 +320,12 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
-                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && (
+                                    <FreeTrial
+                                        pressable
+                                        success={!shouldShowGuideBooking}
+                                    />
+                                )}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -337,13 +349,17 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                 )}
             </View>
             {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
-                <FreeTrial
-                    pressable
-                    addSpacing
-                />
-            )}
-            {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{guideBookingButton}</View>}
+            <View style={isChatUsedForOnboarding && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
+                {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>}
+                {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                    <FreeTrial
+                        pressable
+                        addSpacing
+                        success={!shouldShowGuideBooking}
+                        inARow={shouldShowGuideBooking}
+                    />
+                )}
+            </View>
         </View>
     );
 }
