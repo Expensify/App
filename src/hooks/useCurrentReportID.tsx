@@ -59,9 +59,9 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
 CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
 
-export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
-export type {CurrentReportIDContextValue};
-
 export default function useCurrentReportID(): CurrentReportIDContextValue | null {
     return useContext(CurrentReportIDContext);
 }
+
+export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
+export type {CurrentReportIDContextValue};
