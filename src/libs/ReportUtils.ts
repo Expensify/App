@@ -3653,7 +3653,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (hasReceiptTransactionUtils(transaction) && isReceiptBeingScanned(transaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
+        return Localize.translateLocal('iou.receiptScanning', {count: 1});
     }
 
     if (hasMissingSmartscanFieldsTransactionUtils(transaction)) {
@@ -3698,6 +3698,14 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
 
+    if (!report?.reportID) {
+        return reportActionMessage;
+    }
+
+    const allReportTransactions = getAllReportTransactions(report.reportID);
+    const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
+    const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
+
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
@@ -3713,7 +3721,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning');
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
@@ -3735,7 +3743,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning');
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
@@ -3770,7 +3778,7 @@ function getReportPreviewMessage(
     }
 
     if (!isEmptyObject(linkedTransaction) && hasReceiptTransactionUtils(linkedTransaction) && isReceiptBeingScanned(linkedTransaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
+        return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
     if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
