@@ -1,11 +1,20 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import FeatureTrainingModal from './FeatureTrainingModal';
 
 function ExplanationModal() {
     const {translate} = useLocalize();
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
+
+    // If the user has already seen the welcome video, don't show it again
+    if (hasBeenAddedToNudgeMigration) {
+        return null;
+    }
 
     return (
         <FeatureTrainingModal
