@@ -118,6 +118,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
         onContentSizeChange,
+        listItemTitleStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -332,6 +333,15 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    useEffect(() => {
+        const selectedItemIndex = flattenedSections.allOptions.findIndex((option) => option.isSelected);
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+            return;
+        }
+        setFocusedIndex(selectedItemIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [flattenedSections]);
+
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
     }, [onChangeText]);
@@ -524,6 +534,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     normalizedIndex={normalizedIndex}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
                     wrapperStyle={listItemWrapperStyle}
+                    titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                 />

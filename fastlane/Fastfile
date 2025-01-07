@@ -88,9 +88,9 @@ platform :android do
 
   desc "Generate AdHoc HybridApp apk"
     lane :build_adhoc_hybrid do
-      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assembleAdhoc',
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
@@ -408,7 +408,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp Adhoc build"
     lane :build_adhoc_hybrid do
-      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp"
 
       setupIOSSigningCertificate()
 
@@ -425,7 +425,7 @@ platform :ios do
       )
 
       build_app(
-        workspace: "../iOS/Expensify.xcworkspace",
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
         export_method: "app-store",

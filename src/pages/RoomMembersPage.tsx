@@ -48,6 +48,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
@@ -56,7 +57,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const backTo = route.params.backTo;
 
@@ -175,7 +176,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const shouldShowTextInput = useMemo(() => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = participants.filter((accountID) => {
-            const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             if (!personalDetails?.[accountID]) {
                 return false;
             }
@@ -183,7 +184,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
         return activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    }, [participants, personalDetails, isOffline, report]);
+    }, [participants, reportMetadata?.pendingChatMembers, personalDetails, isOffline]);
 
     useEffect(() => {
         if (!isFocusedScreen || !shouldShowTextInput) {
@@ -218,7 +219,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = PolicyUtils.isUserPolicyAdmin(policy, details.login);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isDisabledCheckbox =
@@ -251,11 +252,22 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
-    }, [formatPhoneNumber, isPolicyExpenseChat, participants, personalDetails, policy, report.ownerAccountID, report?.pendingChatMembers, searchValue, selectedMembers, session?.accountID]);
+    }, [
+        formatPhoneNumber,
+        isPolicyExpenseChat,
+        participants,
+        personalDetails,
+        policy,
+        report.ownerAccountID,
+        reportMetadata?.pendingChatMembers,
+        searchValue,
+        selectedMembers,
+        session?.accountID,
+    ]);
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID));
         },
         [report.reportID],
     );
@@ -313,7 +325,11 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1, backTo));
+            if (!item?.accountID) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
         [report, backTo],
     );
@@ -373,7 +389,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
