@@ -47,6 +47,6 @@ Rates for pay-per-use plans are applied at full price:
 
 # Transfer Ownership of Billing
 
-If another member needs to own the billing on a given workspace, they must first be a Workspace Admin. Then, from their account, the Admin will head to **Settings > Workspaces > [Workspace Name] > Members** > click on the current workspace owner > select **Transfer Ownership**.
+If another member needs to own the billing on a given workspace, they must first be a Workspace Admin. Then, from their account, the Admin will head to **Settings > Workspaces > [Workspace Name] > Members > [Current Workspace Owner] > Transfer Ownership**.
 
 From there, the new billing owner will add a payment card and be charged for the member activity on the workspace on the first of the month. 
