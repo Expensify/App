@@ -69,7 +69,6 @@ function IOURequestStepParticipants({
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -88,9 +87,30 @@ function IOURequestStepParticipants({
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
+    const trackExpense = useCallback(() => {
+        // If coming from the combined submit/track flow and the user proceeds to just track the expense,
+        // we will use the track IOU type in the confirmation flow.
+        if (!selfDMReportID) {
+            return;
+        }
+
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        IOU.setCustomUnitRateID(transactionID, rateID);
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
+        Navigation.navigate(iouConfirmationPageRoute);
+    }, [action, selfDMReport, selfDMReportID, transactionID]);
+
     const addParticipant = useCallback(
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+
+            const firstParticipant = val.at(0);
+
+            if (firstParticipant?.isSelfDM) {
+                trackExpense();
+                return;
+            }
 
             const firstParticipantReportID = val.at(0)?.reportID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
@@ -110,7 +130,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID ?? reportID;
         },
-        [iouType, reportID, transactionID],
+        [iouType, reportID, trackExpense, transactionID],
     );
 
     const handleNavigation = useCallback(
@@ -163,21 +183,6 @@ function IOURequestStepParticipants({
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
     }, [iouRequestType, iouType, transactionID, reportID, action]);
 
-    const trackExpense = () => {
-        // If coming from the combined submit/track flow and the user proceeds to just track the expense,
-        // we will use the track IOU type in the confirmation flow.
-        if (!selfDMReportID) {
-            return;
-        }
-
-        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
-        IOU.setCustomUnitRateID(transactionID, rateID);
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-
-        handleNavigation(iouConfirmationPageRoute);
-    };
-
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
@@ -206,10 +211,8 @@ function IOURequestStepParticipants({
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
-                onTrackExpensePress={trackExpense}
                 iouType={iouType}
                 action={action}
-                shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />
         </StepScreenWrapper>
     );
