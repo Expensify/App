@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -113,6 +114,9 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -152,6 +156,7 @@ function WorkspacesListPage() {
         ({item, index}: GetMenuItem) => {
             const isAdmin = PolicyUtils.isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
+            const isDefault = activePolicyID === item.policyID;
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
@@ -204,6 +209,14 @@ function WorkspacesListPage() {
                 });
             }
 
+            if (!isDefault && !item?.isJoinRequestPending) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Star,
+                    text: translate('workspace.common.setAsDefault'),
+                    onSelected: () => Policy.updateDefaultPolicy(item.policyID, activePolicyID),
+                });
+            }
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -234,6 +247,7 @@ function WorkspacesListPage() {
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
+                                isDefault={isDefault}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -250,6 +264,7 @@ function WorkspacesListPage() {
             styles.offlineFeedback.deleted,
             session?.accountID,
             session?.email,
+            activePolicyID,
             isSupportalAction,
         ],
     );
@@ -412,22 +427,26 @@ function WorkspacesListPage() {
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <FeatureList
-                            menuItems={workspaceFeatures}
-                            title={translate('workspace.emptyWorkspace.title')}
-                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                            ctaText={translate('workspace.new.newWorkspace')}
-                            ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                            illustration={LottieAnimations.WorkspacePlanet}
-                            // We use this style to vertically center the illustration, as the original illustration is not centered
-                            illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
-                            titleStyles={styles.textHeadlineH1}
-                        />
-                    </View>
-                </ScrollView>
+                {shouldShowLoadingIndicator ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <ScrollView contentContainerStyle={styles.pt3}>
+                        <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            <FeatureList
+                                menuItems={workspaceFeatures}
+                                title={translate('workspace.emptyWorkspace.title')}
+                                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                                ctaText={translate('workspace.new.newWorkspace')}
+                                ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
+                                onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                                illustration={LottieAnimations.WorkspacePlanet}
+                                // We use this style to vertically center the illustration, as the original illustration is not centered
+                                illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         );
     }

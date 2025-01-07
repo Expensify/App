@@ -192,18 +192,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         App.confirmReadyToOpenApp();
     }, []);
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
-        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.InvoiceGeneric,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-            badgeText: CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
-        });
-    }
-
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
@@ -237,7 +225,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.perDiem',
+            translationKey: 'common.perDiem',
             icon: Expensicons.CalendarSolid,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.PER_DIEM,
@@ -260,6 +248,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Feed,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.RULES,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
+        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.invoices',
+            icon: Expensicons.InvoiceGeneric,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.INVOICES,
+            badgeText: CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
         });
     }
 

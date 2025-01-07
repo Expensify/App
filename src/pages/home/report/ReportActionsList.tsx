@@ -2,9 +2,9 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -274,6 +274,10 @@ function ReportActionsList({
                 return false;
             }
 
+            const isPendingAdd = (action: OnyxTypes.ReportAction) => {
+                return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            };
+
             // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
             const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
             const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
@@ -282,10 +286,16 @@ function ReportActionsList({
             // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
             // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
             // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
-            const isPreviouslyOptimistic = !!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction;
+            const isPreviouslyOptimistic =
+                (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
+                (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
             const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
-            return !shouldIgnoreUnreadForCurrentUserMessage;
+            if (isFromCurrentUser) {
+                return !shouldIgnoreUnreadForCurrentUserMessage;
+            }
+
+            return !isNewMessage || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD;
         };
 
         // If there are message that were recevied while offline,
@@ -330,7 +340,7 @@ function ReportActionsList({
      * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
      * lastReadTime.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (unreadMarkerReportActionID) {
             return;
         }
