@@ -215,6 +215,7 @@ function ReportActionItemSingle({
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     noMargin
+                    backgroundColor={isHovered ? styles.sidebarLinkActive.backgroundColor : theme.sidebar}
                 />
             );
         }
