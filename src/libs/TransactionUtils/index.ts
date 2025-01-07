@@ -790,9 +790,9 @@ function shouldShowBrokenConnectionViolation(
 ): boolean {
     const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, allViolations)) ?? [];
     return (
-        (transactionsWithBrokenConnectionViolation.length > 0 && transactionsWithBrokenConnectionViolation?.some((value) => value === true) && !PolicyUtils.isPolicyAdmin(policy)) ||
-        ReportUtils.isOpenExpenseReport(report) ||
-        (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy))
+        transactionsWithBrokenConnectionViolation.length > 0 &&
+        transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
+        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
     );
 }
 
