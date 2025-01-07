@@ -243,6 +243,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
+        canModifyTask,
+        canActionTask,
     ]);
 
     return (
