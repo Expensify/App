@@ -514,7 +514,6 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
         isSingleNewDotEntry,
         primaryLogin,
         oldDotOriginalAccountEmail,
-        oldDotOriginalAccountID,
     } = Object.fromEntries(
         queryParams.split('&').map((param) => {
             const [key, value] = param.split('=');

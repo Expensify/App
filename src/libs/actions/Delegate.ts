@@ -140,6 +140,14 @@ function connect(email: string) {
                 Onyx.update(failureData);
                 return;
             }
+            if (!activePolicyID) {
+                Log.alert('[Delegate] Unable to access activePolicyID');
+                Onyx.update(failureData);
+                return;
+            }
+            const restrictedToken = response.restrictedToken;
+            const policyID = activePolicyID;
+
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
@@ -148,9 +156,7 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp();
-
-                    NativeModules.HybridAppModule.switchAccount(email, response?.restrictedToken ?? '', activePolicyID ?? '', String(previousAccountID));
+                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
                 });
         })
         .catch((error) => {
@@ -210,6 +216,8 @@ function disconnect() {
                 return;
             }
 
+            const requesterEmail = response.requesterEmail;
+            const authToken = response.authToken;
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
@@ -220,8 +228,8 @@ function disconnect() {
                     Onyx.set(ONYXKEYS.SESSION, {
                         ...stashedSession,
                         accountID: response.requesterID,
-                        email: response.requesterEmail,
-                        authToken: response.authToken,
+                        email: requesterEmail,
+                        authToken,
                         encryptedAuthToken: response.encryptedAuthToken,
                     });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
@@ -230,9 +238,7 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        NativeModules.HybridAppModule.switchAccount(response.requesterEmail ?? '', response.authToken ?? '', '', '');
-                    });
+                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(requesterEmail, authToken, '', ''));
                 });
         })
         .catch((error) => {
