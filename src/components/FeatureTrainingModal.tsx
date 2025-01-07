@@ -102,7 +102,7 @@ type FeatureTrainingModalVideoProps = {
     animationStyle?: StyleProp<ViewStyle>;
 
     /** URL for the video */
-    videoURL: string;
+    videoURL?: string;
 };
 
 type FeatureTrainingModalSVGProps = {
