@@ -368,6 +368,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old desciption */
     oldDescription?: string;
+
+    /** Report field type */
+    fieldType?: string;
+
+    /** Report field name */
+    fieldName?: string;
 };
 
 /** Model of `join policy changelog` report action */

@@ -294,6 +294,8 @@ type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
+type AddedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
@@ -843,4 +845,5 @@ export type {
     TripLengthTextParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    AddedPolicyReportFieldParams,
 };
