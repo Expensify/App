@@ -352,8 +352,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-
     return (
         <>
             <SearchPageHeaderInput queryJSON={queryJSON}>
@@ -379,8 +377,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         renderTooltipContent={renderProductTrainingTooltip}
                     >
                         <Button
-                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                            text={translate('search.filtersHeader')}
+                            innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
                             icon={Expensicons.Filters}
                             onPress={onFiltersButtonPress}
                         />
