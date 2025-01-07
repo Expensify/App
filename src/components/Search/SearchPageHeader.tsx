@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,6 +9,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -56,7 +59,23 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
+    );
+
     const {status, hash} = queryJSON;
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -326,6 +345,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     }
 
     const onFiltersButtonPress = () => {
+        hideProductTrainingTooltip();
         const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
@@ -348,12 +368,23 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shouldUseStyleUtilityForAnchorPosition
                     />
                 ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onFiltersButtonPress}
-                    />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        anchorAlignment={{
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        }}
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                    >
+                        <Button
+                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onFiltersButtonPress}
+                        />
+                    </EducationalTooltip>
                 )}
             </SearchPageHeaderInput>
             <ConfirmModal
