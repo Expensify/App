@@ -87,6 +87,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             removeListener.current = undefined;
         }
         Navigation.isNavigationReady().then(() => {
+            const initialRoute = navigationRef.current?.getCurrentRoute();
+            setIsScreenFocused(initialRoute?.name === SCREENS.SEARCH.CENTRAL_PANE);
             removeListener.current = navigationRef.current?.addListener('state', (event) => {
                 if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
                     setIsScreenFocused(true);
