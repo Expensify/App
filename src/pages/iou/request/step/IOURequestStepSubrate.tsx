@@ -36,7 +36,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE> & {
+type IOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE> & {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The report linked to the transaction */
@@ -60,13 +60,13 @@ function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[]
         }));
 }
 
-function IOURequestStepWaypoint({
+function IOURequestStepSubrate({
     route: {
         params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepWaypointProps) {
+}: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
     const {canUseCombinedTrackSubmit} = usePermissions();
     const policy = usePolicy(report?.policyID);
@@ -163,7 +163,7 @@ function IOURequestStepWaypoint({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepWaypoint.displayName}
+            testID={IOURequestStepSubrate.displayName}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -233,6 +233,6 @@ function IOURequestStepWaypoint({
     );
 }
 
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
+IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));
