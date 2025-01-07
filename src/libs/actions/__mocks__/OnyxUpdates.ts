@@ -6,7 +6,7 @@ import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 const OnyxUpdatesImplementation = jest.requireActual<typeof OnyxUpdatesImport>('@libs/actions/OnyxUpdates');
-const {doesClientNeedToBeUpdated, saveUpdateInformation} = OnyxUpdatesImplementation;
+const {doesClientNeedToBeUpdated, saveUpdateInformation, INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates: applyHTTPSOnyxUpdates} = OnyxUpdatesImplementation;
 
 type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
     apply: jest.Mock<Promise<Response | void>, [OnyxUpdatesFromServer]>;
@@ -18,9 +18,13 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-const apply = jest.fn(({lastUpdateID}: OnyxUpdatesFromServer): Promise<void | Response> | undefined => {
+const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer): Promise<void | Response> | undefined => {
     if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
-        Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+    }
+
+    if (request && response) {
+        return applyHTTPSOnyxUpdates(request, response).then(() => undefined);
     }
 
     return Promise.resolve();

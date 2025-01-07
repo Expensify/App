@@ -190,5 +190,5 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};
+export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

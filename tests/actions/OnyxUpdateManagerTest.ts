@@ -17,10 +17,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
-jest.mock('@libs/actions/App');
-jest.mock('@libs/actions/OnyxUpdateManager/utils');
-jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
-    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+jest.mock('@userActions/OnyxUpdates');
+jest.mock('@userActions/App');
+jest.mock('@userActions/OnyxUpdateManager/utils');
+jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
+    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
     return {
         applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
