@@ -52,7 +52,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const policy = usePolicy(route.params.policyID);
     const mappingName: SageIntacctMappingName = route.params.mapping;
-    const policyID: string = policy?.id ?? CONST.DEFAULT_POLICY_ID;
+    const policyID: string = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
     const isAccordionExpanded = useSharedValue(isImportMappingEnable);

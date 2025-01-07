@@ -6437,8 +6437,6 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
-
-    DEFAULT_POLICY_ID: '-1',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
