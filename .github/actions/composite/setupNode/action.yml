@@ -52,7 +52,7 @@ runs:
       run: rm -rf node_modules
 
     - name: Install root project node packages
-      if:  steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
+      if:  steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
       uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30
