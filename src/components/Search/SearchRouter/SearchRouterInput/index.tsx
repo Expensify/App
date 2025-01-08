@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -65,6 +66,7 @@ function SearchRouterInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
+                        maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0]}
@@ -81,6 +83,7 @@ function SearchRouterInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
+                        onKeyPress={handleKeyPress(onSubmit)}
                         isMarkdownEnabled
                         multiline={false}
                         parser={(input: string) => parseForLiveMarkdown(input, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.displayName ?? '')}
