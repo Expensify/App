@@ -545,7 +545,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                     [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: isSingleNewDotEntry === 'true',
                     [ONYXKEYS.NVP_TRYNEWDOT]: {
                         classicRedirect: {completedHybridAppOnboarding: completedHybridAppOnboarding === 'true'},
-                        nudgeMigration: {timestamp: new Date(nudgeMigrationTimestamp)},
+                        nudgeMigration: nudgeMigrationTimestamp ? {timestamp: new Date(nudgeMigrationTimestamp)} : undefined,
                     },
                 }),
             )
