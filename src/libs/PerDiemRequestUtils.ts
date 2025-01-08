@@ -262,9 +262,9 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
     const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
     return {
-        firstDay: firstDayDiff === 1440 ? undefined : (firstDayDiff / 60).toFixed(2),
+        firstDay: firstDayDiff === 1440 ? undefined : firstDayDiff / 60,
         tripDays: firstDayDiff === 1440 ? tripDaysDiff + 1 : tripDaysDiff,
-        lastDay: lastDayDiff === 0 ? undefined : (lastDayDiff / 60).toFixed(2),
+        lastDay: lastDayDiff === 0 ? undefined : lastDayDiff / 60,
     };
 }
 

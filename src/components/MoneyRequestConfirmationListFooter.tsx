@@ -638,7 +638,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="firstDay"
                     icon={Expensicons.Stopwatch}
-                    text={translate('iou.firstDayText', {hours: firstDay})}
+                    text={translate('iou.firstDayText', {count: firstDay})}
                 />,
             );
         }
@@ -647,7 +647,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="tripDays"
                     icon={Expensicons.CalendarSolid}
-                    text={translate('iou.tripLengthText', {days: tripDays})}
+                    text={translate('iou.tripLengthText', {count: tripDays})}
                 />,
             );
         }
@@ -656,7 +656,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="lastDay"
                     icon={Expensicons.Stopwatch}
-                    text={translate('iou.lastDayText', {hours: lastDay})}
+                    text={translate('iou.lastDayText', {count: lastDay})}
                 />,
             );
         }
