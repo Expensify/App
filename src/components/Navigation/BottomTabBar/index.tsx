@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,7 +89,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
-    const isFocused = useIsFocused();
+    const isFocused = useBottomTabIsFocused();
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
