@@ -187,7 +187,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }}
             />
-            {!!policyID && !!policy && isUpgraded && (
+            {!!policy && isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={goBack}
                     policyName={policy.name}
