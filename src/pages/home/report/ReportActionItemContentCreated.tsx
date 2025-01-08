@@ -26,6 +26,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
+import { usePersonalDetails } from '@components/OnyxProvider';
 
 type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
@@ -52,7 +53,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const {translate} = useLocalize();
 
     const {report, action, transactionThreadReport} = contextValue;
-
+    const personalDetails = usePersonalDetails();
     const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
@@ -97,6 +98,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                             policy={policy}
+                            personalDetails={personalDetails}
                         >
                             <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                         </ReportActionItemSingle>
@@ -132,6 +134,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader={draftMessage === undefined}
                             report={report}
                             policy={policy}
+                            personalDetails={personalDetails}
                         >
                             <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
                         </ReportActionItemSingle>
