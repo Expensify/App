@@ -230,11 +230,11 @@ type Subrate = {
     rate?: number;
 };
 
-function getSubratesForDisplay(subrate: Subrate | undefined) {
+function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     if (!subrate) {
         return undefined;
     }
-    return `${subrate.name}, Qty: ${subrate.quantity}`;
+    return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
 /**

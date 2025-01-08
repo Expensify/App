@@ -612,7 +612,7 @@ function MoneyRequestConfirmationListFooter({
         <MenuItemWithTopDescription
             key={`${translate('common.subrate')}${field?.key ?? index}`}
             shouldShowRightIcon={!isReadOnly}
-            title={PerDiemRequestUtils.getSubratesForDisplay(field)}
+            title={PerDiemRequestUtils.getSubratesForDisplay(field, translate('iou.qty'))}
             description={translate('common.subrate')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

@@ -1091,6 +1091,7 @@ const translations = {
         deleteSubrateConfirmation: 'Are you sure you want to delete this subrate?',
         quantity: 'Quantity',
         subrateSelection: 'Select a subrate and enter a quantity.',
+        qty: 'Qty',
         firstDayText: ({hours}: FirstDayTextParams) => `First day: ${hours} hours`,
         lastDayText: ({hours}: LastDayTextParams) => `Last day: ${hours} hours`,
         tripLengthText: ({days}: TripLengthTextParams) => `Trip: ${days} full days`,

@@ -1089,6 +1089,7 @@ const translations = {
         deleteSubrateConfirmation: '¿Estás seguro de que deseas eliminar esta subtasa?',
         quantity: 'Cantidad',
         subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
+        qty: 'Cant',
         firstDayText: ({hours}: FirstDayTextParams) => `Primer día: ${hours} horas`,
         lastDayText: ({hours}: LastDayTextParams) => `Último día: ${hours} horas`,
         tripLengthText: ({days}: TripLengthTextParams) => `Viaje: ${days} días completos`,
