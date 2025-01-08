@@ -2870,11 +2870,16 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
+    const iouReportActionToApproveOrPay = IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID);
+    const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
+
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest) {
+    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
-            reportAction: IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID),
+            reportAction: iouReportActionToApproveOrPay,
         };
     }
 
@@ -6468,7 +6473,7 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined): boolean {
+function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
@@ -6638,7 +6643,7 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
 
 type ShouldReportBeInOptionListParams = {
     report: OnyxEntry<Report>;
-    currentReportId: string | undefined;
+    currentReportId: string;
     isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
@@ -8426,8 +8431,8 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
     return {};
 }
 
-function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string): boolean {
-    if (report?.policyID !== policyID) {
+function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string | undefined): boolean {
+    if (!policyID || report?.policyID !== policyID) {
         return false;
     }
 

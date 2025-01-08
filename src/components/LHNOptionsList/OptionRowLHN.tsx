@@ -197,7 +197,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     // Prevent composer blur on left click
                                     event.preventDefault();
                                 }}
-                                testID={optionItem.reportID}
+                                // reportID may be a number contrary to the type definition
+                                testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
                                 onSecondaryInteraction={(event) => {
                                     showPopover(event);
                                     // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
