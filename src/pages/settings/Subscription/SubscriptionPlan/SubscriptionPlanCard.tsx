@@ -51,7 +51,7 @@ function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps)
                         />
                     </View>
                 </View>
-                <Text style={[styles.headerText, styles.mt2]}>{plan.title}</Text>
+                <Text style={[styles.headerText, styles.mv2]}>{plan.title}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb2]}>{plan.description}</Text>
                 {plan.benefits.map((benefit) => (
                     <View
