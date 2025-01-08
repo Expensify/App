@@ -22,6 +22,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
 
+jest.mock('../../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
+    defineTask: jest.fn(),
+    onBackgroundTaskExecution: jest.fn(),
+}));
+
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
