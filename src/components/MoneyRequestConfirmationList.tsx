@@ -429,7 +429,7 @@ function MoneyRequestConfirmationList({
                 text = translate('common.next');
             }
         } else if (isTypeTrackExpense) {
-            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+            text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
@@ -438,7 +438,7 @@ function MoneyRequestConfirmationList({
                 text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
