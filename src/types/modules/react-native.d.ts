@@ -2,9 +2,9 @@
 import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
-import type {ShareActionHandlerType} from '@src/modules/ShareActionHandlerModule';
 
 type HybridAppModule = {
     closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
@@ -51,7 +51,7 @@ declare module 'react-native' {
         RNNavBarManager: RNNavBarManagerModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
-        ShareActionHandlerModule: ShareActionHandlerType;
+        ShareActionHandler: ShareActionHandlerModule;
     }
 
     namespace Animated {

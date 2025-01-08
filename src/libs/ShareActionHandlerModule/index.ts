@@ -1,6 +1,6 @@
 import {NativeModules} from 'react-native';
 
-const {ShareActionHandlerModule} = NativeModules;
+const {ShareActionHandler} = NativeModules;
 
 type ShareActionContent = {
     id: string;
@@ -10,9 +10,9 @@ type ShareActionContent = {
     aspectRatio: number;
 };
 
-type ShareActionHandlerType = {
+type ShareActionHandlerModule = {
     processFiles(callback: (array: ShareActionContent[]) => void): void;
 };
 
-export default ShareActionHandlerModule;
-export type {ShareActionHandlerType};
+export default ShareActionHandler;
+export type {ShareActionHandlerModule};

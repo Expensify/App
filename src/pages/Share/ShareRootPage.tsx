@@ -8,9 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import * as ShareActions from '@userActions/Share';
 import CONST from '@src/CONST';
-import ShareActionHandlerModule from '@src/modules/ShareActionHandlerModule';
 import type {ShareTempFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -25,7 +25,7 @@ function ShareRootPage() {
     const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
 
     const handleProcessFiles = useCallback(() => {
-        ShareActionHandlerModule.processFiles((processedFiles) => {
+        ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
                 Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
