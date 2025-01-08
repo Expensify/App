@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -32,7 +34,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -40,6 +41,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
+
+    /** Callback to navigate to Track Expense confirmation flow  */
+    onTrackExpensePress?: () => void;
 
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
@@ -49,15 +53,20 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether we should display the Track Expense button at the top of the participants list */
+    shouldDisplayTrackExpenseButton?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
+    onTrackExpensePress,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onFinish = (_value?: string) => {},
     onParticipantsAdded,
     iouType,
     action,
+    shouldDisplayTrackExpenseButton,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -115,9 +124,6 @@ function MoneyRequestParticipantsSelector({
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                shouldSeparateSelfDMChat: true,
-                shouldSeparateWorkspaceChat: true,
-                includeSelfDM: true,
             },
         );
 
@@ -137,8 +143,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                workspaceChats: [],
-                selfDMChat: null,
             };
         }
 
@@ -165,7 +169,7 @@ function MoneyRequestParticipantsSelector({
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as ReportUtils.OptionData[],
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? '-1'})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -173,17 +177,6 @@ function MoneyRequestParticipantsSelector({
         );
 
         newSections.push(formatResults.section);
-
-        newSections.push({
-            title: translate('workspace.common.workspace'),
-            data: chatOptions.workspaceChats ?? [],
-            shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
-        });
-        newSections.push({
-            title: translate('workspace.invoices.paymentMethods.personal'),
-            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-            shouldShow: !!chatOptions.selfDMChat,
-        });
 
         newSections.push({
             title: translate('common.recents'),
@@ -199,11 +192,7 @@ function MoneyRequestParticipantsSelector({
 
         if (
             chatOptions.userToInvite &&
-            !OptionsListUtils.isCurrentUser({
-                ...chatOptions.userToInvite,
-                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                status: chatOptions.userToInvite?.status ?? undefined,
-            })
+            !OptionsListUtils.isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? -1, status: chatOptions.userToInvite?.status ?? undefined})
         ) {
             newSections.push({
                 title: undefined,
@@ -216,7 +205,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
+            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
             participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
@@ -230,8 +219,6 @@ function MoneyRequestParticipantsSelector({
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.selfDMChat,
-        chatOptions.workspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
@@ -247,7 +234,7 @@ function MoneyRequestParticipantsSelector({
         (option: Participant) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
@@ -264,10 +251,7 @@ function MoneyRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newParticipants);
-
-            if (!option.isSelfDM) {
-                onFinish();
-            }
+            onFinish();
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
@@ -353,13 +337,28 @@ function MoneyRequestParticipantsSelector({
         sections.forEach((section) => {
             length += section.data.length;
         });
-
         return length;
     }, [areOptionsInitialized, sections]);
 
     const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
+
+    const headerContent = useMemo(() => {
+        if (!shouldDisplayTrackExpenseButton) {
+            return;
+        }
+
+        // We only display the track expense button if the user is coming from the combined submit/track flow.
+        return (
+            <MenuItem
+                title={translate('iou.justTrackIt')}
+                shouldShowRightIcon
+                icon={Expensicons.Coins}
+                onPress={onTrackExpensePress}
+            />
+        );
+    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -446,6 +445,7 @@ function MoneyRequestParticipantsSelector({
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
+            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}

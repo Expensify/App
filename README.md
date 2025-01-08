@@ -463,6 +463,8 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
+3. The first time you build the app you will need to build YAPL (OldDot javascript logic). Simply run `npm run grunt:build:shared` from the `Mobile-Expensify` submodule
+    - The following runtime error often indicates that YAPL has not been built correctly: `undefined is not an object (evaluating'Store.ReportHistory.bindCacheClearingEvents')`
 
 At this point, the default behavior of some `npm` scripts will change to target HybridApp:
 - `npm run android` - build HybridApp for Android
