@@ -234,6 +234,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
                                     }}
+                                    waitForSession={() => {
+                                        // only active lightbox should call this function
+                                        if (!isActive || isFallbackVisible || !isLightboxVisible) {
+                                            return;
+                                        }
+                                        setContentSize(cachedImageDimensions.get(uri));
+                                        setLightboxImageLoaded(false);
+                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
