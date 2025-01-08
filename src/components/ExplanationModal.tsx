@@ -11,7 +11,6 @@ function ExplanationModal() {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
 
-    // If the user has already seen the welcome video, don't show it again
     if (hasBeenAddedToNudgeMigration) {
         return null;
     }
