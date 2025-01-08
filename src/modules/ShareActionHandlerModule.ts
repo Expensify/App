@@ -14,4 +14,5 @@ type ShareActionHandlerType = {
     processFiles(callback: (array: ShareActionContent[]) => void): void;
 };
 
-export default ShareActionHandlerModule as ShareActionHandlerType;
+export default ShareActionHandlerModule;
+export type {ShareActionHandlerType};
