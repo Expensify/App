@@ -151,7 +151,7 @@ type TaskForParameters =
           type: 'task';
           task: string;
           taskReportID: string;
-          parentReportID?: string;
+          parentReportID: string;
           parentReportActionID: string;
           assigneeChatReportID?: string;
           createdTaskReportActionID: string;
@@ -893,6 +893,9 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+            if (!onboardingData) {
+                return;
+            }
 
             optimisticData.push(...onboardingData.optimisticData, {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -3584,10 +3587,15 @@ function prepareOnboardingOptimisticData(
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+');
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom ? adminsChatReport : ReportUtils.getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
     const {reportID: targetChatReportID, policyID: targetChatPolicyID} = targetChatReport ?? {};
+
+    if (!targetChatReportID) {
+        return null;
+    }
+
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -3657,8 +3665,8 @@ function prepareOnboardingOptimisticData(
                     : task.title;
             const currentTask = ReportUtils.buildOptimisticTaskReport(
                 actorAccountID,
-                currentUserAccountID,
                 targetChatReportID,
+                currentUserAccountID,
                 taskTitle,
                 taskDescription,
                 targetChatPolicyID,
@@ -4149,14 +4157,12 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = prepareOnboardingOptimisticData(
-        engagementChoice,
-        data,
-        adminsChatReportID,
-        onboardingPolicyID,
-        userReportedIntegration,
-        wasInvited,
-    );
+    const onboardingData = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
+    if (!onboardingData) {
+        return;
+    }
+
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,

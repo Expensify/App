@@ -10,7 +10,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
@@ -404,22 +404,25 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticTaskReport = Pick<
-    Report,
-    | 'reportID'
-    | 'reportName'
-    | 'description'
-    | 'ownerAccountID'
-    | 'participants'
-    | 'managerID'
-    | 'type'
-    | 'parentReportID'
-    | 'policyID'
-    | 'stateNum'
-    | 'statusNum'
-    | 'parentReportActionID'
-    | 'lastVisibleActionCreated'
-    | 'hasParentAccess'
+type OptimisticTaskReport = SetRequired<
+    Pick<
+        Report,
+        | 'reportID'
+        | 'reportName'
+        | 'description'
+        | 'ownerAccountID'
+        | 'participants'
+        | 'managerID'
+        | 'type'
+        | 'parentReportID'
+        | 'policyID'
+        | 'stateNum'
+        | 'statusNum'
+        | 'parentReportActionID'
+        | 'lastVisibleActionCreated'
+        | 'hasParentAccess'
+    >,
+    'parentReportID'
 >;
 
 type TransactionDetails = {
@@ -6217,8 +6220,8 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
 
 function buildOptimisticTaskReport(
     ownerAccountID: number,
+    parentReportID: string,
     assigneeAccountID = 0,
-    parentReportID?: string,
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
