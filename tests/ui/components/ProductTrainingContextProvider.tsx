@@ -48,6 +48,7 @@ describe('ProductTrainingContextProvider', () => {
         // Set up test environment before each test
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         signUpWithTestUser();
     });
 
@@ -61,6 +62,18 @@ describe('ProductTrainingContextProvider', () => {
     mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
 
     describe('Basic Tooltip Registration', () => {
+        it('should not register tooltips when app is loading', async () => {
+            // When app is loading
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
+            await waitForBatchedUpdatesWithAct();
+
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+
+            // Then tooltip should not show
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+        });
+
         it('should not register tooltips when onboarding is not completed', async () => {
             // When onboarding is not completed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
