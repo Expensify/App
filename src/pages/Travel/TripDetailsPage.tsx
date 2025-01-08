@@ -128,7 +128,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             setIsTripSupportLoading(true);
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {
                                 setIsTripSupportLoading(false);
                             });
                         }}
