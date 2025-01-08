@@ -522,7 +522,7 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 +    }
 ```
 
-##### 2. Routes `getRoute()` function
+##### 2. `ROUTES.ts`'s `getRoute()` function
 
 ```diff
 -Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policyID ?? '-1'))
@@ -531,8 +531,7 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 
 > error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
 
-We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error.
-Besides that, we should add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
+We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error. Besides that, we should add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
 
 ```diff
 WORKSPACE_PROFILE_ADDRESS: {
