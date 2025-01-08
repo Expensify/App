@@ -7358,6 +7358,9 @@ function canIOUBePaid(
     }
 
     if (ReportUtils.isInvoiceReport(iouReport)) {
+        if (ReportUtils.isOpenInvoiceReport(iouReport)) {
+            return false;
+        }
         if (iouSettled) {
             return false;
         }
