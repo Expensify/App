@@ -21,7 +21,7 @@ type ReportIDsContextProviderProps = {
 };
 
 type ReportIDsContextValue = {
-    orderedReportIDs: string[];
+    orderedReportIDs: (string | undefined)[];
     currentReportID: string;
     policyMemberAccountIDs: number[];
 };
@@ -70,7 +70,7 @@ function ReportIDsContextProvider({
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(currentReportID ?? null, chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
+            SidebarUtils.getOrderedReportIDs(currentReportID ?? undefined, chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount],
@@ -89,10 +89,10 @@ function ReportIDsContextProvider({
         // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
-            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            (!shouldUseNarrowLayout || orderedReportIDs?.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
-            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+            orderedReportIDs?.indexOf(derivedCurrentReportID) === -1
         ) {
             return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1', policyMemberAccountIDs};
         }

@@ -140,7 +140,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
 
 function getChatTabBrickRoadReport(
     policyID: string | undefined,
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
@@ -149,7 +149,7 @@ function getChatTabBrickRoadReport(
     policyMemberAccountIDs: number[] = [],
 ): OnyxEntry<Report> {
     const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyID, policyMemberAccountIDs);
-    if (!reportIDs.length) {
+    if (!reportIDs?.length) {
         return undefined;
     }
 
@@ -182,7 +182,7 @@ function getChatTabBrickRoadReport(
 
 function getChatTabBrickRoad(
     policyID: string | undefined,
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
