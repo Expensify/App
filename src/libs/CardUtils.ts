@@ -1,3 +1,4 @@
+import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -327,7 +328,12 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     }
 
     const customFeedName = companyCardNicknames?.[feed];
-    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
+
+    if (customFeedName && typeof customFeedName !== 'string') {
+        return '';
+    }
+
+    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
     return customFeedName ?? formattedFeedName;
 }
 
@@ -367,6 +373,14 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
+}
+
+function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
+    if (!directFeed) {
+        return false;
+    }
+
+    return isBefore(fromUnixTime(directFeed.expiration), new Date());
 }
 
 /** Returns list of cards which can be assigned */
@@ -431,6 +445,7 @@ export {
     sortCardsByCardholderName,
     getCardFeedIcon,
     getBankName,
+    isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
     getBankCardDetailsImage,

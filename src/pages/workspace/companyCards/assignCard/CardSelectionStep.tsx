@@ -28,7 +28,7 @@ type CardSelectionStepProps = {
     feed: CompanyCardFeed;
 
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
