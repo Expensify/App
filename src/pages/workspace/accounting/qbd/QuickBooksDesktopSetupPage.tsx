@@ -1,11 +1,10 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -16,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setConnectionError} from '@libs/actions/connections';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
@@ -31,10 +31,10 @@ type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavig
 
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
-    const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
     const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
@@ -42,20 +42,19 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const ContentWrapper = hasResultOfFetchingSetupLink ? ({children}: React.PropsWithChildren) => children : FullPageOfflineBlockingView;
 
     const fetchSetupLink = useCallback(() => {
-        setIsLoading(true);
         setHasError(false);
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
-            if (response?.jsonCode) {
-                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    setCodatSetupLink(String(response?.setupUrl ?? ''));
-                } else {
-                    setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
-                    setHasError(true);
-                }
+            if (!response?.jsonCode) {
+                return;
             }
 
-            setIsLoading(false);
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                setCodatSetupLink(String(response?.setupUrl ?? ''));
+            } else {
+                setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
+                setHasError(true);
+            }
         });
     }, [policyID, translate]);
 
@@ -77,8 +76,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         },
     });
 
-    const shouldShowLoading = isLoading || !hasResultOfFetchingSetupLink;
-    const shouldShowError = !shouldShowLoading && hasError;
+    const shouldShowError = hasError;
 
     return (
         <ScreenWrapper
@@ -92,7 +90,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <ContentWrapper>
-                {shouldShowLoading && <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />}
                 {shouldShowError && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                         <Icon
@@ -113,7 +110,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         </Text>
                     </View>
                 )}
-                {!shouldShowLoading && !shouldShowError && (
+                {!shouldShowError && (
                     <View style={[styles.flex1, styles.ph5]}>
                         <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
                             <ImageSVG src={Computer} />
@@ -122,10 +119,17 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
-                            <CopyTextToClipboard
-                                text={codatSetupLink}
-                                textStyles={[styles.textSupporting]}
-                            />
+                            {!hasResultOfFetchingSetupLink ? (
+                                <ActivityIndicator
+                                    color={theme.spinner}
+                                    size="small"
+                                />
+                            ) : (
+                                <CopyTextToClipboard
+                                    text={codatSetupLink}
+                                    textStyles={[styles.textSupporting]}
+                                />
+                            )}
                         </View>
                         <FixedFooter style={[styles.mtAuto, styles.ph0]}>
                             <Button
