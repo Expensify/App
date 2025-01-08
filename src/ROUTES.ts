@@ -296,7 +296,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | number, reportActionID?: string, referrer?: string) => {
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
             const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
             return `${baseRoute}${referrerParam}` as const;
