@@ -97,7 +97,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
-                    {({accountID, type, reportID}) => (
+                    {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
