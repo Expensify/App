@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
+import TripSummary from './TripSummary';
 
 type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
@@ -71,12 +72,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
-    const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        ReportUtils.isChatThread(report) &&
-        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
-
     const originalMessage = useMemo(() => ReportActionsUtils.getOriginalMessage(reportAction), [reportAction]);
+
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -145,20 +142,38 @@ function ReportActionsListItemRenderer({
         ],
     );
 
-    return shouldDisplayParentAction ? (
-        <ReportActionItemParentAction
-            shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
-            shouldDisplayReplyDivider={shouldDisplayReplyDivider}
-            parentReportAction={parentReportAction}
-            reportID={report.reportID}
-            report={report}
-            reportActions={reportActions}
-            transactionThreadReport={transactionThreadReport}
-            index={index}
-            isFirstVisibleReportAction={isFirstVisibleReportAction}
-            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-        />
-    ) : (
+    const shouldDisplayTripSummary =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+        ReportUtils.isTripRoom(report) &&
+        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
+
+    if (shouldDisplayTripSummary) {
+        return <TripSummary report={report} />;
+    }
+
+    const shouldDisplayParentAction =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+        ReportUtils.isChatThread(report) &&
+        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
+
+    if (shouldDisplayParentAction) {
+        return (
+            <ReportActionItemParentAction
+                shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
+                shouldDisplayReplyDivider={shouldDisplayReplyDivider}
+                parentReportAction={parentReportAction}
+                reportID={report.reportID}
+                report={report}
+                reportActions={reportActions}
+                transactionThreadReport={transactionThreadReport}
+                index={index}
+                isFirstVisibleReportAction={isFirstVisibleReportAction}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            />
+        );
+    }
+
+    return (
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}

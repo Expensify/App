@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -124,46 +123,37 @@ function ReportActionItemParentAction({
                             ancestor={ancestor}
                             isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
                         />
-                        {ReportActionsUtils.isTripPreview(ancestor?.reportAction) ? (
-                            <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
-                                <TripDetailsView
-                                    tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}
-                                    shouldShowHorizontalRule={false}
-                                />
-                            </OfflineWithFeedback>
-                        ) : (
-                            <ReportActionItem
-                                onPress={
-                                    ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
-                                        ? () => {
-                                              const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
-                                                  ancestor.reportAction,
-                                                  ancestor.reportAction.reportActionID ?? '-1',
-                                                  canUserPerformWriteAction,
-                                              );
-                                              // Pop the thread report screen before navigating to the chat report.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                                              if (isVisibleAction && !isOffline) {
-                                                  // Pop the chat report screen before navigating to the linked report action.
-                                                  Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
-                                              }
+                        <ReportActionItem
+                            onPress={
+                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
+                                    ? () => {
+                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
+                                              ancestor.reportAction,
+                                              ancestor.reportAction.reportActionID ?? '-1',
+                                              canUserPerformWriteAction,
+                                          );
+                                          // Pop the thread report screen before navigating to the chat report.
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
+                                          if (isVisibleAction && !isOffline) {
+                                              // Pop the chat report screen before navigating to the linked report action.
+                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
                                           }
-                                        : undefined
-                                }
-                                parentReportAction={parentReportAction}
-                                report={ancestor.report}
-                                reportActions={reportActions}
-                                transactionThreadReport={transactionThreadReport}
-                                action={ancestor.reportAction}
-                                displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
-                                shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                                index={index}
-                                isFirstVisibleReportAction={isFirstVisibleReportAction}
-                                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                                isThreadReportParentAction
-                            />
-                        )}
+                                      }
+                                    : undefined
+                            }
+                            parentReportAction={parentReportAction}
+                            report={ancestor.report}
+                            reportActions={reportActions}
+                            transactionThreadReport={transactionThreadReport}
+                            action={ancestor.reportAction}
+                            displayAsGroup={false}
+                            isMostRecentIOUReportAction={false}
+                            shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
+                            index={index}
+                            isFirstVisibleReportAction={isFirstVisibleReportAction}
+                            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                            isThreadReportParentAction
+                        />
                     </OfflineWithFeedback>
                 );
             })}
