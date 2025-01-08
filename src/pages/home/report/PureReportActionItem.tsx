@@ -249,6 +249,8 @@ type PureReportActionItemProps = {
 
     /** Invoice receiver policy */
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
+
+    IOUTransaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 /**
@@ -305,6 +307,7 @@ function PureReportActionItem({
     attachmentContextValueType = CONST.ATTACHMENT_TYPE.REPORT,
     policy,
     invoiceReceiverPolicy,
+    IOUTransaction,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -1030,15 +1033,15 @@ function PureReportActionItem({
     };
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
-            ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
-            : '-1';
+        // const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
+        //     ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
+        //     : '-1';
 
         return (
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 parentReportAction={parentReportAction}
-                transactionID={transactionID}
+                transaction={IOUTransaction}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 invoiceReceiverPolicy={invoiceReceiverPolicy}

@@ -38,8 +38,8 @@ type ReportActionItemContentCreatedProps = {
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The transaction ID */
-    transactionID: string | undefined;
+    /** Transaction that stores the distance expense data */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The draft message */
     draftMessage: string | undefined;
@@ -51,14 +51,13 @@ type ReportActionItemContentCreatedProps = {
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine, invoiceReceiverPolicy}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReportAction, transaction, draftMessage, shouldHideThreadDividerLine, invoiceReceiverPolicy}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {report, action, transactionThreadReport} = contextValue;
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
@@ -210,7 +209,7 @@ export default memo(
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
         lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
-        prevProps.transactionID === nextProps.transactionID &&
+        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
         lodashIsEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy),

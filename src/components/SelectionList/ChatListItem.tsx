@@ -85,6 +85,7 @@ function ChatListItem<TItem extends ListItem>({
                 attachmentContextValueType={CONST.ATTACHMENT_TYPE.SEARCH}
                 policy={undefined}
                 invoiceReceiverPolicy={undefined}
+                IOUTransaction={undefined}
             />
         </BaseListItem>
     );

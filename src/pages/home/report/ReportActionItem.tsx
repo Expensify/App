@@ -15,7 +15,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-function ReportActionItem({action, report, ...props}: PureReportActionItemProps) {
+function ReportActionItem({action, report, parentReportActionForTransactionThread, ...props}: PureReportActionItemProps) {
     const reportID = report?.reportID ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action) || '-1', [reportID, action]);
@@ -48,6 +48,11 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
+    const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
+    ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
+    : '-1';
+
+    const [IOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID ?? '-1'}`);
 
     return (
         <PureReportActionItem
@@ -88,6 +93,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             reportAutomaticallyForwardedMessage={ReportUtils.getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
             policy={policy}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
+            IOUTransaction={IOUTransaction}
         />
     );
 }
