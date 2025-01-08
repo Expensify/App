@@ -5,3 +5,4 @@ self-hosted-runner:
     - macos-13-large
     - macos-13-xlarge
     - ubuntu-latest-reassure-tests
+    - macos-12
