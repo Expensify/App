@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -69,7 +69,8 @@ function ShareDetailsPage({
 
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
-    const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
+    const isTextShared = currentAttachment?.mimeType === 'txt';
+    const shouldShowAttachment = !isTextShared;
 
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
 
@@ -151,7 +152,7 @@ function ShareDetailsPage({
                             />
                         </ScrollView>
                     </View>
-                    {!isTextShared && (
+                    {shouldShowAttachment && (
                         <>
                             <View style={[styles.pt6, styles.pb2]}>
                                 <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
