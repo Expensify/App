@@ -30,7 +30,7 @@ type BankConnectionStepProps = {
 function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const bankName = CardUtils.getCardFeedName(feed);
+    const bankName = CardUtils.getBankName(feed);
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
     const url = getCompanyCardBankConnection(policyID, bankName);

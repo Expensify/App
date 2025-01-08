@@ -333,7 +333,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
         return '';
     }
 
-    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
+    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
     return customFeedName ?? formattedFeedName;
 }
 

@@ -29,7 +29,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
-    const bankName = CardUtils.getCardFeedName(feed);
+    const bankName = CardUtils.getBankName(feed);
     const url = getCompanyCardBankConnection(policyID, bankName);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
