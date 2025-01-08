@@ -221,7 +221,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 visibility: reportOnyx.visibility,
                 oldPolicyName: reportOnyx.oldPolicyName,
                 policyName: reportOnyx.policyName,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: reportOnyx.private_isArchived,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,

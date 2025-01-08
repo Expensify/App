@@ -340,7 +340,6 @@ function getOptionData({
         hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: undefined,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
@@ -363,7 +362,6 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     result.private_isArchived = report?.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
