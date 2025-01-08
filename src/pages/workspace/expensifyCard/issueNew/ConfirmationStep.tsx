@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,8 +47,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const submitButton = useRef<View>(null);
 
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         submitButton.current?.focus();
+        User.resetValidateActionCodeSent();
     }, []);
 
     useEffect(() => {
@@ -139,15 +143,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     sendValidateCode={() => User.requestValidateCodeAction()}
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
-                    clearError={() => {
-                        Card.clearIssueNewCardError(issueNewCard);
-                    }}
-                    onClose={() => {
-                        if (validateError) {
-                            Card.clearIssueNewCardError(issueNewCard);
-                        }
-                        setIsValidateCodeActionModalVisible(false);
-                    }}
+                    clearError={() => Card.clearIssueNewCardError()}
+                    onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}

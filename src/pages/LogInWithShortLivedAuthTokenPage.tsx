@@ -1,10 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -14,10 +14,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 
-type LogInWithShortLivedAuthTokenPageProps = StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
-    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
+    const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     useEffect(() => {
@@ -37,7 +37,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            Session.signInWithShortLivedAuthToken(email, token);
+            Session.signInWithShortLivedAuthToken(token);
             return;
         }
 

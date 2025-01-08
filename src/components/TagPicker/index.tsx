@@ -31,11 +31,14 @@ type TagPickerProps = {
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
+    /** Whether the list should be sorted by tag name. default is false */
+    shouldOrderListByTagName?: boolean;
+
     /** Indicates which tag list index was selected */
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
@@ -72,16 +75,20 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
-    const sections = useMemo(
-        () =>
-            TagOptionListUtils.getTagListSections({
-                searchValue,
-                selectedOptions,
-                tags: enabledTags,
-                recentlyUsedTags: policyRecentlyUsedTagsList,
-            }),
-        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
-    );
+    const sections = useMemo(() => {
+        const tagSections = TagOptionListUtils.getTagListSections({
+            searchValue,
+            selectedOptions,
+            tags: enabledTags,
+            recentlyUsedTags: policyRecentlyUsedTagsList,
+        });
+        return shouldOrderListByTagName
+            ? tagSections.map((option) => ({
+                  ...option,
+                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
+              }))
+            : tagSections;
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
@@ -91,6 +98,7 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
         <SelectionList
             ListItem={RadioListItem}
             sectionTitleStyles={styles.mt5}
+            listItemTitleStyles={styles.breakAll}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}

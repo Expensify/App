@@ -24,12 +24,7 @@ function SearchSelectionModeHeader({queryJSON}: SearchSelectedModeHeaderProps) {
                 }}
             />
 
-            {!!queryJSON && (
-                <SearchPageHeader
-                    queryJSON={queryJSON}
-                    hash={queryJSON.hash}
-                />
-            )}
+            {!!queryJSON && <SearchPageHeader queryJSON={queryJSON} />}
         </>
     );
 }

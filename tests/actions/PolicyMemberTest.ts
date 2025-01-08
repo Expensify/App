@@ -228,4 +228,40 @@ describe('actions/PolicyMember', () => {
             });
         });
     });
+
+    describe('addMembersToWorkspace', () => {
+        it('Add a new member to a workspace', async () => {
+            const policyID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const newUserEmail = 'user@gmail.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+            });
+
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, []);
+
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        const newEmployee = policy?.employeeList?.[newUserEmail];
+                        expect(newEmployee).not.toBeUndefined();
+                        expect(newEmployee?.email).toBe(newUserEmail);
+                        expect(newEmployee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                        expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.USER);
+                        expect(newEmployee?.submitsTo).toBe(defaultApprover);
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+    });
 });

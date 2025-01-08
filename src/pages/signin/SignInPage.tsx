@@ -1,8 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,6 +33,7 @@ import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
+import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
@@ -48,6 +49,7 @@ type SignInPageRef = {
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
+    shouldShowSMSDeliveryFailurePage: boolean;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
     shouldShowChooseSSOOrMagicCode: boolean;
@@ -76,6 +78,7 @@ type GetRenderOptionsParams = {
  * @param isUsingMagicCode
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
+ * @param hasSMSDeliveryFailure
  */
 function getRenderOptions({
     hasLogin,
@@ -91,6 +94,7 @@ function getRenderOptions({
     const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
+    const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
@@ -107,13 +111,15 @@ function getRenderOptions({
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
+    const shouldShowSMSDeliveryFailurePage = hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
         hasAccount &&
         (hasLogin || hasValidateCode) &&
         !isUnvalidatedSecondaryLogin &&
         !hasEmailDeliveryFailure &&
+        !hasSMSDeliveryFailure &&
         !shouldShowChooseSSOOrMagicCode &&
         !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
@@ -123,6 +129,7 @@ function getRenderOptions({
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
@@ -132,18 +139,8 @@ function getRenderOptions({
         shouldShouldSignUpWelcomeForm,
     };
 }
+
 function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    /**
-      This variable is only added to make sure the component is re-rendered
-      whenever the activeClients change, so that we call the
-      ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
-      We use that function to prevent repeating code that checks which client is the leader.
-    */
-    const [activeClients] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -152,6 +149,18 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    /**
+      This variable is only added to make sure the component is re-rendered
+      whenever the activeClients change, so that we call the
+      ActiveClientManager.isClientTheLeader function
+      everytime the leader client changes.
+      We use that function to prevent repeating code that checks which client is the leader.
+    */
+    const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -196,6 +205,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
@@ -245,11 +255,11 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                 ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                 : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
             welcomeText = '';
         }
     } else if (shouldShouldSignUpWelcomeForm) {
@@ -269,7 +279,8 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const navigateBack = () => {
         if (
             shouldShouldSignUpWelcomeForm ||
-            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+            (!shouldShowAnotherLoginPageOpenedMessage &&
+                (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
             Session.clearSignInData();
             return;
@@ -327,6 +338,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                         {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
                         {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                        {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
                     </>
                 )}
             </SignInPageLayout>

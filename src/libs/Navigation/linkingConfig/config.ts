@@ -105,6 +105,16 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
+                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -118,12 +128,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+                    path: ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.EMPLOYEES]: {
                     path: ROUTES.ONBOARDING_EMPLOYEES.route,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.ACCOUNTING]: {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACES]: {
+                    path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
             },
@@ -346,6 +364,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.ADDRESS]: {
                             path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                        },
+                        [SCREENS.WORKSPACE.PLAN]: {
+                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
@@ -882,7 +903,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
@@ -940,6 +964,30 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_IMPORTED.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_DETAILS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
                         },
                     },
                 },
@@ -1184,6 +1232,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
                                     exact: true,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'per-diem': {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                    exact: true,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1209,6 +1262,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
                         [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.route,
                         [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -1314,6 +1374,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
+                        [SCREENS.TRAVEL.TRIP_DETAILS]: {
+                            path: ROUTES.TRAVEL_TRIP_DETAILS.route,
+                            parse: {
+                                reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
@@ -1326,6 +1393,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_SUBMITTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_APPROVED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_APPROVED,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_PAID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_PAID,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_EXPORTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_EXPORTED,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_MERCHANT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
@@ -1406,6 +1478,42 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
                             path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
                             exact: true,
+                        },
+                        [SCREENS.DEBUG.TRANSACTION]: {
+                            path: ROUTES.DEBUG_TRANSACTION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                                violations: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.route,
+                                    exact: true,
+                                },
+                            },
+                        },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                            },
                         },
                     },
                 },

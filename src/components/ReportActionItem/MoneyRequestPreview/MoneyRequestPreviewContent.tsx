@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
@@ -29,6 +28,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -71,23 +71,23 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || CONST.DEFAULT_NUMBER_ID}`);
 
     const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : '-1';
+    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const sessionAccountID = session?.accountID;
-    const managerID = iouReport?.managerID ?? -1;
-    const ownerAccountID = iouReport?.ownerAccountID ?? -1;
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const participantAccountIDs =
@@ -106,6 +106,8 @@ function MoneyRequestPreviewContent({
         currency: requestCurrency,
         comment: requestComment,
         merchant,
+        tag,
+        category,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -115,8 +117,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, transactionViolations, true);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, transactionViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -144,16 +147,16 @@ function MoneyRequestPreviewContent({
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
-    const hasDuplicates = duplicates.length > 0;
-
-    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
+    const shouldShowTag = !!tag && isPolicyExpenseChat;
+    const shouldShowCategoryOrTag = shouldShowTag || !!category;
+    const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -173,7 +176,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}] : [];
+    const receiptImages = [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}];
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -250,10 +253,10 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', iouReport, policy)) {
+        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID, transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
@@ -263,7 +266,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning');
+            return translate('iou.receiptScanning', {count: 1});
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
@@ -298,8 +301,8 @@ function MoneyRequestPreviewContent({
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         Transaction.abandonReviewDuplicateTransactions();
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID ?? '');
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
@@ -319,6 +322,8 @@ function MoneyRequestPreviewContent({
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo));
         }
     };
+
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     const childContainer = (
         <View>
@@ -340,7 +345,7 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
+                    {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}
@@ -350,7 +355,7 @@ function MoneyRequestPreviewContent({
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipt ? styles.mtn1 : {}]}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
@@ -428,6 +433,52 @@ function MoneyRequestPreviewContent({
                                             </View>
                                         )}
                                     </View>
+                                    {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
+                                    {shouldShowCategoryOrTag && (
+                                        <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
+                                            {!!category && (
+                                                <View
+                                                    style={[
+                                                        styles.flexRow,
+                                                        styles.alignItemsCenter,
+                                                        styles.gap1,
+                                                        shouldShowTag && styles.mw50,
+                                                        shouldShowTag && styles.pr1,
+                                                        styles.flexShrink1,
+                                                    ]}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.Folder}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {category}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            {shouldShowTag && (
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
+                                                    <Icon
+                                                        src={Expensicons.Tag}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {PolicyUtils.getCleanedTagName(tag)}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         </View>
@@ -440,8 +491,6 @@ function MoneyRequestPreviewContent({
     if (!onPreviewPressed) {
         return childContainer;
     }
-
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
         <PressableWithoutFeedback

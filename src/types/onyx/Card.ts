@@ -180,5 +180,8 @@ type WorkspaceCardsList = Record<string, Card> & {
     cardList?: Record<string, string>;
 };
 
+/** Card list with only available card */
+type FilteredCardList = Record<string, string>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList};

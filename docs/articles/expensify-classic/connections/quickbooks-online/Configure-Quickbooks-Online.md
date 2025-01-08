@@ -1,6 +1,6 @@
 ---
-title: Configure Quickbooks Online
-description: Configure Quickbooks Online
+title: Configure QuickBooks Online
+description: Configure QuickBooks Online
 ---
 
 # Best Practices Using QuickBooks Online
@@ -40,7 +40,6 @@ The following steps help you determine how data will be exported from Expensify 
         - Journal Entries - This is a single itemized journal entry for each Expensify report.
     - _Non-reimbursable expenses_: Non-reimbursable expenses export to QuickBooks Online as:
         - Credit Card expenses - Each expense will be exported as a bank transaction with its transaction date.
-            - Note: The Expensify Card transactions will always export as Credit Card charges, even if the non-reimbursable setting is configured differently (such as a Vendor Bill.)
         - Debit Card Expenses - Each expense will be exported as a bank transaction with its transaction date.
         - Vendor Bills - A single detailed vendor bill is generated for each Expensify report. 
             - If the accounting period is closed, the vendor bill will be posted on the first day of the next open period. If you choose to export non-reimbursable expenses as Vendor Bills, you can assign a default vendor to the bill.
@@ -89,7 +88,7 @@ The following steps help you determine the advanced settings for your connection
     - _Automatically Create Entities_: If you export reimbursable expenses as Vendor Bills or Journal Entries, Expensify will automatically create a vendor in QuickBooks (If one does not already exist). Expensify will also automatically create a customer when exporting Invoices.
     - _Sync Reimbursed Reports_: Enabling will mark the Vendor Bill as paid in QuickBooks Online if you reimburse a report via ACH direct deposit in Expensify. If you reimburse outside of Expensify, then marking the Vendor Bill as paid in QuickBooks Online will automatically mark the report as reimbursed in Expensify.
         - _QuickBooks Account_: Select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.
-        - _Collection Account_: When exporting invoices from Expensify to Quickbooks Online, the invoice will appear against the Collection Account once marked as Paid.
+        - _Collection Account_: When exporting invoices from Expensify to QuickBooks Online, the invoice will appear against the Collection Account once marked as Paid.
 
 {% include faq-begin.md %}
 
@@ -137,5 +136,9 @@ To correct this, you must manually update the conversion rate after the report h
 - We create the Vendor Bill in the Vendor’s currency (this is a QuickBooks Online requirement - we don’t have a choice)
 - We set the exchange rate between the home currency and the Vendor’s currency
 - We convert line item amounts to the vendor’s currency
+
+## How will my Expensify Card transactions export to QuickBooks Online?
+
+The Expensify Card transactions will always export as Credit Card charges in QuickBooks Online, even if the non-reimbursable setting is configured differently, such as a Vendor Bill.
 
 {% include faq-end.md %}

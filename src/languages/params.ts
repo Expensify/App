@@ -531,12 +531,26 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
 
 type ImportedTypesParams = {
     importedTypes: string[];
+};
+
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
+type WorkspaceMemberList = {
+    employeeCount: number;
+    policyOwner: string;
 };
 
 type FileLimitParams = {
@@ -553,6 +567,43 @@ type CompanyCardBankName = {
 
 type CurrencyCodeParams = {
     currencyCode: string;
+};
+
+type WorkspaceLockedPlanTypeParams = {
+    count: number;
+    annualSubscriptionEndDate: string;
+};
+
+type CompanyNameParams = {
+    companyName: string;
+};
+
+type CustomUnitRateParams = {
+    rate: number;
+};
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
+};
+
+type FirstDayTextParams = {
+    hours: string;
+};
+
+type LastDayTextParams = {
+    hours: string;
+};
+
+type TripLengthTextParams = {
+    days: number;
+};
+
+type EditDestinationSubtitleParams = {
+    destination: string;
+};
+
+type FlightLayoverParams = {
+    layover: string;
 };
 
 export type {
@@ -755,5 +806,17 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin,
+    WorkspaceMemberList,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
+    WorkspaceLockedPlanTypeParams,
+    CompanyNameParams,
+    CustomUnitRateParams,
+    ChatWithAccountManagerParams,
+    FirstDayTextParams,
+    LastDayTextParams,
+    TripLengthTextParams,
+    EditDestinationSubtitleParams,
+    FlightLayoverParams,
 };

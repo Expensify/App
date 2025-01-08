@@ -35,7 +35,7 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : [styles.textMicro, styles.textBold], styles.flexShrink1]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1]}
             >
                 {displayName}
             </Text>

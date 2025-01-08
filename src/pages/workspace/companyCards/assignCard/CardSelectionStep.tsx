@@ -28,7 +28,7 @@ type CardSelectionStepProps = {
     feed: CompanyCardFeed;
 
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
@@ -41,15 +41,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const accountCardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
@@ -69,21 +65,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         setShouldShowError(false);
     };
 
-    const accountCardListOptions = accountCardList.map((encryptedCardNumber) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: encryptedCardNumber,
-        isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
-            <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
-
     const submit = () => {
         if (!cardSelected) {
             setShouldShowError(true);
@@ -97,7 +78,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardNumber: accountCardList?.length > 0 ? cardSelected : cardNumber},
+            data: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
     };
@@ -105,23 +86,21 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
-        text: CardUtils.maskCardNumber(cardNumber),
+        text: CardUtils.maskCardNumber(cardNumber, feed),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
+                height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
 
-    const listOptions = accountCardList?.length > 0 ? accountCardListOptions : cardListOptions;
-
     const searchedListOptions = useMemo(() => {
-        return listOptions.filter((option) => option.text.toLowerCase().includes(searchText));
-    }, [searchText, listOptions]);
+        return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+    }, [searchText, cardListOptions]);
 
     return (
         <InteractiveStepWrapper
@@ -130,7 +109,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
         >
-            {!listOptions.length ? (
+            {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                     <Icon
                         src={Illustrations.BrokenMagnifyingGlass}
@@ -153,7 +132,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 <>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
-                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
+                        shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchText}
                         onChangeText={setSearchText}

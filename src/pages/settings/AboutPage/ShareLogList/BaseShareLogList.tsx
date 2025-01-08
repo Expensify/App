@@ -34,13 +34,10 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 personalDetails: [],
                 userToInvite: null,
                 currentUserOption: null,
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
                 headerMessage: '',
             };
         }
-        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, '', betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, betas ?? []);
 
         const header = OptionsListUtils.getHeaderMessage(
             (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
@@ -59,7 +56,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
             preferChatroomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });

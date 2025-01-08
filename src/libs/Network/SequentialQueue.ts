@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as Request from '@libs/Request';
-import * as RequestThrottle from '@libs/RequestThrottle';
+import RequestThrottle from '@libs/RequestThrottle';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
@@ -28,6 +28,7 @@ resolveIsReadyPromise?.();
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
+const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -99,7 +100,7 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-            RequestThrottle.clear();
+            sequentialQueueRequestThrottle.clear();
             return process();
         })
         .catch((error: RequestError) => {
@@ -108,17 +109,18 @@ function process(): Promise<void> {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                RequestThrottle.clear();
+                sequentialQueueRequestThrottle.clear();
                 return process();
             }
             PersistedRequests.rollbackOngoingRequest();
-            return RequestThrottle.sleep(error, requestToProcess.command)
+            return sequentialQueueRequestThrottle
+                .sleep(error, requestToProcess.command)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                    RequestThrottle.clear();
+                    sequentialQueueRequestThrottle.clear();
                     return process();
                 });
         });
@@ -126,7 +128,13 @@ function process(): Promise<void> {
     return currentRequestPromise;
 }
 
-function flush() {
+/**
+ * @param shouldResetPromise Determines whether the isReadyPromise should be reset.
+ * A READ request will wait until all the WRITE requests are done, using the isReadyPromise promise.
+ * Resetting can cause unresolved READ requests to hang if tied to the old promise,
+ * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
+ */
+function flush(shouldResetPromise = true) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
@@ -152,10 +160,12 @@ function flush() {
 
     isSequentialQueueRunning = true;
 
-    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
+    if (shouldResetPromise) {
+        // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+        isReadyPromise = new Promise((resolve) => {
+            resolveIsReadyPromise = resolve;
+        });
+    }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connection = Onyx.connect({
@@ -194,7 +204,12 @@ function unpause() {
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
-    flush();
+
+    // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
+    // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
+    // the pending READ request never received the resolved callback. That's why we don't want to recreate
+    // the promise when unpausing the queue.
+    flush(false);
 }
 
 function isRunning(): boolean {
@@ -250,7 +265,7 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(flush);
+        isReadyPromise.then(() => flush());
         return;
     }
 
@@ -271,5 +286,19 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process};
+/**
+ * Clear any pending requests during test runs
+ * This is to prevent previous requests interfering with other tests
+ */
+function resetQueue(): void {
+    isSequentialQueueRunning = false;
+    currentRequestPromise = null;
+    isQueuePaused = false;
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    resolveIsReadyPromise?.();
+}
+
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
 export type {RequestError};

@@ -11,7 +11,6 @@ const INPUT_IDS = {
     HAS_OUTSTANDING_CHILD_REQUEST: 'hasOutstandingChildRequest',
     HAS_OUTSTANDING_CHILD_TASK: 'hasOutstandingChildTask',
     IS_CANCELLED_IOU: 'isCancelledIOU',
-    IS_LOADING_PRIVATE_NOTES: 'isLoadingPrivateNotes',
     IS_OWN_POLICY_EXPENSE_CHAT: 'isOwnPolicyExpenseChat',
     IS_PINNED: 'isPinned',
     IS_WAITING_ON_BANK_ACCOUNT: 'isWaitingOnBankAccount',
@@ -45,6 +44,7 @@ const INPUT_IDS = {
     UNHELD_TOTAL: 'unheldTotal',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
+    VISIBILITY: 'visibility',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -60,7 +60,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.HAS_OUTSTANDING_CHILD_REQUEST]: boolean;
         [INPUT_IDS.HAS_OUTSTANDING_CHILD_TASK]: boolean;
         [INPUT_IDS.IS_CANCELLED_IOU]: boolean;
-        [INPUT_IDS.IS_LOADING_PRIVATE_NOTES]: boolean;
         [INPUT_IDS.IS_OWN_POLICY_EXPENSE_CHAT]: boolean;
         [INPUT_IDS.IS_PINNED]: boolean;
         [INPUT_IDS.IS_WAITING_ON_BANK_ACCOUNT]: boolean;
@@ -93,6 +92,7 @@ type DebugReportForm = Form<
         [INPUT_IDS.UNHELD_TOTAL]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+        [INPUT_IDS.VISIBILITY]: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     }
 >;
 

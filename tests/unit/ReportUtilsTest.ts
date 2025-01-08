@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Beta, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import {convertedInvoiceChat} from '../data/Invoice';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -89,6 +92,24 @@ describe('ReportUtils', () => {
             expect(participants.at(1)?.name).toBe('floki@vikings.net');
             expect(participants.at(1)?.id).toBe(2);
             expect(participants.at(1)?.type).toBe('avatar');
+        });
+    });
+
+    describe('getWorkspaceIcon', () => {
+        it('should not use cached icon when avatar is updated', () => {
+            // Given a new workspace and a workspace chat with undefined `policyAvatar`
+            const workspace = LHNTestUtils.getFakePolicy('1', 'ws');
+            const workspaceChat = LHNTestUtils.getFakeReport();
+            workspaceChat.policyID = workspace.id;
+
+            expect(ReportUtils.getWorkspaceIcon(workspaceChat, workspace).source).toBe(ReportUtils.getDefaultWorkspaceAvatar(workspace.name));
+
+            // When the user uploads a new avatar
+            const newAvatarURL = 'https://example.com';
+            workspace.avatarURL = newAvatarURL;
+
+            // Then it should return the new avatar
+            expect(ReportUtils.getWorkspaceIcon(workspaceChat, workspace).source).toBe(newAvatarURL);
         });
     });
 
@@ -290,6 +311,25 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+            });
+
+            test('Invited/Removed Room Member Action', () => {
+                const threadOfRemovedRoomMemberAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    parentReportID: '101',
+                    parentReportActionID: '102',
+                    policyID: policy.id,
+                };
+                const removedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+                    originalMessage: {
+                        targetAccountIDs: [1],
+                    },
+                } as ReportAction;
+
+                expect(ReportUtils.getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
             });
         });
     });
@@ -525,7 +565,10 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [
+                        currentUserAccountID,
+                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                    ]);
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
@@ -538,7 +581,10 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [
+                        currentUserAccountID,
+                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                    ]);
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                 });
                 expect(onlyHaveSplitOption).toBe(true);
@@ -585,7 +631,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -598,7 +644,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -647,7 +693,10 @@ describe('ReportUtils', () => {
                         outputCurrency: '',
                         isPolicyExpenseChatEnabled: false,
                     } as const;
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [
+                        currentUserAccountID,
+                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                    ]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -662,7 +711,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -675,7 +724,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -718,7 +767,10 @@ describe('ReportUtils', () => {
                         managerID: currentUserAccountID,
                         ownerAccountID: currentUserAccountID,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [
+                        currentUserAccountID,
+                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                    ]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -732,7 +784,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -792,7 +844,7 @@ describe('ReportUtils', () => {
 
         it('should disable on thread-disabled actions', () => {
             const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable thread on split expense actions', () => {
@@ -804,7 +856,7 @@ describe('ReportUtils', () => {
                 [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 NumberUtils.rand64(),
             ) as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on deleted and not-thread actions', () => {
@@ -820,10 +872,10 @@ describe('ReportUtils', () => {
                 ],
                 childVisibleActionCount: 1,
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeFalsy();
 
             reportAction.childVisibleActionCount = 0;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on archived reports and not-thread actions', () => {
@@ -836,10 +888,10 @@ describe('ReportUtils', () => {
                     const reportAction = {
                         childVisibleActionCount: 1,
                     } as ReportAction;
-                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeFalsy();
 
                     reportAction.childVisibleActionCount = 0;
-                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
                 });
         });
 
@@ -850,14 +902,14 @@ describe('ReportUtils', () => {
                     whisperedTo: [123456],
                 },
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
             const reportAction = {
                 childReportID: reportID,
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
         });
     });
 
@@ -882,7 +934,7 @@ describe('ReportUtils', () => {
             const reportActionCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID ?? '',
+                (actions) => Object.values(actions).at(0)?.reportActionID,
             );
             Onyx.multiSet({
                 ...reportCollectionDataSet,
@@ -975,6 +1027,28 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getQuickActionDetails', () => {
+        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
+            // Create a fake archived report as quick action report
+            const archivedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+
+            // Get the quick action detail
+            const quickActionDetails = ReportUtils.getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
+
+            // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
+            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
+            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
+        });
+    });
+
     describe('getChatByParticipants', () => {
         const userAccountID = 1;
         const userAccountID2 = 2;
@@ -1044,6 +1118,515 @@ describe('ReportUtils', () => {
         it('should return undefined when no report is found', () => {
             const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID2], undefined);
             expect(report).toEqual(undefined);
+        });
+    });
+
+    describe('getGroupChatName tests', () => {
+        afterEach(() => Onyx.clear());
+
+        const fourParticipants = [
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+        ];
+
+        const eightParticipants = [
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+            {accountID: 5, login: 'email5@test.com'},
+            {accountID: 6, login: 'email6@test.com'},
+            {accountID: 7, login: 'email7@test.com'},
+            {accountID: 8, login: 'email8@test.com'},
+        ];
+
+        describe('When participantAccountIDs is passed to getGroupChatName', () => {
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+            });
+
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+            });
+
+            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two');
+            });
+
+            it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
+
+            it('Should use correct display name for participants', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+            });
+        });
+
+        describe('When participantAccountIDs is not passed to getGroupChatName and report ID is passed', () => {
+            it('Should show report name if count <= 5 and shouldApplyLimit is false', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+            });
+
+            it('Should show participant names if report name is not available', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
+        });
+    });
+
+    describe('shouldReportBeInOptionList tests', () => {
+        afterEach(() => Onyx.clear());
+
+        it('should return true when the report is current active report', () => {
+            const report = LHNTestUtils.getFakeReport();
+            const currentReportId = report.reportID;
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report has outstanding violations', async () => {
+            const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction1 = ReportUtils.buildOptimisticIOUReportAction(
+                'create',
+                100,
+                'USD',
+                '',
+                [],
+                expenseTransaction.transactionID,
+                undefined,
+                expenseReport.reportID,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+            );
+            const expenseCreatedAction2 = ReportUtils.buildOptimisticIOUReportAction(
+                'create',
+                100,
+                'USD',
+                '',
+                [],
+                expenseTransaction.transactionID,
+                undefined,
+                expenseReport.reportID,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+            );
+            const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction1, expenseReport);
+            const currentReportId = '1';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [expenseCreatedAction1.reportActionID]: expenseCreatedAction1,
+                [expenseCreatedAction2.reportActionID]: expenseCreatedAction2,
+            });
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report: transactionThreadReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: true,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report needing user action', () => {
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: true,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report: chatReport, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report has valid draft comment', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            const currentReportId = '3';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report is pinned', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                isPinned: true,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report is unread and we are in the focus mode', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                lastReadTime: '1',
+                lastVisibleActionCreated: '2',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    '1': {
+                        notificationPreference: 'always',
+                    },
+                },
+                lastMessageText: 'fake',
+            };
+            const currentReportId = '3';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: 1,
+            });
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeTruthy();
+        });
+
+        it('should return true when the report is an archived report and we are in the default mode', async () => {
+            const archivedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report: archivedReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return false when the report is an archived report and we are in the focus mode', async () => {
+            const archivedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report: archivedReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeFalsy();
+        });
+
+        it('should return true when the report is selfDM', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const includeSelfDM = true;
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    includeSelfDM,
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return false when the report is marked as hidden', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                participants: {
+                    '1': {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+            const currentReportId = '';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report does not have participants', () => {
+            const report = LHNTestUtils.getFakeReport([]);
+            const currentReportId = '';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            };
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas: Beta[] = [];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report is the single transaction thread', async () => {
+            const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+                'create',
+                100,
+                'USD',
+                '',
+                [],
+                expenseTransaction.transactionID,
+                undefined,
+                expenseReport.reportID,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+            );
+            const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
+            expenseCreatedAction.childReportID = transactionThreadReport.reportID;
+            const currentReportId = '1';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+            });
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report: transactionThreadReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report is empty chat and the excludeEmptyChats setting is true', () => {
+            const report = LHNTestUtils.getFakeReport();
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: true}),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
+            const report = LHNTestUtils.getFakeReport();
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    login: '+@domain.com',
+                    excludeEmptyChats: false,
+                    includeDomainEmail: false,
+                }),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report has the parent message is pending removal', async () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            report.parentReportID = parentReport.reportID;
+            report.parentReportActionID = parentReportAction.reportActionID;
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                [parentReportAction.reportActionID]: parentReportAction,
+            });
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeFalsy();
+        });
+
+        it('should return false when the report is read and we are in the focus mode', () => {
+            const report = LHNTestUtils.getFakeReport();
+            const currentReportId = '';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            expect(
+                ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ).toBeFalsy();
+        });
+    });
+
+    describe('getInvoiceChatByParticipants', () => {
+        it('only returns an invoice chat if the receiver type matches', () => {
+            // Given an invoice chat that has been converted from an individual to policy receiver type
+            const reports: OnyxCollection<Report> = {
+                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
+            };
+
+            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
+            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
+
+            // Then no invoice chat should be returned because the receiver type does not match
+            expect(invoiceChatReport).toBeUndefined();
         });
     });
 });

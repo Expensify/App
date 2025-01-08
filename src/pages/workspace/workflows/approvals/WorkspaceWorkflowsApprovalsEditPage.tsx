@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
@@ -13,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
@@ -27,7 +27,8 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
-type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
+type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
 
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
@@ -50,8 +51,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+        });
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
@@ -118,7 +121,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
             >
                 <FullPageNotFoundView

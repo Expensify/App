@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
@@ -28,9 +28,9 @@ function ValidateCodeActionModal({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    shouldHandleNavigationBack,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -38,7 +38,8 @@ function ValidateCodeActionModal({
 
     const hide = useCallback(() => {
         clearError();
-        onClose();
+        onClose?.();
+        firstRenderRef.current = true;
     }, [onClose, clearError]);
 
     useEffect(() => {
@@ -48,20 +49,26 @@ function ValidateCodeActionModal({
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
+        // We only want to send validate code on first render not on change of hasMagicCodeBeenSent, so we don't add it as a dependency.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible, sendValidateCode]);
 
     return (
         <Modal
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
             onModalHide={onModalHide ?? hide}
+            onBackdropPress={() => Navigation.dismissModal()}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
+                includePaddingTop
                 shouldEnableMaxHeight
                 testID={ValidateCodeActionModal.displayName}
                 offlineIndicatorStyle={themeStyles.mtAuto}
@@ -71,20 +78,20 @@ function ValidateCodeActionModal({
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
                     {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
+                        isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
                         handleSubmitForm={handleSubmitForm}
                         sendValidateCode={sendValidateCode}
                         clearError={clearError}
-                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
+                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        isLoading={isLoading}
                     />
                 </View>
                 {footer?.()}
