@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,12 @@ type FullPageNotFoundViewProps = {
 
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -58,6 +65,8 @@ function FullPageNotFoundView({
     shouldShowBackButton = true,
     onLinkPress = () => Navigation.dismissModal(),
     shouldForceFullScreen = false,
+    subtitleStyle,
+    shouldDisplaySearchRouter,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,6 +77,7 @@ function FullPageNotFoundView({
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
@@ -82,6 +92,7 @@ function FullPageNotFoundView({
                         linkKey={linkKey}
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
+                        subtitleStyle={subtitleStyle}
                     />
                 </View>
             </ForceFullScreenView>
