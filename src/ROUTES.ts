@@ -3,6 +3,7 @@ import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import Log from './libs/Log';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -422,7 +423,10 @@ const ROUTES = {
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, role?: string, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
+            }
             const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
             return getUrlWithBackToParam(route, backTo);
         },
@@ -747,7 +751,12 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string | undefined, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
+        },
     },
     WORKSPACE_PROFILE_PLAN: {
         route: 'settings/workspaces/:policyID/profile/plan',

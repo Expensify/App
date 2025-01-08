@@ -4305,8 +4305,8 @@ function trackExpense(
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
-    if (action === CONST.IOU.ACTION.SHARE && activeReportID) {
-        if (isSearchTopmostCentralPane()) {
+    if (action === CONST.IOU.ACTION.SHARE) {
+        if (isSearchTopmostCentralPane() && activeReportID) {
             Navigation.goBack();
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
         }
