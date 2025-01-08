@@ -46,9 +46,12 @@ type ReportActionItemContentCreatedProps = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
+
+    /** Invoice receiver policy */
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine, invoiceReceiverPolicy}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -99,6 +102,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             report={report}
                             policy={policy}
                             personalDetails={personalDetails}
+                            invoiceReceiverPolicy={invoiceReceiverPolicy}
                         >
                             <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                         </ReportActionItemSingle>
@@ -135,6 +139,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             report={report}
                             policy={policy}
                             personalDetails={personalDetails}
+                            invoiceReceiverPolicy={invoiceReceiverPolicy}
                         >
                             <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
                         </ReportActionItemSingle>
@@ -207,5 +212,6 @@ export default memo(
         lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
-        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
+        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
+        lodashIsEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy),
 );

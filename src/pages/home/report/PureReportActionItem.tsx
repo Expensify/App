@@ -246,6 +246,9 @@ type PureReportActionItemProps = {
 
     /** Current connected policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Invoice receiver policy */
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 /**
@@ -301,6 +304,7 @@ function PureReportActionItem({
     reportAutomaticallyForwardedMessage,
     attachmentContextValueType = CONST.ATTACHMENT_TYPE.REPORT,
     policy,
+    invoiceReceiverPolicy,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -1015,6 +1019,7 @@ function PureReportActionItem({
                     }
                     personalDetails={personalDetails}
                     policy={policy}
+                    invoiceReceiverPolicy={invoiceReceiverPolicy}
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -1036,6 +1041,7 @@ function PureReportActionItem({
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                invoiceReceiverPolicy={invoiceReceiverPolicy}
             />
         );
     }

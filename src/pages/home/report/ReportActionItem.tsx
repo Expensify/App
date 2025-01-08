@@ -9,7 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Transaction from '@userActions/Transaction';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
@@ -45,6 +45,9 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
     const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
     const policy = usePolicy(report?.policyID);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
 
     return (
         <PureReportActionItem
@@ -84,6 +87,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             userBillingFundID={userBillingFundID}
             reportAutomaticallyForwardedMessage={ReportUtils.getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
             policy={policy}
+            invoiceReceiverPolicy={invoiceReceiverPolicy}
         />
     );
 }

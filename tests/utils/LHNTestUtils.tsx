@@ -351,6 +351,7 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report,
                 isHovered={false}
                 personalDetails={personalDetails}
                 policy={policy}
+                invoiceReceiverPolicy={undefined}
             />
         </ComposeProviders>
     );

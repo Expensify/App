@@ -63,6 +63,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** Current connected policy */
     policy: OnyxEntry<Policy>;
+
+    /** Invoice receiver policy */
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -88,6 +91,7 @@ function ReportActionItemSingle({
     isHovered = false,
     personalDetails,
     policy,
+    invoiceReceiverPolicy,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -97,9 +101,6 @@ function ReportActionItemSingle({
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
-    );
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
