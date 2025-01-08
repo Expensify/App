@@ -42,7 +42,10 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES
-    | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE;
+    | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
+    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
@@ -53,9 +56,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
