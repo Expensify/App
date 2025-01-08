@@ -32,7 +32,7 @@ function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps)
     const theme = useTheme();
 
     return (
-        <View style={[styles.borderedContentCard, styles.flex1, styles.mt5, styles.p5, index === 0 && styles.mr3]}>
+        <View style={[styles.borderedContentCard, styles.flex1, styles.mt5, styles.p5, index === 0 && styles.mr3, plan.isSelected && styles.borderColorFocus]}>
             <PressableWithFeedback
                 accessibilityLabel={plan.title}
                 wrapperStyle={[styles.flex1]}
