@@ -870,7 +870,6 @@ const translations = {
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
         chooseRecipient: 'Choose recipient',
-        createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -1276,6 +1275,7 @@ const translations = {
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
+            invalidateWithDelay: 'Invalidate with delay',
         },
         debugConsole: {
             saveLog: 'Save log',
