@@ -18,6 +18,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
 
+jest.mock('../../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
+    defineTask: jest.fn(),
+    onBackgroundTaskExecution: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
