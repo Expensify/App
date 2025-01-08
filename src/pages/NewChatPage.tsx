@@ -157,7 +157,7 @@ function NewChatPage() {
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: recentReports,
+            data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
             shouldShow: !isEmpty(recentReports),
         });
         if (!firstKey) {
