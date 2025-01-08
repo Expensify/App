@@ -151,7 +151,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                     {translate('workspace.companyCards.chooseCardFor', {
                                         assignee: assigneeDisplayName,
-                                        feed: CardUtils.getCardFeedName(feed),
+                                        feed: CardUtils.getBankName(feed),
                                     })}
                                 </Text>
                             </View>

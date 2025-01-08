@@ -5,9 +5,11 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import CardListItem from '@components/SelectionList/CardListItem';
+import CardListItem from '@components/SelectionList/Search/CardListItem';
+import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,16 +17,14 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
-import type {BankIcon} from '@src/types/onyx/Bank';
+import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type CardFilterItem = Partial<OptionData> & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean; isCardFeed?: boolean; correspondingCards?: string[]};
+type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
@@ -48,23 +48,25 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
     return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
 }
 
-function createIndividualCardFilterItem(card: Card, selectedCards: string[], iconStyles: StyleProp<ViewStyle>) {
+function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
+    const personalDetails = personalDetailsList[card?.accountID ?? ''];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
     const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
-    const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+    const text1 = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+    const text = personalDetails?.displayName ?? text1;
 
     return {
         lastFourPAN: card.lastFourPAN,
         isVirtual: card?.nameValuePairs?.isVirtual,
+        shouldShowOwnersAvatar: true,
+        cardName,
+        cardOwnerPersonalDetails: personalDetails ?? undefined,
         text,
         keyForList: card.cardID.toString(),
         isSelected,
         bankIcon: {
             icon,
-            iconWidth: variables.cardIconWidth,
-            iconHeight: variables.cardIconHeight,
-            iconStyles,
         },
         isCardFeed: false,
     };
@@ -73,12 +75,12 @@ function createIndividualCardFilterItem(card: Card, selectedCards: string[], ico
 function buildIndividualCardsData(
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
     userCardList: CardList,
+    personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
-    iconStyles: StyleProp<ViewStyle>,
 ): ItemsGroupedBySelection {
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => isCardIssued(card))
-        .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
+        .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
@@ -86,7 +88,7 @@ function buildIndividualCardsData(
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
                 .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID] && isCardIssued(card))
-                .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
+                .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -108,7 +110,6 @@ function createCardFeedItem({
     keyForList,
     correspondingCardIDs,
     selectedCards,
-    iconStyles,
     translate,
 }: {
     bank: string;
@@ -116,10 +117,9 @@ function createCardFeedItem({
     keyForList: string;
     correspondingCardIDs: string[];
     selectedCards: string[];
-    iconStyles: StyleProp<ViewStyle>;
     translate: LocaleContextProps['translate'];
 }): CardFilterItem {
-    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getBankName(bank as CompanyCardFeed);
     const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
 
@@ -128,11 +128,9 @@ function createCardFeedItem({
         text,
         keyForList,
         isSelected,
+        shouldShowOwnersAvatar: false,
         bankIcon: {
             icon,
-            iconWidth: variables.cardIconWidth,
-            iconHeight: variables.cardIconHeight,
-            iconStyles,
         },
         isCardFeed: true,
         correspondingCards: correspondingCardIDs,
@@ -157,7 +155,6 @@ function buildCardFeedsData(
         const feedItem = createCardFeedItem({
             bank,
             correspondingCardIDs,
-            iconStyles,
             cardFeedLabel: isBankRepeating ? CardUtils.getDescriptionForPolicyDomainCard(domainName) : undefined,
             translate,
             keyForList: `${domainName}-${bank}`,
@@ -187,7 +184,6 @@ function buildCardFeedsData(
             const feedItem = createCardFeedItem({
                 bank,
                 correspondingCardIDs,
-                iconStyles,
                 cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined,
                 translate,
                 keyForList: cardFeedKey,
@@ -213,14 +209,15 @@ function SearchFiltersCardPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
+    const personalDetails = usePersonalDetails();
 
     useEffect(() => {
         SearchActions.openSearchFiltersCardPage();
     }, []);
 
     const individualCardsSectionData = useMemo(
-        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, selectedCards, styles.cardIcon),
-        [workspaceCardFeeds, selectedCards, styles.cardIcon, userCardList],
+        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
     );
 
     const domainFeedsData = useMemo(

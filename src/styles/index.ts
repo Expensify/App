@@ -4773,6 +4773,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        cardItemSecondaryIconStyle: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderWidth: 2,
+            borderRadius: 2,
+            backgroundColor: theme.componentBG,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -5229,6 +5238,12 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
+            alignSelf: 'center',
+        },
+
+        cardMiniature: {
+            overflow: 'hidden',
+            borderRadius: variables.cardMiniatureBorderRadius,
             alignSelf: 'center',
         },
 
