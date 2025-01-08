@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -141,7 +140,6 @@ function buildCardFeedsData(
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
     domainFeedsData: Record<string, DomainFeedData>,
     selectedCards: string[],
-    iconStyles: StyleProp<ViewStyle>,
     translate: LocaleContextProps['translate'],
 ): ItemsGroupedBySelection {
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
@@ -237,8 +235,8 @@ function SearchFiltersCardPage() {
     );
 
     const cardFeedsSectionData = useMemo(
-        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, styles.cardIcon, translate),
-        [domainFeedsData, workspaceCardFeeds, selectedCards, styles.cardIcon, translate],
+        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, translate],
     );
 
     const shouldShowSearchInput =

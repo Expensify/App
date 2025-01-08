@@ -227,7 +227,7 @@ function PaymentMethodList({
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: CardUtils.maskCardNumber(card.cardName ?? '', card.bank),
+                        title: CardUtils.maskCardNumber(card.cardName, card.bank),
                         description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
@@ -410,7 +410,7 @@ function PaymentMethodList({
                         shouldShowDefaultBadge(
                             filteredPaymentMethods,
                             item,
-                            userWallet?.walletLinkedAccountID ?? 0,
+                            userWallet?.walletLinkedAccountID ?? CONST.DEFAULT_NUMBER_ID,
                             invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault,
                         )
                             ? translate('paymentMethodList.defaultPaymentMethod')

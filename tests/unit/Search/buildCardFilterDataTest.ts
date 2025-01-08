@@ -159,32 +159,24 @@ const cardList = {
 
 const domainFeedDataMock = {testDomain: {domainName: 'testDomain', bank: 'Expensify Card', correspondingCardIDs: ['11111111']}};
 
-function translateMock(key: string, obj: {cardFeedBankName: string; cardFeedLabel: string}) {
-    if (key === 'search.filters.card.expensify') {
-        return 'Expensify';
-    }
-    return `All ${obj.cardFeedBankName}${obj.cardFeedLabel ? ` - ${obj.cardFeedLabel}` : ''}`;
-}
-const translateMock1 = jest.fn();
+const translateMock = jest.fn();
 
 describe('buildIndividualCardsData', () => {
-    const result = buildIndividualCardsData(workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>, cardList as unknown as CardList, ['21588678'], {});
+    const result = buildIndividualCardsData(workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>, cardList as unknown as CardList, {}, ['21588678']);
 
     it("Builds all individual cards and doesn't generate duplicates", () => {
-        expect(result.length).toEqual(11);
+        expect(result.unselected.length + result.selected.length).toEqual(11);
 
         // Check if Expensify card was built correctly
-        const expensifyCard = result.find((card) => card.keyForList === '21588678');
+        const expensifyCard = result.selected.find((card) => card.keyForList === '21588678');
         expect(expensifyCard).toMatchObject({
-            text: 'Expensify Card',
             lastFourPAN: '1138',
             isSelected: true,
         });
 
         // Check if company card was built correctly
-        const companyCard = result.find((card) => card.keyForList === '21604933');
+        const companyCard = result.unselected.find((card) => card.keyForList === '21604933');
         expect(companyCard).toMatchObject({
-            text: '480801XXXXXX1601',
             lastFourPAN: '1601',
             isSelected: false,
         });
@@ -193,7 +185,7 @@ describe('buildIndividualCardsData', () => {
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
-        const result = buildIndividualCardsData({}, {}, [], {});
+        const result = buildIndividualCardsData({}, {}, {}, []);
         expect(result).toEqual([]);
     });
 });
@@ -203,42 +195,41 @@ describe('buildCardFeedsData', () => {
         workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
         domainFeedDataMock,
         [],
-        {},
-        translateMock1 as LocaleContextProps['translate'],
+        translateMock as LocaleContextProps['translate'],
     );
 
     it('Buids domain card feed properly', () => {
         // Check if domain card feed was built properly
-        expect(result.at(0)).toMatchObject({
+        expect(result.unselected.at(0)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['11111111'],
         });
-        expect(translateMock1).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'testDomain'});
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'testDomain'});
         // Check if workspace card feed that comes from company cards was built properly.
-        expect(result.at(1)).toMatchObject({
+        expect(result.unselected.at(1)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21593492', '21604933', '21638320', '21638598'],
         });
-        expect(translateMock1).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: 'Visa', cardFeedLabel: undefined});
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: 'Visa', cardFeedLabel: undefined});
         // Check if workspace card feed that comes from expensify cards was built properly
-        expect(result.at(2)).toMatchObject({
+        expect(result.unselected.at(2)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21588678', '21588684'],
         });
-        expect(translateMock1).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test1'});
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test1'});
 
         // Check if workspace card feed that comes from expensify cards was built properly.
-        expect(result.at(3)).toMatchObject({
+        expect(result.unselected.at(3)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21589168', '21589182', '21589202', '21638322'],
         });
-        expect(translateMock1).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test2'});
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test2'});
     });
 });
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, [], {}, translateMock as LocaleContextProps['translate']);
+        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate']);
         expect(result).toEqual([]);
     });
 });

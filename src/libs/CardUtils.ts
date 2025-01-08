@@ -158,7 +158,7 @@ function maskCard(lastFour = ''): string {
  * @param feed - card feed.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string, feed: string | undefined): string {
+function maskCardNumber(cardName: string | undefined, feed: string | undefined): string {
     if (!cardName || cardName === '') {
         return '';
     }
