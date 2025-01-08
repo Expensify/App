@@ -1145,7 +1145,7 @@ function navigateToAndOpenReport(
         Navigation.dismissModalWithReport(report);
     } else {
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${report?.reportID}`), actionType);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID), actionType);
     }
 }
 
@@ -3647,14 +3647,14 @@ function prepareOnboardingOptimisticData(
             const taskDescription =
                 typeof task.description === 'function'
                     ? task.description({
-                          adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(`${adminsChatReportID}`)}`,
-                          workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(`${onboardingPolicyID}`)}`,
-                          workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(`${onboardingPolicyID}`)}`,
-                          workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(`${onboardingPolicyID}`)}`,
+                          adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`,
+                          workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
+                          workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
+                          workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
                           navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
-                          workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(`${onboardingPolicyID}`)}`,
-                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(`${onboardingPolicyID}`)}`,
+                          workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
                       })
                     : task.description;
             const taskTitle =
