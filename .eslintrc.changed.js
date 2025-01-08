@@ -14,7 +14,6 @@ module.exports = {
                 'src/libs/actions/IOU.ts',
                 'src/libs/actions/Report.ts',
                 'src/libs/OptionsListUtils.ts',
-                'src/libs/TransactionUtils/index.ts',
                 'src/pages/home/ReportScreen.tsx',
                 'src/pages/workspace/WorkspaceInitialPage.tsx',
                 'src/pages/home/report/PureReportActionItem.tsx',
