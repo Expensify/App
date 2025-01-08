@@ -1158,7 +1158,7 @@ function getValidOptions(
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
-            currentReportId: topmostReportId,
+            currentReportId: topmostReportId ?? '',
             betas,
             policies,
             doesReportHaveViolations,
