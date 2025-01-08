@@ -748,7 +748,7 @@ function ComposerWithSuggestions(
         return () => {
             appStateSubscription.remove();
         };
-    }, []);
+    }, [focus]);
 
     useFocusedInputHandler(
         {
