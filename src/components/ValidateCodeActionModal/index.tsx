@@ -32,6 +32,7 @@ function ValidateCodeActionModal({
     shouldHandleNavigationBack,
     shouldShowThreeDotsButton = false,
     threeDotsMenuItems = [],
+    onThreeDotsButtonPress = () => {},
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -85,6 +86,7 @@ function ValidateCodeActionModal({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldOverlayDots
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
 
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>

@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -277,6 +278,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                     shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
+                    onThreeDotsButtonPress={() => blurActiveElement()}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,

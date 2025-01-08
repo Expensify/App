@@ -53,6 +53,9 @@ type ValidateCodeActionModalProps = {
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton?: boolean;
+
+    /** Method to trigger when pressing more options button of the header */
+    onThreeDotsButtonPress?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export
