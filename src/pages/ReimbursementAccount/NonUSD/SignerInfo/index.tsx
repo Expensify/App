@@ -49,6 +49,9 @@ const INPUT_KEYS = {
     SECOND_SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL,
     SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
     SIGNER_COPY_OF_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID,
+    SIGNER_ADDRESS_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF,
+    // SIGNER_CODICE_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_PROOF,
+    SIGNER_PDS_AND_FSG: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG,
 };
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
@@ -71,14 +74,14 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
 
-    const country =
-        reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     useEffect(() => {
         if (!country) {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         BankAccounts.getCorpayOnboardingFields(country);
     }, [country]);
 
@@ -86,6 +89,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             BankAccounts.saveCorpayOnboardingDirectorInformation(
                 {
                     companyDirectors: [
@@ -98,6 +102,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                         },
                     ],
                     copyOfID: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
+                    addressProof: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
+                    // TODO: uncomment when codiceProof is added to the form
+                    // codiceProof: onyxValues[INPUT_KEYS.SIGNER_CODICE_PROOF],
+                    pdsAndFSG: onyxValues[INPUT_KEYS.SIGNER_PDS_AND_FSG],
                 },
                 bankAccountID,
             );
