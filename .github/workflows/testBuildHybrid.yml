@@ -1,4 +1,4 @@
-name: Build and deploy hybird apps for testing
+name: Build and deploy hybrid apps for testing
 
 on:
   workflow_dispatch:
@@ -6,16 +6,12 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
-      OLD_DOT_COMMIT:
-        description: The branch, tag or SHA to checkout on Old Dot side
-        required: false
   pull_request_target:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
 env:
   PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-  OLD_DOT_COMMIT: ${{ github.event.inputs.OLD_DOT_COMMIT }}
 
 jobs:
   validateActor:
@@ -100,14 +96,12 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env: 
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
         run: |
-          git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
+          if git diff main --name-only | grep -q Mobile-Expensify; then 
+            git submodule update --init 
+          else
+            git submodule update --init --remote
+          fi
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -210,14 +204,12 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env: 
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
         run: |
-          git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
+          if git diff main --name-only | grep -q Mobile-Expensify; then 
+            git submodule update --init
+          else
+            git submodule update --init --remote
+          fi
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
