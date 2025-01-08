@@ -313,8 +313,8 @@ jobs:
     name: Build and deploy iOS
     needs: prep
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+    runs-on: macos-15-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -327,7 +327,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
 
@@ -428,9 +428,9 @@ jobs:
   iOS_hybrid:
     name: Build and deploy iOS HybridApp
     needs: prep
-    runs-on: macos-13-xlarge
+    runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -455,7 +455,7 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
 
