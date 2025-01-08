@@ -186,17 +186,45 @@ function NewChatPage() {
 
         return [sectionsList, firstKey];
     }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+    /**
+     * Removes a selected option from list if already selected. If not already selected add this option to the list.
+     * @param  option
+     */
+    const toggleOption = useMemo(
+        () => (option: ListItem & Partial<OptionData>) => {
+            const isOptionInList = !!option.isSelected;
+
+            let newSelectedOptions;
+
+            if (isOptionInList) {
+                newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            } else {
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
+            }
+
+            selectionListRef?.current?.clearInputAfterSelect?.();
+
+            setSelectedOptions(newSelectedOptions);
+        },
+        [selectedOptions, setSelectedOptions],
+    );
 
     /**
-     * Creates a new 1:1 chat with the option and the current user,
+     * If there are selected options already then it will toggle the option otherwise
+     * creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const createChat = useCallback(
+    const selectOption = useCallback(
         (option?: OptionsListUtils.Option) => {
             if (option?.isSelfDM) {
                 Navigation.dismissModal(option.reportID);
                 return;
             }
+            if (selectedOptions.length && option) {
+                toggleOption(option);
+                return;
+            }
+
             let login = '';
 
             if (option?.login) {
@@ -210,32 +238,13 @@ function NewChatPage() {
             }
             Report.navigateToAndOpenReport([login]);
         },
-        [selectedOptions],
+        [selectedOptions, toggleOption],
     );
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
             if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
                 return null;
-            }
-            /**
-             * Removes a selected option from list if already selected. If not already selected add this option to the list.
-             * @param  option
-             */
-            function toggleOption(option: ListItem & Partial<OptionData>) {
-                const isOptionInList = !!option.isSelected;
-
-                let newSelectedOptions;
-
-                if (isOptionInList) {
-                    newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-                } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
-                }
-
-                selectionListRef?.current?.clearInputAfterSelect?.();
-
-                setSelectedOptions(newSelectedOptions);
             }
 
             if (item.isSelected) {
@@ -265,7 +274,7 @@ function NewChatPage() {
                 />
             );
         },
-        [selectedOptions, setSelectedOptions, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
@@ -329,9 +338,9 @@ function NewChatPage() {
                     onChangeText={setSearchTerm}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
-                    onSelectRow={createChat}
+                    onSelectRow={selectOption}
                     shouldSingleExecuteRowSelect
-                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
+                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
                     showLoadingPlaceholder={!areOptionsInitialized}
