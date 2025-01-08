@@ -405,20 +405,10 @@ function BaseSelectionList<TItem extends ListItem>(
         }
     };
 
-    const getFocusedOption = useCallback(() => {
+    const selectFocusedOption = () => {
         const focusedOption = focusedIndex !== -1 ? flattenedSections.allOptions.at(focusedIndex) : undefined;
 
         if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
-            return;
-        }
-
-        return focusedOption;
-    }, [flattenedSections.allOptions, focusedIndex]);
-
-    const selectFocusedOption = () => {
-        const focusedOption = getFocusedOption();
-
-        if (!focusedOption) {
             return;
         }
 
@@ -753,13 +743,12 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
         scrollAndHighlightItem,
         clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
         updateExternalTextInputFocus,
         scrollToIndex,
-        getFocusedOption,
     ]);
 
     /** Selects row when pressing Enter */
