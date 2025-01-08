@@ -130,7 +130,7 @@ const FS = {
             Environment.getEnvironment().then((envName: string) => {
                 const isExpensifyEmail = value?.email?.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN);
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail || isExpensifyEmail) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyEmail) {
                     return;
                 }
                 FS.onReady().then(() => {
