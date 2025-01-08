@@ -34,9 +34,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, reportID: report.reportID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions, reportID: report.reportID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions, report});
         }
 
         let newIndex = newAttachments.findIndex(compareImage);
@@ -68,7 +68,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportActions, compareImage]);
+    }, [reportActions, compareImage, report]);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
