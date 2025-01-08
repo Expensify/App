@@ -34,13 +34,17 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
 
     return (
         <FullPageNotFoundView
+            testID="validate-code-not-found"
             shouldShow={!ValidationUtils.isValidValidateCode(code)}
             shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();
             }}
         >
-            <View style={styles.deeplinkWrapperContainer}>
+            <View
+                style={styles.deeplinkWrapperContainer}
+                testID="validate-code"
+            >
                 <View style={styles.deeplinkWrapperMessage}>
                     <View style={styles.mb2}>
                         <Icon
