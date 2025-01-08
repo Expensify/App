@@ -88,7 +88,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
-        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt) {
+        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
@@ -96,7 +96,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
-        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount) {
+        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
@@ -104,11 +104,11 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     }, [policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
-        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge) {
+        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge});
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
     }, [policy?.maxExpenseAge, translate]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
