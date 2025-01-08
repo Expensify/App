@@ -4,10 +4,11 @@ import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {workletizedParser} from '@libs/SearchAutocompleteUtils';
+import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -38,6 +39,7 @@ function SearchRouterInput(
     const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -81,7 +83,11 @@ function SearchRouterInput(
                         ref={ref}
                         isMarkdownEnabled
                         multiline={false}
-                        parser={workletizedParser}
+                        parser={(input: string) => {
+                            'worklet';
+
+                            return parseForLiveMarkdown(input, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.displayName ?? '');
+                        }}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}

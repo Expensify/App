@@ -1,6 +1,7 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
@@ -132,13 +133,26 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
-function workletizedParser(input: string) {
+/**
+ * Parses input string using the autocomplete parser and returns array of
+ * markdown ranges that can be used by RNMarkdownTextInput.
+ * It is simpler version of search parser that can be run on UI.
+ */
+function parseForLiveMarkdown(input: string, userLogin: string, userDisplayName: string) {
     'worklet';
 
     const parsedAutocomplete = autocompleteParser.parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
-    // TODO: change type depending on range
-    return ranges.map((range) => ({...range, type: 'mention-user'})) as MarkdownRange[];
+
+    return ranges.map((range) => {
+        let type = 'mention-user';
+
+        if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (range.value === userLogin || range.value === userDisplayName)) {
+            type = 'mention-here';
+        }
+
+        return {...range, type};
+    }) as MarkdownRange[];
 }
 
 export {
@@ -150,5 +164,5 @@ export {
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
     getAutocompleteQueryWithComma,
-    workletizedParser,
+    parseForLiveMarkdown,
 };
