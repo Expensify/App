@@ -2359,6 +2359,13 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: true},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -2406,6 +2413,13 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
         },
     ];
 
@@ -4012,24 +4026,78 @@ function prepareOnboardingOptimisticData(
         guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-        const selfDMReportID = ReportUtils.findSelfDMReportID();
-        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-            value: {
-                isPinned: false,
-            },
-        });
+    type SelfDMParameters = {
+        reportID?: string;
+        createdReportActionID?: string;
+    };
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-            value: {
-                isPinned: selfDMReport?.isPinned,
-            },
-        });
+    let selfDMParameters: SelfDMParameters = {};
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+        const selfDMReportID = ReportUtils.findSelfDMReportID();
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        let createdAction: ReportAction;
+        if (selfDMReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: true,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: selfDMReport?.isPinned,
+                },
+            });
+        } else {
+            const currentTime = DateUtils.getDBTime();
+            selfDMReport = ReportUtils.buildOptimisticSelfDMReport(currentTime);
+            createdAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+            selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        ...selfDMReport,
+                        pendingFields: {
+                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [createdAction.reportActionID]: createdAction,
+                    },
+                },
+            );
+
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            createChat: null,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [createdAction.reportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            );
+        }
     }
 
     optimisticData.push({
@@ -4060,7 +4128,7 @@ function prepareOnboardingOptimisticData(
 
     guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
 
-    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
 
 function completeOnboarding(
@@ -4075,7 +4143,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = prepareOnboardingOptimisticData(
         engagementChoice,
         data,
         adminsChatReportID,
@@ -4094,6 +4162,8 @@ function completeOnboarding(
         companySize,
         userReportedIntegration,
         policyID: onboardingPolicyID,
+        selfDMReportID: selfDMParameters.reportID,
+        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
