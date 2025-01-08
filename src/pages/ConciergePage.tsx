@@ -42,7 +42,7 @@ function ConciergePage() {
 
                     // Mark the viewTourTask as complete if we are redirected to Concierge after finishing the Navattic tour
                     const {navattic} = route.params as {navattic?: string};
-                    if (navattic === 'completed') {
+                    if (navattic === CONST.NAVATTIC.COMPLETED) {
                         if (viewTourTaskReport) {
                             if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                                 Task.completeTask(viewTourTaskReport);
