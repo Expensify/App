@@ -53,7 +53,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    const attachmentSourceAttribute =
+        htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
@@ -96,7 +97,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
-                    {({accountID, type}) => (
+                    {({accountID, type, reportID}) => (
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
@@ -105,7 +106,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(report?.reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {

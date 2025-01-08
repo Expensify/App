@@ -60,7 +60,7 @@ function showContextMenuForReport(
         anchor,
         reportID,
         action?.reportActionID,
-        ReportUtils.getOriginalReportID(reportID, action),
+        reportID ? ReportUtils.getOriginalReportID(reportID, action) : undefined,
         undefined,
         checkIfContextMenuActive,
         checkIfContextMenuActive,
