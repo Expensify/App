@@ -658,6 +658,7 @@ const CONST = {
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
+        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2754,6 +2755,7 @@ const CONST = {
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
+            BANK_CONNECTION: 'BankConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
