@@ -7325,8 +7325,9 @@ function canApproveIOU(
             isTransactionBeingScanned = true;
         }
     }
+    const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, reportTransactions);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned && !isPayAtEndExpenseReport;
 }
 
 function canIOUBePaid(
@@ -7384,6 +7385,7 @@ function canIOUBePaid(
     const shouldBeApproved = canApproveIOU(iouReport, policy);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
+
     return (
         isPayer &&
         !isOpenExpenseReport &&

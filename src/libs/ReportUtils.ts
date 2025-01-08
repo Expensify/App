@@ -1770,7 +1770,7 @@ function isOneTransactionReport(reportID: string | undefined): boolean {
 /*
  * Whether the report contains only one expense and the expense should be paid later
  */
-function isPayAtEndExpenseReport(reportID: string, transactions: Transaction[] | undefined): boolean {
+function isPayAtEndExpenseReport(reportID: string | undefined, transactions: Transaction[] | undefined): boolean {
     if ((!!transactions && transactions.length !== 1) || !isOneTransactionReport(reportID)) {
         return false;
     }
