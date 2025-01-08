@@ -87,7 +87,10 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onPress={() => {
+                        Navigation.goBack();
+                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                    }}
                     large
                 />
             )}
