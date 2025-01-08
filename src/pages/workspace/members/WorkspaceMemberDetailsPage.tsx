@@ -305,7 +305,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {(memberCards as MemberCard[]).map((memberCard) => {
+                                            {memberCards.map((memberCard) => {
                                                 const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                                 return (
                                                     <OfflineWithFeedback
