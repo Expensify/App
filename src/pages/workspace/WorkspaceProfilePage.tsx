@@ -12,6 +12,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -19,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {resetPolicyIDInNavigationState} from '@libs/Navigation/helpers';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -27,6 +29,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +48,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {canUseSpotnanaTravel} = usePermissions();
-
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
@@ -164,7 +167,12 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
         Policy.deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
-    }, [policy?.id, policyName]);
+
+        if (policy.id === activeWorkspaceID) {
+            setActiveWorkspaceID(undefined);
+            resetPolicyIDInNavigationState();
+        }
+    }, [activeWorkspaceID, policy?.id, policyName, setActiveWorkspaceID]);
 
     return (
         <WorkspacePageWithSections
@@ -247,11 +255,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
-                                disabled={readOnly}
+                                interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
-                                shouldGreyOutWhenDisabled={false}
-                                shouldUseDefaultCursorWhenDisabled
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
@@ -269,11 +275,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
                                     shouldShowRightIcon={!readOnly}
-                                    disabled={readOnly}
+                                    interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
@@ -293,12 +297,10 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    disabled={hasVBA ? true : readOnly}
+                                    shouldShowRightIcon={hasVBA ? false : !readOnly}
+                                    interactive={hasVBA ? false : !readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     hintText={hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                 />
                             </View>
@@ -310,11 +312,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         title={formattedAddress}
                                         description={translate('common.companyAddress')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
@@ -326,12 +326,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     <MenuItemWithTopDescription
                                         title={PolicyUtils.getUserFriendlyWorkspaceType(policy.type)}
                                         description={translate('workspace.common.planType')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressPlanType}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
@@ -342,7 +339,10 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     <Button
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()))}
+                                        onPress={() => {
+                                            Member.clearInviteDraft(route.params.policyID);
+                                            Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+                                        }}
                                         icon={Expensicons.UserPlus}
                                         style={[styles.mr2]}
                                     />

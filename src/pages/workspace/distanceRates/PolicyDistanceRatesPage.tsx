@@ -8,11 +8,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -74,11 +74,11 @@ function PolicyDistanceRatesPage({
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? CONST.EMPTY_STRING, item.value);
                 return;
             }
 
-            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
+            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? CONST.EMPTY_STRING, item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -98,16 +98,36 @@ function PolicyDistanceRatesPage({
         setSelectedDistanceRates([]);
     }, [isFocused]);
 
+    const updateDistanceRateEnabled = useCallback(
+        (value: boolean, rateID: string) => {
+            if (!customUnit) {
+                return;
+            }
+            const rate = customUnit?.rates?.[rateID];
+            // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
+            const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
+                (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+
+            if (!rate?.enabled || canDisableOrDeleteRate) {
+                DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
+            } else {
+                setIsWarningModalVisible(true);
+            }
+        },
+        [customUnit, policyID],
+    );
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
             Object.values(customUnitRates)
                 .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
                 .map((value) => ({
-                    value: value.customUnitRateID ?? '',
+                    value: value.customUnitRateID ?? CONST.EMPTY_STRING,
                     text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
-                    keyForList: value.customUnitRateID ?? '',
+                    keyForList: value.customUnitRateID ?? CONST.EMPTY_STRING,
                     isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
@@ -119,9 +139,16 @@ function PolicyDistanceRatesPage({
                         value.pendingFields?.taxClaimablePercentage ??
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                    rightElement: (
+                        <Switch
+                            isOn={!!value?.enabled}
+                            accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                            onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
+                            disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        />
+                    ),
                 })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction, canSelectMultiple],
+        [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const addRate = () => {
@@ -170,7 +197,7 @@ function PolicyDistanceRatesPage({
         DistanceRate.deletePolicyDistanceRates(
             policyID,
             customUnit,
-            selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+            selectedDistanceRates.map((rate) => rate.customUnitRateID ?? CONST.EMPTY_STRING),
         );
         setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);

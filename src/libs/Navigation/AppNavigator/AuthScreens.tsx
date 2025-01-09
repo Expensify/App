@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -211,6 +211,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+
+    // On HybridApp we need to prevent flickering during transition to OldDot
+    const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
+        return NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
+    }, [isOnboardingCompleted]);
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -519,7 +524,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {isOnboardingCompleted === false && (
+                    {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                             options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}

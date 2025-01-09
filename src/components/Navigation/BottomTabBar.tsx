@@ -82,7 +82,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {currentReportID} = useCurrentReportID() ?? {currentReportID: null};
+    const {currentReportID = null} = useCurrentReportID() ?? {};
     const [user] = useOnyx(ONYXKEYS.USER);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
@@ -169,9 +169,16 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 (rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
             );
 
+            // If there is no settings or workspace navigator route, then we should open the settings navigator.
+            if (!lastSettingsOrWorkspaceNavigatorRoute) {
+                Navigation.navigate(ROUTES.SETTINGS);
+                return;
+            }
+
+            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedSplitNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
-            if (lastSettingsOrWorkspaceNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedSplitNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+            if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 const params = state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
 
                 // Screens of this navigator should always have policyID
@@ -188,17 +195,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             }
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (
-                lastSettingsOrWorkspaceNavigatorRoute &&
-                lastSettingsOrWorkspaceNavigatorRoute.state &&
-                lastSettingsOrWorkspaceNavigatorRoute.state.routes.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES
-            ) {
+            if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
                 Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                 return;
             }
 
             // Otherwise we should simply open the settings navigator.
-            // This case also covers if there is no route to remember.
             Navigation.navigate(ROUTES.SETTINGS);
         });
     }, [shouldUseNarrowLayout]);

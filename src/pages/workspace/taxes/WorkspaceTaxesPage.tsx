@@ -10,11 +10,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -111,24 +111,42 @@ function WorkspaceTaxesPage({
         [defaultExternalID, foreignTaxDefault, translate],
     );
 
+    const updateWorkspaceTaxEnabled = useCallback(
+        (value: boolean, taxID: string) => {
+            setPolicyTaxesEnabled(policyID, [taxID], value);
+        },
+        [policyID],
+    );
+
     const taxesList = useMemo<ListItem[]>(() => {
         if (!policy) {
             return [];
         }
         return Object.entries(policy.taxRates?.taxes ?? {})
-            .map(([key, value]) => ({
-                text: value.name,
-                alternateText: textForDefault(key, value),
-                keyForList: key,
-                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
-                isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
-                errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                rightElement: <ListItemRightCaretWithLabel labelText={!value.isDisabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-            }))
+            .map(([key, value]) => {
+                const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, key);
+
+                return {
+                    text: value.name,
+                    alternateText: textForDefault(key, value),
+                    keyForList: key,
+                    isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
+                    isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
+                    errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
+                    rightElement: (
+                        <Switch
+                            isOn={!value.isDisabled}
+                            disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                            onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
+                        />
+                    ),
+                };
+            })
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate]);
+    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
     const isLoading = !isOffline && taxesList === undefined;
 

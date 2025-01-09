@@ -12,7 +12,7 @@ import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -96,6 +96,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: wasInvitedToNewDotSelector,
+    });
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -105,8 +109,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         }
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated.
-        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && authenticated && !shouldShowRequire2FAModal) {
+        // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
+        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
