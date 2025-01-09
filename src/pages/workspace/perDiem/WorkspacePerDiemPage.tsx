@@ -171,7 +171,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     rightElement: (
                         <>
                             <View style={styles.flex1}>
-                                <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label]}>{value.subRateName}</Text>
+                                <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
                             </View>
                             <View style={styles.flex1}>
                                 <Text style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}>
@@ -211,7 +211,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
             <View style={styles.flex1}>
-                <Text style={[styles.searchInputStyle, styles.alignItemsStart]}>{translate('common.subrate')}</Text>
+                <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
             <View style={styles.flex1}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
