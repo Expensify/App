@@ -1224,7 +1224,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, 'moneyRequest', retryParams),
+                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -1237,7 +1237,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                           [iou.createdAction.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, 'moneyRequest', retryParams),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
                           },
                           [iou.action.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -1247,7 +1247,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                           [iou.action.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, 'moneyRequest', retryParams),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
                           },
                       }),
             },
@@ -1975,7 +1975,7 @@ function buildOnyxDataForTrackExpense(
                               [iouCreatedAction.reportActionID]: {
                                   // Disabling this line since transaction.filename can be an empty string
                                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, 'trackExpense', retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
                               },
                               [iouAction.reportActionID]: {
                                   errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -1985,7 +1985,7 @@ function buildOnyxDataForTrackExpense(
                               [iouAction.reportActionID]: {
                                   // Disabling this line since transaction.filename can be an empty string
                                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, 'trackExpense', retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
                               },
                           }),
                 },
@@ -1999,7 +1999,7 @@ function buildOnyxDataForTrackExpense(
                 [iouAction.reportActionID]: {
                     // Disabling this line since transaction.filename can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, 'trackExpense', retryParams),
+                    errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
                 },
             },
         });
@@ -2033,7 +2033,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, 'trackExpense', retryParams),
+                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -5251,7 +5251,7 @@ function startSplitBill({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: getReceiptError(receipt, filename, undefined, undefined, 'startSplitBill', retryParams),
+                    errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                 },
             },
         });
@@ -5274,7 +5274,7 @@ function startSplitBill({
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: getReceiptError(receipt, filename, undefined, undefined, 'startSplitBill', retryParams),
+                        errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                     },
                 },
             },
@@ -8353,7 +8353,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
-                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, 'replaceReceipt', retryParams),
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
                 pendingFields: {
                     receipt: null,
                 },
