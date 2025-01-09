@@ -924,7 +924,8 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
  * Find the transaction associated with this reportAction, if one exists.
  */
 function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
-    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
+    const reportAction =
+        typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? CONST.DEFAULT_NUMBER_ID}`]?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
         return null;
     }
@@ -1599,7 +1600,10 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 /**
  * Get IOU action for a reportID and transactionID
  */
-function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
+function getIOUActionForReportID(reportID?: string, transactionID?: string): OnyxEntry<ReportAction> {
+    if (!reportID || !transactionID) {
+        return;
+    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
