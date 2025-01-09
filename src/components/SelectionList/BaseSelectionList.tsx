@@ -320,7 +320,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: true,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -333,14 +333,15 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    const selectedItemIndex = useMemo(() => flattenedSections.allOptions.findIndex((option) => option.isSelected), [flattenedSections.allOptions]);
+
     useEffect(() => {
-        const selectedItemIndex = flattenedSections.allOptions.findIndex((option) => option.isSelected);
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
             return;
         }
         setFocusedIndex(selectedItemIndex);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [flattenedSections]);
+    }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
