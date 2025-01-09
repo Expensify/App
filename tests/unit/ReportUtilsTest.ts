@@ -173,6 +173,10 @@ describe('ReportUtils', () => {
         });
 
         describe('Default Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseAdminsRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -197,9 +201,13 @@ describe('ReportUtils', () => {
         });
 
         describe('User-Created Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseUserCreatedRoom = {
                 reportID: '',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
 
@@ -207,8 +215,7 @@ describe('ReportUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
 
-            test('Active', async () => {
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            test('Active', () => {
                 expect(ReportUtils.getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
@@ -227,8 +234,7 @@ describe('ReportUtils', () => {
 
         describe('PolicyExpenseChat', () => {
             describe('Active', () => {
-                test('as member', async () => {
-                    await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+                test('as member', () => {
                     expect(
                         ReportUtils.getReportName({
                             reportID: '',
