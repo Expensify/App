@@ -928,7 +928,10 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }    
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -938,6 +941,10 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -947,6 +954,10 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
