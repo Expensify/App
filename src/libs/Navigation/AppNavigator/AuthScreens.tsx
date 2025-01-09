@@ -410,10 +410,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, []);
 
     const clearStatus = () => {
+        User.clearCustomStatus();
         User.updateDraftCustomStatus({
             text: '',
             emojiCode: '',
-            clearAfter: DateUtils.getEndOfToday(),
+            clearAfter: '',
         });
     };
     useEffect(() => {
