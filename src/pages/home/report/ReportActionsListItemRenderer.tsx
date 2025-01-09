@@ -146,7 +146,10 @@ function ReportActionsListItemRenderer({
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
         (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
 
-    if (shouldDisplayParentAction && ReportUtils.isTripRoom(report)) {
+    const tripTransactions = ReportUtils.getTripTransactions(report?.reportID);
+    const shouldDisplayTripSummary = shouldDisplayParentAction && ReportUtils.isTripRoom(report) && tripTransactions.length > 0;
+
+    if (shouldDisplayTripSummary) {
         return <TripSummary report={report} />;
     }
 
