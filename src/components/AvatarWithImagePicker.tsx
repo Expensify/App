@@ -324,7 +324,11 @@ function AvatarWithImagePicker({
             }
             if (isUsingDefaultAvatar) {
                 openPicker({
-                    onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                    onPicked: (data) => {
+                        setTimeout(() => {
+                            showAvatarCropModal(data.at(0) ?? {});
+                        }, CONST.ANIMATED_TRANSITION);
+                    },
                 });
                 return;
             }

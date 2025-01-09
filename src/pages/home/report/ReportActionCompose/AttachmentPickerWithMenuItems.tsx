@@ -249,7 +249,11 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
+                        onPicked: (data) => {
+                            setTimeout(() => {
+                                displayFileInModal(data.at(0) ?? {});
+                            }, CONST.ANIMATED_TRANSITION);
+                        },
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
