@@ -14,6 +14,9 @@ type IntroSelected = {
 
     /** Task reportID for 'viewTour' type */
     viewTour?: string;
+
+    /** Task reportID for 'createWorkspace' type */
+    createWorkspace?: string;
 };
 
 export default IntroSelected;
