@@ -188,21 +188,17 @@ describe('ReportUtils', () => {
             });
 
             test('Archived', async () => {
-                const archivedAdminsRoom = {
-                    ...baseAdminsRoom,
-                };
-
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
+                expect(ReportUtils.getReportName(baseAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
         describe('User-Created Policy Room', () => {
             const baseUserCreatedRoom = {
-                reportID: '1',
+                reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#VikingsChat',
             };
@@ -211,7 +207,8 @@ describe('ReportUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
 
-            test('Active', () => {
+            test('Active', async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
                 expect(ReportUtils.getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
@@ -230,7 +227,8 @@ describe('ReportUtils', () => {
 
         describe('PolicyExpenseChat', () => {
             describe('Active', () => {
-                test('as member', () => {
+                test('as member', async () => {
+                    await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
                     expect(
                         ReportUtils.getReportName({
                             reportID: '',
@@ -262,10 +260,6 @@ describe('ReportUtils', () => {
                     ownerAccountID: 1,
                     policyID: policy.id,
                     oldPolicyName: policy.name,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 const reportNameValuePairs = {
