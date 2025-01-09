@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,6 +9,8 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type WorkspaceEditCardNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
+type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {policyID, cardID} = route.params;
@@ -40,8 +41,14 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
         Navigation.goBack();
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+        const length = values.name.length;
+        if (length > CONST.STANDARD_LENGTH_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        }
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -74,7 +81,6 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                         aria-label={translate('workspace.card.issueNewCard.cardName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={card?.nameValuePairs?.cardTitle}
-                        maxLength={CONST.EXPENSIFY_CARD.CARD_TITLE_INPUT_LIMIT}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>

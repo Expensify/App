@@ -7,6 +7,7 @@ import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -28,6 +29,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
+import {getConciergeReportID} from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     areSettingsInErrorFields,
@@ -62,6 +65,7 @@ type RouteParams = {
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? -1}`);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -74,7 +78,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
     const newConnectionName = params?.newConnectionName;
@@ -97,13 +102,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
     );
 
-    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
+    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
     const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && PolicyUtils.hasUnsupportedIntegration(policy, accountingIntegrations);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
+    const shouldShowCardReconciliationOption = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -169,6 +175,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
+
+    useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+        getAssignedSupportData(policyID);
+    }, [policyID]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -306,14 +319,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
-            {
-                icon: Expensicons.ExpensifyCard,
-                iconRight: Expensicons.ArrowRight,
-                shouldShowRightIcon: true,
-                title: translate('workspace.accounting.cardReconciliation'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                onPress: integrationData?.onCardReconciliationPagePress,
-            },
+            ...(shouldShowCardReconciliationOption
+                ? [
+                      {
+                          icon: Expensicons.ExpensifyCard,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.cardReconciliation'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: integrationData?.onCardReconciliationPagePress,
+                      },
+                  ]
+                : []),
             {
                 icon: Expensicons.Gear,
                 iconRight: Expensicons.ArrowRight,
@@ -325,10 +342,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
             },
         ];
-
-        if (!policy?.areExpensifyCardsEnabled) {
-            configurationOptions.splice(2, 1);
-        }
 
         return [
             {
@@ -394,6 +407,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         canUseNetSuiteUSATax,
+        shouldShowCardReconciliationOption,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -456,6 +470,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
     ]);
 
+    const [chatTextLink, chatReportID] = useMemo(() => {
+        // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
+        if (account?.adminsRoomReportID) {
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), account?.adminsRoomReportID];
+        }
+
+        // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
+        if (account?.accountManagerAccountID) {
+            return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
+        }
+        // Else, display the following and link to their Concierge DM.
+        return [translate('workspace.accounting.talkToConcierge'), getConciergeReportID()];
+    }, [account, translate]);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -471,6 +499,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
+                    shouldUseHeadlineHeader
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
@@ -542,6 +571,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         shouldUseSingleExecution
                                     />
                                 </CollapsibleSection>
+                            )}
+                            {!!account?.guideDetails?.email && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
+                                    <Icon
+                                        src={Expensicons.QuestionMark}
+                                        width={20}
+                                        height={20}
+                                        fill={theme.icon}
+                                        additionalStyles={styles.mr3}
+                                    />
+                                    <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                                        <Text style={styles.textSupporting}>{translate('workspace.accounting.needAnotherAccounting')}</Text>
+                                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? ''))}>{chatTextLink}</TextLink>
+                                    </View>
+                                </View>
                             )}
                         </Section>
                     </View>

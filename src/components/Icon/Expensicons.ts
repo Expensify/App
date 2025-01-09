@@ -8,6 +8,7 @@ import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
+import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '@assets/images/avatars/announce-room.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
@@ -23,12 +24,15 @@ import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
+import Binoculars from '@assets/images/binoculars.svg';
+import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
@@ -152,6 +156,7 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
+import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
@@ -183,6 +188,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -216,6 +222,7 @@ export {
     ArrowsUpDown,
     ArrowUpLong,
     ArrowDownLong,
+    AttachmentNotFound,
     Wrench,
     BackArrow,
     Bank,
@@ -223,11 +230,13 @@ export {
     Bill,
     Bell,
     BellSlash,
+    Binoculars,
     Bolt,
     Box,
     Briefcase,
     Bug,
     Building,
+    Buildings,
     Calendar,
     Camera,
     Car,
@@ -339,6 +348,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
     ReceiptSlash,
@@ -406,4 +416,6 @@ export {
     Star,
     QBDSquare,
     GalleryNotFound,
+    Train,
+    boltSlash,
 };

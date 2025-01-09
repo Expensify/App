@@ -23,6 +23,7 @@ import type StatePicker from '@components/StatePicker';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
+import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
@@ -33,6 +34,7 @@ import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
+import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
 
 /**
@@ -68,7 +70,8 @@ type ValidInputs =
     | typeof StatePicker
     | typeof ConstantSelector
     | typeof UploadFile
-    | typeof PushRowWithModal;
+    | typeof PushRowWithModal
+    | typeof TimeModalPicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {
@@ -164,6 +167,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
     resetErrors: () => void;
+    resetFormFieldError: (fieldID: keyof Form) => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;

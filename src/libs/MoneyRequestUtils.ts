@@ -32,27 +32,28 @@ function stripDecimalsFromAmount(amount: string): string {
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
  * @param amount - Changed amount from user input
+ * @param shouldAllowNegative - Should allow negative numbers
  */
-function addLeadingZero(amount: string): string {
+function addLeadingZero(amount: string, shouldAllowNegative = false): string {
+    if (shouldAllowNegative && amount.startsWith('-.')) {
+        return `-0${amount}`;
+    }
     return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**
- * Get amount regex string
+ * Check if amount is a decimal up to 3 digits
  */
-function amountRegex(decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): string {
-    return decimals === 0
-        ? `^\\d{0,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
-        : `^\\d{0,${amountMaxLength}}(?:(?:\\.|\\,)\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
-}
-
-/**
- * Check if string is a valid amount
- */
-function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
-    const regexString = amountRegex(decimals, amountMaxLength);
-    const decimalNumberRegex = new RegExp(regexString);
-    return decimalNumberRegex.test(amount);
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative = false): boolean {
+    const regexString =
+        decimals === 0
+            ? `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+    const decimalNumberRegex = new RegExp(regexString, 'i');
+    if (shouldAllowNegative) {
+        return amount === '' || amount === '-' || decimalNumberRegex.test(amount);
+    }
+    return amount === '' || decimalNumberRegex.test(amount);
 }
 
 /**
@@ -104,7 +105,6 @@ export {
     stripDecimalsFromAmount,
     stripSpacesFromAmount,
     replaceCommasWithPeriod,
-    amountRegex,
     validateAmount,
     validatePercentage,
 };

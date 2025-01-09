@@ -15,8 +15,6 @@ import ViolationMessages from '@components/ViolationMessages';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
@@ -29,12 +27,12 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -79,12 +77,10 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const parentReportID = report?.parentReportID ?? '-1';
     const policyID = report?.policyID ?? '-1';
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -93,7 +89,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const targetPolicyID = updatedTransaction?.reportID ? ReportUtils.getReport(updatedTransaction?.reportID)?.policyID : policyID;
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`);
+    const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
@@ -102,7 +99,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
-    const {canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
@@ -125,6 +121,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         tag: transactionTag,
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
+        postedDate: transactionPostedDate,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -184,12 +181,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || TagsOptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
@@ -200,10 +197,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     let amountDescription = `${translate('iou.amount')}`;
+    let dateDescription = `${translate('common.date')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const {unit, rate, currency} = DistanceRequestUtils.getRate({transaction, policy});
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
+    const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -234,6 +233,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     if (isCardTransaction) {
+        if (transactionPostedDate) {
+            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
+        }
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
@@ -307,9 +309,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
-    const distanceRequestFields = canUseP2PDistanceRequests ? (
+    const distanceRequestFields = (
         <>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}
@@ -352,27 +354,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 />
             </OfflineWithFeedback>
         </>
-    ) : (
-        <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-            <MenuItemWithTopDescription
-                description={translate('common.distance')}
-                title={transactionMerchant}
-                interactive={canEditDistance}
-                shouldShowRightIcon={canEditDistance}
-                titleStyle={styles.flex1}
-                onPress={() =>
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transaction?.transactionID ?? '-1',
-                            report?.reportID ?? '-1',
-                            Navigation.getReportRHPActiveRoute(),
-                        ),
-                    )
-                }
-            />
-        </OfflineWithFeedback>
     );
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
@@ -406,7 +387,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
 
@@ -470,7 +451,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 {(hasReceipt || !!errors) && (
                     <OfflineWithFeedback
-                        pendingAction={pendingAction}
+                        pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
@@ -484,8 +465,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     return;
                                 }
                                 if (parentReportAction) {
-                                    const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                    Navigation.goBack(urlToNavigateBack);
+                                    IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     return;
                                 }
                             }
@@ -612,7 +592,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
-                        description={translate('common.date')}
+                        description={dateDescription}
                         title={transactionDate}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
@@ -717,10 +697,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
-                        iconRight={Expensicons.NewWindow}
-                        shouldShowRightIcon
                         onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}
@@ -746,7 +728,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}

@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -37,6 +36,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -50,7 +50,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
-type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -64,8 +64,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const policyID = route.params.policyID;
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID ?? '-1';
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -73,7 +73,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
+    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
@@ -253,7 +253,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (enabledTagCount > 0) {
             options.push({
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
@@ -265,7 +265,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: Expensicons.Document,
+                icon: Expensicons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
@@ -293,8 +293,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [
-            {
+        const menuItems: PopoverMenuItem[] = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -302,10 +303,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                    Navigation.navigate(
+                        isQuickSettingsFlow
+                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                    );
                 },
-            },
-        ];
+            });
+        }
 
         if (hasVisibleTags) {
             menuItems.push({
@@ -326,7 +331,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, hasVisibleTags, isOffline, policyID, isQuickSettingsFlow, backTo]);
+    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -364,6 +369,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {

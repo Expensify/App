@@ -1,10 +1,12 @@
 import React from 'react';
+import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import TransactionListItemRow from './TransactionListItemRow';
 
@@ -16,16 +18,17 @@ function TransactionListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onCheckboxPress,
-    onDismissError,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    isLoading,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -34,7 +37,6 @@ function TransactionListItem<TItem extends ListItem>({
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
-        isFocused && styles.sidebarLinkActive,
         styles.mh0,
     ];
 
@@ -62,8 +64,6 @@ function TransactionListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onDismissError={onDismissError}
-            errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -76,13 +76,14 @@ function TransactionListItem<TItem extends ListItem>({
                 item={transactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
-                    onSelectRow(item);
+                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
+                isLoading={isLoading ?? transactionItem.isActionLoading}
             />
         </BaseListItem>
     );

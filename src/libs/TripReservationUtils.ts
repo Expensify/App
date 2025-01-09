@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import type {Dispatch, SetStateAction} from 'react';
+import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -13,6 +14,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as Link from './actions/Link';
+import Log from './Log';
 import Navigation from './Navigation/Navigation';
 import * as PolicyUtils from './PolicyUtils';
 
@@ -40,7 +42,15 @@ Onyx.connect({
     },
 });
 
-function getTripReservationIcon(reservationType: ReservationType): IconAsset {
+let isSingleNewDotEntry: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    callback: (val) => {
+        isSingleNewDotEntry = val;
+    },
+});
+
+function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return Expensicons.Plane;
@@ -48,16 +58,27 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
             return Expensicons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return Expensicons.CarWithKey;
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return Expensicons.Train;
         default:
             return Expensicons.Luggage;
     }
 }
 
-function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string; reservationIndex: number};
+
+function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
-        .map((item) => item?.receipt?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+        .flatMap(
+            (item) =>
+                item?.receipt?.reservationList?.map((reservation, reservationIndex) => ({
+                    reservation,
+                    transactionID: item.transactionID,
+                    reportID: item.reportID,
+                    reservationIndex,
+                })) ?? [],
+        )
+        .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
 function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
@@ -91,8 +112,18 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     if (ctaErrorMessage) {
         setCtaErrorMessage('');
     }
-    Link.openTravelDotLink(activePolicyID)?.catch(() => {
-        setCtaErrorMessage(translate('travel.errorMessage'));
-    });
+    Link.openTravelDotLink(activePolicyID)
+        ?.then(() => {
+            if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
+                return;
+            }
+
+            Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
+            NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+        })
+        ?.catch(() => {
+            setCtaErrorMessage(translate('travel.errorMessage'));
+        });
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
+export type {ReservationData};

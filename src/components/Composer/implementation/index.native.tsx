@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
@@ -9,14 +9,15 @@ import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -29,7 +30,6 @@ function Composer(
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
-        setIsFullComposerAvailable = () => {},
         autoFocus = false,
         style,
         // On native layers we like to have the Text Input not focused so the
@@ -38,6 +38,7 @@ function Composer(
         selection,
         value,
         isGroupPolicyReport = false,
+        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -50,7 +51,11 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const [contextMenuHidden, setContextMenuHidden] = useState(true);
+
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+    const keyboardState = useKeyboardState();
+    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 
     useEffect(() => {
         if (autoFocus === !!autoFocusInputRef.current) {
@@ -58,6 +63,32 @@ function Composer(
         }
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
+    useEffect(() => {
+        if (!showSoftInputOnFocus || !isKeyboardShown) {
+            return;
+        }
+        setContextMenuHidden(false);
+    }, [showSoftInputOnFocus, isKeyboardShown]);
+
+    useEffect(() => {
+        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+            return;
+        }
+
+        // We need the delay for setSelection to properly work for IOS in bridgeless mode due to a react native
+        // internal bug of dispatching the event before the component is ready for it.
+        // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
+        const timeoutID = setTimeout(() => {
+            // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
+            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInput.current?.setSelection(selection.start, selection.start);
+        }, 0);
+
+        return () => clearTimeout(timeoutID);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
 
     /**
      * Set the TextInput Ref
@@ -118,13 +149,16 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
             value={value}
-            onContentSizeChange={(e) => updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles, true)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            autoFocus={autoFocus}
+            // /*
+            // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
+            // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
+            // */
+            autoFocus={getPlatform() !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
@@ -137,6 +171,8 @@ function Composer(
                 props?.onBlur?.(e);
             }}
             onClear={onClear}
+            showSoftInputOnFocus={showSoftInputOnFocus}
+            contextMenuHidden={contextMenuHidden}
         />
     );
 }

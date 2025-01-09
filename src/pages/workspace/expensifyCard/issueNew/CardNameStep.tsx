@@ -9,6 +9,8 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Card from '@userActions/Card';
@@ -26,18 +28,16 @@ function CardNameStep() {
     const data = issueNewCard?.data;
 
     const userName = PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? `${userName}'s Card` : '';
+    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? CardUtils.getDefaultCardName(userName) : '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-            if (!values.cardTitle) {
-                errors.cardTitle = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const length = values.cardTitle.length;
+        if (length > CONST.STANDARD_LENGTH_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        }
+        return errors;
+    };
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         Card.setIssueNewCardStepAndData({

@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
@@ -32,8 +31,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -53,7 +54,9 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
+    WithCurrentUserPersonalDetailsProps &
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -107,7 +110,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? '',
+                memberName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
@@ -171,7 +174,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
             const prevSelectedElements = prevSelected.map((id) => {
-                const prevItem = prevPersonalDetails?.id;
+                const prevItem = prevPersonalDetails?.[id];
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
@@ -197,9 +200,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     /**
      * Open the modal to invite a user
      */
-    const inviteUser = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
-    };
+    const inviteUser = useCallback(() => {
+        Member.clearInviteDraft(route.params.policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+    }, [route.params.policyID]);
 
     /**
      * Remove selected users from the workspace
@@ -357,15 +361,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             } else if (isAuditor) {
                 roleBadge = <Badge text={translate('common.auditor')} />;
             }
+            const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled:
-                    !!details.isOptimisticPersonalDetail ||
-                    (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
+                isDisabled: isPendingDeleteOrError,
+                isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
@@ -415,9 +419,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
-        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
-        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-    }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
+        Member.clearInviteDraft(route.params.policyID);
+    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {

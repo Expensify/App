@@ -1,8 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -22,6 +20,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -34,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -43,20 +42,11 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
-type WorkspaceInvitePageOnyxProps = {
-    /** Beta features list */
-    betas: OnyxEntry<Beta[]>;
-
-    /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-};
-
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
-    WorkspaceInvitePageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -66,6 +56,8 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const firstRenderRef = useRef(true);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -74,13 +66,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
-    useEffect(() => {
-        return () => {
-            Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);
@@ -94,16 +79,16 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
 
-        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
-        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
         [debouncedSearchTerm, defaultOptions, excludedUsers],
     );
 
@@ -257,14 +242,14 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '-1';
+            const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
@@ -316,7 +301,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
@@ -354,15 +339,4 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
 
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
-export default withNavigationTransitionEnd(
-    withPolicyAndFullscreenLoading(
-        withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-        })(WorkspaceInvitePage),
-    ),
-);
+export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));

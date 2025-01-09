@@ -1,0 +1,42 @@
+name: Android Rollout Bumper
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs at midnight every day
+    - cron: '0 0 * * *'
+
+jobs:
+  android_bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Decrypt json Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
+
+      - name: Get status from Google Play and generate next rollout percentage
+        id: checkAndroidStatus
+        uses: ./.github/actions/javascript/checkAndroidStatus
+        with:
+          GOOGLE_KEY_FILE: android/app/android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Rollout Percentage with Fastlane
+        # We should not rollout if the release is halted or the rollout percentage is completed
+        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' && steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
+        run: |
+          echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
+          echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
+          bundle exec fastlane android update_hybrid_rollout rollout:${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}

@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,14 +13,17 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import * as PerDiem from '@userActions/Policy/PerDiem';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
 import * as Report from '@userActions/Report';
@@ -38,7 +40,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;
@@ -62,8 +64,9 @@ type SectionObject = {
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const {translate} = useLocalize();
-    const {canUseCompanyCardFeeds} = usePermissions();
+    const {canUsePerDiem} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -71,7 +74,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.xero?.config?.importTaxRates ||
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
@@ -79,6 +82,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
+
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -120,28 +125,44 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (canUseCompanyCardFeeds) {
+    spendItems.push({
+        icon: Illustrations.CompanyCard,
+        titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
+        isActive: policy?.areCompanyCardsEnabled ?? false,
+        pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
+        disabled: !isEmptyObject(CardUtils.getCompanyFeeds(cardFeeds)),
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            if (isEnabled && !isControlPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                return;
+            }
+            Policy.enableCompanyCards(policyID, isEnabled);
+        },
+        disabledAction: () => {
+            setIsDisableCompanyCardsWarningModalOpen(true);
+        },
+    });
+
+    if (canUsePerDiem) {
         spendItems.push({
-            icon: Illustrations.CompanyCard,
-            titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
-            isActive: policy?.areCompanyCardsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)),
+            icon: Illustrations.PerDiem,
+            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
+            isActive: policy?.arePerDiemRatesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.arePerDiemRatesEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
                 }
                 if (isEnabled && !isControlPolicy(policy)) {
-                    Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                    );
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                Policy.enableCompanyCards(policyID, isEnabled);
-            },
-            disabledAction: () => {
-                setIsDisableCompanyCardsWarningModalOpen(true);
+                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
             },
         });
     }
@@ -399,11 +420,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             >
                 <HeaderWithBackButton
                     icon={Illustrations.Gears}
+                    shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={styles.pb2}>
+                <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
                     <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         {translate('workspace.moreFeatures.subtitle')}
                     </Text>

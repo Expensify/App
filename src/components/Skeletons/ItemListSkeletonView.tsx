@@ -63,19 +63,16 @@ function ItemListSkeletonView({
         for (let i = 0; i < numItems; i++) {
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
-                <View
+                <SkeletonViewContentLoader
                     key={`skeletonContainer${i}`}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
+                    animate={shouldAnimate}
+                    height={itemViewHeight}
+                    backgroundColor={theme.skeletonLHNIn}
+                    foregroundColor={theme.skeletonLHNOut}
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}, {minHeight: itemViewHeight}]}
                 >
-                    <SkeletonViewContentLoader
-                        animate={shouldAnimate}
-                        height={itemViewHeight}
-                        backgroundColor={theme.skeletonLHNIn}
-                        foregroundColor={theme.skeletonLHNOut}
-                    >
-                        {renderSkeletonItem({itemIndex: i})}
-                    </SkeletonViewContentLoader>
-                </View>,
+                    {renderSkeletonItem({itemIndex: i})}
+                </SkeletonViewContentLoader>,
             );
         }
         return items;
@@ -83,7 +80,7 @@ function ItemListSkeletonView({
 
     return (
         <View
-            style={[themeStyles.flex1, themeStyles.overflowHidden]}
+            style={[themeStyles.flex1]}
             onLayout={handleLayout}
         >
             {skeletonViewItems}

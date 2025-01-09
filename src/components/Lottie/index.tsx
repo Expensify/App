@@ -62,6 +62,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
             setHasNavigatedAway(false);
+            animationRef.current?.play();
         });
         return unsubscribeNavigationFocus;
     }, [browser, navigationContainerRef, navigator]);

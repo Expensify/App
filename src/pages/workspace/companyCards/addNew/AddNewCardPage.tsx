@@ -1,6 +1,7 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import usePermissions from '@hooks/usePermissions';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import ScreenWrapper from '@components/ScreenWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -17,44 +18,40 @@ import SelectFeedType from './SelectFeedType';
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const {canUseDirectFeeds} = usePermissions();
-
     const {currentStep} = addNewCardFeed ?? {};
 
-    if (canUseDirectFeeds) {
-        switch (currentStep) {
-            case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
-                return <SelectBankStep />;
-            case CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE:
-                return <SelectFeedType />;
-            case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-                return <CardTypeStep />;
-            case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
-                return <BankConnection policyID={policyID} />;
-            case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-                return <CardInstructionsStep policyID={policyID} />;
-            case CONST.COMPANY_CARDS.STEP.CARD_NAME:
-                return <CardNameStep />;
-            case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-                return <DetailsStep policyID={policy?.id ?? '-1'} />;
-            case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
-                return <AmexCustomFeed />;
-            default:
-                return <SelectBankStep />;
-        }
-    } else {
-        switch (currentStep) {
-            case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-                return <CardTypeStep />;
-            case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-                return <CardInstructionsStep />;
-            case CONST.COMPANY_CARDS.STEP.CARD_NAME:
-                return <CardNameStep />;
-            case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-                return <DetailsStep policyID={policy?.id ?? '-1'} />;
-            default:
-                return <CardTypeStep />;
-        }
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={AddNewCardPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
+    switch (currentStep) {
+        case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
+            return <SelectBankStep />;
+        case CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE:
+            return <SelectFeedType />;
+        case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
+            return <CardTypeStep />;
+        case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
+            return <BankConnection policyID={policyID} />;
+        case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
+            return <CardInstructionsStep policyID={policyID} />;
+        case CONST.COMPANY_CARDS.STEP.CARD_NAME:
+            return <CardNameStep />;
+        case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
+            return <DetailsStep policyID={policy?.id ?? '-1'} />;
+        case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
+            return <AmexCustomFeed />;
+        default:
+            return <SelectBankStep />;
     }
 }
 

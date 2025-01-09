@@ -3,13 +3,14 @@ import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0),
@@ -19,6 +20,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
     ...createRandomReportAction(0),
     originalMessage: undefined,
 };
+
+const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
@@ -43,7 +46,7 @@ const TEST_OBJECT_TYPE = {
     d: 'object',
     e: 'boolean',
     f: 'boolean',
-} satisfies ObjectType;
+} satisfies ObjectType<Record<string, unknown>>;
 
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
@@ -251,6 +254,12 @@ describe('DebugUtils', () => {
             }).not.toThrow();
         });
 
+        it('does not throw SyntaxError when value is an empty string', () => {
+            expect(() => {
+                DebugUtils.validateConstantEnum('', MOCK_CONST_ENUM);
+            }).not.toThrow();
+        });
+
         it('does not throw SyntaxError when value is a valid string representation of a constant enum', () => {
             expect(() => {
                 DebugUtils.validateConstantEnum('foo', MOCK_CONST_ENUM);
@@ -321,7 +330,7 @@ describe('DebugUtils', () => {
 
         it('throws SyntaxError when value is not a valid string representation of a constant enum array', () => {
             expect(() => {
-                DebugUtils.validateArray('["a"]', MOCK_CONST_ENUM);
+                DebugUtils.validateArray<'constantEnum'>('["a"]', MOCK_CONST_ENUM);
             }).toThrow();
         });
 
@@ -376,6 +385,14 @@ describe('DebugUtils', () => {
             it('does not throw SyntaxError', () => {
                 expect(() => {
                     DebugUtils.validateObject('undefined', {});
+                }).not.toThrow();
+            });
+        });
+
+        describe('value is null', () => {
+            it('does not throw SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject('null', {});
                 }).not.toThrow();
             });
         });
@@ -575,6 +592,49 @@ describe('DebugUtils', () => {
         });
     });
 
+    describe('validateTransactionDraftProperty', () => {
+        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+            it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
+                if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).toThrow();
+                } else {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).not.toThrow();
+                }
+            });
+
+            it('throws SyntaxError when invalid', () => {
+                const value = MOCK_TRANSACTION[key];
+                let invalidValue: unknown;
+
+                switch (typeof value) {
+                    case 'number':
+                        invalidValue = 'a';
+                        break;
+                    case 'boolean':
+                    case 'object':
+                        invalidValue = 2;
+                        break;
+                    default:
+                        invalidValue = [];
+                }
+
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(invalidValue));
+                }).toThrow();
+            });
+
+            it('does not throw SyntaxError when valid', () => {
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(MOCK_TRANSACTION[key]));
+                }).not.toThrow();
+            });
+        });
+    });
+
     describe('validateReportActionJSON', () => {
         it('does not throw SyntaxError when valid', () => {
             expect(() => {
@@ -692,46 +752,6 @@ describe('DebugUtils', () => {
                 isPinned: true,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
-        });
-        it('returns correct reason when report has IOU violations', async () => {
-            const threadReport = {
-                ...baseReport,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                parentReportID: '0',
-                parentReportActionID: '0',
-            };
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: 1234,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: {
-                    reportID: '0',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    ownerAccountID: 1234,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '0': {
-                        reportActionID: '0',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                        message: {
-                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                            IOUTransactionID: '0',
-                            IOUReportID: '0',
-                        },
-                    },
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: threadReport,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
-                    {
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
-                    },
-                ],
-            });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(threadReport);
-            expect(reason).toBe('debug.reasonVisibleInLHN.hasIOUViolations');
         });
         it('returns correct reason when report has add workspace room errors', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
@@ -900,15 +920,7 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(
-                {
-                    ...baseReport,
-                    errors: {
-                        error: 'Something went wrong',
-                    },
-                },
-                true,
-            );
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
     });
@@ -1530,28 +1542,13 @@ describe('DebugUtils', () => {
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
-            it('returns correct reason when there are transaction thread violations', async () => {
+            it('returns correct reason when there are reports on the workspace chat with violations', async () => {
                 const report: Report = {
                     reportID: '0',
-                    type: CONST.REPORT.TYPE.EXPENSE,
+                    type: CONST.REPORT.TYPE.CHAT,
                     ownerAccountID: 1234,
-                };
-                const reportActions: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '0': {
-                        reportActionID: '0',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                        message: {
-                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                            IOUTransactionID: '0',
-                            IOUReportID: '0',
-                            amount: 10,
-                            currency: CONST.CURRENCY.USD,
-                            text: '',
-                        },
-                        created: '2024-07-13 06:02:11.111',
-                        childReportID: '1',
-                    },
+                    policyID: '1',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 };
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
@@ -1562,17 +1559,23 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        ownerAccountID: 1234,
+                        policyID: '1',
                     },
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: reportActions,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                        transactionID: '1',
+                        amount: 10,
+                        modifiedAmount: 10,
+                        reportID: '0',
+                    },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
-                            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                            name: CONST.VIOLATIONS.MISSING_CATEGORY,
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });

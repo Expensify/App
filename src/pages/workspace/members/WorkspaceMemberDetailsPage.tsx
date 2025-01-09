@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,6 +22,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
@@ -50,7 +51,7 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
@@ -58,7 +59,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
@@ -75,15 +76,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = details.displayName ?? '';
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(cardFeeds?.settings?.companyCards ?? {}).filter((feed) => !feed.pending).length > 0;
-    const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const policyOwnerDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
+    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
+    const paymentAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -219,7 +220,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
 
     return (
         <AccessOrNotFoundWrapper
@@ -315,25 +316,37 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {(memberCards as MemberCard[]).map((memberCard) => (
-                                                <MenuItem
-                                                    key={memberCard.cardID}
-                                                    title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
-                                                    badgeText={
-                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK
-                                                            ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
-                                                            : ''
-                                                    }
-                                                    icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
-                                                    displayInDefaultIconColor
-                                                    iconStyles={styles.cardIcon}
-                                                    contentFit="contain"
-                                                    iconWidth={variables.cardIconWidth}
-                                                    iconHeight={variables.cardIconHeight}
-                                                    onPress={() => navigateToDetails(memberCard)}
-                                                    shouldShowRightIcon
-                                                />
-                                            ))}
+                                            {(memberCards as MemberCard[]).map((memberCard) => {
+                                                const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                                                return (
+                                                    <OfflineWithFeedback
+                                                        key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                        errorRowStyles={styles.ph5}
+                                                        errors={memberCard.errors}
+                                                        pendingAction={memberCard.pendingAction}
+                                                    >
+                                                        <MenuItem
+                                                            key={memberCard.cardID}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
+                                                            badgeText={
+                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                                    ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
+                                                                    : ''
+                                                            }
+                                                            icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
+                                                            displayInDefaultIconColor
+                                                            iconStyles={styles.cardIcon}
+                                                            iconWidth={variables.cardIconWidth}
+                                                            iconHeight={variables.cardIconHeight}
+                                                            onPress={() => navigateToDetails(memberCard)}
+                                                            shouldRemoveHoverBackground={isCardDeleted}
+                                                            disabled={isCardDeleted}
+                                                            shouldShowRightIcon={!isCardDeleted}
+                                                            style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                        />
+                                                    </OfflineWithFeedback>
+                                                );
+                                            })}
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}

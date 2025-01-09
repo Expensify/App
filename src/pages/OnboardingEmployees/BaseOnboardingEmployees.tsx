@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,16 +13,18 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import type {OnboardingCompanySizeType} from '@src/CONST';
+import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingEmployeesProps} from './types';
 
 type OnboardingListItem = ListItem & {
-    keyForList: OnboardingCompanySizeType;
+    keyForList: OnboardingCompanySize;
 };
 function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
     const styles = useThemeStyles();
@@ -29,8 +32,12 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
+
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(onboardingCompanySize);
+    const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
@@ -63,13 +70,35 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
                     Welcome.setOnboardingCompanySize(selectedCompanySize);
 
-                    if (!onboardingPolicyID) {
-                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+                    const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+
+                    if (!onboardingPolicyID && !paidGroupPolicy) {
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
                     }
 
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    // For MICRO companies (1-10 employees), we want to remain on NewDot.
+                    if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                        return;
+                    }
+
+                    // For other company sizes we want to complete onboarding here.
+                    // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
+                    if (onboardingPurposeSelected) {
+                        Report.completeOnboarding(
+                            onboardingPurposeSelected,
+                            CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            undefined,
+                            undefined,
+                            adminsChatReportID,
+                            onboardingPolicyID,
+                            undefined,
+                            onboardingCompanySize,
+                        );
+                    }
+
+                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                 }}
                 pressOnEnter
             />
@@ -84,7 +113,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
+                progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 80 : 90}
                 onBackButtonPress={Navigation.goBack}
             />
             <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>

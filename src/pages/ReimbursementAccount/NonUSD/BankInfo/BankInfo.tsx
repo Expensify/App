@@ -1,11 +1,21 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import AccountHolderDetails from './substeps/AccountHolderDetails';
+import BankAccountDetails from './substeps/BankAccountDetails';
 import Confirmation from './substeps/Confirmation';
+import UploadStatement from './substeps/UploadStatement';
+import type {BankInfoSubStepProps} from './types';
+
+const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type BankInfoProps = {
     /** Handles back button press */
@@ -15,16 +25,37 @@ type BankInfoProps = {
     onSubmit: () => void;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
-
 function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? '';
+    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const submit = () => {
         onSubmit();
     };
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep<SubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+    useEffect(() => {
+        BankAccounts.getCorpayBankAccountFields(country, currency);
+    }, [country, currency]);
+
+    const bodyContent: Array<ComponentType<BankInfoSubStepProps>> =
+        currency !== CONST.CURRENCY.AUD ? [BankAccountDetails, AccountHolderDetails, Confirmation] : [BankAccountDetails, AccountHolderDetails, UploadStatement, Confirmation];
+
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+    } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -39,6 +70,10 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         }
     };
 
+    if (corpayFields?.isLoading !== undefined && !corpayFields?.isLoading && corpayFields?.isSuccess !== undefined && !corpayFields?.isSuccess) {
+        return <NotFoundPage />;
+    }
+
     return (
         <InteractiveStepWrapper
             wrapperID={BankInfo.displayName}
@@ -51,6 +86,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                corpayFields={corpayFields}
             />
         </InteractiveStepWrapper>
     );

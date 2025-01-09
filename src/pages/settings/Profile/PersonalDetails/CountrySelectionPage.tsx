@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,9 +5,10 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {CountryData} from '@libs/searchCountryOptions';
-import searchCountryOptions from '@libs/searchCountryOptions';
+import type {Option} from '@libs/searchOptions';
+import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CountrySelectionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
+type CountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
 
 function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
@@ -38,11 +38,11 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countries);
+    const searchResults = searchOptions(searchValue, countries);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
-        (option: CountryData) => {
+        (option: Option) => {
             const backTo = route.params.backTo ?? '';
             // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && !backTo) {

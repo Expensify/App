@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -139,7 +140,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
-            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+
+            const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(itemFullReport);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions, canUserPerformWriteAction);
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action

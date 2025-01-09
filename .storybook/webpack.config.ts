@@ -95,7 +95,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     });
 
     config.module.rules?.push({
-        test: /pdf\.worker\.mjs$/,
+        test: /pdf\.worker\.min\.mjs$/,
         type: 'asset/source',
     });
 

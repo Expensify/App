@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -43,7 +43,7 @@ import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
-type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
@@ -54,6 +54,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isDevelopment} = useEnvironment();
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
 
     const policyApproverEmail = policy?.approver;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -67,6 +68,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }),
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
+
+    const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
+    const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
@@ -92,7 +96,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            fetchData();
+            InteractionManager.runAfterInteractions(() => {
+                fetchData();
+            });
         }, [fetchData]),
     );
 
@@ -160,7 +166,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
                     <>
@@ -230,8 +236,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
-                                        // TODO remove isDevelopment flag once nonUSD flow is complete and update isCurrencySupportedForDirectReimbursement, this will be updated in - https://github.com/Expensify/App/issues/50912
-                                        if (isDevelopment) {
+                                        // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete and update isCurrencySupportedForDirectReimbursement, this will be updated in - https://github.com/Expensify/App/issues/50912
+                                        if (isDevelopment || isDebugModeEnabled) {
                                             navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                             return;
                                         }
@@ -257,7 +263,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     pendingAction={policy?.pendingFields?.reimburser}
                                     shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
                                     errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                    onClose={() => Policy.clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
                                 >
                                     <MenuItemWithTopDescription
@@ -294,7 +300,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
+        updateApprovalMode,
         isDevelopment,
+        isDebugModeEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

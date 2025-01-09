@@ -1,3 +1,4 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -17,22 +18,34 @@ type TaxRateAttributes = {
     taxRateExternalID?: string;
 };
 
-/** Model of policy distance rate */
+/** Model of policy subrate */
+type Subrate = {
+    /** Generated ID to identify the subrate */
+    id: string;
+
+    /** Name of the subrate */
+    name: string;
+
+    /** Amount to be reimbursed per unit */
+    rate: number;
+};
+
+/** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Name of the distance rate */
+        /** Name of the rate */
         name?: string;
 
-        /** Amount to be reimbursed per distance unit travelled */
+        /** Amount to be reimbursed per unit */
         rate?: number;
 
-        /** Currency used to pay the distance rate */
+        /** Currency used to pay the rate */
         currency?: string;
 
-        /** Generated ID to identify the distance rate */
-        customUnitRateID?: string;
+        /** Generated ID to identify the rate */
+        customUnitRateID: string;
 
-        /** Whether this distance rate is currently enabled */
+        /** Whether this rate is currently enabled */
         enabled?: boolean;
 
         /** Error messages to show in UI */
@@ -43,6 +56,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Tax rate attributes of the policy */
         attributes?: TaxRateAttributes;
+
+        /** Subrates of the given rate */
+        subRates?: Subrate[];
     },
     keyof TaxRateAttributes
 >;
@@ -66,7 +82,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
         customUnitID: string;
 
         /** Contains custom attributes like unit, for this custom unit */
-        attributes: Attributes;
+        attributes?: Attributes;
 
         /** Distance rates using this custom unit */
         rates: Record<string, Rate>;
@@ -993,6 +1009,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
+        /** The accounting Method for NetSuite conenction config */
+        accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
@@ -1472,9 +1491,15 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Account balance */
         stripeConnectAccountBalance?: number;
 
+        /** AccountID */
+        stripeConnectAccountID?: string;
+
         /** bankAccountID of selected BBA for payouts */
         transferBankAccountID?: number;
     };
+
+    /** The markUp */
+    markUp?: number;
 }>;
 
 /** Names of policy features */
@@ -1611,6 +1636,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         harvesting?: {
             /** Whether the scheduled submit is enabled */
             enabled: boolean;
+
+            /** The ID of the Bedrock job that runs harvesting */
+            jobID?: number;
         };
 
         /** Whether the self approval or submitting is enabled */
@@ -1755,6 +1783,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
+        /** Whether the Per diem rates feature is enabled */
+        arePerDiemRatesEnabled?: boolean;
+
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
@@ -1800,6 +1831,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the policy is pending an upgrade */
         isPendingUpgrade?: boolean;
 
+        /** Indicates if the policy is pending a downgrade */
+        isPendingDowngrade?: boolean;
+
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
 
@@ -1820,6 +1854,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Setup specialist guide assigned for the policy */
+        assignedGuide?: {
+            /** The guide's email */
+            email: string;
+        };
+
+        /** Indicate whether the Workspace plan can be downgraded */
+        canDowngrade?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1901,4 +1944,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     NetSuiteConnectionConfig,
+    MccGroup,
+    Subrate,
 };

@@ -224,6 +224,9 @@ type MenuItemBaseProps = {
     /** Whether the secondary right avatar should show as a subscript */
     shouldShowSubscriptRightAvatar?: boolean;
 
+    /** Whether the secondary avatar should show as a subscript */
+    shouldShowSubscriptAvatar?: boolean;
+
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -250,6 +253,9 @@ type MenuItemBaseProps = {
 
     /** Should we remove the background color of the menu item */
     shouldRemoveBackground?: boolean;
+
+    /** Should we remove the hover background color of the menu item */
+    shouldRemoveHoverBackground?: boolean;
 
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
@@ -334,14 +340,29 @@ type MenuItemBaseProps = {
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
-
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
+
+    /** Should break word for room title */
+    shouldBreakWord?: boolean;
+
+    /** Pressable component Test ID. Used to locate the component in tests. */
+    pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
+const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+    if (isPressed) {
+        return pressedBackgroundColor;
+    }
+    if (isHovered) {
+        return hoveredBackgroundColor;
+    }
+};
 function MenuItem(
     {
         interactive = true,
@@ -404,6 +425,7 @@ function MenuItem(
         floatRightAvatars = [],
         floatRightAvatarSize,
         shouldShowSubscriptRightAvatar = false,
+        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -411,6 +433,7 @@ function MenuItem(
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldRemoveBackground = false,
+        shouldRemoveHoverBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
         shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
@@ -438,8 +461,10 @@ function MenuItem(
         renderTooltipContent,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
+        shouldBreakWord = false,
+        pressableTestID,
+        shouldTeleportPortalToModalLayer,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -453,7 +478,7 @@ function MenuItem(
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstIcon = floatRightAvatars.at(0);
+    const firstRightIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -465,9 +490,13 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
+            shouldBreakWord ? styles.breakWord : {},
         ],
         titleStyle ?? {},
     );
+    const shouldShowAvatar = !!icon && Array.isArray(icon);
+    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
+    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -571,8 +600,7 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
             >
                 <View>
                     <Hoverable>
@@ -583,8 +611,9 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
+                                testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
@@ -594,7 +623,7 @@ function MenuItem(
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -617,7 +646,7 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {!!icon && Array.isArray(icon) && (
+                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
                                                         <MultipleAvatars
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
@@ -628,6 +657,14 @@ function MenuItem(
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
+                                                        />
+                                                    )}
+                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
+                                                        <SubscriptAvatar
+                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            mainAvatar={firstIcon as IconType}
+                                                            secondaryAvatar={(icon as IconType[]).at(1)}
+                                                            size={avatarSize}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -798,12 +835,12 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstIcon}
+                                                                mainAvatar={firstRightIcon}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />

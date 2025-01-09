@@ -17,5 +17,5 @@ All Expensify Control plans automatically come with Concierge Receipt Audit. If 
 
 **Can I disable Concierge Receipt Audit?**
 
-All Control plan policies automatically include Concierge Receipt Audit. At this time, it cannot be disabled. 
+All Control plan workspaces automatically include Concierge Receipt Audit. At this time, it cannot be disabled. 
 {% include faq-end.md %}

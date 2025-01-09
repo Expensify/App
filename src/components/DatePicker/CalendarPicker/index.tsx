@@ -1,6 +1,6 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -51,15 +51,16 @@ function CalendarPicker({
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
+    const pressableRef = useRef<View>(null);
 
-    const [currentDateView, setCurrentDateView] = useState(getInitialCurrentDateView(value, minDate, maxDate));
+    const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
 
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
 
     const minYear = getYear(new Date(minDate));
     const maxYear = getYear(new Date(maxDate));
 
-    const [years, setYears] = useState<CalendarPickerListItem[]>(
+    const [years, setYears] = useState<CalendarPickerListItem[]>(() =>
         Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
             text: year.toString(),
             value: year,
@@ -148,7 +149,11 @@ function CalendarPicker({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <PressableWithFeedback
-                    onPress={() => setIsYearPickerVisible(true)}
+                    onPress={() => {
+                        pressableRef?.current?.blur();
+                        setIsYearPickerVisible(true);
+                    }}
+                    ref={pressableRef}
                     style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
                     wrapperStyle={[themeStyles.alignItemsCenter]}
                     hoverDimmingValue={1}
@@ -220,7 +225,7 @@ function CalendarPicker({
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
                         const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                         const handleOnPress = () => {
-                            if (!day) {
+                            if (!day || isDisabled) {
                                 return;
                             }
 

@@ -29,7 +29,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={ValueSelectorModal.displayName}
             >
                 <HeaderWithBackButton

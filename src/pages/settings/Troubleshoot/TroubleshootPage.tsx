@@ -11,6 +11,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -51,6 +52,7 @@ function TroubleshootPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+    const {resetOptions} = useOptionsList({shouldInitialize: false});
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -106,6 +108,7 @@ function TroubleshootPage() {
                 shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
+                shouldUseHeadlineHeader
             />
             {isLoading && <FullScreenLoadingIndicator />}
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -142,10 +145,7 @@ function TroubleshootPage() {
                                     />
                                 </TestToolRow>
                             </View>
-                            <ImportOnyxState
-                                setIsLoading={setIsLoading}
-                                isLoading={isLoading}
-                            />
+                            <ImportOnyxState setIsLoading={setIsLoading} />
                             <MenuItemList
                                 menuItems={menuItems}
                                 shouldUseSingleExecution
@@ -160,6 +160,7 @@ function TroubleshootPage() {
                                 isVisible={isConfirmationModalVisible}
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
+                                    resetOptions();
                                     clearOnyxAndResetApp();
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}

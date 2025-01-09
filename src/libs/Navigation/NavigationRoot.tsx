@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,12 +8,14 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
+import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
@@ -83,6 +85,7 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
+    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
@@ -90,10 +93,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
+    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: wasInvitedToNewDotSelector,
+    });
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
 
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
@@ -101,14 +109,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         }
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated.
-        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
+        // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
+        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
+            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
             return adaptedState;
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        if (!lastVisitedPath) {
+        // The same applies to HybridApp, as we always define the route to which we want to transition.
+        if (!lastVisitedPath || NativeModules.HybridAppModule) {
             return undefined;
         }
 
@@ -129,16 +138,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     }, []);
 
     // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(
-        () => ({
-            ...DefaultTheme,
+    const navigationTheme = useMemo(() => {
+        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+
+        return {
+            ...defaultNavigationTheme,
             colors: {
-                ...DefaultTheme.colors,
+                ...defaultNavigationTheme.colors,
                 background: theme.appBG,
             },
-        }),
-        [theme],
-    );
+        };
+    }, [theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

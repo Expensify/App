@@ -58,17 +58,17 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         setIsReuseConnectionsPopoverOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     if (threeDotsMenuContainerRef) {
         if (!shouldUseNarrowLayout) {
             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                setReuseConnectionPopoverPosition({
-                    horizontal: x + width,
-                    vertical: y + height,
-                });
+                const horizontal = x + width;
+                const vertical = y + height;
+                if (reuseConnectionPopoverPosition.horizontal !== horizontal || reuseConnectionPopoverPosition.vertical !== vertical) {
+                    setReuseConnectionPopoverPosition({horizontal, vertical});
+                }
             });
         }
 

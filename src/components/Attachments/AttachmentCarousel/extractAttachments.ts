@@ -4,9 +4,10 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 /**
@@ -19,24 +20,31 @@ function extractAttachments(
         accountID,
         parentReportAction,
         reportActions,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+        report,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
     // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
-    const uniqueSources = new Set();
+    const uniqueSourcesAndLinks = new Set();
+
+    let currentLink = '';
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
+            if (name === 'a' && attribs.href) {
+                currentLink = attribs.href;
+            }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-                if (uniqueSources.has(source)) {
+                if (uniqueSourcesAndLinks.has(source)) {
                     return;
                 }
 
-                uniqueSources.add(source);
+                uniqueSourcesAndLinks.add(source);
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
@@ -50,14 +58,17 @@ function extractAttachments(
             }
 
             if (name === 'img' && attribs.src) {
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
-                if (uniqueSources.has(source)) {
+                const sourceLinkKey = `${source}|${currentLink}`;
+
+                if (uniqueSourcesAndLinks.has(sourceLinkKey)) {
                     return;
                 }
 
-                uniqueSources.add(source);
+                uniqueSourcesAndLinks.add(sourceLinkKey);
+
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
                 const width = (attribs['data-expensify-width'] && parseInt(attribs['data-expensify-width'], 10)) || undefined;
@@ -81,8 +92,16 @@ function extractAttachments(
                     file: {name: fileName, width, height},
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',
+                    attachmentLink: currentLink,
                 });
             }
+        },
+        onclosetag: (name) => {
+            if (name !== 'a' || !currentLink) {
+                return;
+            }
+
+            currentLink = '';
         },
     });
 
@@ -95,7 +114,7 @@ function extractAttachments(
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, canUserPerformWriteAction) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 

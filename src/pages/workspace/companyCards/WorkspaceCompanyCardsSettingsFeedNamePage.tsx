@@ -1,10 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -15,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -25,8 +26,9 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {WorkspaceCompanyCardFeedName} from '@src/types/form/WorkspaceCompanyCardFeedName';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type WorkspaceCompanyCardsSettingsFeedNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
+type WorkspaceCompanyCardsSettingsFeedNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
 
 function WorkspaceCompanyCardsSettingsFeedNamePage({
     route: {
@@ -38,10 +40,10 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [cardFeeds, cardFeedsResult] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)});
+    const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
@@ -58,9 +60,15 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     );
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
-        CompanyCards.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, selectedFeed, name);
+        if (selectedFeed) {
+            CompanyCards.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, selectedFeed, name);
+        }
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
     };
+
+    if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -69,7 +77,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={WorkspaceCompanyCardsSettingsFeedNamePage.displayName}
                 style={styles.defaultModalContainer}

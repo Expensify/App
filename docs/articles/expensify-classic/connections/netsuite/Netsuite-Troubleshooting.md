@@ -2,8 +2,6 @@
 title: Netsuite Troubleshooting
 description: Troubleshoot common NetSuite sync and export errors. 
 ---
-
-# Overview of NetSuite Troubleshooting
 Synchronizing and exporting data between Expensify and NetSuite can streamline your financial processes, but occasionally, users may encounter errors that prevent a smooth integration. These errors often arise from discrepancies in settings, missing data, or configuration issues within NetSuite or Expensify. 
 
 This troubleshooting guide aims to help you identify and resolve common sync and export errors, ensuring a seamless connection between your financial management systems. By following the step-by-step solutions provided for each specific error, you can quickly address issues and maintain accurate and efficient expense reporting and data management.
@@ -30,7 +28,7 @@ When exporting as a Vendor Bill, we pull from the vendor record, not the employe
 **Journal Entries and Expense Reports:**
 If you see this error when exporting a Journal Entry or Expense Report, it might be because the report submitter doesn’t have default settings for Departments, Classes, or Locations.
 
-**To fix this:**
+**To resolve:**
 1. Go to **Lists > Employees** in NetSuite.
 2. Click **"Edit"** next to the employee's name who submitted the report.
 3. Scroll down to the **Classification** section.
@@ -41,28 +39,29 @@ If you see this error when exporting a Journal Entry or Expense Report, it might
 
 # ExpensiError NS0012: Currency Does Not Exist In NetSuite
 
-**Scenario One:** When dealing with foreign transactions, Expensify sends the conversion rate and currency of the original expense to NetSuite. If the currency isn't listed in your NetSuite subsidiary, you'll see an error message saying the currency does not exist in NetSuite.
+## Scenario One
+When dealing with foreign transactions, Expensify sends the conversion rate and currency of the original expense to NetSuite. If the currency isn't listed in your NetSuite subsidiary, you'll see an error message saying the currency does not exist in NetSuite.
 
-**To fix this:**
+**To resolve:**
 1. Ensure the currency in Expensify matches what's in your NetSuite subsidiary.
 2. If you see an error saying 'The currency X does not exist in NetSuite', re-sync your connection to NetSuite through the workspace admin section in Expensify.
 3. Try exporting again.
 
-**Scenario Two:** This error can happen if you’re using a non-OneWorld NetSuite instance and exporting a currency other than EUR, GBP, USD, or CAD.
+## Scenario Two
+This error can happen if you’re using a non-OneWorld NetSuite instance and exporting a currency other than EUR, GBP, USD, or CAD.
 
-**To fix this:**
+**To resolve:**
 1. Head to NetSuite.
 2. Go to **Setup > Enable Features**.
 3. Check the **Multiple Currencies** box.
 
 Once you've done this, you can add the offending currency by searching **New Currencies** in the NetSuite global search.
 
-
 # ExpensiError NS0021: Invalid tax code reference key
 
 This error usually indicates an issue with the Tax Group settings in NetSuite, which can arise from several sources.
 
-#### Tax Group to Tax Code Mapping
+## Tax Group to Tax Code Mapping
 If a Tax Code on Sales Transactions is mapped to a Tax Group, an error will occur. To fix this, the Tax Code must be mapped to a Tax Code on Purchase Transactions instead.
 
 To verify if a Tax Code is for Sales or Purchase transactions, view the relevant Tax Code(s).
@@ -78,9 +77,7 @@ Tax Groups can represent different types of taxes. For compatibility with Expens
 #### Enable Tax Groups
 Some subsidiaries require you to enable Tax Groups. Go to **Set Up Taxes** for the subsidiary's country and ensure the Tax Code lists include both Tax Codes and Tax Groups.
 
-
 # ExpensiError NS0023: Employee Does Not Exist in NetSuite (Invalid Employee)
-
 This can happen if the employee’s subsidiary in NetSuite doesn’t match what’s listed in Expensify.
 
 ## How to Fix ExpensiError NS0023
@@ -97,16 +94,13 @@ This can happen if the employee’s subsidiary in NetSuite doesn’t match what�
     - Ensure the email on the employee record in NetSuite matches the email address of the report submitter in Expensify.
     - In NetSuite, make sure the employee's hire date is in the past and/or the termination date is in the future.
 4. **Currency Match for Journal Entries:**
-    - If exporting as Journal Entries, ensure the currency for the NetSuite employee record, NetSuite subsidiary, and Expensify policy all match.
-    - In NetSuite, go to the **Human Resources** tab > **Expense Report Currencies**, and add the subsidiary/policy currency if necessary.
-
+    - If exporting as Journal Entries, ensure the currency for the NetSuite employee record, NetSuite subsidiary, and Expensify workspace all match.
+    - In NetSuite, go to the **Human Resources** tab > **Expense Report Currencies**, and add the subsidiary/workspace currency if necessary.
 
 # ExpensiError NS0024: Invalid Customer or Project Tag
-
 Employees must be listed as a resource on the customer/project in NetSuite to be able to apply it to an expense. If that isn’t set up in NetSuite, you can run into this error.
 
 ## How to Fix ExpensiError NS0024
-
 1. **Ensure Employee Access:**
    - In NetSuite, go to **Lists > Relationships > Customer/Projects**.
    - Click **Edit** next to the desired Customer/Project.
@@ -124,9 +118,7 @@ Employees must be listed as a resource on the customer/project in NetSuite to be
    - Go to **Settings > Workspaces > Group > [Workspace Name] > Connections > NetSuite > Configure > Advanced**.
    - Enable **Cross-Subsidiary Customers/Projects** to remove the requirement for the employee's subsidiary and the customer's subsidiary to match.
 
-
 # ExpensiError NS0034: This record already exists
-
 This error occurs when the report in question was already exported to NetSuite. 
 
 ## How to fix ExpensiError NS0034
@@ -141,9 +133,7 @@ This error occurs when the report in question was already exported to NetSuite.
 5. **Re-export the Report from Expensify to NetSuite:**
     - After deleting the report in NetSuite, re-export it from Expensify to NetSuite.
 
-
 # ExpensiError NS0046: Billable Expenses Not Coded with a NetSuite Customer or Billable Project
-
 NetSuite requires billable expenses to be assigned to a Customer or a Project that is configured as billable to a Customer. If this is not set up correctly in NetSuite, this error can occur.
 
 ## How to Fix ExpensiError NS0046
@@ -160,10 +150,8 @@ NetSuite requires billable expenses to be assigned to a Customer or a Project th
     - Verify that there are no violations and that a value has been applied to the field.
 5. Make any necessary adjustments to the billable expenses and try the export again. 
 
-
 # ExpensiError NS0059: A credit card account has not been selected for corporate card expenses.
-
-**To resolve this error:**
+**To resolve:**
 1. Log into NetSuite as an admin.
 2. Type "Page: Subsidiaries" in the global search box and select the subsidiary you will export to.
 3. Under the Preferences tab of the subsidiary, locate the field: Default Account for Corporate Card Expenses.
@@ -179,9 +167,7 @@ NetSuite requires billable expenses to be assigned to a Customer or a Project th
 
 For accounts without subsidiaries (non-OneWorld accounts), the default field is in your accounting preferences.
 
-
 # ExpensiError NS0085: Expense Does Not Have Appropriate Permissions for Settings an Exchange Rate in NetSuite
-
 This error occurs when the exchange rate settings in NetSuite aren't updated correctly. 
 
 ## How to Fix ExpensiError NS0085
@@ -203,7 +189,6 @@ This error occurs when the exchange rate settings in NetSuite aren't updated cor
 
 
 # ExpensiError NS0079: The Transaction Date is Not Within the Date Range of Your Accounting Period
-
 The transaction date you specified is not within the date range of your accounting period. When the posting period settings in NetSuite are not configured to allow a transaction date outside the posting period, you can't export a report to the next open period, which is why you’ll run into this error. 
 
 ## How to Fix ExpensiError NS0079
@@ -211,7 +196,7 @@ The transaction date you specified is not within the date range of your accounti
 2. Under the General Ledger section, ensure the field Allow Transaction Date Outside of the Posting Period is set to Warn.
 3. Then, choose whether to export your reports to the First Open Period or the Current Period.
 
-Additionally, ensure the Export to Next Open Period feature is enabled within Expensify:
+**Additionally, ensure the Export to Next Open Period feature is enabled within Expensify:**
 1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections > Configure**.
 2. Open the **Advanced tab**.
 3. Confirm that the setting for **Export to Next Open Period** is enabled.
@@ -220,7 +205,6 @@ If any configuration settings are updated on the NetSuite connection, be sure to
 
 
 # ExpensiError NS0055: The Vendor You are Trying to Export to Does Not Have Access to the Currency X
-
 This error occurs when a vendor tied to a report in Expensify does not have access to a currency on the report in NetSuite. The vendor used in NetSuite depends on the type of expenses on the report you're exporting.
 - For **reimbursable** (out-of-pocket) expenses, this is the report's submitter (the employee who submitted the report).
 - For **non-reimbursable** (e.g., company card) expenses, this is the default vendor set via Settings > Workspaces > Group > [Workspace Name] > Connections > NetSuite > Configure.
@@ -246,13 +230,13 @@ To fix this, the vendor needs to be given access to the applicable currency:
 5. Sync the NetSuite connection under **Settings > Workspaces > Group > [Workspace Name] > Connections > Sync Now**.
 6. Export the report(s) again.
 
-#### For reports with Expensify Card expenses
+## ExpensiError NS0068: Reports with Expensify Card expenses
 Expensify Card expenses export as Journal Entries. If you encounter this error when exporting a report with Expensify Card non-reimbursable expenses, ensure the field Created From has the Show checkbox checked for Journal Entries in NetSuite.
 
 
 # ExpensiError NS0037: You do not have permission to set a value for element - “Receipt URL”
 
-**To resolve this error:**
+**To resolve:**
 1. In NetSuite, go to Customization > Forms > Transaction Forms.
 2. Search for the form type that the report is being exported as in NetSuite (Expense Report, Journal Entry, or Vendor Bill).
 3. Click Edit next to the form that has the Preferred checkbox checked.
@@ -270,14 +254,12 @@ Expensify Card expenses export as Journal Entries. If you encounter this error w
 
 
 # ExpensiError NS0042: Error creating vendor - this entity already exists
-
 This error occurs when a vendor record already exists in NetSuite, but Expensify is still attempting to create a new one. This typically means that Expensify cannot find the existing vendor during export.
 - The vendor record already exists in NetSuite, but there may be discrepancies preventing Expensify from recognizing it.
 - The email on the NetSuite vendor record does not match the email of the report submitter in Expensify.
 - The vendor record might not be associated with the correct subsidiary in NetSuite.
 
 ## How to Fix ExpensiError NS0042
-
 Follow these steps to resolve the issue:
 1. **Check Email Matching:**
     - Ensure the email on the NetSuite vendor record matches the email of the report submitter in Expensify.
@@ -299,7 +281,6 @@ Follow these steps to resolve the issue:
 
 
 # ExpensiError NS0109: Failed to login to NetSuite, please verify your credentials
-
 This error indicates a problem with the tokens created for the connection between Expensify and NetSuite. The error message will say, "Login Error. Please check your credentials."
 
 ## How to Fix ExpensiError NS0109
@@ -308,7 +289,6 @@ This error indicates a problem with the tokens created for the connection betwee
 
 
 # ExpensiError NS0123 Login Error: Please make sure that the Expensify integration is enabled
-
 This error indicates that the Expensify integration is not enabled in NetSuite.
 
 ## How to Fix ExpensiError NS0123
@@ -321,10 +301,9 @@ This error indicates that the Expensify integration is not enabled in NetSuite.
 
 Once the Expensify integration is enabled, try syncing the NetSuite connection again.
 
-
 # ExpensiError NS0045: Expenses Not Categorized with a NetSuite Account
 
-**To resolve this error:**
+**To resolve:**
 1. Log into NetSuite
 2. Do a global search for the missing record.
    - Ensure the expense category is active and correctly named.
@@ -335,7 +314,6 @@ Once the Expensify integration is enabled, try syncing the NetSuite connection a
 
 
 # ExpensiError NS0061: Please Enter Value(s) for: Tax Code
-
 This error typically occurs when attempting to export expense reports to a Canadian subsidiary in NetSuite for the first time and/or if your subsidiary in NetSuite has Tax enabled. 
 
 ## How to Fix ExpensiError NS0061
@@ -348,12 +326,10 @@ To fix this, you need to enable Tax in the NetSuite configuration settings.
 
 **Note:** Expenses created before Tax was enabled might need to have the newly imported taxes applied to them retroactively to be exported.
 
-
 # Error creating employee: Your current role does not have permission to access this record.
-
 This error indicates that the credentials or role used to connect NetSuite to Expensify do not have the necessary permissions within NetSuite. You can find setup instructions for configuring permissions in NetSuite [here](https://help.expensify.com/articles/expensify-classic/connections/netsuite/Connect-To-NetSuite#step-3-add-expensify-integration-role-to-a-user).
 
-**To resolve this error:**
+**To resolve:**
 1. If permissions are configured correctly, confirm the report submitter exists in the subsidiary set on the workspace and that their Expensify email address matches the email on the NetSuite Employee Record.
 2. If the above is true, try toggling off "Automatically create vendors/employees" under the Advanced tab of the NetSuite configuration window.
    - Head to **Settings > Workspaces > Group > Workspace Name > Connections > NetSuite > Configure**
@@ -363,10 +339,9 @@ This error indicates that the credentials or role used to connect NetSuite to Ex
 4. Export the report again.
 
 # Elimination Settings for X Do Not Match
-
 This error occurs when an Intercompany Payable account is set as the default in the Default Payable Account field in the NetSuite subsidiary preferences, and the Accounting Approval option is enabled for Expense Reports.
 
-**To resolve this error:**
+**To resolve:**
 Set the Default Payable Account for Expense Reports on each subsidiary in NetSuite to ensure the correct payable account is active.
 1. Navigate to Subsidiaries:
    - Go to Setup > Company > Subsidiaries.
@@ -378,23 +353,21 @@ Set the Default Payable Account for Expense Reports on each subsidiary in NetSui
 
 Repeat these steps for each subsidiary to ensure the settings are correct, and then sync Expensify to NetSuite to update the connection.
 
-# Why are reports exporting as `Accounting Approved` instead of `Paid in Full`?
+
+{% include faq-begin.md %}
+## Why are reports exporting as `Accounting Approved` instead of `Paid in Full`?
 
 **This can occur for two reasons:**
 - Missing Locations, Classes, or Departments in the Bill Payment Form
 - Incorrect Settings in Expensify Workspace Configuration
 
-## Missing Locations, Classes, or Departments in Bill Payment Form
-
-If locations, classes, or departments are required in your accounting classifications but are not marked as 'Show' on the preferred bill payment form, this error can occur, and you will need to update the bill payment form in NetSuite:
+**Missing Locations, Classes, or Departments in Bill Payment Form:** If locations, classes, or departments are required in your accounting classifications but are not marked as 'Show' on the preferred bill payment form, this error can occur, and you will need to update the bill payment form in NetSuite:
 1. Go to Customization > Forms > Transaction Forms.
 2. Find your preferred (checkmarked) Bill Payment form.
 3. Click Edit or Customize.
 4. Under the Screen Fields > Main tab, check 'Show' near the department, class, and location options.
 
-## Incorrect Settings in Expensify Workspace Configuration
-
-To fix this, you'll want to confirm the NetSuite connection settings are set up correctly in Expensify:
+**Incorrect Settings in Expensify Workspace Configuration:** To fix this, you'll want to confirm the NetSuite connection settings are set up correctly in Expensify:
 1. Head to **Settings > Workspaces > Group > Workspace Name > Connections > NetSuite > Configure > Advanced**
 2. **Ensure the following settings are correct:**
    - Sync Reimbursed Reports: Enabled and payment account chosen.
@@ -410,9 +383,7 @@ To fix this, you'll want to confirm the NetSuite connection settings are set up 
 
 Following these steps will help ensure that reports are exported as "Paid in Full" instead of "Accounting Approved."
 
-
-# Why are reports exporting as `Pending Approval`?
-
+## Why are reports exporting as `Pending Approval`?
 If reports are exporting as "Pending Approval" instead of "Approved," you'll need to adjust the approval preferences in NetSuite.
 
 **Exporting as Journal Entries/Vendor Bills:**
@@ -426,8 +397,7 @@ If reports are exporting as "Pending Approval" instead of "Approved," you'll nee
 1. In NetSuite, navigate to Setup > Company > Enable Features.
 2. On the "Employee" tab, uncheck "Approval Routing" to remove the approval requirement for Expense Reports created in NetSuite. Please note that this setting also applies to purchase orders.
 
-
-# How do I Change the Default Payable Account for Reimbursable Expenses in NetSuite?
+## How do I Change the Default Payable Account for Reimbursable Expenses in NetSuite?
 
 NetSuite is set up with a default payable account that is credited each time reimbursable expenses are exported as Expense Reports to NetSuite (once approved by the supervisor and accounting). If you need to change this to credit a different account, follow the below steps:
 
@@ -445,7 +415,7 @@ NetSuite is set up with a default payable account that is credited each time rei
 4. Click Save.
 
 
-# Why are my Company Card Expenses Exporting to the Wrong Account in NetSuite?
+## Why are my Company Card Expenses Exporting to the Wrong Account in NetSuite?
 
 If your company card transactions are exporting to the wrong account in your accounting system, there are a couple of factors to check:
 1. **Verify Card Mapping:**
@@ -462,3 +432,4 @@ Even if an expense was paid with the company card, it is considered a 'cash' exp
 
 Less commonly, the issue may occur if the company card has been added to the user's personal settings. Expenses imported from a card linked at the individual account level will have a plain card icon.
 
+{% include faq-end.md %}

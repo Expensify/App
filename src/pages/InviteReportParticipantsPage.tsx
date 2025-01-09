@@ -1,9 +1,7 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -20,6 +18,7 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -30,33 +29,30 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type InviteReportParticipantsPageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type InviteReportParticipantsPageProps = InviteReportParticipantsPageOnyxProps & WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
+type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function InviteReportParticipantsPage({betas, personalDetails, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
-    const route = useRoute<RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
 
     useEffect(() => {
         UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+        Report.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -70,11 +66,11 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
             return OptionsListUtils.getEmptyOptions();
         }
 
-        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, false, options.reports, true);
+        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(
-        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
         [debouncedSearchTerm, defaultOptions, excludedUsers],
     );
 
@@ -226,7 +222,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
@@ -259,12 +254,4 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
 InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
-export default withNavigationTransitionEnd(
-    withReportOrNotFound()(
-        withOnyx<InviteReportParticipantsPageProps, InviteReportParticipantsPageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-        })(InviteReportParticipantsPage),
-    ),
-);
+export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));

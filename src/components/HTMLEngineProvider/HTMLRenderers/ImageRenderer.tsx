@@ -1,4 +1,4 @@
-import React, {memo, useState} from 'react';
+import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -53,7 +53,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    const attachmentSourceAttribute =
+        htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
@@ -67,8 +68,13 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
-    const [hasLoadFailed, setHasLoadFailed] = useState(true);
     const theme = useTheme();
+
+    let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
+    const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+    if (!fileInfo.fileExtension) {
+        fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
+    }
 
     const thumbnailImageComponent = (
         <ThumbnailImage
@@ -80,8 +86,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             imageHeight={imageHeight}
             isDeleted={isDeleted}
             altText={alt}
-            onLoadFailure={() => setHasLoadFailed(true)}
-            onMeasure={() => setHasLoadFailed(false)}
             fallbackIconBackground={theme.highlightBG}
             fallbackIconColor={theme.border}
         />
@@ -101,19 +105,19 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt);
+                                const attachmentLink = tnode.parent?.attributes?.href;
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
                                 if (isDisabled) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
                             }}
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>

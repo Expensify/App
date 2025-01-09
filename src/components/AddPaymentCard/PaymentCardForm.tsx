@@ -48,8 +48,8 @@ function IAcceptTheLabel() {
     return (
         <Text>
             {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
-            <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
         </Text>
     );
 }
@@ -165,10 +165,6 @@ function PaymentCardForm({
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
-        }
-
         if (!values.acceptTerms) {
             errors.acceptTerms = translate('common.error.acceptTerms');
         }
@@ -177,18 +173,26 @@ function PaymentCardForm({
     };
 
     const onChangeCardNumber = useCallback((newValue: string) => {
-        // replace all characters that are not spaces or digits
+        // Replace all characters that are not spaces or digits
         let validCardNumber = newValue.replace(/[^\d ]/g, '');
 
-        // gets only the first 16 digits if the inputted number have more digits than that
+        // Gets only the first 16 digits if the inputted number have more digits than that
         validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
 
-        // add the spacing between every 4 digits
-        validCardNumber =
-            validCardNumber
-                .replace(/ /g, '')
-                .match(/.{1,4}/g)
-                ?.join(' ') ?? '';
+        // Remove all spaces to simplify formatting
+        const cleanedNumber = validCardNumber.replace(/ /g, '');
+
+        // Check if the number is a potential Amex card (starts with 34 or 37 and has up to 15 digits)
+        const isAmex = /^3[47]\d{0,13}$/.test(cleanedNumber);
+
+        // Format based on Amex or standard 4-4-4-4 pattern
+        if (isAmex) {
+            // Format as 4-6-5 for Amex
+            validCardNumber = cleanedNumber.replace(/(\d{1,4})(\d{1,6})?(\d{1,5})?/, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
+        } else {
+            // Format as 4-4-4-4 for non-Amex
+            validCardNumber = cleanedNumber.match(/.{1,4}/g)?.join(' ') ?? '';
+        }
 
         setCardNumber(validCardNumber);
     }, []);
@@ -275,10 +279,9 @@ function PaymentCardForm({
                     InputComponent={TextInput}
                     defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zip')}
-                    aria-label={translate('common.zip')}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />

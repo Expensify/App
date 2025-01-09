@@ -5,6 +5,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -24,9 +25,11 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
+import searchHeaderHeight from './searchHeaderHeight';
 import type {
     AllStyles,
     AvatarSize,
@@ -288,7 +291,10 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
+    if (!transactionID) {
+        return CONST.ERECEIPT_COLORS.YELLOW;
+    }
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -326,7 +332,22 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+    const platform = getPlatform();
+    let insetsPercentage = insetsPercentageProp;
+    if (insetsPercentage == null) {
+        switch (platform) {
+            case CONST.PLATFORM.IOS:
+                insetsPercentage = variables.iosSafeAreaInsetsPercentage;
+                break;
+            case CONST.PLATFORM.ANDROID:
+                insetsPercentage = variables.androidSafeAreaInsetsPercentage;
+                break;
+            default:
+                insetsPercentage = 1;
+        }
+    }
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -339,7 +360,7 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = vari
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
+    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
 function getZoomSizingStyle(
@@ -490,14 +511,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -916,9 +937,16 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     if (windowHeight) {
         // dimensions of content above the emoji picker list
         const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        const maxHeight = windowHeight - dimensions;
         return {
             ...style,
-            maxHeight: windowHeight - dimensions,
+            maxHeight,
+            /**
+             * On native platforms, `maxHeight` doesn't work as expected, so we manually
+             * enforce the height by returning the smaller of the element's height or the
+             * `maxHeight`, ensuring it doesn't exceed the maximum allowed.
+             */
+            height: Math.min(style.height, maxHeight),
         };
     }
     return style;
@@ -1119,8 +1147,30 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    if (isSelected) {
+        return {backgroundColor: selectedBG};
+    }
+
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
+}
+
 const staticStyleUtils = {
     positioning,
+    searchHeaderHeight,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1168,6 +1218,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
@@ -1193,6 +1244,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1248,6 +1300,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
+     */
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+        if (!!width && !!extraSpace) {
+            return {marginRight: -extraSpace, width: width + extraSpace};
+        }
+        return {width};
     },
 
     /*

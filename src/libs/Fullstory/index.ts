@@ -1,9 +1,78 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
+
+/**
+ * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
+ * reevaluate "fs-class".
+ */
+function parseFSAttributes(): void {
+    window?.document?.querySelectorAll(`[${CONST.FULL_STORY.WEB_PROP_ATTR}]`).forEach((o) => {
+        const attr = o.getAttribute(CONST.FULL_STORY.WEB_PROP_ATTR) ?? '';
+        if (!/fs-/gim.test(attr)) {
+            return;
+        }
+
+        const fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
+        o.setAttribute('fs-class', fsAttrs.join(','));
+
+        let cleanedAttrs = attr;
+        fsAttrs.forEach((fsAttr) => {
+            cleanedAttrs = cleanedAttrs.replace(fsAttr, '');
+        });
+
+        cleanedAttrs = cleanedAttrs
+            .replace(/,+/g, ',')
+            .replace(/\s*,\s*/g, ',')
+            .replace(/^,+|,+$/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if (cleanedAttrs) {
+            o.setAttribute(CONST.FULL_STORY.WEB_PROP_ATTR, cleanedAttrs);
+        } else {
+            o.removeAttribute(CONST.FULL_STORY.WEB_PROP_ATTR);
+        }
+    });
+}
+
+/*
+    prefix? if component name should be used as a prefix,
+    in case data-test-id attribute usage,
+    clean component name should be preserved in data-test-id.
+*/
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
+    if (!name) {
+        return `${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
+    }
+
+    if (prefix) {
+        return `${name},${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
+    }
+
+    return `${name}`;
+}
+
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
+    if (!name) {
+        return ['', ''];
+    }
+    if (isConciergeChatReport(report)) {
+        const formattedName = `${CONST.FULL_STORY.CONCIERGE}-${name}`;
+        return [`${formattedName},${CONST.FULL_STORY.UNMASK}`, `${formattedName}`];
+    }
+    if (shouldUnmaskChat(context, report)) {
+        const formattedName = `${CONST.FULL_STORY.CUSTOMER}-${name}`;
+        return [`${formattedName},${CONST.FULL_STORY.UNMASK}`, `${formattedName}`];
+    }
+
+    const formattedName = `${CONST.FULL_STORY.OTHER}-${name}`;
+    return [`${formattedName},${CONST.FULL_STORY.MASK}`, `${formattedName}`];
+}
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage {
@@ -16,7 +85,9 @@ class FSPage {
         this.properties = properties;
     }
 
-    start() {}
+    start() {
+        parseFSAttributes();
+    }
 }
 
 /**
@@ -57,7 +128,8 @@ const FS = {
         }
         try {
             Environment.getEnvironment().then((envName: string) => {
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) {
                     return;
                 }
                 FS.onReady().then(() => {
@@ -92,4 +164,4 @@ const FS = {
 };
 
 export default FS;
-export {FSPage};
+export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};

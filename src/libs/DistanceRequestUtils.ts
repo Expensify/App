@@ -1,15 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
@@ -30,6 +29,15 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
@@ -47,6 +55,10 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
+            return;
+        }
+
+        if (!distanceUnit.attributes) {
             return;
         }
 
@@ -79,7 +91,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
 
     const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    if (!distanceUnit?.rates) {
+    if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
     const mileageRates = Object.values(getMileageRates(policy));
@@ -277,21 +289,32 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 /**
  * Returns custom unit rate ID for the distance transaction
  */
-function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
-    const allReports = ReportConnection.getAllReports();
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
+function getCustomUnitRateID(reportID?: string) {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
+    if (!reportID) {
+        return customUnitRateID;
+    }
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID);
+
+    if (isEmptyObject(policy)) {
+        return customUnitRateID;
+    }
+
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? '-1';
-        const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
-        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID && !shouldUseDefault) {
+        const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
+        const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '-1';
+            const defaultMileageRate = getDefaultMileageRate(policy);
+            if (!defaultMileageRate?.customUnitRateID) {
+                return customUnitRateID;
+            }
+            customUnitRateID = defaultMileageRate.customUnitRateID;
         }
     }
 
@@ -360,6 +383,14 @@ function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction
     return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
 }
 
+/**
+ * Get the mileage rate by its ID in the form it's configured for the policy.
+ * If not found, return undefined.
+ */
+function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
+    return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -374,6 +405,7 @@ export default {
     getDistanceUnit,
     getUpdatedDistanceUnit,
     getRate,
+    getRateByCustomUnitRateID,
 };
 
 export type {MileageRate};

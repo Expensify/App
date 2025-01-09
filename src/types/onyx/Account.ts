@@ -20,15 +20,30 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the user validation code was sent */
     validateCodeSent?: boolean;
 
-    /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields;
-
     /** Whether the user is loading */
     isLoading?: boolean;
 
     /** The accountID of a delegate when they aren't in the personalDetails. */
     optimisticAccountID?: number;
 }>;
+
+/** Delegate errors */
+type DelegateErrors = {
+    /** Errors while adding a delegate keyed by email */
+    addDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while updating a delegate's role keyed by email */
+    updateDelegateRole?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegate keyed by email */
+    removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while connecting as a delegate keyed by email */
+    connect?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while disconnecting as a delegate. No email needed here. */
+    disconnect?: OnyxCommon.Errors;
+};
 
 /** Model of delegated access data */
 type DelegatedAccess = {
@@ -41,8 +56,17 @@ type DelegatedAccess = {
     /** The email of original user when they are acting as a delegate for another account */
     delegate?: string;
 
-    /** Authentication failure errors when disconnecting as a copilot */
-    errorFields?: OnyxCommon.ErrorFields;
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: DelegateErrors;
+};
+
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
 };
 
 /** Model of user account */
@@ -76,6 +100,15 @@ type Account = {
 
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
+
+    /** The Report ID of the admins room */
+    adminsRoomReportID?: string;
+
+    /** The Account ID of the account manager */
+    accountManagerAccountID?: string;
+
+    /** The Report ID of the account manager */
+    accountManagerReportID?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
@@ -130,6 +163,17 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    /** Indicates SMS delivery failure status and associated information */
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
 };
 
 export default Account;

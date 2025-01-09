@@ -29,7 +29,7 @@ If your workspace has automations set to automatically submit reports for approv
    - **Receipt required amount**: How much a single expense can cost before a receipt is required
 
 {% include info.html %}
-Expensify includes certain system mandatory violations that can't be disabled, even if your policy has violations turned off.
+Expensify includes certain system mandatory violations that can't be disabled, even if your workspace has violations turned off.
 {% include end-info.html %}
 
 # Set category rules
