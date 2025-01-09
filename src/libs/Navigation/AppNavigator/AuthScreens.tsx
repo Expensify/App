@@ -413,7 +413,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         User.updateDraftCustomStatus({
             text: '',
             emojiCode: '',
-            clearAfter: '',
+            clearAfter: DateUtils.getEndOfToday(),
         });
     };
     useEffect(() => {
