@@ -27,7 +27,7 @@ type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: string;
+    transactionID: string | undefined;
 
     /** Border radius to be applied on the parent view. */
     borderRadius?: number;

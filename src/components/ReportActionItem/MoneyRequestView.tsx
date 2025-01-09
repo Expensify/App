@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -16,8 +16,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
+import useViolations from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -25,8 +25,8 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -71,9 +71,9 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-    return originalMessage?.IOUTransactionID ?? -1;
+    return originalMessage?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID;
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
@@ -81,8 +81,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const parentReportID = report?.parentReportID ?? '-1';
-    const policyID = report?.policyID ?? '-1';
+    const parentReportID = report?.parentReportID;
+    const policyID = report?.policyID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
@@ -97,12 +97,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-        return originalMessage?.IOUTransactionID ?? '-1';
+        return originalMessage?.IOUTransactionID;
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
@@ -227,7 +227,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             if (newBillable === TransactionUtils.getBillable(transaction)) {
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID ?? '-1', newBillable, policy, policyTagList, policyCategories);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -319,15 +319,17 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transaction?.transactionID ?? '-1',
-                                report?.reportID ?? '-1',
-                                Navigation.getReportRHPActiveRoute(),
-                            ),
-                        )
+                        transaction?.transactionID && report?.reportID
+                            ? Navigation.navigate(
+                                  ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                                      CONST.IOU.ACTION.EDIT,
+                                      iouType,
+                                      transaction.transactionID,
+                                      report.reportID,
+                                      Navigation.getReportRHPActiveRoute(),
+                                  ),
+                              )
+                            : undefined
                     }
                 />
             </OfflineWithFeedback>
@@ -338,17 +340,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
-                    onPress={() =>
+                    onPress={() => {
+                        if (!transaction?.transactionID || !report?.reportID) {
+                            return;
+                        }
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
                                 CONST.IOU.ACTION.EDIT,
                                 iouType,
-                                transaction?.transactionID ?? '-1',
-                                report?.reportID ?? '-1',
+                                transaction.transactionID,
+                                report.reportID,
                                 Navigation.getReportRHPActiveRoute(),
                             ),
-                        )
-                    }
+                        );
+                    }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
                 />
@@ -418,18 +423,21 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() =>
+                    onPress={() => {
+                        if (!transaction?.transactionID || !report?.reportID) {
+                            return;
+                        }
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
                                 CONST.IOU.ACTION.EDIT,
                                 iouType,
                                 orderWeight,
-                                transaction?.transactionID ?? '',
-                                report?.reportID ?? '-1',
+                                transaction.transactionID,
+                                report.reportID,
                                 Navigation.getReportRHPActiveRoute(),
                             ),
-                        )
-                    }
+                        );
+                    }}
                     brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={tagError}
                 />
@@ -455,7 +463,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
-                            if (!transaction?.transactionID && linkedTransactionID === '-1') {
+                            if (!transaction?.transactionID && !linkedTransactionID) {
                                 return;
                             }
 
@@ -470,7 +478,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 }
                             }
                             Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
-                            ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
+                            ReportActions.clearAllRelatedReportActionErrors(report?.reportID, parentReportAction);
                         }}
                     >
                         {hasReceipt && (
@@ -496,18 +504,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
-                            transactionID={transaction?.transactionID ?? '-1'}
-                            onPress={() =>
+                            transactionID={transaction?.transactionID}
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction?.transactionID ?? '-1',
-                                        report?.reportID ?? '-1',
-                                        Navigation.getReportRHPActiveRoute(),
-                                    ),
-                                )
-                            }
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, Navigation.getReportRHPActiveRoute()),
+                                );
+                            }}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -522,18 +527,21 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
-                        onPress={() =>
+                        onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
                                     CONST.IOU.ACTION.EDIT,
                                     iouType,
-                                    transaction?.transactionID ?? '-1',
-                                    report?.reportID ?? '-1',
+                                    transaction.transactionID,
+                                    report.reportID,
                                     '',
                                     Navigation.getReportRHPActiveRoute(),
                                 ),
-                            )
-                        }
+                            );
+                        }}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
                     />
@@ -546,17 +554,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() =>
+                        onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
                                     CONST.IOU.ACTION.EDIT,
                                     iouType,
-                                    transaction?.transactionID ?? '-1',
-                                    report?.reportID ?? '-1',
+                                    transaction.transactionID,
+                                    report.reportID,
                                     Navigation.getReportRHPActiveRoute(),
                                 ),
-                            )
-                        }
+                            );
+                        }}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('comment')}
@@ -573,17 +584,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
-                            onPress={() =>
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
-                                        transaction?.transactionID ?? '-1',
-                                        report?.reportID ?? '-1',
+                                        transaction.transactionID,
+                                        report.reportID,
                                         Navigation.getReportRHPActiveRoute(),
                                     ),
-                                )
-                            }
+                                );
+                            }}
                             wrapperStyle={[styles.taskDescriptionMenuItem]}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
@@ -598,17 +612,14 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
-                        onPress={() =>
+                        onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction?.transactionID ?? '-1',
-                                    report?.reportID ?? '-1' ?? '-1',
-                                    Navigation.getReportRHPActiveRoute(),
-                                ),
-                            )
-                        }
+                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getReportRHPActiveRoute()),
+                            );
+                        }}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
                     />
@@ -621,17 +632,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() =>
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
-                                        transaction?.transactionID ?? '-1',
-                                        report?.reportID ?? '-1',
+                                        transaction.transactionID,
+                                        report.reportID,
                                         Navigation.getReportRHPActiveRoute(),
                                     ),
-                                )
-                            }
+                                );
+                            }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
                         />
@@ -656,17 +670,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
-                            onPress={() =>
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
-                                        transaction?.transactionID ?? '-1',
-                                        report?.reportID ?? '-1',
+                                        transaction?.transactionID,
+                                        report?.reportID,
                                         Navigation.getReportRHPActiveRoute(),
                                     ),
-                                )
-                            }
+                                );
+                            }}
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
                         />
@@ -680,17 +697,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
-                            onPress={() =>
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
-                                        transaction?.transactionID ?? '-1',
-                                        report?.reportID ?? '-1',
+                                        transaction?.transactionID,
+                                        report?.reportID,
                                         Navigation.getReportRHPActiveRoute(),
                                     ),
-                                )
-                            }
+                                );
+                            }}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -699,11 +719,14 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
                         onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
                             if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, Navigation.getReportRHPActiveRoute()));
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()));
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}
@@ -718,9 +741,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }`}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
-                            }
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
+                            }}
                             interactive
                             shouldRenderAsHTML
                         />

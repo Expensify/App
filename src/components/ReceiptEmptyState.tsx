@@ -32,7 +32,7 @@ type ReceiptEmptyStateProps = {
 
     shouldAllowReceiptDrop?: boolean;
 
-    transactionID: string;
+    transactionID: string | undefined;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
