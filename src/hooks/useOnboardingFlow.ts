@@ -53,6 +53,10 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
+            if (hasBeenAddedToNudgeMigration) {
+                return;
+            }
+
             if (NativeModules.HybridAppModule) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {

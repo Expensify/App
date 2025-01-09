@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -135,10 +136,11 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const isScreenFocused = useIsFocused();
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE,
-        shouldShowEducationalTooltip,
+        shouldShowEducationalTooltip && isScreenFocused,
     );
 
     /**
