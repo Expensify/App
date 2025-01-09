@@ -180,9 +180,13 @@ const usePanGesture = ({
         .manualActivation(true)
         .averageTouches(true)
         .onTouchesUp(() => {
+            'worklet';
+
             previousTouch.set(null);
         })
         .onTouchesMove((evt, state) => {
+            'worklet';
+
             // We only allow panning when the content is zoomed in
             if (zoomScale.get() > 1 && !shouldDisableTransformationGestures.get()) {
                 state.activate();
@@ -212,9 +216,13 @@ const usePanGesture = ({
             }
         })
         .onStart(() => {
+            'worklet';
+
             stopAnimation();
         })
         .onChange((evt) => {
+            'worklet';
+
             // Since we're running both pinch and pan gesture handlers simultaneously,
             // we need to make sure that we don't pan when we pinch since we track it as pinch focal gesture.
             if (evt.numberOfPointers > 1) {
@@ -235,6 +243,8 @@ const usePanGesture = ({
             }
         })
         .onEnd(() => {
+            'worklet';
+
             // Add pan translation to total offset and reset gesture variables
             offsetX.set((value) => value + panTranslateX.get());
             offsetY.set((value) => value + panTranslateY.get());

@@ -104,6 +104,8 @@ const usePinchGesture = ({
         .enabled(pinchEnabled)
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
+            'worklet';
+
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
                 return;
@@ -112,6 +114,8 @@ const usePinchGesture = ({
             state.fail();
         })
         .onStart((evt) => {
+            'worklet';
+
             stopAnimation();
 
             // Set the origin focal point of the pinch gesture at the start of the gesture
@@ -120,6 +124,8 @@ const usePinchGesture = ({
             pinchOrigin.y.set(adjustedFocal.y);
         })
         .onChange((evt) => {
+            'worklet';
+
             // Disable the pinch gesture if one finger is released,
             // to prevent the content from shaking/jumping
             if (evt.numberOfPointers !== 2) {
@@ -154,6 +160,8 @@ const usePinchGesture = ({
             }
         })
         .onEnd(() => {
+            'worklet';
+
             // Add pinch translation to total offset and reset gesture variables
             offsetX.set((value) => value + pinchTranslateX.get());
             offsetY.set((value) => value + pinchTranslateY.get());
