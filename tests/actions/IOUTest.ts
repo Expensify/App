@@ -38,13 +38,22 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+const chatReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
+    getTopmostReportId: jest.fn(() => chatReportID),
 }));
 
+jest.mock('@src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual('@src/libs/actions/Report');
+    return {
+        ...originalModule,
+        notifyNewAction: jest.fn(),
+    };
+});
 jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -3618,6 +3627,54 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('payMoneyRequest', () => {
+        it.only('calls notifyNewAction for the top most report', () => {
+            // Given two expenses in an iou report where one of them held
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transaction2 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const iouActions: OnyxTypes.ReportAction[] = [];
+            [transaction1, transaction2].forEach((transaction) =>
+                iouActions.push(ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+            );
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {};
+            iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    IOU.putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    // When partially paying  an iou report from the chat report via the report preview
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: chatReportID}, iouReport, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    // Then notifyNewAction should be called on the chat report.
+                    expect(Report.notifyNewAction).toHaveBeenCalledWith(chatReportID, expect.anything());
+                });
         });
     });
 
