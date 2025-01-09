@@ -531,7 +531,7 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 
 > error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
 
-We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error. Besides that, we should add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
+We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error. Besides that, we *must* add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
 
 ```diff
 WORKSPACE_PROFILE_ADDRESS: {
@@ -544,6 +544,20 @@ WORKSPACE_PROFILE_ADDRESS: {
 +       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
 +   },
 },
+```
+
+##### Important Note:
+
+When you change the function id arguments type to allow `undefined`, please use explicit `undefined` typing instead of just making the parameter optional. This way, we identify that the parameter should **always** be passed, even if it's `undefined`.
+
+``` ts
+// BAD
+-function getNewerActions(reportID: string, reportActionID: string) {
++function getNewerActions(reportID?: string, reportActionID?: string) {
+
+// GOOD
+-function getNewerActions(reportID: string, reportActionID: string) {
++function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
 ```
 
 #### **Case 2**: Type 'undefined' cannot be used as an index type.
