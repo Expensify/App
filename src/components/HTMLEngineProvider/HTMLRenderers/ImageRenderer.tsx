@@ -1,12 +1,12 @@
-import React, {memo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {AttachmentContext} from '@components/AttachmentContext';
-import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
+import React, { memo } from 'react';
+import { useOnyx } from 'react-native-onyx';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { CustomRendererProps, TBlock } from 'react-native-render-html';
+import { AttachmentContext } from '@components/AttachmentContext';
+import { isDeletedNode } from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import { ShowContextMenuContext, showContextMenuForReport } from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -18,7 +18,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {User} from '@src/types/onyx';
+import type { User } from '@src/types/onyx';
 
 type ImageRendererWithOnyxProps = {
     /** Current user */
@@ -29,9 +29,9 @@ type ImageRendererWithOnyxProps = {
 
 type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
 
-function ImageRenderer({tnode}: ImageRendererProps) {
+function ImageRenderer({ tnode }: ImageRendererProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
@@ -81,7 +81,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             // The backend always returns these thumbnails with a .jpg extension, even for .png images.
             // As a workaround, we remove the .1024.jpg or .320.jpg suffix only for .png images,
             // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
-            previewSourceURL={previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png')}
+            previewSourceURL={typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
@@ -98,9 +98,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({ anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled }) => (
                 <AttachmentContext.Consumer>
-                    {({reportID, accountID, type}) => (
+                    {({ reportID, accountID, type }) => (
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
