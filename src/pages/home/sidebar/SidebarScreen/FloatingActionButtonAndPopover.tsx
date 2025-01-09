@@ -378,8 +378,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
-            onHideTooltip: hideProductTrainingTooltip,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,
+            shouldTeleportPortalToModalLayer: true,
         };
 
         if (quickAction?.action) {
@@ -394,9 +394,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () =>
-                        interceptAnonymousUser(() =>
-                            QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption),
-                        ),
+                        interceptAnonymousUser(() => {
+                            hideProductTrainingTooltip();
+                            QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                        }),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -411,6 +412,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
+                                hideProductTrainingTooltip();
                                 const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
                                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);

@@ -38,6 +38,7 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
+    SetNameValuePairParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -823,6 +824,37 @@ function leaveWorkspace(policyID?: string) {
         email: sessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+}
+
+function updateDefaultPolicy(newPolicyID?: string, oldPolicyID?: string) {
+    if (!newPolicyID) {
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: newPolicyID,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: oldPolicyID,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+        value: newPolicyID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -3474,10 +3506,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
-                ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
-                    autoReporting: true,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                }),
                 harvesting: {
                     enabled: false,
                 },
@@ -3506,8 +3534,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: policy?.maxExpenseAmount ?? null,
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
-                autoReporting: policy?.autoReporting ?? null,
-                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
                 harvesting: policy?.harvesting ?? null,
             },
         },
@@ -4837,6 +4863,7 @@ export {
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
+    updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
 };

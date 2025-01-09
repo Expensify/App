@@ -115,6 +115,9 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
+    /** Whether the user is a member of a policy other than their personal */
+    HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -947,6 +950,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
