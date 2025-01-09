@@ -37,7 +37,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const url = getCompanyCardBankConnection(policyID, bankName);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
@@ -63,9 +63,9 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         if (isNewFeedConnected) {
             if (newFeed) {
-                Card.updateSelectedFeed(newFeed, policyID ?? '-1');
+                Card.updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
     }, [isNewFeedConnected, newFeed, policyID, url]);
 

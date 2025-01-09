@@ -875,7 +875,11 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
-function updateSelectedFeed(feed: CompanyCardFeed, policyID: string) {
+function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.MERGE,
