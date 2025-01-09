@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
-import DotIndicatorMessage from './DotIndicatorMessage';
+import DotIndicatorMessage from './DotIndicatorMessage/DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';

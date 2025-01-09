@@ -2,23 +2,21 @@
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import * as Localize from '@libs/Localize';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import ConfirmModal from './ConfirmModal';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import RNFS from './ProfilingToolMenu/RNFS';
-import Text from './Text';
-import TextLink from './TextLink';
+import handleRetryPress from './index';
 
 type DotIndicatorMessageProps = {
     /**
@@ -64,86 +62,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
-    const operatingSystem = getOperatingSystem();
-
-    const handleRetryPress = (message: ReceiptError) => {
-        if (!message.source) {
-            return;
-        }
-
-        const handleFileRetry = (file: File) => {
-            const retryParams: IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.TrackExpense | IOU.RequestMoneyInformation =
-                typeof message.retryParams === 'string'
-                    ? (JSON.parse(message.retryParams) as IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.TrackExpense | IOU.RequestMoneyInformation)
-                    : message.retryParams;
-
-            switch (message.action) {
-                case CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT: {
-                    dismissError();
-                    const replaceReceiptParams = {...retryParams} as IOU.ReplaceReceipt;
-                    replaceReceiptParams.file = file;
-                    IOU.replaceReceipt(replaceReceiptParams);
-                    break;
-                }
-                case CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL: {
-                    dismissError();
-                    const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
-                    startSplitBillParams.receipt = file;
-                    IOU.startSplitBill(startSplitBillParams);
-                    break;
-                }
-                case CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE: {
-                    dismissError();
-                    const trackExpenseParams = {...retryParams} as IOU.TrackExpense;
-                    trackExpenseParams.receipt = file;
-                    IOU.trackExpense(trackExpenseParams);
-                    break;
-                }
-                case CONST.IOU.ACTION_PARAMS.MONEY_REQUEST: {
-                    dismissError();
-                    const requestMoneyParams = {...retryParams} as IOU.RequestMoneyInformation;
-                    requestMoneyParams.transactionParams.receipt = file;
-                    IOU.requestMoney(requestMoneyParams);
-                    break;
-                }
-                default:
-                    setShouldShowErrorModal(true);
-                    break;
-            }
-        };
-
-        if (operatingSystem === CONST.OS.ANDROID && message.source.startsWith('file://')) {
-            // Android-specific logic using RNFS
-            try {
-                const filePath = message.source.replace('file://', '');
-                RNFS.readFile(filePath, 'base64')
-                    .then((fileContent) => {
-                        const file = new File([fileContent], message.filename, {type: 'image/jpeg'});
-                        file.uri = message.source;
-                        file.source = message.source;
-                        handleFileRetry(file);
-                    })
-                    .catch(() => {
-                        setShouldShowErrorModal(true);
-                    });
-            } catch (error) {
-                setShouldShowErrorModal(true);
-            }
-        } else {
-            // For other platforms
-            fetch(message.source)
-                .then((res) => res.blob())
-                .then((blob) => {
-                    const reconstructedFile = new File([blob], message.filename);
-                    reconstructedFile.uri = message.source;
-                    reconstructedFile.source = message.source;
-                    handleFileRetry(reconstructedFile);
-                })
-                .catch(() => {
-                    setShouldShowErrorModal(true);
-                });
-        }
-    };
 
     const renderMessage = (message: string | ReceiptError, index: number) => {
         if (isReceiptError(message)) {
@@ -156,7 +74,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message)}
+                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
                         >
                             {Localize.translateLocal('iou.error.tryAgainMessage')}
                         </TextLink>

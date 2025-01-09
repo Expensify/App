@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import DotIndicatorMessage from '@components/DotIndicatorMessage/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
