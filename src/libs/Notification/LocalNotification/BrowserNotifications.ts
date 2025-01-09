@@ -6,6 +6,7 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
@@ -65,9 +66,12 @@ function push(
             body,
             icon: String(icon),
             data,
-            silent,
+            silent: true,
             tag,
         });
+        if (!silent) {
+            playSound(SOUNDS.RECEIVE);
+        }
         notificationCache[notificationID].onclick = () => {
             onClick();
             window.parent.focus();
@@ -122,7 +126,7 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick, true);
+        push(title, body, icon, data, onClick);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {

@@ -262,11 +262,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
-                                disabled={readOnly}
+                                interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
-                                shouldGreyOutWhenDisabled={false}
-                                shouldUseDefaultCursorWhenDisabled
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
@@ -284,11 +282,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
                                     shouldShowRightIcon={!readOnly}
-                                    disabled={readOnly}
+                                    interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
@@ -308,12 +304,10 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    disabled={hasVBA ? true : readOnly}
+                                    shouldShowRightIcon={hasVBA ? false : !readOnly}
+                                    interactive={hasVBA ? false : !readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     hintText={hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                 />
                             </View>
@@ -325,11 +319,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         title={formattedAddress}
                                         description={translate('common.companyAddress')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
@@ -341,12 +333,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     <MenuItemWithTopDescription
                                         title={PolicyUtils.getUserFriendlyWorkspaceType(policy.type)}
                                         description={translate('workspace.common.planType')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressPlanType}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
