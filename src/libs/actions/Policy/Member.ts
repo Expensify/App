@@ -22,6 +22,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
@@ -1041,6 +1042,11 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function clearInviteDraft(policyID: string) {
+    setWorkspaceInviteMembersDraft(policyID, {});
+    FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -1058,6 +1064,7 @@ export {
     isApprover,
     importPolicyMembers,
     downloadMembersCSV,
+    clearInviteDraft,
 };
 
 export type {NewCustomUnit};
