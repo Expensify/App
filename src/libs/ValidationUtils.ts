@@ -391,8 +391,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
-    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string | undefined): boolean {
+    return Object.values(reports ?? {}).some((report) => report && policyID && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**

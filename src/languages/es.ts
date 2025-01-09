@@ -1273,7 +1273,8 @@ const translations = {
             usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
             debugMode: 'Modo depuración',
             invalidFile: 'Archivo inválido',
-            invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            invalidateWithDelay: 'Invalidar con retraso',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
