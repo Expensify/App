@@ -7,7 +7,6 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
@@ -158,7 +157,6 @@ function ScreenWrapper(
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
-    const {isOffline} = useNetwork();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
@@ -244,18 +242,17 @@ function ScreenWrapper(
     }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    const isSafeAreaBottomPaddingApplied = includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator);
-    if (isSafeAreaBottomPaddingApplied) {
+    if (includeSafeAreaPaddingBottom) {
         paddingStyle.paddingBottom = paddingBottom;
     }
-    if (isSafeAreaBottomPaddingApplied && ignoreInsetsConsumption) {
+    if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
         paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied}),
-        [didScreenTransitionEnd, isSafeAreaBottomPaddingApplied, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     return (
@@ -297,7 +294,14 @@ function ScreenWrapper(
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
                                     <>
-                                        <OfflineIndicator style={offlineIndicatorStyle} />
+                                        <OfflineIndicator
+                                            style={[offlineIndicatorStyle]}
+                                            containerStyles={
+                                                includeSafeAreaPaddingBottom
+                                                    ? [styles.offlineIndicatorMobile]
+                                                    : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
+                                            }
+                                        />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
                                     </>
