@@ -926,6 +926,7 @@ const CONST = {
         ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
+        COMPLETED: 'completed',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1469,8 +1470,8 @@ const CONST = {
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
-    // 6 numeric digits
-    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
+    // We allow either 6 digits for validated users or 9-character base26 for unvalidated users
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$|^[A-Z]{9}$/,
 
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
