@@ -34,8 +34,9 @@ type SignerDetailsFormProps = SubStepProps & {isSecondSigner: boolean};
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-const bodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, UploadDocuments, Confirmation];
+const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
+const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
 
 const INPUT_KEYS = {
     SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME,
@@ -129,6 +130,18 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
     };
 
+    const bodyContent = useMemo(() => {
+        if (isUserOwner) {
+            if (currency === CONST.CURRENCY.CAD) {
+                return userIsOwnerCadBodyContent;
+            }
+
+            return userIsOwnerBodyContent;
+        }
+
+        return fullBodyContent;
+    }, [currency, isUserOwner]);
+
     const {
         componentToRender: SignerDetailsForm,
         isEditing,
@@ -137,7 +150,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<SignerDetailsFormProps>({bodyContent: isUserOwner ? userIsOwnerBodyContent : bodyContent, startFrom: 0, onFinished: submit});
+    } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
