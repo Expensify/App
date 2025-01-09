@@ -142,21 +142,15 @@ function ReportActionsListItemRenderer({
         ],
     );
 
-    const shouldDisplayTripSummary =
+    const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        ReportUtils.isTripRoom(report) &&
         (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
 
-    if (shouldDisplayTripSummary) {
+    if (shouldDisplayParentAction && ReportUtils.isTripRoom(report)) {
         return <TripSummary report={report} />;
     }
 
-    const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        ReportUtils.isChatThread(report) &&
-        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
-
-    if (shouldDisplayParentAction) {
+    if (shouldDisplayParentAction && ReportUtils.isChatThread(report)) {
         return (
             <ReportActionItemParentAction
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
