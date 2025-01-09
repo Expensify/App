@@ -78,7 +78,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={previewSource}
+            // The backend always returns these thumbnails with a .jpg extension, even for .png images.
+            // As a workaround, we remove the .1024.jpg or .320.jpg suffix only for .png images,
+            // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
+            previewSourceURL={previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png')}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
