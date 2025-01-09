@@ -468,7 +468,7 @@ index d32140f..0804ba7 100644
    TDefaultBlockRenderer,
    TDefaultPhrasingRenderer,
 diff --git a/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx b/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
-index 95b60df..56465c9 100644
+index 95b60df..db6fe0b 100644
 --- a/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
 +++ b/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
 @@ -1,7 +1,6 @@
@@ -561,7 +561,7 @@ index 95b60df..56465c9 100644
    ...config
  }: PropsWithChildren<TRenderEngineConfig>): ReactElement {
 -  const engine = useTRenderEngine(config);
-+  const engine = useTRenderEngine({enableUserAgentStyles, ...config});
++  const engine = useTRenderEngine({htmlParserOptions, emSize, ignoredDomTags, ignoredStyles, baseStyle, tagsStyles, classesStyles, enableUserAgentStyles, enableCSSInlineProcessing, customHTMLElementModels, fallbackFonts, systemFonts, ...config});
    return (
      <TRenderEngineContext.Provider value={engine}>
        {children}
