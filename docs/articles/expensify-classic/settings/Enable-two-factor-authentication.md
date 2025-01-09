@@ -39,10 +39,10 @@ When you log in to Expensify in the future, you’ll be emailed a magic code tha
 
 If you have lost your mobile device and can’t find your recovery codes, your Domain Admin can complete the steps below to reset your 2FA **only if (1) you use a company email address or email address on a domain that you own and (2) the Domain Admin also has 2FA enabled**:
 
-Go to Settings > Domains > Domain Members and click **Edit Settings** for your email address. 
-They then click **Reset** to reset two-factor authentication (2FA) on your account. 
+If your domain has 2FA enabled, a domain admin can follow Settings > Domains > Domain Members and click **Edit Settings** for your email address. 
+They can then click **Reset** to reset two-factor authentication (2FA) on your account. This will allow you to gain access to your account on the web or mobile app and reconfigure 2FA again.
 
-This will allow you to gain access to your account on the web or mobile app and reconfigure 2FA again.
+If your domain does not have 2FA enabled, a domain admin can follow Settings > Domains > Domain Members and toggle Two Factor Authentication to enabled. Then they can follow the previously mentioned steps to reset 2FA for your acccount.
 
 {% include info.html %}
 If you use a public email address such as gmail, hotmail, or yahoo, we unfortunately can’t help you disable your 2FA setting. If you are unable to find your recovery codes, you may need to create a new Expensify account with a different email address. 
