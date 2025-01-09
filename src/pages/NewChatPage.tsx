@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -275,6 +276,7 @@ function NewChatPage() {
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
         Report.setGroupDraft({participants: logins});
+        Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     }, [selectedOptions, personalData]);
     const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT});
