@@ -137,6 +137,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with: 
+          IS_HYBRID_BUILD: 'true'
 
       - name: Run grunt build
         run: |
@@ -449,6 +451,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with: 
+          IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0

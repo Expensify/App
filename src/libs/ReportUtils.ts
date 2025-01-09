@@ -2873,11 +2873,16 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
+    const iouReportActionToApproveOrPay = IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID);
+    const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
+
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest) {
+    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
-            reportAction: IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID),
+            reportAction: iouReportActionToApproveOrPay,
         };
     }
 
@@ -8437,8 +8442,8 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
     return {};
 }
 
-function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string): boolean {
-    if (report?.policyID !== policyID) {
+function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string | undefined): boolean {
+    if (!policyID || report?.policyID !== policyID) {
         return false;
     }
 
@@ -8638,6 +8643,53 @@ function hasMissingInvoiceBankAccount(iouReportID: string | undefined): boolean 
 function hasInvoiceReports() {
     const reports = Object.values(allReports ?? {});
     return reports.some((report) => isInvoiceReport(report));
+}
+
+function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
+    if (!report?.participants) {
+        return true;
+    }
+
+    if (isThread(report) && report?.chatType && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+        return true;
+    }
+
+    if (isThread(report) && report?.type === CONST.REPORT.TYPE.EXPENSE) {
+        return true;
+    }
+
+    const participantAccountIDs = Object.keys(report.participants);
+
+    if (participantAccountIDs.length > 2) {
+        return false;
+    }
+
+    if (participantsContext) {
+        let teamInChat = false;
+        let userInChat = false;
+
+        for (const participantAccountID of participantAccountIDs) {
+            const id = Number(participantAccountID);
+            const contextAccountData = participantsContext[id];
+
+            if (contextAccountData) {
+                const login = contextAccountData.login ?? '';
+
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) || login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
+                    teamInChat = true;
+                } else {
+                    userInChat = true;
+                }
+            }
+        }
+
+        // exclude teamOnly chat
+        if (teamInChat && userInChat) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getReportMetadata(reportID: string | undefined) {
@@ -8966,6 +9018,7 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
+    shouldUnmaskChat,
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
