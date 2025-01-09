@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -68,7 +67,6 @@ function ReportActionItemParentAction({
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
-    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -143,7 +141,7 @@ function ReportActionItemParentAction({
                                               );
                                               // Pop the thread report screen before navigating to the chat report.
                                               Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                                              if (isVisibleAction && !isOffline) {
+                                              if (isVisibleAction) {
                                                   // Pop the chat report screen before navigating to the linked report action.
                                                   Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
                                               }

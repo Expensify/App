@@ -5,7 +5,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +27,6 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     return (
         <View
@@ -55,7 +53,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                         );
                         // Pop the thread report screen before navigating to the chat report.
                         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                        if (isVisibleAction && !isOffline) {
+                        if (isVisibleAction) {
                             // Pop the chat report screen before navigating to the linked report action.
                             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
                         }
