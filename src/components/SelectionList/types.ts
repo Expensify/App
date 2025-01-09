@@ -642,6 +642,7 @@ type SelectionListHandle = {
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
+    focusTextInput: () => void;
 };
 
 type ItemLayout = {
