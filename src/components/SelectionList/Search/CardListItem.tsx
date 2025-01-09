@@ -57,8 +57,8 @@ function CardListItem<TItem extends ListItem>({
     };
 
     const subtitleText =
-        `${item.cardName ? `${item.cardName}` : ''}` +
-        `${item.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ${item.lastFourPAN}` : ''}` +
+        `${item.lastFourPAN ? `${item.lastFourPAN}` : ''}` +
+        `${item.cardName ? ` ${CONST.DOT_SEPARATOR} ${item.cardName}` : ''}` +
         `${item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ${translate('workspace.expensifyCard.virtual')}` : ''}`;
 
     return (
