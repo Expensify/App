@@ -24,3 +24,4 @@ export {default as setNavigationActionToMicrotaskQueue} from './setNavigationAct
 export {default as setupCustomAndroidBackHandler} from './setupCustomAndroidBackHandler';
 export {default as shouldOpenOnAdminRoom} from './shouldOpenOnAdminRoom';
 export {default as shouldPreventDeeplinkPrompt} from './shouldPreventDeeplinkPrompt';
+export {default as resetPolicyIDInNavigationState} from './resetPolicyIDInNavigationState';
