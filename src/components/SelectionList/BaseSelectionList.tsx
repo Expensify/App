@@ -355,6 +355,9 @@ function BaseSelectionList<TItem extends ListItem>(
      */
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
+            if (!isFocused) {
+                return;
+            }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (sections.length > 1) {
@@ -395,6 +398,7 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex,
             onSelectRow,
             shouldPreventDefaultFocusOnSelectRow,
+            isFocused,
         ],
     );
 
