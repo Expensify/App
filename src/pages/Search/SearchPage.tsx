@@ -2,6 +2,8 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import BottomTabBar, {BOTTOM_TABS} from '@components/Navigation/BottomTabBar';
+import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -11,8 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
-import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,10 +20,10 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import SearchPageBottomTab from './SearchPageBottomTab';
+import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
@@ -49,7 +49,7 @@ function SearchPage({route}: SearchPageProps) {
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
         return (
-            <SearchPageBottomTab
+            <SearchPageNarrow
                 queryJSON={queryJSON}
                 policyID={policyID}
                 searchName={searchName}
@@ -68,7 +68,6 @@ function SearchPage({route}: SearchPageProps) {
                 {!!queryJSON && (
                     <View style={styles.searchSplitContainer}>
                         <View style={styles.searchSidebar}>
-                            {/* {!selectionMode?.isEnabled && queryJSON ? ( */}
                             {queryJSON ? (
                                 <View>
                                     <TopBar

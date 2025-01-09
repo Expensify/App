@@ -1,14 +1,14 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import {createNormalizedConfigs} from '@libs/Navigation/helpers';
 import type {RouteConfig} from '@libs/Navigation/helpers';
-import type {RootStackParamList} from '@navigation/types';
+import type {RootNavigatorParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
 // Moved to a separate file to avoid cyclic dependencies.
-const config: LinkingOptions<RootStackParamList>['config'] = {
+const config: LinkingOptions<RootNavigatorParamList>['config'] = {
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -28,37 +28,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        // [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-        // [SCREENS.SETTINGS.PROFILE.ROOT]: {
-        //     path: ROUTES.SETTINGS_PROFILE,
-        //     exact: true,
-        // },
-        // [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-        //     path: ROUTES.SETTINGS_PREFERENCES,
-        //     // exact: true,
-        // },
-        // [SCREENS.SETTINGS.SECURITY]: {
-        //     path: ROUTES.SETTINGS_SECURITY,
-        //     exact: true,
-        // },
-        // [SCREENS.SETTINGS.WALLET.ROOT]: {
-        //     path: ROUTES.SETTINGS_WALLET,
-        //     exact: true,
-        // },
-        // [SCREENS.SETTINGS.ABOUT]: {
-        //     path: ROUTES.SETTINGS_ABOUT,
-        //     exact: true,
-        // },
-        // [SCREENS.SETTINGS.TROUBLESHOOT]: {
-        //     path: ROUTES.SETTINGS_TROUBLESHOOT,
-        //     exact: true,
-        // },
-        // [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-        [SCREENS.SEARCH.CENTRAL_PANE]: {
+        [SCREENS.SEARCH.ROOT]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
         },
-        // [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-        // [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {

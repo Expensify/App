@@ -7,6 +7,7 @@ import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
@@ -92,7 +93,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
-    if (action.type === 'PUSH' && action.payload.name === options.sidebarScreen && state.routes.length > 1) {
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1) {
         return true;
     }
     return false;

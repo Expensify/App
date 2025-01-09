@@ -2,7 +2,7 @@ import type {CommonActions, DefaultNavigatorOptions, ParamListBase, StackActionT
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CONST from '@src/CONST';
 
-type CustomRouterActionType =
+type RootStackNavigatorActionType =
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
           payload: {
@@ -19,39 +19,38 @@ type CustomRouterActionType =
           };
       };
 
-type OpenWorkspaceSplitActionType = CustomRouterActionType & {
+type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
 };
 
-type SwitchPolicyIdActionType = CustomRouterActionType & {
+type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 };
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
 
-type DismissModalActionType = CustomRouterActionType & {
+type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
 
-type ResponsiveStackNavigatorConfig = {
+type RootStackNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
 
-type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
+type RootStackNavigatorRouterOptions = StackRouterOptions;
 
-type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &
-    ResponsiveStackNavigatorConfig;
+type RootStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & RootStackNavigatorConfig;
 
-type CustomRouterAction = CommonActions.Action | StackActionType | CustomRouterActionType;
+type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
 export type {
     OpenWorkspaceSplitActionType,
     SwitchPolicyIdActionType,
     PushActionType,
     DismissModalActionType,
-    CustomRouterAction,
-    CustomRouterActionType,
-    ResponsiveStackNavigatorRouterOptions,
-    ResponsiveStackNavigatorProps,
-    ResponsiveStackNavigatorConfig,
+    RootStackNavigatorAction,
+    RootStackNavigatorActionType,
+    RootStackNavigatorRouterOptions,
+    RootStackNavigatorProps,
+    RootStackNavigatorConfig,
 };

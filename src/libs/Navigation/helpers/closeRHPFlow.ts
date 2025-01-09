@@ -1,13 +1,13 @@
 import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
  * Closes the last RHP flow, if there is only one, closes the entire RHP.
  */
-export default function closeRHPFlow(navigationRef: NavigationContainerRef<RootStackParamList>) {
+export default function closeRHPFlow(navigationRef: NavigationContainerRef<RootNavigatorParamList>) {
     if (!navigationRef.isReady()) {
         return;
     }

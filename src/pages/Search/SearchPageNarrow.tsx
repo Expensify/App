@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import BottomTabBar, {BOTTOM_TABS} from '@components/Navigation/BottomTabBar';
+import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
@@ -12,10 +14,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +32,7 @@ type SearchPageBottomTabProps = {
     searchName?: string;
 };
 
-function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -80,7 +80,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
     if (!queryJSON) {
         return (
             <ScreenWrapper
-                testID={SearchPageBottomTab.displayName}
+                testID={SearchPageNarrow.displayName}
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -97,7 +97,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
 
     return (
         <ScreenWrapper
-            testID={SearchPageBottomTab.displayName}
+            testID={SearchPageNarrow.displayName}
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
@@ -145,6 +145,6 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
     );
 }
 
-SearchPageBottomTab.displayName = 'SearchPageBottomTab';
+SearchPageNarrow.displayName = 'SearchPageNarrow';
 
-export default SearchPageBottomTab;
+export default SearchPageNarrow;

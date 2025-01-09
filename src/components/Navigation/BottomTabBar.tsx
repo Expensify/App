@@ -21,7 +21,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@libs/Navigation/helpers';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootStackParamList, State, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -43,10 +43,10 @@ const BOTTOM_TABS = {
     SETTINGS: 'SETTINGS',
 } as const;
 
-type BottomTabs = ValueOf<typeof BOTTOM_TABS>;
+type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
 
 type BottomTabBarProps = {
-    selectedTab: BottomTabs;
+    selectedTab: BottomTabName;
 };
 
 /**
@@ -121,11 +121,11 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
         interceptAnonymousUser(() => {
-            const rootState = navigationRef.getRootState() as State<RootStackParamList>;
-            const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+            const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.ROOT).at(-1);
 
             if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
                 const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
 
                 Navigation.navigate(
@@ -304,4 +304,4 @@ BottomTabBar.displayName = 'BottomTabBar';
 
 export default memo(BottomTabBar);
 export {BOTTOM_TABS};
-export type {BottomTabs};
+export type {BottomTabName};

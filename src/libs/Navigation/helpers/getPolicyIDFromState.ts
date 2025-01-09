@@ -1,4 +1,4 @@
-import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
@@ -10,8 +10,8 @@ import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
  *  - on NAVIGATORS.REPORTS_SPLIT_NAVIGATOR as `policyID` param
  *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for SEARCH_CENTRAL_PANE)
  */
-const getPolicyIDFromState = (state: State<RootStackParamList>): string | undefined => {
-    const lastPolicyRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE);
+const getPolicyIDFromState = (state: State<RootNavigatorParamList>): string | undefined => {
+    const lastPolicyRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.ROOT);
     if (lastPolicyRoute?.params && 'policyID' in lastPolicyRoute.params) {
         return lastPolicyRoute?.params?.policyID;
     }

@@ -7,7 +7,7 @@ import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import linkingConfig from '@navigation/linkingConfig';
-import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootStackParamList, StackNavigationAction} from '@navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -31,7 +31,7 @@ function createActionWithPolicyID(action: StackActionType, policyID: string): St
     };
 }
 
-function areNamesAndParamsEqual(currentState: NavigationState<RootStackParamList>, stateFromPath: PartialState<NavigationState<RootStackParamList>>) {
+function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
     const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
@@ -60,7 +60,7 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams.reportID === newParams.reportID;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
+export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, type?: string) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -72,8 +72,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-    const currentState = navigation.getRootState() as NavigationState<RootStackParamList>;
+    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);

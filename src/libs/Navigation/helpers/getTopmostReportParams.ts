@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {ReportsSplitNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -12,7 +12,7 @@ import SCREENS from '@src/SCREENS';
  * @returns - It's possible that there is no report screen
  */
 
-type State = NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>;
+type State = NavigationState | NavigationState<RootNavigatorParamList> | PartialState<NavigationState>;
 
 function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined {
     if (!state) {

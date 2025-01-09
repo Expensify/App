@@ -18,7 +18,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         if (typeof focusTrapSettings?.active !== 'undefined') {
             return focusTrapSettings.active;
         }
-        // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
+        // Focus trap can't be active on sidebar screens because it would block access to the tab bar.
         if (isSidebarScreenName(route.name)) {
             return false;
         }

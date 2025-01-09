@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import {getAdaptedStateFromPath} from '@libs/Navigation/helpers';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ Onyx.connect({
 function startOnboardingFlow(isPrivateDomain?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
     const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config, false);
-    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);
+    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }

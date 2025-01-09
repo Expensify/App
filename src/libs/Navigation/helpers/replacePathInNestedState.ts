@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
-function replacePathInNestedState(state: PartialState<NavigationState<RootStackParamList>>, path: string) {
+function replacePathInNestedState(state: PartialState<NavigationState<RootNavigatorParamList>>, path: string) {
     const found = findFocusedRoute(state);
     if (!found) {
         return;

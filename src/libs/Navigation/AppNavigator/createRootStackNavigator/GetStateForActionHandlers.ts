@@ -3,7 +3,7 @@ import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -81,8 +81,8 @@ function handleSwitchPolicyID(
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
     const lastRoute = state.routes.at(-1);
-    if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
-        const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    if (lastRoute?.name === SCREENS.SEARCH.ROOT) {
+        const currentParams = lastRoute.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
         const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
         if (!queryJSON) {
             return null;
@@ -94,7 +94,7 @@ function handleSwitchPolicyID(
             delete queryJSON.policyID;
         }
 
-        const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
+        const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
             ...currentParams,
             q: SearchQueryUtils.buildSearchQueryString(queryJSON),
         });
@@ -127,7 +127,7 @@ function handlePushReportAction(
         policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
         setActiveWorkspaceID(policyID);
     } else {
-        policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+        policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
     }
 
     const modifiedAction = {
@@ -151,7 +151,7 @@ function handlePushSearchPageAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
-    const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const currentParams = action.payload.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
     const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
 
     if (!queryJSON) {
@@ -159,7 +159,7 @@ function handlePushSearchPageAction(
     }
 
     if (!queryJSON.policyID) {
-        const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+        const policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
 
         if (policyID) {
             queryJSON.policyID = policyID;
@@ -200,4 +200,22 @@ function handleDismissModalAction(
     return stackRouter.getStateForAction(state, newAction, configOptions);
 }
 
-export {handleOpenWorkspaceSplitAction, handleDismissModalAction, handlePushReportAction, handlePushSearchPageAction, handleSwitchPolicyID, workspaceSplitsWithoutEnteringAnimation};
+function handleNavigatingToModalFromModal(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
+    return stackRouter.getStateForAction(modifiedState, action, configOptions);
+}
+
+export {
+    handleOpenWorkspaceSplitAction,
+    handleDismissModalAction,
+    handlePushReportAction,
+    handlePushSearchPageAction,
+    handleSwitchPolicyID,
+    handleNavigatingToModalFromModal,
+    workspaceSplitsWithoutEnteringAnimation,
+};

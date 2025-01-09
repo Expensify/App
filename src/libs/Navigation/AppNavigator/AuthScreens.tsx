@@ -56,8 +56,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import createResponsiveStackNavigator from './createResponsiveStackNavigator';
-import {workspaceSplitsWithoutEnteringAnimation} from './createResponsiveStackNavigator/GetStateForActionHandlers';
+import createRootStackNavigator from './createRootStackNavigator';
+import {workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
@@ -174,7 +174,7 @@ function handleNetworkReconnect() {
     }
 }
 
-const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
+const RootStack = createRootStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
@@ -388,7 +388,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
-                    {/* This have to be the first navigator in auth screens. */}
+                    {/* This has to be the first navigator in auth screens. */}
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                         options={rootNavigatorOptions.splitNavigator}
@@ -400,7 +400,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadSettingsSplitNavigator}
                     />
                     <RootStack.Screen
-                        name={SCREENS.SEARCH.CENTRAL_PANE}
+                        name={SCREENS.SEARCH.ROOT}
                         options={rootNavigatorOptions.fullScreen}
                         getComponent={loadSearchPage}
                         initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
