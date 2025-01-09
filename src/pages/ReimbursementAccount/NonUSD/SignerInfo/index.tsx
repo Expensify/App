@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -86,7 +86,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         BankAccounts.getCorpayOnboardingFields(country);
     }, [country]);
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
@@ -112,23 +112,26 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             );
             onSubmit();
         }
-    };
+    }, [account?.primaryLogin, bankAccountID, currency, onSubmit, onyxValues]);
 
-    const handleNextSubStep = (value: boolean) => {
-        if (currentSubStep !== SUBSTEP.IS_DIRECTOR) {
-            return;
-        }
+    const handleNextSubStep = useCallback(
+        (value: boolean) => {
+            if (currentSubStep !== SUBSTEP.IS_DIRECTOR) {
+                return;
+            }
 
-        // user is director
-        if (value) {
+            // user is director
+            if (value) {
+                setIsUserDirector(value);
+                setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
+                return;
+            }
+
             setIsUserDirector(value);
-            setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
-            return;
-        }
-
-        setIsUserDirector(value);
-        setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
-    };
+            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+        },
+        [currentSubStep],
+    );
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -152,7 +155,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         goToTheLastStep,
     } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
 
-    const handleBackButtonPress = () => {
+    const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
             return;
@@ -171,12 +174,12 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         } else {
             setCurrentSubStep((subStep) => subStep - 1);
         }
-    };
+    }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleEmailSubmit = () => {
+    const handleEmailSubmit = useCallback(() => {
         // TODO: the message to the email provided in the previous step should be sent
         setCurrentSubStep(SUBSTEP.HANG_TIGHT);
-    };
+    }, []);
 
     return (
         <InteractiveStepWrapper
