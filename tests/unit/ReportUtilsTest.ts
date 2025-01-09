@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -174,8 +174,15 @@ describe('ReportUtils', () => {
         });
 
         describe('Default Policy Room', () => {
+            beforeAll(() =>
+                Onyx.init({
+                    keys: ONYXKEYS,
+                    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS],
+                }),
+            );
+
             const baseAdminsRoom = {
-                reportID: '101',
+                reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
@@ -189,23 +196,13 @@ describe('ReportUtils', () => {
                     ...baseAdminsRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 const reportNameValuePairs = {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
-                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`]: reportNameValuePairs,
-                };
-
-                await Onyx.multiSet({...reportNameValuePairsCollection});
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs).then(() =>
-                    expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)'),
-                );
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
@@ -214,8 +211,15 @@ describe('ReportUtils', () => {
         });
 
         describe('User-Created Policy Room', () => {
+            beforeAll(() =>
+                Onyx.init({
+                    keys: ONYXKEYS,
+                    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS],
+                }),
+            );
+
             const baseUserCreatedRoom = {
-                reportID: '',
+                reportID: '101',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
@@ -224,18 +228,24 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedPolicyRoom = {
-                    ...baseUserCreatedRoom,
+                    reportID: '1011',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    reportName: '#VikingsChat 2',
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                };
+
+                const reportNameValuePairs = {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedPolicyRoom.reportID}`, reportNameValuePairs);
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat 2 (archived)');
+
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat 2 (archivado)'));
             });
         });
 
@@ -267,34 +277,48 @@ describe('ReportUtils', () => {
             });
 
             describe('Archived', () => {
+                beforeAll(() =>
+                    Onyx.init({
+                        keys: ONYXKEYS,
+                        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS],
+                    }),
+                );
                 const baseArchivedPolicyExpenseChat = {
-                    reportID: '',
+                    reportID: '10111',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerAccountID: 1,
                     policyID: policy.id,
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
 
-                test('as member', () => {
+                test('as member', async () => {
                     const memberArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: true,
                     };
+                    const reportNameValuePairs = {
+                        private_isArchived: DateUtils.getDBTime(),
+                    };
+
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
                         expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'),
                     );
                 });
-
-                test('as admin', () => {
+                test('as admin', async () => {
                     const adminArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
                     };
+
+                    const reportNameValuePairs = {
+                        private_isArchived: DateUtils.getDBTime(),
+                    };
+
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
