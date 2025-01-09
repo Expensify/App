@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import LoadingBar from '@components/LoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +24,6 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -58,7 +56,6 @@ function BaseSidebarScreen() {
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
                     />
-                    {/* <LoadingBar shouldShow={isLoadingReportData ?? false} /> */}
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
                     </View>

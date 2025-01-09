@@ -10,6 +10,7 @@ import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -40,7 +41,6 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LoadingBar from '@components/LoadingBar';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -317,7 +317,10 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     addSpacing
                 />
             )}
-            {shouldUseNarrowLayout && <LoadingBar shouldShow={isLoadingReportData ?? false} />}
+            <LoadingBar
+                shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false}
+                height={1}
+            />
         </View>
     );
 }
