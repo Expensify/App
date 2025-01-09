@@ -342,8 +342,20 @@ function BaseVideoPlayer({
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
 
+    const bindFunctionsRef = useRef<(() => void) | null>(null);
+    const shouldBindFunctionsRef = useRef(false);
+
+    useEffect(() => {
+        bindFunctionsRef.current = bindFunctions;
+        if (shouldBindFunctionsRef.current) {
+            bindFunctions();
+        }
+    }, [bindFunctions]);
+
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
+        shouldBindFunctionsRef.current = false;
+
         if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
@@ -360,10 +372,11 @@ function BaseVideoPlayer({
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
-            bindFunctions();
+            bindFunctionsRef.current?.();
+            shouldBindFunctionsRef.current = true;
         }
         return () => {
-            if (!originalParent || !('appendChild' in originalParent) || isFullScreenRef.current) {
+            if (!originalParent || !('appendChild' in originalParent)) {
                 return;
             }
             originalParent.appendChild(sharedElement as HTMLDivElement);
@@ -373,7 +386,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
