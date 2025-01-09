@@ -1,6 +1,6 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import {isSearchTopmostFullScreenRoute} from '@libs/Navigation/helpers';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as Modal from '@userActions/Modal';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 

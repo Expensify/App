@@ -24,7 +24,9 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
-import {customGetPathFromState, getAdaptedStateFromPath, setupCustomAndroidBackHandler} from './helpers';
+import customGetPathFromState from './helpers/customGetPathFromState';
+import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
+import setupCustomAndroidBackHandler from './helpers/setupCustomAndroidBackHandler';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 

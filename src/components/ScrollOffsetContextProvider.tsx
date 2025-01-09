@@ -2,7 +2,7 @@ import type {ParamListBase} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import {isSidebarScreenName} from '@libs/Navigation/helpers';
+import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';

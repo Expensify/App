@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {isFullScreenName} from '@libs/Navigation/helpers';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 
 function getIsScreenBlurred(state: NavigationState, currentRouteKey: string) {
     // If the screen is one of the last two fullscreen routes in the stack, it is not freezed on native platforms.

@@ -20,16 +20,14 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {
-    getMinimalAction,
-    getPolicyIDFromState,
-    getStateFromPath,
-    getTopmostReportParams,
-    isReportOpenInRHP,
-    linkTo,
-    closeRHPFlow as originalCloseRHPFlow,
-    setNavigationActionToMicrotaskQueue,
-} from './helpers';
+import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getPolicyIDFromState from './helpers/getPolicyIDFromState';
+import getStateFromPath from './helpers/getStateFromPath';
+import getTopmostReportParams from './helpers/getTopmostReportParams';
+import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import linkTo from './helpers/linkTo';
+import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';

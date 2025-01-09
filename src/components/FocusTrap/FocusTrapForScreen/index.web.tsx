@@ -5,7 +5,7 @@ import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {isSidebarScreenName} from '@libs/Navigation/helpers';
+import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 

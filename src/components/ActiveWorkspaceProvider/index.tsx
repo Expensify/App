@@ -1,7 +1,7 @@
 import {useNavigationState} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
-import {getPolicyIDFromState} from '@libs/Navigation/helpers';
+import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 

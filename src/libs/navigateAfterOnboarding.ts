@@ -1,5 +1,5 @@
 import ROUTES from '@src/ROUTES';
-import {shouldOpenOnAdminRoom} from './Navigation/helpers';
+import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import * as ReportUtils from './ReportUtils';
 

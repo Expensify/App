@@ -5,7 +5,7 @@ import BottomTabBar from '@components/Navigation/BottomTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isFullScreenName} from '@libs/Navigation/helpers';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {FULLSCREEN_TO_TAB, SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {FullScreenName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';

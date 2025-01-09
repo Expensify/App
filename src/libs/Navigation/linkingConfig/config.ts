@@ -1,6 +1,6 @@
 import type {LinkingOptions} from '@react-navigation/native';
-import {createNormalizedConfigs} from '@libs/Navigation/helpers';
-import type {RouteConfig} from '@libs/Navigation/helpers';
+import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
+import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
