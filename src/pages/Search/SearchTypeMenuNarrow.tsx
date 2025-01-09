@@ -83,7 +83,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
 
     useEffect(() => {
         const listener = (event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>) => {
-            if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
+            if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.ROOT) {
                 setIsScreenFocused(true);
                 return;
             }
