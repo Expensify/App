@@ -9,6 +9,7 @@ import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PolicyActions from '@src/libs/actions/Policy/Policy';
 import * as Report from '@src/libs/actions/Report';
+import type * as ReportImport from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
 import * as API from '@src/libs/API';
@@ -38,17 +39,17 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-const chatReportID = '23423423';
+const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => chatReportID),
+    getTopmostReportId: jest.fn(() => topMostReportID),
 }));
 
 jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
+    const originalModule: typeof ReportImport = jest.requireActual('@src/libs/actions/Report');
     return {
         ...originalModule,
         notifyNewAction: jest.fn(),
@@ -3668,12 +3669,12 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: chatReportID}, iouReport, false);
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then notifyNewAction should be called on the chat report.
-                    expect(Report.notifyNewAction).toHaveBeenCalledWith(chatReportID, expect.anything());
+                    // Then notifyNewAction should be called on the top most report.
+                    expect(Report.notifyNewAction).toHaveBeenCalledWith(topMostReportID, expect.anything());
                 });
         });
     });
