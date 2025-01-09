@@ -429,11 +429,14 @@ function MoneyRequestConfirmationList({
                 text = translate('common.next');
             }
         } else if (isTypeTrackExpense) {
-            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+            text = translate('iou.createExpense');
+            if (iouAmount !== 0) {
+                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+            }
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
-            text = translate('iou.submitExpense');
+            text = translate('iou.createExpense');
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
