@@ -38,7 +38,7 @@ type IssueNewCardFlowData = {
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
-    const cardID = card?.cardID ?? -1;
+    const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -57,7 +57,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: null,
             },
@@ -94,7 +94,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     ...card,
@@ -610,7 +610,7 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 
 function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
-    const cardID = card?.cardID ?? -1;
+    const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
 
     if (!authToken) {
         return;
