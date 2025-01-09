@@ -28,15 +28,15 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
+    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
     const transactionViolations = TransactionUtils.getTransactionViolations(transactionID);
 
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-    const transactionIDs = [transactionID, ...duplicateTransactionIDs];
+    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : [...duplicateTransactionIDs];
 
     const transactions = transactionIDs.map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 

@@ -367,7 +367,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? CONST.DEFAULT_NUMBER_ID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({

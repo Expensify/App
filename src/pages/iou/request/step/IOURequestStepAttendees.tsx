@@ -39,7 +39,7 @@ function IOURequestStepAttendees({
     policyCategories,
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
+    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [attendees, setAttendees] = useState<Attendee[]>(() => TransactionUtils.getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
