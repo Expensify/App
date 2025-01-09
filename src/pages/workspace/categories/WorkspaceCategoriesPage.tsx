@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -23,6 +23,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -70,7 +71,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
-    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -98,12 +98,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, [fetchCategories]),
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedCategories({});
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     const categoryList = useMemo<PolicyOption[]>(() => {
         const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
@@ -157,6 +153,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleCategory(category);
+            return;
+        }
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
