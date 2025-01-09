@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import getCurrentUrl from '@navigation/currentUrl';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
@@ -38,8 +37,6 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const {isNewFeedConnected, newFeed} = useMemo(() => CardUtils.checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
 
-    const currentUrl = getCurrentUrl();
-    const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
     const url = getCompanyCardBankConnection(policyID, bankName);
 
     const onOpenBankConnectionFlow = useCallback(() => {
@@ -81,12 +78,8 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
             return;
         }
-        if (isBankConnectionCompleteRoute) {
-            customWindow?.close();
-            return;
-        }
         customWindow = openBankConnection(url);
-    }, [isNewFeedConnected, newFeed, isBankConnectionCompleteRoute, policyID, url]);
+    }, [isNewFeedConnected, newFeed, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
