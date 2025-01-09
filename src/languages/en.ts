@@ -4604,6 +4604,8 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        downgradedWorkspace: 'downgraded this workspace to the Collect plan',
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
