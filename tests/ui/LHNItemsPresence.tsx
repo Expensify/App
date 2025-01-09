@@ -23,6 +23,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
@@ -419,7 +420,13 @@ describe('SidebarLinksData', () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
-            const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
             const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
                 'create',
                 100,

@@ -53,7 +53,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    const attachmentSourceAttribute =
+        htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
@@ -94,7 +95,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -105,16 +106,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
                                 if (isDisabled) {
                                     return;
                                 }
-                                return onShowContextMenu(() =>
-                                    showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs)),
-                                );
+                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
                             }}
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}

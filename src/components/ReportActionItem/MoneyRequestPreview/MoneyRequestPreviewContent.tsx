@@ -60,7 +60,6 @@ function MoneyRequestPreviewContent({
     onPreviewPressed,
     containerStyles,
     checkIfContextMenuActive = () => {},
-    onShowContextMenu = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
@@ -190,7 +189,7 @@ function MoneyRequestPreviewContent({
         if (!shouldDisplayContextMenu) {
             return;
         }
-        onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive));
+        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
     const getPreviewHeaderText = (): string => {
@@ -267,7 +266,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning');
+            return translate('iou.receiptScanning', {count: 1});
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {

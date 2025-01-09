@@ -279,6 +279,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
+    const shouldShowGoToWorkspace = PolicyUtils.shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
     const reportName = ReportUtils.getReportName(report);
 
@@ -456,23 +457,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -514,6 +498,43 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (shouldShowGoToWorkspace) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'workspace.common.goToWorkspace',
+                icon: Expensicons.Building,
+                action: () => {
+                    if (!report?.policyID) {
+                        return;
+                    }
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
+        if (shouldShowLeaveButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
+            });
+        }
+
         if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
@@ -530,7 +551,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -539,35 +559,38 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         report,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isTrackExpenseReport,
+        isDeletedParentAction,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowCancelPaymentButton,
+        shouldShowLeaveButton,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
-        canModifyTask,
-        shouldShowMenuItem,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        shouldOpenRoomMembersPage,
-        shouldShowCancelPaymentButton,
-        session,
-        isOffline,
-        transactionIDList,
-        leaveChat,
+        isExpenseReport,
         canUnapproveRequest,
         isDebugModeEnabled,
-        unapproveExpenseReportOrShowModal,
-        isExpenseReport,
+        shouldShowGoToWorkspace,
+        activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         backTo,
-        canActionTask,
-        isTrackExpenseReport,
-        iouTransactionID,
         parentReportAction,
+        iouTransactionID,
         moneyRequestReport?.reportID,
-        isDeletedParentAction,
+        session,
+        canModifyTask,
+        canActionTask,
+        isRootGroupChat,
+        leaveChat,
+        isOffline,
+        transactionIDList,
+        unapproveExpenseReportOrShowModal,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
