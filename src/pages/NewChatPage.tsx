@@ -231,7 +231,7 @@ function NewChatPage() {
                 if (isOptionInList) {
                     newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? CONST.EMPTY_STRING}];
                 }
 
                 selectionListRef?.current?.clearInputAfterSelect?.();
@@ -273,7 +273,10 @@ function NewChatPage() {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
+            login: option.login ?? CONST.EMPTY_STRING,
+            accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        }));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
         Report.setGroupDraft({participants: logins});
         Keyboard.dismiss();
