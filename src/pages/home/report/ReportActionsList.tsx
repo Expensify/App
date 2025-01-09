@@ -453,7 +453,7 @@ function ReportActionsList({
                 setPendingBottomScroll(false);
             });
         }
-    }, [pendingBottomScroll, prevSortedVisibleReportActionsObjects, reportScrollManager, isNewMessageDisplayed]);
+    }, [pendingBottomScroll, reportScrollManager, isNewMessageDisplayed]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
