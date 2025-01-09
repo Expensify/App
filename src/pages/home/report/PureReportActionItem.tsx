@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -687,7 +687,8 @@ function PureReportActionItem({
                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
             ) : (
                 <ReportPreview
-                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action) as string}
                     chatReportID={reportID}
                     policyID={report?.policyID ?? '-1'}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -1074,7 +1075,15 @@ function PureReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            onPress={draftMessage === undefined ? onPress : undefined}
+            onPress={() => {
+                if (draftMessage === undefined) {
+                    onPress?.();
+                }
+                if (!Keyboard.isVisible()) {
+                    return;
+                }
+                Keyboard.dismiss();
+            }}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
