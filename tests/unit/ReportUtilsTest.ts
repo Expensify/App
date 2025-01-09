@@ -179,18 +179,20 @@ describe('ReportUtils', () => {
                 reportName: '#admins',
             };
 
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             test('Active', () => {
                 expect(ReportUtils.getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedAdminsRoom = {
                     ...baseAdminsRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
@@ -200,23 +202,25 @@ describe('ReportUtils', () => {
 
         describe('User-Created Policy Room', () => {
             const baseUserCreatedRoom = {
-                reportID: '',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#VikingsChat',
+            };
+
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             test('Active', () => {
                 expect(ReportUtils.getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedPolicyRoom = {
                     ...baseUserCreatedRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
@@ -264,18 +268,26 @@ describe('ReportUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                test('as member', () => {
+                const reportNameValuePairs = {
+                    private_isArchived: DateUtils.getDBTime(),
+                };
+
+                test('as member', async () => {
                     const memberArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: true,
                     };
+
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
+
+                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
                         expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'),
                     );
                 });
 
-                test('as admin', () => {
+                test('as admin', async () => {
                     const adminArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
