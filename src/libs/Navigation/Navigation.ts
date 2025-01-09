@@ -20,19 +20,17 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {
-    getMinimalAction,
-    getPolicyIDFromState,
-    getStateFromPath,
-    getTopmostReportParams,
-    isReportOpenInRHP,
-    linkTo,
-    closeRHPFlow as originalCloseRHPFlow,
-    setNavigationActionToMicrotaskQueue,
-} from './helpers';
+import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getPolicyIDFromState from './helpers/getPolicyIDFromState';
+import getStateFromPath from './helpers/getStateFromPath';
+import getTopmostReportParams from './helpers/getTopmostReportParams';
+import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import linkTo from './helpers/linkTo';
+import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -213,7 +211,7 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
  * @private
  * Checks whether the given state is the root navigator state
  */
-function isRootNavigatorState(state: State): state is State<RootStackParamList> {
+function isRootNavigatorState(state: State): state is State<RootNavigatorParamList> {
     return state.key === navigationRef.current?.getRootState().key;
 }
 
@@ -339,7 +337,7 @@ function resetToHome() {
           }
         : undefined;
     const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
-    navigationRef.dispatch({payload, type: 'REPLACE', target: rootState.key});
+    navigationRef.dispatch({payload, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootState.key});
 }
 
 /**
@@ -451,7 +449,7 @@ type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; repor
  */
 function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
     const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
-    const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+    const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !ReportUtils.doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
@@ -474,7 +472,7 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
 
     ref.dispatch(
         StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-            policyID: null,
+            policyID: undefined,
             screen: SCREENS.REPORT,
             params,
         }),

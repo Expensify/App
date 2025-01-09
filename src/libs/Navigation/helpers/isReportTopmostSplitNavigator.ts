@@ -1,10 +1,10 @@
 import {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {isFullScreenName} from './isNavigatorName';
 
 const isReportTopmostSplitNavigator = (): boolean => {
-    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
 
     if (!rootState) {
         return false;

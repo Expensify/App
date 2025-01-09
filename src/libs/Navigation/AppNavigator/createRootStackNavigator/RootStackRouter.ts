@@ -3,36 +3,29 @@ import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
-import {isOnboardingFlowName, isSideModalNavigator} from '@libs/Navigation/helpers';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import * as GetStateForActionHandlers from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {
-    CustomRouterAction,
-    CustomRouterActionType,
-    DismissModalActionType,
-    OpenWorkspaceSplitActionType,
-    PushActionType,
-    ResponsiveStackNavigatorRouterOptions,
-    SwitchPolicyIdActionType,
-} from './types';
+import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
 
-function isOpenWorkspaceSplitAction(action: CustomRouterAction): action is OpenWorkspaceSplitActionType {
+function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
 }
 
-function isSwitchPolicyIdAction(action: CustomRouterAction): action is SwitchPolicyIdActionType {
+function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 }
 
-function isPushAction(action: CustomRouterAction): action is PushActionType {
+function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
 }
 
-function isDismissModalAction(action: CustomRouterAction): action is DismissModalActionType {
+function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
@@ -52,7 +45,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     return false;
 }
 
-function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType): action is PushActionType {
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.PUSH) {
         return false;
     }
@@ -67,13 +60,13 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
     return false;
 }
 
-function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
+function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
     return {
         ...stackRouter,
-        getStateForAction(state: StackNavigationState<ParamListBase>, action: CustomRouterAction, configOptions: RouterConfigOptions) {
+        getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isOpenWorkspaceSplitAction(action)) {
                 return GetStateForActionHandlers.handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
             }
@@ -91,7 +84,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     return GetStateForActionHandlers.handlePushReportAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
 
-                if (action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                if (action.payload.name === SCREENS.SEARCH.ROOT) {
                     return GetStateForActionHandlers.handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
             }
@@ -103,8 +96,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             }
 
             if (isNavigatingToModalFromModal(state, action)) {
-                const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
-                return stackRouter.getStateForAction(modifiedState, action, configOptions);
+                return GetStateForActionHandlers.handleNavigatingToModalFromModal(state, action, configOptions, stackRouter);
             }
 
             return stackRouter.getStateForAction(state, action, configOptions);
@@ -112,5 +104,4 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     };
 }
 
-export default CustomRouter;
-export type {CustomRouterActionType};
+export default RootStackRouter;

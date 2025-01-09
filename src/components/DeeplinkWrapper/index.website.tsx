@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import * as Browser from '@libs/Browser';
-import {shouldPreventDeeplinkPrompt} from '@libs/Navigation/helpers';
+import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as App from '@userActions/App';

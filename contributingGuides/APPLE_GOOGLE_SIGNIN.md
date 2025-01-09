@@ -157,7 +157,7 @@ index 4286a26033..850f8944ca 100644
     index ca2da6f56b..2c191598f0 100644
     --- a/src/libs/Navigation/linkingConfig/prefixes.ts
     +++ b/src/libs/Navigation/linkingConfig/prefixes.ts
-    @@ -8,6 +8,7 @@ const prefixes: LinkingOptions<RootStackParamList>['prefixes'] = [
+    @@ -8,6 +8,7 @@ const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
          'https://www.expensify.cash',
          'https://staging.expensify.cash',
          'https://dev.new.expensify.com',

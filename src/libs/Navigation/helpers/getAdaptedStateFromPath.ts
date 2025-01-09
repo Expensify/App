@@ -6,8 +6,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import config from '@libs/Navigation/linkingConfig/config';
-import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
+import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,27 +69,27 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         return getMatchingFullScreenRoute(focusedStateForBackToRoute, policyID);
     }
 
-    if (RELATIONS.SEARCH_TO_RHP.includes(route.name)) {
-        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
+    if (SEARCH_TO_RHP.includes(route.name)) {
+        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.ROOT);
 
         return {
-            name: SCREENS.SEARCH.CENTRAL_PANE,
+            name: SCREENS.SEARCH.ROOT,
             params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
     }
 
-    if (RELATIONS.RHP_TO_SIDEBAR[route.name]) {
+    if (RHP_TO_SIDEBAR[route.name]) {
         return getInitialSplitNavigatorState(
             {
-                name: RELATIONS.RHP_TO_SIDEBAR[route.name],
+                name: RHP_TO_SIDEBAR[route.name],
             },
             undefined,
             policyID ? {policyID} : undefined,
         );
     }
 
-    if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_WORKSPACE[route.name]);
+    if (RHP_TO_WORKSPACE[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
 
         return getInitialSplitNavigatorState(
             {
@@ -97,21 +97,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
             {
-                name: RELATIONS.RHP_TO_WORKSPACE[route.name],
+                name: RHP_TO_WORKSPACE[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
     }
 
-    if (RELATIONS.RHP_TO_SETTINGS[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_SETTINGS[route.name]);
+    if (RHP_TO_SETTINGS[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
         return getInitialSplitNavigatorState(
             {
                 name: SCREENS.SETTINGS.ROOT,
             },
             {
-                name: RELATIONS.RHP_TO_SETTINGS[route.name],
+                name: RHP_TO_SETTINGS[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
@@ -168,7 +168,7 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     return getRoutesWithIndex(routes);
 }
 
-function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
+function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>, policyID?: string): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
     const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const isReportSplitNavigator = fullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
@@ -234,7 +234,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     // Anonymous users don't have access to workspaces
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
-    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
+    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
@@ -243,7 +243,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         throw new Error('Unable to parse path');
     }
 
-    // On SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently inside search query ("q" param), so we're handling this case
+    // On SCREENS.SEARCH.ROOT policyID is stored differently inside search query ("q" param), so we're handling this case
     const focusedRoute = findFocusedRoute(state);
     const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
     return getAdaptedState(state, policyID ?? policyIDFromQuery);

@@ -600,7 +600,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
-                // @TODO: Check if this method works the same as on the main branch
                 Navigation.goBack(undefined, {shouldPopToTop: true});
             }
             if (prevReport?.parentReportID) {

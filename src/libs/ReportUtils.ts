@@ -4320,7 +4320,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
 
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
-    if (lastFullScreenRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+    if (lastFullScreenRoute?.name === SCREENS.SEARCH.ROOT) {
         Navigation.dismissModal();
         return;
     }

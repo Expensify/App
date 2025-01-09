@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator/GetStateForActionHandlers';
+import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';

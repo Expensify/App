@@ -3,10 +3,10 @@ import {useNavigation} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 type WithNavigationProps = {
-    navigation: NavigationProp<RootStackParamList>;
+    navigation: NavigationProp<RootNavigatorParamList>;
 };
 
 export default function withNavigation<TProps extends WithNavigationProps, TRef>(

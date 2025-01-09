@@ -11,7 +11,6 @@ export default function usePrepareSplitNavigatorChildren(screensNode: ReactNode,
                     return screen;
                 }
 
-                // @TODO: Fix types here
                 const screenProps = screen?.props as RouteConfig<ParamListBase, keyof ParamListBase, NavigationState, Record<string, string | undefined>, EventMapBase>;
 
                 if (screenProps?.name === sidebarScreenName) {
