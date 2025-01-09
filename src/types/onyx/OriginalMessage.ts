@@ -377,6 +377,9 @@ type OriginalMessageDeletedTransaction = {
 
     /** The amount of the transaction */
     amount?: number;
+
+    /** The currency of the transaction */
+    currency?: string;
 };
 
 /** Model of `reimbursement queued` report action */

@@ -116,7 +116,7 @@ type RequestCountParams = {
 };
 
 type DeleteTransactionParams = {
-    amount: number;
+    amount: string;
     merchant: string;
 };
 
