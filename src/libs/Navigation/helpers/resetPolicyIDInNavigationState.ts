@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
  */
 function resetPolicyIDInNavigationState() {
     const rootState = navigationRef.getRootState();
-    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE);
+    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.ROOT);
 
     if (!lastPolicyRoute) {
         return;
@@ -21,7 +21,7 @@ function resetPolicyIDInNavigationState() {
         return;
     }
 
-    const {q, ...rest} = lastPolicyRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const {q, ...rest} = lastPolicyRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
     const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q);
     if (!queryJSON || !queryJSON.policyID) {
         return;
