@@ -12,6 +12,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -19,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {resetPolicyIDInNavigationState} from '@libs/Navigation/helpers';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,7 +47,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {canUseSpotnanaTravel} = usePermissions();
-
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
@@ -164,7 +166,12 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
         Policy.deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
-    }, [policy?.id, policyName]);
+
+        if (policy.id === activeWorkspaceID) {
+            setActiveWorkspaceID(undefined);
+            resetPolicyIDInNavigationState();
+        }
+    }, [activeWorkspaceID, policy?.id, policyName, setActiveWorkspaceID]);
 
     return (
         <WorkspacePageWithSections
