@@ -372,7 +372,7 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const policyID = searchAdvancedFilters.policyID ?? '-1';
+    const policyID = searchAdvancedFilters.policyID;
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
@@ -434,8 +434,8 @@ function AdvancedSearchFilters() {
     const onSaveSearch = () => {
         const savedSearchKeys = Object.keys(savedSearches ?? {});
         if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
-            // If the search is already saved, return early to prevent unnecessary API calls
-            Navigation.dismissModal();
+            // If the search is already saved, we only display the results as we don't need to save it.
+            applyFiltersAndNavigate();
             return;
         }
 
