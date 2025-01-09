@@ -8,9 +8,10 @@ import CONST from '@src/CONST';
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
+    hideProductTrainingTooltip?: () => void;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
     const styles = useThemeStyles();
@@ -35,6 +36,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchIte
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
+                hideProductTrainingTooltip={hideProductTrainingTooltip}
             />
         </View>
     );
