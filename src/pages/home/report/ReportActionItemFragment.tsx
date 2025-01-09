@@ -110,7 +110,7 @@ function ReportActionItemFragment({
             }
 
             if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                return <RenderHTML html={`<deleted-action>${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
+                return <RenderHTML html={`<deleted-action ${CONST.HIDDEN_MESSAGE_ATTRIBUTE}="true">${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
             if (ReportUtils.isReportMessageAttachment(fragment)) {

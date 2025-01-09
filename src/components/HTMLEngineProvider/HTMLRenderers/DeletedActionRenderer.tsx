@@ -8,10 +8,25 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const htmlAttribs = tnode.attributes;
+
+    const isReversedTransaction = htmlAttribs[CONST.REVERSED_TRANSACTION_ATTRIBUTE];
+    const isHiddenMessage = htmlAttribs[CONST.HIDDEN_MESSAGE_ATTRIBUTE];
+
+    const getIcon = () => {
+        if (isReversedTransaction) {
+            return Expensicons.CircularArrowBackwards;
+        }
+        if (isHiddenMessage) {
+            return Expensicons.EyeDisabled;
+        }
+        return Expensicons.Trashcan;
+    };
 
     return (
         <View style={[styles.p4, styles.mt1, styles.appBG, styles.border, {borderColor: theme.border}, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
@@ -19,7 +34,7 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
                 width={variables.iconSizeMedium}
                 height={variables.iconSizeMedium}
                 fill={theme.icon}
-                src={Expensicons.Trashcan}
+                src={getIcon()}
             />
             <TNodeChildrenRenderer
                 tnode={tnode}
