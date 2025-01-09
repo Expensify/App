@@ -1177,14 +1177,6 @@ const CONST = {
                 TEXT: 'TEXT',
             },
         },
-        DELETED_ACTION_TYPE: {
-            DELETED_MESSAGE: 'deletedMessage',
-            DELETED_REPORT: 'deletedReport',
-            DELETED_EXPENSE: 'deletedExpense',
-            REVERSED_TRANSACTION: 'reversedTransaction',
-            DELETED_TASK: 'deletedTask',
-            HIDDEN_MESSAGE: 'hiddenMessage',
-        },
         TYPE: {
             CHAT: 'chat',
             EXPENSE: 'expense',
