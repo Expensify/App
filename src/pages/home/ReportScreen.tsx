@@ -16,10 +16,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
-import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
-import withCurrentReportID from '@components/withCurrentReportID';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import type {CurrentReportIDContextValue} from '@hooks/useCurrentReportID';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -97,7 +97,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID ?? '0'];
 }
 
-function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
+function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
@@ -112,6 +112,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const currentReportIDValue = useCurrentReportID();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
@@ -228,7 +229,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
-                pendingChatMembers: reportOnyx.pendingChatMembers,
             },
         [reportOnyx, permissions],
     );
@@ -253,7 +253,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const indexOfLinkedMessage = useMemo(
         (): number => reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
@@ -279,8 +278,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`];
-    const isTopMostReportId = currentReportID === reportIDFromRoute;
+    const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     useEffect(() => {
         if (!report?.reportID || shouldHideReport) {
@@ -384,7 +384,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
-        isLoading;
+        (!reportMetadata.isOptimisticReport && isLoading);
 
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
 
@@ -483,7 +483,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (!shouldFetchReport(report)) {
+        if (!shouldFetchReport(report, reportMetadata)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -494,7 +494,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
+    }, [reportIDFromRoute, isLoadingApp, report, reportMetadata, fetchReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -557,14 +557,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (
-            !shouldUseNarrowLayout ||
-            !isFocused ||
-            prevIsFocused ||
-            !ReportUtils.isChatThread(report) ||
-            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
-            isSingleTransactionView
-        ) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || !ReportUtils.isHiddenForCurrentUser(report) || isSingleTransactionView) {
             return;
         }
         Report.openReport(reportID ?? '');
@@ -765,7 +758,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                    shouldEnableKeyboardAvoidingView={(isTopMostReportId || isInNarrowPaneModal) && (!isComposerFocus || showSoftInputOnFocus)}
                     testID={`report-screen-${reportID ?? ''}`}
                 >
                     <FullPageNotFoundView
@@ -862,8 +855,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
+                                        showSoftInputOnFocus={showSoftInputOnFocus}
+                                        setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                     />
                                 ) : null}
                             </View>
@@ -877,4 +871,4 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 }
 
 ReportScreen.displayName = 'ReportScreen';
-export default withCurrentReportID(memo(ReportScreen, (prevProps, nextProps) => prevProps.currentReportID === nextProps.currentReportID && lodashIsEqual(prevProps.route, nextProps.route)));
+export default memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
