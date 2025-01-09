@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
@@ -94,6 +95,7 @@ function ReportActionItemFragment({
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -104,11 +106,11 @@ function ReportActionItemFragment({
             // immediately display "[Deleted message]" while the delete action is pending.
 
             if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment?.isDeletedParentAction) {
-                return <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_MESSAGE}"></deleted-action>`} />;
+                return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedMessage')}</deleted-action>`} />;
             }
 
             if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                return <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.HIDDEN_MESSAGE}"></deleted-action>`} />;
+                return <RenderHTML html={`<deleted-action>${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
             if (ReportUtils.isReportMessageAttachment(fragment)) {

@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -79,6 +81,7 @@ function MoneyRequestAction({
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
@@ -109,13 +112,13 @@ function MoneyRequestAction({
     }
 
     if (isDeletedParentAction || isReversedTransaction) {
-        let deleteActionType;
+        let message: TranslationPaths;
         if (isReversedTransaction) {
-            deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.REVERSED_TRANSACTION;
+            message = 'parentReportAction.reversedTransaction';
         } else {
-            deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.DELETED_EXPENSE;
+            message = 'parentReportAction.deletedExpense';
         }
-        return <RenderHTML html={`<deleted-action action="${deleteActionType}"></deleted-action>`} />;
+        return <RenderHTML html={`<deleted-action>${translate(message)}</deleted-action>`} />;
     }
     return (
         <MoneyRequestPreview

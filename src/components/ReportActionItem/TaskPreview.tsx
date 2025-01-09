@@ -87,7 +87,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
 
     const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
-        return <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_TASK}"></deleted-action>`} />;
+        return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
 
     return (

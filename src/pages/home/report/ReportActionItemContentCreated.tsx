@@ -12,12 +12,14 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import type {ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,6 +49,7 @@ type ReportActionItemContentCreatedProps = {
 
 function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
 
     const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
@@ -76,11 +79,12 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
         if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
-            let deleteActionType;
+            let message: TranslationPaths;
+
             if (isReversedTransaction) {
-                deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.REVERSED_TRANSACTION;
+                message = 'parentReportAction.reversedTransaction';
             } else {
-                deleteActionType = CONST.REPORT.DELETED_ACTION_TYPE.DELETED_EXPENSE;
+                message = 'parentReportAction.deletedExpense';
             }
 
             return (
@@ -92,7 +96,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                         >
-                            <RenderHTML html={`<deleted-action action="${deleteActionType}"></deleted-action>`} />
+                            <RenderHTML html={`<deleted-action>${message}</deleted-action>`} />
                         </ReportActionItemSingle>
                         <View style={styles.threadDividerLine} />
                     </OfflineWithFeedback>
@@ -126,7 +130,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader={draftMessage === undefined}
                             report={report}
                         >
-                            <RenderHTML html={`<deleted-action action="${CONST.REPORT.DELETED_ACTION_TYPE.DELETED_TASK}"></deleted-action>`} />
+                            <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />
                         </ReportActionItemSingle>
                     </OfflineWithFeedback>
                     <View style={styles.reportHorizontalRule} />
