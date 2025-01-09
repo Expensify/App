@@ -20,14 +20,6 @@ import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
-type TripDetailsViewProps = {
-    /** The active tripRoomReportID, used for Onyx subscription */
-    tripRoomReportID: string;
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
-};
-
 type ReservationViewProps = {
     reservation: Reservation;
     transactionID: string;
@@ -142,9 +134,21 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
     );
 }
 
+type TripDetailsViewProps = {
+    /** The active tripRoomReportID, used for Onyx subscription */
+    tripRoomReportID?: string;
+
+    /** Whether we should display the horizontal rule below the component */
+    shouldShowHorizontalRule: boolean;
+};
+
 function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    if (!tripRoomReportID) {
+        return null;
+    }
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);

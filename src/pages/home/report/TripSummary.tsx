@@ -21,7 +21,7 @@ function TripSummary({report}: TripSummaryProps) {
             <AnimatedEmptyStateBackground />
             <OfflineWithFeedback pendingAction={report?.pendingAction}>
                 <TripDetailsView
-                    tripRoomReportID={report?.reportID ?? '-1'}
+                    tripRoomReportID={report?.reportID}
                     shouldShowHorizontalRule={false}
                 />
             </OfflineWithFeedback>
