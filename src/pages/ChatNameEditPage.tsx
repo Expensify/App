@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -25,20 +25,18 @@ import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
+type ChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
+    report?: ReportOnyxType;
 };
 
-type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
-    Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
-        report?: ReportOnyxType;
-    };
+function ChatNameEditPage({report}: ChatNameEditPageProps) {
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
-function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID ?? '';
     const isUpdatingExistingReport = !!reportID;
+    const isTripRoom = ReportUtils.isTripRoom(report);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -84,11 +82,11 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={GroupChatNameEditPage.displayName}
+            testID={ChatNameEditPage.displayName}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('groupConfirmPage.groupName')}
+                title={translate(isTripRoom ? 'newRoomPage.roomName' : 'newRoomPage.groupName')}
                 onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider
@@ -115,10 +113,6 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
     );
 }
 
-GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
+ChatNameEditPage.displayName = 'ChatNameEditPage';
 
-export default withOnyx<GroupChatNameEditPageProps, GroupChatNameEditPageOnyxProps>({
-    groupChatDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-})(GroupChatNameEditPage);
+export default ChatNameEditPage;

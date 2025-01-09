@@ -288,11 +288,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    let roomDescription;
+    let roomDescription: string | undefined;
     if (caseID === CASES.MONEY_REQUEST) {
         roomDescription = translate('common.name');
     } else if (isGroupChat) {
-        roomDescription = translate('groupConfirmPage.groupName');
+        roomDescription = translate('newRoomPage.groupName');
     } else {
         roomDescription = translate('newRoomPage.roomName');
     }

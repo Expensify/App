@@ -1692,9 +1692,6 @@ const translations = {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
     },
-    groupConfirmPage: {
-        groupName: 'Group name',
-    },
     groupChat: {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
@@ -4562,6 +4559,7 @@ const translations = {
     },
     newRoomPage: {
         newRoom: 'New room',
+        groupName: 'Group name',
         roomName: 'Room name',
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',

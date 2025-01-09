@@ -164,7 +164,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 onPress={navigateToEditChatName}
                 shouldShowRightIcon
                 shouldCheckActionAllowedOnPress={false}
-                description={translate('groupConfirmPage.groupName')}
+                description={translate('newRoomPage.groupName')}
                 wrapperStyle={[styles.ph4]}
             />
             <View style={[styles.flex1, styles.mt3]}>
