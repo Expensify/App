@@ -43,7 +43,18 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
+    removeScreenByKey: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getPreviousTrackReport: jest.fn(),
 }));
+
+jest.mock('@src/libs/Navigation/navigationRef', () => ({
+    getRootState: () => ({
+        routes: [],
+    }),
+}));
+
+jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
 

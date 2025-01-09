@@ -736,7 +736,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         !isSingleExpenseReport &&
         !isSingleInvoiceReport &&
         !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
-        !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
+        !ReportActionsUtils.isDeletedAction(mostRecentReportAction) &&
+        (!deleteTransactionNavigateBackUrl || !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER));
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);

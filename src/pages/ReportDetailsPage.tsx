@@ -904,7 +904,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Navigation.dismissModal();
         } else {
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true, report.reportID);
         }
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
 
