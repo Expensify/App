@@ -122,6 +122,8 @@ const useTapGestures = ({
     const doubleTapGesture = Gesture.Tap()
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
+            'worklet';
+
             if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
@@ -153,6 +155,8 @@ const useTapGestures = ({
         .numberOfTaps(1)
         .maxDuration(125)
         .onBegin(() => {
+            'worklet';
+
             stopAnimation();
         })
         .onFinalize((_evt, success) => {

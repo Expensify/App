@@ -241,6 +241,8 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
                 .onUpdate(({translationX}) => {
+                    'worklet';
+
                     if (!isScrollEnabled.get()) {
                         return;
                     }
@@ -252,6 +254,8 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
+                    'worklet';
+
                     if (!isScrollEnabled.get()) {
                         return;
                     }
