@@ -96,7 +96,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                         >
-                            <RenderHTML html={`<deleted-action>${message}</deleted-action>`} />
+                            <RenderHTML html={`<deleted-action>${translate(message)}</deleted-action>`} />
                         </ReportActionItemSingle>
                         <View style={styles.threadDividerLine} />
                     </OfflineWithFeedback>
