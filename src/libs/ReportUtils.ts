@@ -8454,7 +8454,6 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
     if (isEmptyObject(onboarding)) {
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
-    // For users with emails that do not contain a ‘+’, and who select the MANAGE_TEAM intent, the onboarding tasks are in the #admins room.
     return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+')
         ? isAdminRoom(optionOrReport)
         : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
