@@ -63,7 +63,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -82,9 +81,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
-    const paymentAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const workspaceCards = CardUtils.getAllCardsForWorkspace(workspaceAccountID);
+    const hasWorkspaceCardsAssigned = !!workspaceCards && !!Object.values(workspaceCards).length;
 
     useEffect(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -209,7 +208,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+    const shouldShowCardsSection = hasWorkspaceCardsAssigned && (!!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled);
 
     return (
         <AccessOrNotFoundWrapper
