@@ -16,7 +16,7 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
     override fun getName(): String {
-        return "ShareActionHandlerModule"
+        return "ShareActionHandler"
     }
 
     @ReactMethod
