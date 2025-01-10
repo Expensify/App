@@ -895,7 +895,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_DESCRIPTION: {
         route: 'settings/workspaces/:policyID/profile/description',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/description` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/profile/description` as const,
     },
     WORKSPACE_PROFILE_SHARE: {
         route: 'settings/workspaces/:policyID/profile/share',
