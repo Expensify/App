@@ -387,14 +387,14 @@ function SearchRouterList(
      * Builds a suffix tree and returns a function to search in it.
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
-    const filteredOptions = useMemo(() => filterOptions(autocompleteQueryValue), [autocompleteQueryValue, filterOptions]);
 
-    const recentReportsOptions = useMemo(() => {
+    const [recentReportsOptions, userToInvite] = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+            return [searchOptions.recentReports.slice(0, 20)];
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = OptionsListUtils.combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatroomsOverThreads: true,
@@ -402,8 +402,8 @@ function SearchRouterList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filteredOptions, searchOptions]);
+        return [reportOptions.slice(0, 20), filteredOptions.userToInvite];
+    }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
         ReportUserActions.searchInServer(autocompleteQueryValue.trim());
@@ -424,9 +424,8 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    if (filteredOptions.userToInvite) {
-        const styledUserToInvite = [filteredOptions.userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-
+    if (userToInvite) {
+        const styledUserToInvite = [userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
         sections.push({title: undefined, data: styledUserToInvite});
     }
 
