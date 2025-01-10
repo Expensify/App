@@ -507,9 +507,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
-          op read op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision --force --output ./OldApp_AppStore.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision --force --output ./OldApp_AppStore_Share_Extension.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision --force --output ./OldApp_AppStore_Notification_Service.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision --force --out-file ./OldApp_AppStore.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
