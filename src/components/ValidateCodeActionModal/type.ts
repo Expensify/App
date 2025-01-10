@@ -46,6 +46,9 @@ type ValidateCodeActionModalProps = {
 
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether disable the animations */
+    disableAnimation?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

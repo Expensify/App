@@ -29,6 +29,7 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
+    disableAnimation,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -65,6 +66,7 @@ function ValidateCodeActionModal({
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            animationInTiming={disableAnimation ? 1 : undefined}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

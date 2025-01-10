@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -31,6 +31,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const showValidateActionModal = route.params.showValidateActionModal === 'true';
     const {isOffline} = useNetwork();
+    const shouldDisableModalAnimationRef = useRef(true);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
     useEffect(() => {
@@ -52,7 +53,10 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
             text={translate('delegate.addCopilot')}
             style={styles.mt6}
             pressOnEnter
-            onPress={() => setIsValidateCodeActionModalVisible(true)}
+            onPress={() => {
+                shouldDisableModalAnimationRef.current = false;
+                setIsValidateCodeActionModalVisible(true);
+            }}
         />
     );
 
@@ -83,6 +87,8 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    disableAnimation={shouldDisableModalAnimationRef.current}
                     shouldHandleNavigationBack
                     login={login}
                     role={role}
