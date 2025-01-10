@@ -78,7 +78,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     }, []);
 
     const handleMouseEvents = useCallback(
-        (type: 'enter' | 'leave' | 'blur') => (e: MouseEvent) => {
+        (type: 'enter' | 'leave' | 'blur') => () => {
             if (shouldFreezeCapture) {
                 return;
             }
@@ -99,15 +99,15 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     return cloneElement(child, {
         ref: mergeRefs(elementRef, outerRef, child.ref),
         onMouseEnter: (e: MouseEvent) => {
-            handleMouseEvents('enter')(e);
+            handleMouseEvents('enter')();
             onMouseEnter?.(e);
         },
         onMouseLeave: (e: MouseEvent) => {
-            handleMouseEvents('leave')(e);
+            handleMouseEvents('leave')();
             onMouseLeave?.(e);
         },
         onBlur: (e: MouseEvent) => {
-            handleMouseEvents('blur')(e);
+            handleMouseEvents('blur')();
             onBlur?.(e);
         },
     });
