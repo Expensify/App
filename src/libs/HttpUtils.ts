@@ -175,22 +175,29 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 }
 
 /**
- * Ensures no value of type `object` other than Blob or its subclasses is passed to XMLHttpRequest.
+ * Ensures no value of type `object` other than null, Blob, or its subclasses is passed to XMLHttpRequest.
  * Otherwise, it will be incorrectly serialized as `[object Object]` and cause an error on Android.
  * See https://github.com/Expensify/App/issues/45086
  */
 function validateFormDataParameter(command: string, key: string, value: unknown) {
     // eslint-disable-next-line @typescript-eslint/no-shadow
-    const isValid = (value: unknown) => value === null || typeof value !== 'object' || value instanceof Blob;
-    if (Array.isArray(value)) {
-        if (value.every(isValid)) {
-            return;
+    const isValid = (value: unknown, isTopLevel: boolean): boolean => {
+        if (value === null || typeof value !== 'object') {
+            return true;
         }
-    } else if (isValid(value)) {
-        return;
+        if (Array.isArray(value)) {
+            return value.every((element) => isValid(element, false));
+        }
+        if (isTopLevel) {
+            return value instanceof Blob;
+        }
+        return false;
+    };
+
+    if (!isValid(value, true)) {
+        // eslint-disable-next-line no-console
+        console.warn(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`);
     }
-    // eslint-disable-next-line no-console
-    console.warn(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`);
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
