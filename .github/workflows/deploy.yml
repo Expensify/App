@@ -239,9 +239,9 @@ jobs:
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
-            --ks-pass=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
             --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
-            --key-pass=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+            --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
