@@ -14,7 +14,7 @@ function showModifiedExpenseNotification(report: Report, reportAction: ReportAct
     BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick);
 }
 
-function clearReportNotifications(reportID: string) {
+function clearReportNotifications(reportID: string | undefined) {
     BrowserNotifications.clearNotifications((notificationData) => notificationData.reportID === reportID);
 }
 
