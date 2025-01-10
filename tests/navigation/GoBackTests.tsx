@@ -4,7 +4,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
+import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -14,7 +14,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
+const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
@@ -90,7 +90,7 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={SettingsSplitNavigator}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SEARCH.CENTRAL_PANE}
+                    name={SCREENS.SEARCH.ROOT}
                     getComponent={() => jest.fn()}
                 />
             </RootStack.Navigator>
@@ -340,7 +340,7 @@ describe('Go back on the narrow layout', () => {
                                 },
                             },
                             {
-                                name: SCREENS.SEARCH.CENTRAL_PANE,
+                                name: SCREENS.SEARCH.ROOT,
                             },
                         ],
                     }}
@@ -349,7 +349,7 @@ describe('Go back on the narrow layout', () => {
 
             const rootStateBeforeGoBack = navigationRef.current?.getRootState();
             expect(rootStateBeforeGoBack?.index).toBe(2);
-            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(SCREENS.SEARCH.ROOT);
 
             // When go back to the page present in the split navigator that is more than 1 route away
             act(() => {

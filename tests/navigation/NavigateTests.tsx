@@ -4,7 +4,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
+import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -14,7 +14,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
+const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
@@ -90,7 +90,7 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={SettingsSplitNavigator}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SEARCH.CENTRAL_PANE}
+                    name={SCREENS.SEARCH.ROOT}
                     getComponent={() => jest.fn()}
                 />
             </RootStack.Navigator>
@@ -233,7 +233,7 @@ describe('Navigate', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.CENTRAL_PANE,
+                                name: SCREENS.SEARCH.ROOT,
                                 params: {
                                     q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
                                 },
@@ -246,7 +246,7 @@ describe('Navigate', () => {
             const rootStateBeforeNavigate = navigationRef.current?.getRootState();
             const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
             expect(rootStateBeforeNavigate?.index).toBe(0);
-            expect(lastSplitBeforeNavigate?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(lastSplitBeforeNavigate?.name).toBe(SCREENS.SEARCH.ROOT);
 
             // When navigate to the Home page when the active workspace is set
             act(() => {

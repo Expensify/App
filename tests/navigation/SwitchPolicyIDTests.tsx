@@ -4,7 +4,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
+import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
+const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -57,7 +57,7 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={ReportsSplitNavigator}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SEARCH.CENTRAL_PANE}
+                    name={SCREENS.SEARCH.ROOT}
                     getComponent={() => jest.fn()}
                 />
             </RootStack.Navigator>
@@ -126,7 +126,7 @@ describe('Switch policy ID', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.CENTRAL_PANE,
+                                name: SCREENS.SEARCH.ROOT,
                                 params: {
                                     q: 'type:expense status:all sortBy:date sortOrder:desc',
                                 },
@@ -139,7 +139,7 @@ describe('Switch policy ID', () => {
             const rootStateBeforeSwitch = navigationRef.current?.getRootState();
             expect(rootStateBeforeSwitch?.index).toBe(0);
             const lastRouteBeforeSwitch = rootStateBeforeSwitch?.routes?.at(-1);
-            expect(lastRouteBeforeSwitch?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(lastRouteBeforeSwitch?.name).toBe(SCREENS.SEARCH.ROOT);
             expect(lastRouteBeforeSwitch?.params).toMatchObject({q: 'type:expense status:all sortBy:date sortOrder:desc'});
 
             // When switch to the specific policy from the Search page
@@ -151,7 +151,7 @@ describe('Switch policy ID', () => {
             const rootStateAfterSwitch = navigationRef.current?.getRootState();
             expect(rootStateAfterSwitch?.index).toBe(1);
             const lastRouteAfterSwitch = rootStateAfterSwitch?.routes?.at(-1);
-            expect(lastRouteAfterSwitch?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(lastRouteAfterSwitch?.name).toBe(SCREENS.SEARCH.ROOT);
             expect(lastRouteAfterSwitch?.params).toMatchObject({q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1'});
         });
     });
@@ -212,7 +212,7 @@ describe('Switch policy ID', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.CENTRAL_PANE,
+                                name: SCREENS.SEARCH.ROOT,
                                 params: {
                                     q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
                                 },
@@ -225,7 +225,7 @@ describe('Switch policy ID', () => {
             const rootStateBeforeSwitch = navigationRef.current?.getRootState();
             expect(rootStateBeforeSwitch?.index).toBe(0);
             const lastRouteBeforeSwitch = rootStateBeforeSwitch?.routes?.at(-1);
-            expect(lastRouteBeforeSwitch?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(lastRouteBeforeSwitch?.name).toBe(SCREENS.SEARCH.ROOT);
             expect(lastRouteBeforeSwitch?.params).toMatchObject({q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1'});
 
             // When switch policy to the global from the Search page
@@ -237,7 +237,7 @@ describe('Switch policy ID', () => {
             const rootStateAfterSwitch = navigationRef.current?.getRootState();
             expect(rootStateAfterSwitch?.index).toBe(1);
             const lastRouteAfterSwitch = rootStateAfterSwitch?.routes?.at(-1);
-            expect(lastRouteAfterSwitch?.name).toBe(SCREENS.SEARCH.CENTRAL_PANE);
+            expect(lastRouteAfterSwitch?.name).toBe(SCREENS.SEARCH.ROOT);
             expect(lastRouteAfterSwitch?.params).toMatchObject({q: 'type:expense status:all sortBy:date sortOrder:desc'});
         });
     });
