@@ -1052,6 +1052,11 @@ const ROUTES = {
         getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
             `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const,
     },
+    WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
+        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
+            `settings/workspaces/${policyID}/accounting/${connection as string}/connection-selector` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string | undefined) => {
@@ -1821,6 +1826,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_SETUP: {
+        route: 'settings/workspaces/:policyID/connections/netsuite-quickstart/setup',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite-quickstart/setup` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
