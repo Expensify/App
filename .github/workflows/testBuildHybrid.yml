@@ -217,7 +217,7 @@ jobs:
         
   iosHybrid:
     name: Build and deploy iOS for testing
-    needs: [validateActor, getBranchRef]
+    needs: [validateActor, getBranchRef, getOldDotBranch]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
