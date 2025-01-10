@@ -184,7 +184,6 @@ function BaseGetPhysicalCard({
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicator={false}
             testID={BaseGetPhysicalCard.displayName}
         >
             <HeaderWithBackButton
