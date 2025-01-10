@@ -22,6 +22,13 @@ $
 PROPOSAL:
 
 
+<!--- 
+If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify branch or commit please specify it like follows:
+
+MOBILE-EXPENSIFY: branch or commit
+
+--->
+
 ### Tests
 <!---
 Add a numbered list of manual tests you performed that validates your changes work on all platforms, and that there are no regressions present.
