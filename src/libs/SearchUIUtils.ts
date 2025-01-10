@@ -279,6 +279,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.errors || report?.errors) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
     if (!ReportUtils.isMoneyRequestReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -295,9 +301,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
     const hasViolations = ReportUtils.hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
 
-    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors || report?.errors || hasViolations) {
+    if (hasViolations) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
