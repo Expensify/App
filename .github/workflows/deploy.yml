@@ -137,7 +137,7 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
-        with:
+        with: 
           IS_HYBRID_BUILD: 'true'
 
       - name: Run grunt build
@@ -166,9 +166,8 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get firebase.json --out-file ./firebase.json
-          op document get upload-key.keystore --out-file ./upload-key.keystore
-          op document get android-fastlane-json-key.json --out-file ./android-fastlane-json-key.json
+          op document get --output ./upload-key.keystore upload-key.keystore 
+          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
@@ -230,10 +229,6 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload Android build to Firebase distribution
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_firebase_distribution
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -355,14 +350,6 @@ jobs:
           max_attempts: 5
           command: scripts/pod-install.sh
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op document get firebase.json --out-file ./firebase.json
-
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
         env:
@@ -405,10 +392,6 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS build to Firebase distribution
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_firebase_distribution
 
       - name: Upload iOS sourcemaps artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -468,7 +451,7 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
-        with:
+        with: 
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
