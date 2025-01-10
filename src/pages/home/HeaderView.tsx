@@ -143,7 +143,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
@@ -155,7 +154,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
 
     return (
         <View
-            style={[shouldShowBorderBottom && styles.borderBottom]}
+            style={[styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
@@ -287,7 +286,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
-                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                {!shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
                             {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
@@ -315,6 +314,13 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     pressable
                     addSpacing
                 />
+            )}
+            {!!report && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                <View style={[styles.appBG, styles.pl0]}>
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <TaskHeaderActionButton report={report} />
+                    </View>
+                </View>
             )}
         </View>
     );
