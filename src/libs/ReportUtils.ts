@@ -3554,7 +3554,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
-        return ReportActionsUtils.isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.trackExpense') : Localize.translateLocal('iou.expense');
+        return ReportActionsUtils.isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.createExpense') : Localize.translateLocal('iou.expense');
     }
 
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
