@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -230,7 +231,7 @@ function NewChatPage() {
                 if (isOptionInList) {
                     newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? ''}];
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
                 }
 
                 selectionListRef?.current?.clearInputAfterSelect?.();
@@ -275,11 +276,12 @@ function NewChatPage() {
             return;
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
-            login: option.login ?? '',
+            login: option.login ?? CONST.EMPTY_STRING,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
         Report.setGroupDraft({participants: logins});
+        Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     }, [selectedOptions, personalData]);
     const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT});
