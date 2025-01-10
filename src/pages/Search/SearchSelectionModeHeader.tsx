@@ -1,7 +1,7 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';

@@ -22,9 +22,18 @@ type TopBarProps = {
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayCancelSearch?: boolean;
+    narrowSearchRouterActive?: boolean;
+    deactivateNarrowSearchRouter?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
+function TopBar({
+    breadcrumbLabel,
+    activeWorkspaceID,
+    shouldDisplaySearch = true,
+    shouldDisplayCancelSearch = false,
+    narrowSearchRouterActive = false,
+    deactivateNarrowSearchRouter,
+}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -66,6 +75,10 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         accessibilityLabel={translate('common.cancel')}
                         style={[styles.textBlue]}
                         onPress={() => {
+                            if (narrowSearchRouterActive) {
+                                deactivateNarrowSearchRouter?.();
+                                return;
+                            }
                             Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
                         }}
                     >

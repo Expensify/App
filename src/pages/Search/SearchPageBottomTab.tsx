@@ -1,10 +1,11 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -35,6 +36,7 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [narrowSearchRouterActive, setNarrowSearchRouterActive] = useState(false);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
@@ -97,49 +99,67 @@ function SearchPageBottomTab() {
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!SearchQueryUtils.isCannedSearchQuery(queryJSON) || narrowSearchRouterActive);
+
+    const searchRouterActiveStyle = {
+        ...styles.flex1,
+        ...styles.pRelative,
+    };
 
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
+            shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             headerGapStyles={styles.searchHeaderGap}
         >
             {!selectionMode?.isEnabled ? (
-                <>
+                <View style={[styles.zIndex10, narrowSearchRouterActive && styles.flex1, styles.mh100]}>
                     <View style={[styles.zIndex10, styles.appBG]}>
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.reports')}
-                            shouldDisplaySearch={shouldUseNarrowLayout}
+                            shouldDisplaySearch={false}
                             shouldDisplayCancelSearch={shouldDisplayCancelSearch}
+                            narrowSearchRouterActive={narrowSearchRouterActive}
+                            deactivateNarrowSearchRouter={() => {
+                                topBarOffset.set(StyleUtils.searchHeaderHeight);
+                                setNarrowSearchRouterActive(false);
+                            }}
                         />
                     </View>
                     {shouldUseNarrowLayout ? (
-                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                            <SearchTypeMenu
-                                queryJSON={queryJSON}
-                                searchName={searchName}
-                            />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                onStatusChange={() => {
-                                    topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
-                                }}
-                            />
-                        </Animated.View>
+                        <View style={[styles.flex1]}>
+                            <Animated.View style={[narrowSearchRouterActive ? searchRouterActiveStyle : topBarAnimatedStyle, !narrowSearchRouterActive && styles.searchTopBarStyle]}>
+                                <SearchPageHeaderNarrow
+                                    queryJSON={queryJSON}
+                                    narrowSearchRouterActive={narrowSearchRouterActive}
+                                    activateNarrowSearchRouter={() => {
+                                        setNarrowSearchRouterActive(true);
+                                    }}
+                                />
+                                {!narrowSearchRouterActive && (
+                                    <SearchStatusBar
+                                        queryJSON={queryJSON}
+                                        onStatusChange={() => {
+                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                        }}
+                                    />
+                                )}
+                            </Animated.View>
+                        </View>
                     ) : (
                         <SearchTypeMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
                         />
                     )}
-                </>
+                </View>
             ) : (
                 <SearchSelectionModeHeader queryJSON={queryJSON} />
             )}
-            {shouldUseNarrowLayout && (
+            {shouldUseNarrowLayout && !narrowSearchRouterActive && (
                 <Search
                     isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}

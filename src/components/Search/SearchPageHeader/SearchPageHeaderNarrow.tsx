@@ -10,6 +10,8 @@ import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -22,21 +24,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {PaymentData, SearchQueryJSON} from './types';
+import SearchPageHeaderInputNarrow from './SearchPageHeaderInputNarrow';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type SearchPageHeaderNarrowProps = {queryJSON: SearchQueryJSON; narrowSearchRouterActive: boolean; activateNarrowSearchRouter: () => void};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+function SearchPageHeaderNarrow({queryJSON, narrowSearchRouterActive, activateNarrowSearchRouter}: SearchPageHeaderNarrowProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -300,50 +300,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         lastPaymentMethods,
     ]);
 
-    if (shouldUseNarrowLayout) {
-        if (selectionMode?.isEnabled) {
-            return (
-                <View>
-                    <SearchSelectedNarrow
-                        options={headerButtonsOptions}
-                        itemsLength={selectedTransactionsKeys.length}
-                    />
-                    <ConfirmModal
-                        isVisible={isDeleteExpensesConfirmModalVisible}
-                        onConfirm={handleDeleteExpenses}
-                        onCancel={() => {
-                            setIsDeleteExpensesConfirmModalVisible(false);
-                        }}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={() => setIsDownloadErrorModalVisible(false)}
-                    />
-                </View>
-            );
-        }
-        return null;
-    }
-
     const onFiltersButtonPress = () => {
         hideProductTrainingTooltip();
         const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
@@ -353,37 +309,29 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     };
 
     return (
-        <>
-            <SearchPageHeaderInput queryJSON={queryJSON}>
-                {headerButtonsOptions.length > 0 ? (
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        shouldUseStyleUtilityForAnchorPosition
+        <View style={[styles.flex1, styles.flexShrink1, styles.flexGrow1]}>
+            <SearchPageHeaderInputNarrow
+                queryJSON={queryJSON}
+                narrowSearchRouterActive={narrowSearchRouterActive}
+                activateNarrowSearchRouter={activateNarrowSearchRouter}
+            >
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    anchorAlignment={{
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    }}
+                    shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                >
+                    <Button
+                        innerStyles={[{backgroundColor: 'none'}, styles.borderNone]}
+                        icon={Expensicons.Filters}
+                        onPress={onFiltersButtonPress}
                     />
-                ) : (
-                    <EducationalTooltip
-                        shouldRender={shouldShowProductTrainingTooltip}
-                        anchorAlignment={{
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        }}
-                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
-                        wrapperStyle={styles.productTrainingTooltipWrapper}
-                        renderTooltipContent={renderProductTrainingTooltip}
-                    >
-                        <Button
-                            innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
-                            icon={Expensicons.Filters}
-                            onPress={onFiltersButtonPress}
-                        />
-                    </EducationalTooltip>
-                )}
-            </SearchPageHeaderInput>
+                </EducationalTooltip>
+            </SearchPageHeaderInputNarrow>
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
@@ -414,11 +362,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
-        </>
+        </View>
     );
 }
 
-SearchPageHeader.displayName = 'SearchPageHeader';
+SearchPageHeaderNarrow.displayName = 'SearchPageHeaderNarrow';
 
 export type {SearchHeaderOptionValue};
-export default SearchPageHeader;
+export default SearchPageHeaderNarrow;
