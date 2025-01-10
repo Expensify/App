@@ -1,5 +1,5 @@
 import type {BottomTabName} from '@components/Navigation/BottomTabBar';
-import {BOTTOM_TABS} from '@components/Navigation/BottomTabBar';
+import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import type {FullScreenName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';

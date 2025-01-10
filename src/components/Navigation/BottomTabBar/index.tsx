@@ -18,15 +18,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
+import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -35,13 +35,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import DebugTabView from './DebugTabView';
-
-const BOTTOM_TABS = {
-    HOME: 'HOME',
-    SEARCH: 'SEARCH',
-    SETTINGS: 'SETTINGS',
-} as const;
+import DebugTabView from '../DebugTabView';
+import BOTTOM_TABS from './BOTTOM_TABS';
 
 type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
 
