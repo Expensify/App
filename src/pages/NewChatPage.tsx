@@ -191,8 +191,8 @@ function NewChatPage() {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param  option
      */
-    const toggleOption = useMemo(
-        () => (option: ListItem & Partial<OptionData>) => {
+    const toggleOption = useCallback(
+        (option: ListItem & Partial<OptionData>) => {
             const isOptionInList = !!option.isSelected;
 
             let newSelectedOptions;
