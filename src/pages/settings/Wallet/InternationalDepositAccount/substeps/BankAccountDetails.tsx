@@ -11,6 +11,7 @@ import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
@@ -24,6 +25,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
@@ -73,6 +75,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         onInputChange={onCurrencySelected}
                         headerContent={currencyHeaderContent}
                         excludeCurrencies={CONST.CORPAY_FIELDS.EXCLUDED_CURRENCIES}
+                        interactive={!isOffline}
                     />
                 </View>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (

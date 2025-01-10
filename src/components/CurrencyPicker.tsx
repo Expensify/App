@@ -27,9 +27,12 @@ type CurrencyPickerProps = {
 
     /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
+
+    /** Is the MenuItem interactive */
+    interactive?: boolean;
 };
 
-function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, interactive, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -52,6 +55,7 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, onI
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
+                interactive={interactive}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
