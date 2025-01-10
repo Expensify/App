@@ -78,7 +78,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         >
                             {Localize.translateLocal('iou.error.tryAgainMessage')}
                         </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.alternativelyMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('common.or')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => {
@@ -88,7 +88,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                             {Localize.translateLocal('iou.error.saveFileMessage')}
                         </TextLink>
 
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.uploadLaterMessage')}</Text>
                     </Text>
 
                     <ConfirmModal
