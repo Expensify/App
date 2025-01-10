@@ -59,10 +59,36 @@ jobs:
           echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  getOldDotBranch:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    outputs:
+      OLD_DOT_BRANCH: ${{ steps.old-dot-commit.outputs.result }}
+    steps:
+      - name: Check if author specifed Old Dot branch or commit 
+        id: old-dot-commit
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            const pullRequest = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: env.PULL_REQUEST_NUMBER,
+            });
+            
+            const body = pullRequest.data.body;
+            const regex = /MOBILE-EXPENSIFY:(?<commit>.*)/;
+            const found = body.match(regex)?.groups?.commit || "";
+
+            return found.trim();
 
   postGitHubCommentBuildStarted:
     runs-on: ubuntu-latest
-    needs: [validateActor, getBranchRef]
+    needs: [validateActor, getBranchRef, getOldDotBranch]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     steps:
       - name: Add build start comment
@@ -99,31 +125,12 @@ jobs:
         run: |
           git submodule update --init --remote
 
-      - name: Check if author specifed Old Dot branch or commit 
-        id: old-dot-commit
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          result-encoding: string
-          script: |
-            const pullRequest = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: env.PULL_REQUEST_NUMBER,
-            });
-            
-            const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:(?<commit>.*)/;
-            const found = body.match(regex)?.groups?.commit || "";
-
-            return found.trim();
-
       - name: Checkout Old Dot to author specified branch or commit
-        if: steps.old-dot-commit.outputs.result != ""
+        if: needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != ""
         run: |
           cd Mobile-Expensify
           git fetch
-          git checkout ${{ steps.old-dot-commit.outputs.result }}
+          git checkout ${{ needs.getOldDotBranch.outputs.OLD_DOT_BRANCH }}
       
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -229,31 +236,12 @@ jobs:
         run: |
           git submodule update --init --remote
 
-      - name: Check if author specifed Old Dot branch or commit 
-        id: old-dot-commit
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          result-encoding: string
-          script: |
-            const pullRequest = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: env.PULL_REQUEST_NUMBER,
-            });
-            
-            const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:(?<commit>.*)/;
-            const found = body.match(regex)?.groups?.commit || "";
-
-            return found.trim();
-
       - name: Checkout Old Dot to author specified branch or commit
-        if: steps.old-dot-commit.outputs.result != ""
+        if: needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != ""
         run: |
           cd Mobile-Expensify
           git fetch
-          git checkout ${{ steps.old-dot-commit.outputs.result }}
+          git checkout ${{ needs.getOldDotBranch.outputs.OLD_DOT_BRANCH }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
