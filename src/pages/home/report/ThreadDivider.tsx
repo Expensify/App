@@ -48,14 +48,14 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                     onPress={() => {
                         const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
                             ancestor.reportAction,
-                            ancestor.reportAction.reportActionID ?? '-1',
+                            ancestor.reportAction.reportActionID,
                             ReportUtils.canUserPerformWriteAction(ancestor.report),
                         );
                         // Pop the thread report screen before navigating to the chat report.
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
                         if (isVisibleAction) {
                             // Pop the chat report screen before navigating to the linked report action.
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
                         }
                     }}
                     accessibilityLabel={translate('threads.thread')}
