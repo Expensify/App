@@ -6,6 +6,7 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
@@ -65,9 +66,12 @@ function push(
             body,
             icon: String(icon),
             data,
-            silent,
+            silent: true,
             tag,
         });
+        if (!silent) {
+            playSound(SOUNDS.RECEIVE);
+        }
         notificationCache[notificationID].onclick = () => {
             onClick();
             window.parent.focus();
@@ -99,7 +103,7 @@ export default {
         const isChatRoom = ReportUtils.isChatRoom(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => f.text).join() ?? '';
+        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
 
         // Specifically target the comment part of the message
         let plainTextMessage = '';
@@ -122,12 +126,12 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick, true);
+        push(title, body, icon, data, onClick);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportID: report.reportID, reportAction});
+        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

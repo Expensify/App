@@ -59,5 +59,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportID: report.reportID, reportAction}));
+    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction}));
 });

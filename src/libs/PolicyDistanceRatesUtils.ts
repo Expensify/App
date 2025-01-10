@@ -20,7 +20,10 @@ function validateRateValue(
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
-    const ratesList = Object.values(customUnitRates).filter((rate) => currentRateValue !== rate.rate);
+    const ratesList = Object.values(customUnitRates)
+        .filter((rate) => currentRateValue !== rate.rate)
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        .map((r) => ({...r, rate: parseFloat(Number(r.rate || 0).toFixed(10))}));
     // The following logic replicates the backend's handling of rates:
     // - Multiply the rate by 100 (CUSTOM_UNIT_RATE_BASE_OFFSET) to scale it, ensuring precision.
     // - This ensures rates are converted as follows:
@@ -47,7 +50,7 @@ function validateRateValue(
 function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate | undefined): FormInputErrors<TaxReclaimableForm> {
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
-    if (rate?.rate && Number(values.taxClaimableValue) > rate.rate / 100) {
+    if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
         errors.taxClaimableValue = Localize.translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;

@@ -27,7 +27,7 @@ import Text from './Text';
 
 type ImportSpreedsheetProps = {
     // The route to navigate to when the back button is pressed.
-    backTo: Routes;
+    backTo?: Routes;
 
     // The route to navigate to after the file import is completed.
     goTo: Routes;
@@ -93,8 +93,10 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
             .then((arrayBuffer) => {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][])
+                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+
+                setSpreadsheetData(formattedSpreadsheetData)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })

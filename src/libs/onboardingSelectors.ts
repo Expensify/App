@@ -11,7 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     // Onboarding is an empty object for old accounts and accounts migrated from OldDot
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return true;
     }
 
@@ -29,15 +29,16 @@ function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKE
  * `true` means the user has completed the hybrid app onboarding flow
  * `false` means the user has not completed the hybrid app onboarding flow
  */
-function hasCompletedHybridAppOnboardingFlowSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRYNEWDOT>): boolean | undefined {
-    let completedHybridAppOnboarding = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
+function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRYNEWDOT>): {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} {
+    let isHybridAppOnboardingCompleted = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
+    const hasBeenAddedToNudgeMigration = !!tryNewDotData?.nudgeMigration?.timestamp;
 
     // Backend might return strings instead of booleans
-    if (typeof completedHybridAppOnboarding === 'string') {
-        completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
+    if (typeof isHybridAppOnboardingCompleted === 'string') {
+        isHybridAppOnboardingCompleted = isHybridAppOnboardingCompleted === 'true';
     }
 
-    return completedHybridAppOnboarding;
+    return {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration};
 }
 
 /**
@@ -48,11 +49,22 @@ function hasCompletedHybridAppOnboardingFlowSelector(tryNewDotData: OnyxValue<ty
  * `false` means the user has not completed the NewDot onboarding flow
  */
 function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return false;
     }
 
     return !!onboarding?.selfTourViewed;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector, hasSeenTourSelector};
+/**
+ * Selector to get the value of nvp_introSelected NVP from the Onyx Store
+ *
+ * `undefined` means the value is not loaded yet
+ * `true` means they were invited to NewDot
+ * `false` means they are an organic sign-in
+ */
+function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean | undefined {
+    return introSelected?.inviteType !== undefined;
+}
+
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};

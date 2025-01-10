@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
@@ -136,7 +137,7 @@ function getFieldsForStep(step: TBankAccountStep): InputID[] {
     }
 }
 
-function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
@@ -148,7 +149,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '-1';
+    const policyIDParam = route.params?.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -203,7 +204,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(() => getShouldShowContinueSetupButtonInitialValue());
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -264,7 +265,10 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
         const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+
+        if (policyIDParam) {
+            BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+        }
     }
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
@@ -402,7 +406,9 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         }
     };
 
-    const isLoading = (!!isLoadingApp || !!account?.isLoading || reimbursementAccount?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading =
+        (!!isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
+        (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(
         isOffline &&
@@ -414,6 +420,10 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
         ].some((value) => value === currentStep)
     );
+
+    if (isLoadingPolicy) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process

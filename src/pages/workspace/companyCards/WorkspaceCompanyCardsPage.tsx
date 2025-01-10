@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,15 +41,20 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const {cardList, ...cards} = cardsList ?? {};
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const companyCards = CardUtils.getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
+    const isFeedExpired = CardUtils.isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
     const fetchCompanyCards = useCallback(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -68,6 +74,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     }, [selectedFeed, isLoading, policyID, isPending]);
 
     const handleAssignCard = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         if (!selectedFeed) {
             return;
         }
@@ -76,8 +86,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !PolicyUtils.isDeletedPolicyEmployee(employee, isOffline));
 
-        if (Object.keys(policy?.employeeList ?? {}).length === 1) {
+        if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
             data.email = userEmail;
             const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(userEmail);
@@ -90,6 +101,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 data.cardNumber = Object.keys(filteredCardList).at(0);
                 data.encryptedCardNumber = Object.values(filteredCardList).at(0);
             }
+        }
+
+        if (isFeedExpired) {
+            currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 
         CompanyCards.setAssignCardStepAndData({data, currentStep});
@@ -123,7 +138,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
-                            shouldShowAssignCardButton={isPending || !isEmptyObject(cardsList)}
+                            shouldShowAssignCardButton={isPending || !isEmptyObject(cards)}
                             handleAssignCard={handleAssignCard}
                         />
                     )}
@@ -139,6 +154,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     )}
                 </WorkspacePageWithSections>
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }

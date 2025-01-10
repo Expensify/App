@@ -38,9 +38,12 @@ type ConfirmationStepProps = SubStepProps & {
 
     /** The error message to display */
     error?: string;
+
+    /** Whether to apply safe area padding bottom */
+    shouldApplySafeAreaPaddingBottom?: boolean;
 };
 
-function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext}: ConfirmationStepProps) {
+function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -50,7 +53,7 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
             {({safeAreaPaddingBottomStyle}) => (
                 <ScrollView
                     style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
+                    contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && safeAreaPaddingBottomStyle]}
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
                     {summaryItems.map(({description, title, shouldShowRightIcon, onPress}) => (

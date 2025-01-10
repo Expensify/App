@@ -340,11 +340,17 @@ type MenuItemBaseProps = {
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
-
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
+
+    /** Should break word for room title */
+    shouldBreakWord?: boolean;
+
+    /** Pressable component Test ID. Used to locate the component in tests. */
+    pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -455,8 +461,10 @@ function MenuItem(
         renderTooltipContent,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
+        shouldBreakWord = false,
+        pressableTestID,
+        shouldTeleportPortalToModalLayer,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -482,6 +490,7 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
+            shouldBreakWord ? styles.breakWord : {},
         ],
         titleStyle ?? {},
     );
@@ -591,8 +600,7 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
             >
                 <View>
                     <Hoverable>
@@ -603,8 +611,9 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
+                                testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,

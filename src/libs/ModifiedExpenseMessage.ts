@@ -3,13 +3,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -23,6 +23,13 @@ Onyx.connect({
         }
         allPolicyTags = value;
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -81,12 +88,12 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     return messageFragments.reduce((acc, value, index) => {
         if (index === messageFragments.length - 1) {
             if (messageFragments.length === 1) {
-                return `${acc} ${value}.`;
+                return `${acc} ${value}`;
             }
             if (messageFragments.length === 2) {
-                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}`;
             }
-            return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+            return `${acc}, ${Localize.translateLocal('common.and')} ${value}`;
         }
         if (index === 0) {
             return `${acc} ${value}`;
@@ -133,22 +140,22 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * If we change this function be sure to update the backend as well.
  */
 function getForReportAction({
-    reportID,
+    reportOrID,
     reportAction,
-    reports,
+    reportsParam,
     policyTagLists = allPolicyTags,
 }: {
-    reportID: string | undefined;
+    reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
-    reports?: OnyxCollection<Report>;
+    reportsParam?: OnyxCollection<Report>;
     policyTagLists?: OnyxCollection<PolicyTagLists>;
 }): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const allReports = reports ?? ReportConnection.getAllReports();
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reports = reportsParam ?? allReports;
+    const report = typeof reportOrID === 'string' ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
