@@ -50,7 +50,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@react-native/eslint-config": "^0.75.2",
+    "@react-native/eslint-config": "^0.76.3",
     "@types/jest": "^29.5.12",
     "@types/react": "^18.3.4",
     "del-cli": "^5.1.0",
@@ -60,7 +60,7 @@
     "nitro-codegen": "^0.20.1",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
-    "react-native": "0.75.2",
+    "react-native": "0.76.3",
     "react-native-nitro-modules": "*",
     "typescript": "^5.5.4"
   },
