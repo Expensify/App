@@ -1,6 +1,9 @@
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import { SharedValue } from "react-native-reanimated";
+
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -27,4 +30,11 @@ type ToggleItem = ToggleSettingOptionRowProps & {
     shouldHide?: boolean;
 };
 
-export type {MenuItem, ToggleItem};
+type AccordionItem = {
+    type: 'accordion';
+    children: MenuItemWithSubscribedSettings[];
+    shouldHide: boolean;
+    shouldExpand: SharedValue<boolean>;
+};
+
+export type {MenuItem, ToggleItem, MenuItemWithSubscribedSettings, AccordionItem};

@@ -8,6 +8,11 @@ import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import { SharedValue } from "react-native-reanimated";
+
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
+
+type MenuItemToRender = (MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem) | AccordionItem;
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -45,6 +50,13 @@ type ToggleItem = ToggleSettingOptionRowProps & {
     shouldHide?: boolean;
 };
 
+type AccordionItem = {
+    type: 'accordion';
+    children: MenuItemWithSubscribedSettings[];
+    shouldHide: boolean;
+    shouldExpand: SharedValue<boolean>;
+};
+
 type ExpenseRouteParams = {
     expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
 };
@@ -78,4 +90,4 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
-export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy, CustomListSelectorType};
+export type {MenuItem, MenuItemToRender, DividerLineItem, ToggleItem, AccordionItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy, CustomListSelectorType};
