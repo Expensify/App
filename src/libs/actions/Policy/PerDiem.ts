@@ -1,4 +1,5 @@
 import lodashDeepClone from 'lodash/cloneDeep';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -13,7 +14,7 @@ import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -397,6 +398,23 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
+let allRecentlyUsedDestination: OnyxCollection<RecentlyUsedCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedDestination = val),
+});
+
+function buildOptimisticPolicyRecentlyUsedDestinations(policyID: string | undefined, destination: string | undefined) {
+    if (!policyID || !destination) {
+        return [];
+    }
+
+    const policyRecentlyUsedDestinations = allRecentlyUsedDestination?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`] ?? [];
+
+    return lodashUnion([destination], policyRecentlyUsedDestinations);
+}
+
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -409,4 +427,5 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
+    buildOptimisticPolicyRecentlyUsedDestinations,
 };

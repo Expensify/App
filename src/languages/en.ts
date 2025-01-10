@@ -1101,6 +1101,8 @@ const translations = {
             one: `Trip: 1 full day`,
             other: (count: number) => `Trip: ${count} full days`,
         }),
+        dates: 'Dates',
+        rates: 'Rates',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
