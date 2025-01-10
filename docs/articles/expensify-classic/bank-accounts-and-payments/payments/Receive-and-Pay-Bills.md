@@ -42,7 +42,7 @@ Expensify makes it easy to manage and pay vendor bills with a straightforward wo
 ## Bill Pay Workflow  
 
 1. **SmartScan & Create**: When a vendor sends a bill, Expensify automatically SmartScans the document and creates a bill.  
-2. **Submission to Primary Contact**: The bill is submitted to the primary contact, who can review it on the Reports page under their default group policy.  
+2. **Submission to Primary Contact**: The bill is submitted to the primary contact, who can review it on the Reports page under their default group workspace.  
 3. **Communication**: If the approver needs clarification, they can communicate directly with the sender via the invoice linked to the bill.  
 4. **Approval Workflow**: Once reviewed, the bill follows your workspace’s approval process. The final approver handles the payment.  
 5. **Accounting Integration**: During approval, the bill is coded with the correct GL codes from your connected accounting software. Once approved, it can be exported back to your accounting system. 
