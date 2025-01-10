@@ -166,7 +166,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --out-file ./firebase.json
+          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
           op document get --output ./upload-key.keystore upload-key.keystore 
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
