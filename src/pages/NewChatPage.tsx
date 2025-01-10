@@ -103,7 +103,7 @@ function useOptions() {
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
                 participantOption = OptionsListUtils.getUserToInviteOption({
-                    searchValue: participant.login,
+                    searchValue: participant?.login,
                 });
             }
             if (!participantOption) {

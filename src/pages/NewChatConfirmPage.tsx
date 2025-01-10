@@ -55,7 +55,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             return [];
         }
         const options: Participant[] = newGroupDraft.participants.map((participant) =>
-            OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, allPersonalDetails),
+            OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
         );
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
@@ -92,7 +92,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             if (!newGroupDraft) {
                 return;
             }
-            const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant.login !== option.login);
+            const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
             Report.setGroupDraft({participants: newSelectedParticipants});
         },
         [newGroupDraft],
