@@ -1,14 +1,13 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {Animated, View} from 'react-native';
-import {useKeyboardAnimation} from 'react-native-keyboard-controller';
+import {Keyboard, View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,6 +64,7 @@ function BaseModal(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -105,6 +105,7 @@ function BaseModal(
         let removeOnCloseListener: () => void;
         if (isVisible) {
             Modal.willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+            Keyboard.dismiss();
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             removeOnCloseListener = Modal.setCloseModal(onClose);
         }
@@ -194,7 +195,7 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -214,13 +215,6 @@ function BaseModal(
         }),
         [isVisible, type],
     );
-    const {height, progress} = useKeyboardAnimation();
-    const {unmodifiedPaddings} = useStyledSafeAreaInsets();
-    const removeSafeAreaPadding = progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, unmodifiedPaddings.bottom],
-        extrapolate: 'clamp',
-    });
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -267,6 +261,7 @@ function BaseModal(
                     statusBarTranslucent={statusBarTranslucent}
                     navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
+                    avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
                     <ModalContent
@@ -278,18 +273,12 @@ function BaseModal(
                             active={isVisible}
                             initialFocus={initialFocus}
                         >
-                            <Animated.View
-                                style={[
-                                    styles.defaultModalContainer,
-                                    modalPaddingStyles,
-                                    modalContainerStyle,
-                                    !isVisible && styles.pointerEventsNone,
-                                    avoidKeyboard && {transform: [{translateY: Animated.add(height, removeSafeAreaPadding)}]},
-                                ]}
+                            <View
+                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            </Animated.View>
+                            </View>
                         </FocusTrapForModal>
                     </ModalContent>
                 </ReactNativeModal>
