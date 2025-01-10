@@ -88,7 +88,7 @@ jobs:
 
   postGitHubCommentBuildStarted:
     runs-on: ubuntu-latest
-    needs: [validateActor, getBranchRef, getOldDotBranch]
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     steps:
       - name: Add build start comment
@@ -106,7 +106,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    needs: [validateActor, getBranchRef]
+    needs: [validateActor, getBranchRef, getOldDotBranch]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     outputs:
