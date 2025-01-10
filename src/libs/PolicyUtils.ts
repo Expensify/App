@@ -257,7 +257,7 @@ const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -420,7 +420,7 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
-    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
 }
@@ -657,11 +657,11 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
-    if (!allPolicies || !policyID) {
+function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
+    if (!policies || !policyID) {
         return undefined;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /** Return active policies where current user is an admin */
@@ -674,6 +674,12 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
+}
+
+/** Whether the user can submit per diem expense from the workspace */
+function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
@@ -1241,6 +1247,7 @@ export {
     getActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     hasWorkspaceWithInvoices,
     hasDependentTags,

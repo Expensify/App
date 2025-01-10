@@ -72,8 +72,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [WORKSAPCE_CHAT_CREATE]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,

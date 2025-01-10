@@ -78,7 +78,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.perDiem.destination')}
+                    title={translate('common.destination')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <FormProvider
@@ -98,8 +98,8 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={selectedRate?.name}
-                        label={translate('workspace.perDiem.destination')}
-                        accessibilityLabel={translate('workspace.perDiem.destination')}
+                        label={translate('common.destination')}
+                        accessibilityLabel={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.MAX_LENGTH_256}
