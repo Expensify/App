@@ -4119,6 +4119,8 @@ function prepareOnboardingOnyxData(
         }
     }
 
+    guidedSetupData.push(...tasksForParameters);
+
     if (!introSelected?.choice) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4145,7 +4147,7 @@ function prepareOnboardingOnyxData(
                 } as ReportAction,
             },
         });
-        guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
+        guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
     }
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
