@@ -202,6 +202,7 @@ platform :android do
       firebase_app_distribution(
           app: "1:1008697809946:android:2e48f9ffe8d0b6a2",
           service_credentials_file: "./firebase.json",
+          groups: "applause",
           android_artifact_path: ENV[KEY_GRADLE_AAB_PATH],
           android_artifact_type: "AAB"
       )
@@ -522,6 +523,7 @@ platform :ios do
       firebase_app_distribution(
           app: "1:1008697809946:ios:3ffad71f664f2886",
           service_credentials_file: "./firebase.json",
+          groups: "applause",
           ipa_path: ENV[KEY_IPA_PATH],
       )
     end
