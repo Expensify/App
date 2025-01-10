@@ -4,6 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
@@ -6494,6 +6495,21 @@ const CONST = {
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
+
+    NAVIGATION_TESTS: {
+        DEFAULT_PARENT_ROUTE: {key: 'parentRouteKey', name: 'ParentNavigator'},
+        DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: {
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: false,
+        } as ResponsiveLayoutResult,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

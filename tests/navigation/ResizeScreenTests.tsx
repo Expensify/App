@@ -3,7 +3,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import {render, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
@@ -12,6 +11,7 @@ import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
@@ -22,18 +22,6 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@pages/settings/InitialSettingsPage');
 jest.mock('@pages/settings/Profile/ProfilePage');
 
-const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
-    shouldUseNarrowLayout: true,
-    isSmallScreenWidth: true,
-    isInNarrowPaneModal: false,
-    isExtraSmallScreenHeight: false,
-    isMediumScreenWidth: false,
-    isLargeScreenWidth: false,
-    isExtraSmallScreenWidth: false,
-    isSmallScreen: false,
-    onboardingIsMediumOrLargerScreenWidth: false,
-};
-
 const INITIAL_STATE = {
     index: 0,
     routes: [
@@ -43,8 +31,6 @@ const INITIAL_STATE = {
     ],
 };
 
-const PARENT_ROUTE = {key: 'parentRouteKey', name: 'ParentNavigator'};
-
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
@@ -52,7 +38,7 @@ describe('Resize screen', () => {
     it('Should display the settings profile after resizing the screen with the settings page opened to the wide layout', () => {
         // Given the initialized navigation on the narrow layout with the settings screen
         mockedGetIsNarrowLayout.mockReturnValue(true);
-        mockedUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
 
         render(
             <NavigationContainer
@@ -62,7 +48,7 @@ describe('Resize screen', () => {
                 <Split.Navigator
                     sidebarScreen={SCREENS.SETTINGS.ROOT}
                     defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
-                    parentRoute={PARENT_ROUTE}
+                    parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
                 >
                     <Split.Screen
                         name={SCREENS.SETTINGS.ROOT}
@@ -93,7 +79,7 @@ describe('Resize screen', () => {
 
         // When resizing the screen to the wide layout
         mockedGetIsNarrowLayout.mockReturnValue(false);
-        mockedUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
         rerender({});
 
         const rootStateAfterResize = navigationRef.current?.getRootState();
