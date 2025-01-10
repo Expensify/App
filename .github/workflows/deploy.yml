@@ -568,9 +568,9 @@ jobs:
 #        env:
 #          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload Android build to Firebase distribution
+      - name: Upload iOS build to Firebase distribution
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_firebase_distribution
+        run: bundle exec fastlane ios upload_firebase_distribution
 
 #      - name: Upload iOS build artifact
 #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
