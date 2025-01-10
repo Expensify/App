@@ -725,8 +725,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
             assigneeAccountID,
             report.reportID,
             assigneeChatReportID,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            report.parentReportID as string,
+            report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
         );
