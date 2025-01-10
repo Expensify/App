@@ -20,6 +20,8 @@ type ShareTrackedExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    customUnitRateID?: string;
+    waypoints?: string;
 };
 
 export default ShareTrackedExpenseParams;
