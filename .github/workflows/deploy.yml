@@ -232,6 +232,24 @@ jobs:
 #        env:
 #          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Generate APK from AAB
+        run: | 
+          bundletool build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
+            --mode=universal \
+            --ks=upload-key.keystore \
+            --ks-pass=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            --key-pass=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          
+          unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Upload Android APK build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-hybrid-apk-artifact
+          path: Expensify.apk
+
       - name: Upload Android build to Firebase distribution
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android upload_firebase_distribution
