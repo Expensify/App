@@ -518,6 +518,7 @@ const translations = {
         chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo adjunto supera el límite de ${maxUploadSizeInMB} MB.`,
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
         wrongFileType: 'Tipo de archivo inválido',
@@ -4476,7 +4477,7 @@ const translations = {
             },
             completed: {
                 headline: 'Tu espacio de trabajo ha sido bajado de categoría',
-                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                description: 'Tienes otros espacios de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
                 gotIt: 'Entendido, gracias.',
             },
         },
