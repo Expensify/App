@@ -167,8 +167,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
-          op document get --output ./upload-key.keystore upload-key.keystore 
-          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          op read op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore --force --out-file ./upload-key.keystore
+          op read op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json --force --out-file ./android-fastlane-json-key.json
+          
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
@@ -195,80 +196,80 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
-      - name: Upload Android app to Google Play
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_google_play_internal_hybrid
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+#      - name: Upload Android app to Google Play
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: bundle exec fastlane android upload_google_play_internal_hybrid
+#        env:
+#          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
-      - name: Get current Android rollout percentage
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        id: getAndroidRolloutPercentage
-        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
-        with:
-          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
-          PACKAGE_NAME: org.me.mobiexpensifyg
-
-      - name: Submit production build for Google Play review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
-          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-              echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
-          fi
-          
-          # Submit the new version for review and slow rollout when it's approved
-          bundle exec fastlane android upload_google_play_production_hybrid_rollout
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-
-      - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+#      - name: Get current Android rollout percentage
+#        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        id: getAndroidRolloutPercentage
+#        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+#        with:
+#          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
+#          PACKAGE_NAME: org.me.mobiexpensifyg
+#
+#      - name: Submit production build for Google Play review and a slow rollout
+#        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: |
+#          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+#          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
+#              echo "Completing the previous version rollout"
+#              bundle exec fastlane android complete_hybrid_rollout
+#          else
+#              echo "Skipping the completion of the previous version rollout"
+#          fi
+#
+#          # Submit the new version for review and slow rollout when it's approved
+#          bundle exec fastlane android upload_google_play_production_hybrid_rollout
+#        env:
+#          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+#
+#      - name: Upload Android build to Browser Stack
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
+#        env:
+#          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Upload Android build to Firebase distribution
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android upload_firebase_distribution
 
-      - name: Upload Android build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-hybrid-build-artifact
-          path: ${{ env.aabPath }}
-
-      - name: Upload Android sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-hybrid-sourcemap-artifact
-          path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
-      - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Upload Android build artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-hybrid-build-artifact
+#          path: ${{ env.aabPath }}
+#
+#      - name: Upload Android sourcemap artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-hybrid-sourcemap-artifact
+#          path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
+#
+#      - name: Set current App version in Env
+#        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+#
+#      - name: Warn deployers if Android production deploy failed
+#        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: custom
+#          custom_payload: |
+#            {
+#              channel: '#deployer',
+#              attachments: [{
+#                color: "#DB4545",
+#                pretext: `<!subteam^S4TJJ3PSL>`,
+#                text: `💥 Android HybridApp production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+#              }]
+#            }
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
 #  desktop:
 #    name: Build and deploy Desktop
@@ -505,9 +506,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
-          op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
-          op document get --output ./OldApp_AppStore_Notification_Service.mobileprovision OldApp_AppStore_Notification_Service
+          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
+          op read op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision --force --output ./OldApp_AppStore.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision --force --output ./OldApp_AppStore_Share_Extension.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision --force --output ./OldApp_AppStore_Notification_Service.mobileprovision
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
@@ -540,63 +542,67 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
 
-      - name: Upload release build to TestFlight
+#      - name: Upload release build to TestFlight
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: bundle exec fastlane ios upload_testflight_hybrid
+#        env:
+#          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+#          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+#          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+#          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+#
+#      - name: Submit production build for App Store review and a slow rollout
+#        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: |
+#          # Complete the previous version rollout
+#          bundle exec fastlane ios complete_hybrid_rollout
+#
+#          # Submit the new version for review and phased rollout when it's approved
+#          bundle exec fastlane ios submit_hybrid_for_rollout
+#        env:
+#          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+#
+#      - name: Upload iOS build to Browser Stack
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
+#        env:
+#          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload Android build to Firebase distribution
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight_hybrid
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+        run: bundle exec fastlane android upload_firebase_distribution
 
-      - name: Submit production build for App Store review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          # Complete the previous version rollout
-          bundle exec fastlane ios complete_hybrid_rollout
-          
-          # Submit the new version for review and phased rollout when it's approved 
-          bundle exec fastlane ios submit_hybrid_for_rollout
-        env:
-          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
-
-      - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-hybrid-build-artifact
-          path: ${{ env.ipaPath }}
-
-      - name: Upload iOS sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-hybrid-sourcemap-artifact
-          path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
-
-      - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS HybridApp production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Upload iOS build artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ios-hybrid-build-artifact
+#          path: ${{ env.ipaPath }}
+#
+#      - name: Upload iOS sourcemap artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ios-hybrid-sourcemap-artifact
+#          path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
+#
+#      - name: Warn deployers if iOS production deploy failed
+#        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: custom
+#          custom_payload: |
+#            {
+#              channel: '#deployer',
+#              attachments: [{
+#                color: "#DB4545",
+#                pretext: `<!subteam^S4TJJ3PSL>`,
+#                text: `💥 iOS HybridApp production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
+#              }]
+#            }
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
 #  web:
 #    name: Build and deploy Web
