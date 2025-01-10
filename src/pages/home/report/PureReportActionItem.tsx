@@ -81,7 +81,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import Transaction from '@src/types/onyx';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -1139,7 +1138,8 @@ function PureReportActionItem({
                                         transactionID = ReportActionsUtils.getOriginalMessage(moneyRequestAction)?.IOUTransactionID;
                                         const moneyRequestActionOriginalMessage = ReportActionsUtils.getOriginalMessage(action);
                                         if (
-                                            moneyRequestActionOriginalMessage && typeof moneyRequestActionOriginalMessage === 'object' &&
+                                            moneyRequestActionOriginalMessage &&
+                                            typeof moneyRequestActionOriginalMessage === 'object' &&
                                             moneyRequestActionOriginalMessage.oldAmount &&
                                             moneyRequestActionOriginalMessage.oldCurrency &&
                                             'amount' in moneyRequestActionOriginalMessage &&
