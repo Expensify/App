@@ -2,7 +2,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
@@ -154,14 +153,14 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
-    // If we got here, that means we are missing some updates on our local storage. To
-    // guarantee that we're not fetching more updates before our local data is up to date,
-    // let's stop the sequential queue from running until we're done catching up.
-    SequentialQueue.pause();
-
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
+
+type DoesClientNeedToBeUpdatedParams = {
+    clientLastUpdateID?: number;
+    previousUpdateID?: number;
+};
 
 /**
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
@@ -169,13 +168,13 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  */
-function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesClientNeedToBeUpdatedParams): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient;
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
@@ -191,4 +190,5 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};
+export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
+export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};
