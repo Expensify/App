@@ -19,7 +19,7 @@ import {
     getFilteredReimbursableAccountOptions,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
+import type {MenuItemToRender, MenuItemWithSubscribedSettings} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideCustomFormIDOptions,
     shouldHideExportJournalsTo,
@@ -65,7 +65,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
-    const renderDefaultMenuItem = (item: any) => {
+    const renderDefaultMenuItem = (item: MenuItemWithSubscribedSettings) => {
         return (
             <OfflineWithFeedback
                 key={item.description}

@@ -31,14 +31,14 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorName = getDefaultVendorName(activeDefaultVendor, intacctData?.vendors);
-    const shuldExpand = useSharedValue(
+    const shouldExpand = useSharedValue(
         !(
             !config?.export.nonReimbursable ||
             (config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && !config?.export.nonReimbursableCreditCardChargeDefaultVendor)
         ),
     );
 
-    const rednderDefault = (item: MenuItemWithSubscribedSettings | ToggleItemWithKey) => {
+    const renderDefault = (item: MenuItemWithSubscribedSettings) => {
         return (
             <OfflineWithFeedback
                 key={item.description}
@@ -87,7 +87,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             onToggle: (enabled) => {
                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor, config?.export.nonReimbursableCreditCardChargeDefaultVendor);
-                shuldExpand.set(enabled);
+                shouldExpand.set(enabled);
             },
             onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields),
@@ -116,7 +116,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 },
             ],
             shouldHide: false,
-            shouldExpand: shuldExpand,
+            shouldExpand,
         },
     ];
 
@@ -154,11 +154,11 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                                     isExpanded={item.shouldExpand}
                                     style={styles.overflowHidden}
                                 >
-                                    {item.children.map((child) => rednderDefault(child))}
+                                    {item.children.map((child) => renderDefault(child))}
                                 </Accordion>
                             );
                         default:
-                            return rednderDefault(item);
+                            return renderDefault(item);
                     }
                 })}
         </ConnectionLayout>

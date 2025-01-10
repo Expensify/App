@@ -49,11 +49,11 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
     const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
-    const shouldExpandAccordion = useSharedValue(isSyncReimbursedSwitchOn);
+    const shouldExpand = useSharedValue(isSyncReimbursedSwitchOn);
 
     useEffect(() => {
-        shouldExpandAccordion.set(isSyncReimbursedSwitchOn);
-    }, [isSyncReimbursedSwitchOn, shouldExpandAccordion]);
+        shouldExpand.set(isSyncReimbursedSwitchOn);
+    }, [isSyncReimbursedSwitchOn, shouldExpand]);
 
     const AccordionMenuItems = [
         {
@@ -182,7 +182,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 />
             ))}
             <Accordion
-                isExpanded={shouldExpandAccordion}
+                isExpanded={shouldExpand}
                 style={styles.overflowHidden}
             >
                 {syncReimbursedSubMenuItems()}

@@ -30,8 +30,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     const defaultVendorName = getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors);
 
-    const shouldExpandCondition = useSharedValue(!(reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT || !reimbursableExpenseReportDefaultVendor));
-    const renderDefault = (item: MenuItemWithSubscribedSettings | ToggleItemWithKey) => {
+    const shouldExpand = useSharedValue(!(reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT || !reimbursableExpenseReportDefaultVendor));
+    const renderDefault = (item: MenuItemWithSubscribedSettings) => {
         return (
             <OfflineWithFeedback
                 key={item.description}
@@ -67,7 +67,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             onToggle: (enabled) => {
                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, config?.export.reimbursableExpenseReportDefaultVendor);
-                shouldExpandCondition.set(enabled);
+                shouldExpand.set(enabled);
             },
             onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR),
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields),
@@ -89,7 +89,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 },
             ],
             shouldHide: false,
-            shouldExpand: shouldExpandCondition,
+            shouldExpand: shouldExpand,
         },
     ];
 
