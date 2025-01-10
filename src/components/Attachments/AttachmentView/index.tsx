@@ -161,6 +161,10 @@ function AttachmentView({
         );
     }
 
+    if (TransactionUtils.isPerDiemRequest(transaction) && transaction && !TransactionUtils.hasReceiptSource(transaction)) {
+        return <PerDiemEReceipt transactionID={transaction.transactionID} />;
+    }
+
     if (transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
@@ -214,10 +218,6 @@ function AttachmentView({
                 />
             </View>
         );
-    }
-
-    if (TransactionUtils.isPerDiemRequest(transaction) && transaction) {
-        return <PerDiemEReceipt transactionID={transaction.transactionID} />;
     }
 
     if (TransactionUtils.isDistanceRequest(transaction) && transaction) {

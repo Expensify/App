@@ -33,18 +33,18 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
 
 function getPerDiemDestination(merchant: string) {
     const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 1) {
+    if (merchantParts.length < 3) {
         return '';
     }
-    return merchantParts.slice(0, merchantParts.length - 1).join(', ');
+    return merchantParts.slice(0, merchantParts.length - 3).join(', ');
 }
 
 function getPerDiemDates(merchant: string) {
     const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 1) {
-        return merchantParts.at(0) ?? '';
+    if (merchantParts.length < 3) {
+        return merchant;
     }
-    return merchantParts.at(-1);
+    return merchantParts.slice(-3).join(', ');
 }
 
 function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
