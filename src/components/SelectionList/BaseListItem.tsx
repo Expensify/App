@@ -108,6 +108,8 @@ function BaseListItem<TItem extends ListItem>({
                 wrapperStyle={pressableWrapperStyle}
             >
                 <View
+                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
+                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
