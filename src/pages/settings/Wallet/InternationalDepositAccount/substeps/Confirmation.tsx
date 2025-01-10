@@ -86,7 +86,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
     ];
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]).forEach(([fieldName, field]) => {
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).forEach(([fieldName, field]) => {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: formValues[fieldName],
@@ -97,7 +97,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     });
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]).forEach(([fieldName, field]) => {
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {}).forEach(([fieldName, field]) => {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: formValues[fieldName],
@@ -108,7 +108,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     });
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION])
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {})
         .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2))
         .forEach(([fieldName, field]) => {
             summaryItems.push({
@@ -121,7 +121,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
             });
         });
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION])
+    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {})
         .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2))
         .forEach(([fieldName, field]) => {
             summaryItems.push({
