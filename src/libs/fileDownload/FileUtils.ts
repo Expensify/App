@@ -333,17 +333,17 @@ const resizeImageIfNeeded = (file: FileObject) => {
 };
 
 const createFile = (file: File): FileObject => {
-    if (getPlatform() === CONST.PLATFORM.WEB) {
-        return new File([file], file.name, {
+    if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
+        return {
+            uri: file.uri,
+            name: file.name,
             type: file.type,
-            lastModified: file.lastModified,
-        });
+        };
     }
-    return {
-        uri: file.uri,
-        name: file.name,
+    return new File([file], file.name, {
         type: file.type,
-    };
+        lastModified: file.lastModified,
+    });
 };
 
 export {
