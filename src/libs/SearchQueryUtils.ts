@@ -67,11 +67,10 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains special characters.
+ * Returns string value wrapped in quotes "", if the value contains space.
  */
 function sanitizeSearchValue(str: string) {
-    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
-    if (regexp.test(str)) {
+    if (str.includes(' ')) {
         return `"${str}"`;
     }
     return str;
