@@ -10,7 +10,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as Localize from '@libs/Localize';
-import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
 import CONST from '@src/CONST';
@@ -22,20 +22,20 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
+const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Split.Navigator initialRouteName={initialRouteName}>
-                        <Split.Screen
+                    <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
                             name={SCREENS.WORKSPACE.CATEGORIES}
                             component={WorkspaceCategoriesPage}
                             initialParams={initialParams}
                         />
-                    </Split.Navigator>
+                    </Stack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,

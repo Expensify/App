@@ -1,3 +1,4 @@
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
@@ -23,6 +24,15 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => undefined,
+    useIsFocused: () => true,
+    useRoute: () => ({name: 'Home'}),
+    useNavigation: () => undefined,
+    useFocusEffect: () => undefined,
+}));
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
