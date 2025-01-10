@@ -227,7 +227,7 @@ type PureReportActionItemProps = {
     isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
 
     /** Function to clear an error from a transaction */
-    clearError?: (transactionID: string, oldTransactionValues: Partial<Transaction>) => void;
+    clearError?: (transactionID: string, oldTransactionValues: Partial<OnyxTypes.Transaction>) => void;
 
     /** Function to clear all errors from a report action */
     clearAllRelatedReportActionErrors?: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
