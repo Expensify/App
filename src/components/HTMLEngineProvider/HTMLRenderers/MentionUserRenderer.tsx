@@ -62,7 +62,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
-        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute());
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
@@ -96,7 +96,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                     onPress={(event) => {
                         event.preventDefault();
                         if (!isEmpty(htmlAttribAccountID)) {
-                            Navigation.navigate(ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute()));
+                            Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
                             return;
                         }
                         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));

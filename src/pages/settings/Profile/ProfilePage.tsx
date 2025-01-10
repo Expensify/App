@@ -184,7 +184,7 @@ function ProfilePage() {
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                             errorRowStyles={styles.mt6}
                                             onErrorClose={PersonalDetails.clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                                             originalFileName={currentUserPersonalDetails.originalFileName}
                                             headerTitle={translate('profilePage.profileAvatar')}

@@ -197,7 +197,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}

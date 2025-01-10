@@ -83,15 +83,15 @@ const ROUTES = {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
-            const baseRoute = getUrlWithBackToParam(`a/${accountID as string}`, backTo);
+        getRoute: (accountID?: number, backTo?: string, login?: string) => {
+            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
             const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
             return `${baseRoute}${loginParam}` as const;
         },
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: string | number) => `a/${accountID as string}/avatar` as const,
+        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
     },
 
     GET_ASSISTANCE: {
@@ -410,7 +410,7 @@ const ROUTES = {
     },
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID as string}/edit` as const, backTo),
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
@@ -418,7 +418,7 @@ const ROUTES = {
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID as string}` as const, backTo),
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
