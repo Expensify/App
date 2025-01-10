@@ -2652,6 +2652,7 @@ const translations = {
             planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
+            viewTransactions: 'Ver transacciones',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',

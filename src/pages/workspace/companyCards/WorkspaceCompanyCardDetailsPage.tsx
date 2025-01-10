@@ -24,6 +24,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -168,6 +169,18 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                                 title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
+                            />
+                            <MenuItem
+                                icon={Expensicons.MoneySearch}
+                                title={translate('workspace.common.viewTransactions')}
+                                style={styles.mv1}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                            query: SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                        }),
+                                    );
+                                }}
                             />
                             <OfflineWithFeedback
                                 pendingAction={card?.pendingFields?.lastScrape}
