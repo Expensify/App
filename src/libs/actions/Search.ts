@@ -358,7 +358,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs = ['']}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,

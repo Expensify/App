@@ -52,8 +52,7 @@ function createIndividualCardFilterItem(card: Card, personalDetailsList: Persona
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
     const cardName = card?.nameValuePairs?.cardTitle;
-    const text1 = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
-    const text = personalDetails?.displayName ?? text1;
+    const text = personalDetails?.displayName ?? cardName;
 
     return {
         lastFourPAN: card.lastFourPAN,
@@ -177,7 +176,9 @@ function buildCardFeedsData(
             const isBankRepeating = repeatingBanks.includes(bank);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
-            const correspondingCardIDs = Object.keys(cardFeed ?? {}).filter((cardKey) => cardKey !== 'cardList');
+            const correspondingCardIDs = Object.entries(cardFeed ?? {})
+                .filter(([cardKey, card]) => cardKey !== 'cardList' && CardUtils.isCard(card) && isCardIssued(card))
+                .map(([cardKey]) => cardKey);
 
             const feedItem = createCardFeedItem({
                 bank,
