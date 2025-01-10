@@ -233,7 +233,7 @@ jobs:
 
       - name: Generate APK from AAB
         run: |
-          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
+          json=$("curl -s https://api.github.com/repos/google/bundletool/releases/latest")
           downloadUrl=$(echo $json | jq -r ".assets | .[].browser_download_url")
           curl $downloadUrl -4 -sL -o 'bundletool.jar'
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
