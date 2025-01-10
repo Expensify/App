@@ -10,6 +10,10 @@ import * as UpdateRequired from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import getPlatform from './getPlatform';
+
+const platform = getPlatform();
+const isNativePlatform = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -175,7 +179,7 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 }
 
 /**
- * Ensures no value of type `object` other than null, Blob, or its subclasses is passed to XMLHttpRequest.
+ * Ensures no value of type `object` other than null, Blob, its subclasses, or {uri: string} (native platforms only) is passed to XMLHttpRequest.
  * Otherwise, it will be incorrectly serialized as `[object Object]` and cause an error on Android.
  * See https://github.com/Expensify/App/issues/45086
  */
@@ -189,7 +193,10 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
             return value.every((element) => isValid(element, false));
         }
         if (isTopLevel) {
-            return value instanceof Blob;
+            // Native platforms only require the value to include the `uri` property.
+            // Optionally, it can also have a `name` and `type` props.
+            // On other platforms, the value must be an instance of `Blob`.
+            return isNativePlatform ? 'uri' in value && !!value.uri : value instanceof Blob;
         }
         return false;
     };
