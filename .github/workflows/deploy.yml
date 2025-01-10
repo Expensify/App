@@ -169,7 +169,6 @@ jobs:
           op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
           op read op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore --force --out-file ./upload-key.keystore
           op read op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json --force --out-file ./android-fastlane-json-key.json
-          
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
@@ -233,8 +232,11 @@ jobs:
 #          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Generate APK from AAB
-        run: | 
-          bundletool build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
+        run: |
+          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
+          downloadUrl=$(echo $json | jq -r ".assets | .[].browser_download_url")
+          curl $downloadUrl -4 -sL -o 'bundletool.jar'
+          java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
             --ks-pass=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
