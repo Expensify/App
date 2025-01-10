@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {SearchQueryString} from '@components/Search/types';
@@ -35,7 +36,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import DebugTabView from '../DebugTabView';
 import BOTTOM_TABS from './BOTTOM_TABS';
 
 type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
