@@ -1,11 +1,11 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isExpensifyTeam} from '@libs/PolicyUtils';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
-import {isExpensifyTeam} from '@libs/PolicyUtils';
 
 /**
  * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
