@@ -126,7 +126,7 @@ jobs:
           git submodule update --init --remote
 
       - name: Checkout Old Dot to author specified branch or commit
-        if: needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != ""
+        if: ${{ needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != '' }}
         run: |
           cd Mobile-Expensify
           git fetch
@@ -237,7 +237,7 @@ jobs:
           git submodule update --init --remote
 
       - name: Checkout Old Dot to author specified branch or commit
-        if: needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != ""
+        if: ${{ needs.getOldDotBranch.outputs.OLD_DOT_BRANCH != '' }}
         run: |
           cd Mobile-Expensify
           git fetch
