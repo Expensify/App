@@ -24,7 +24,6 @@ DerivedData
 *.p12
 *.mobileprovision
 ios-fastlane-json-key.json
-firebase.json
 **/.xcode.env.local
 
 # Android/IntelliJ
