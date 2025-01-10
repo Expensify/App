@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard} from 'react-native';
+import {InteractionManager, Keyboard, Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -278,7 +278,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                     shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
-                    onThreeDotsButtonPress={() => blurActiveElement()}
+                    onThreeDotsButtonPress={() => {
+                        if (Platform.OS === 'web') {
+                            blurActiveElement();
+                        } else {
+                            Keyboard.dismiss();
+                        }
+                    }}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
