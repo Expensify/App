@@ -4487,7 +4487,7 @@ const translations = {
             },
             completed: {
                 headline: 'Tu espacio de trabajo ha sido bajado de categoría',
-                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                description: 'Tienes otros espacios de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
                 gotIt: 'Entendido, gracias.',
             },
         },

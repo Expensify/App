@@ -4421,7 +4421,7 @@ const translations = {
             },
             completed: {
                 headline: 'Your workspace has been downgraded',
-                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                description: 'You have other workspaces on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
                 gotIt: 'Got it, thanks',
             },
         },
