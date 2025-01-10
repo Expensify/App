@@ -787,6 +787,7 @@ jobs:
             "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./android-aab-artifact/app-production-release.aab#android.aab"
             "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
+            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
             "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
