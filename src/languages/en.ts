@@ -523,6 +523,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -883,7 +884,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
-        receiptScanning: 'Receipt scanning...',
+        receiptScanning: () => ({
+            one: 'Receipt scanning...',
+            other: 'Receipts scanning...',
+        }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({
@@ -1272,6 +1276,7 @@ const translations = {
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
+            invalidateWithDelay: 'Invalidate with delay',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2562,6 +2567,8 @@ const translations = {
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
+            setAsDefault: 'Set as default workspace',
+            defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
@@ -4404,7 +4411,7 @@ const translations = {
             },
             completed: {
                 headline: 'Your workspace has been downgraded',
-                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                description: 'You have other workspaces on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
                 gotIt: 'Got it, thanks',
             },
         },
@@ -5621,6 +5628,11 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more!',
         },
+    },
+    discardChangesConfirmation: {
+        title: 'Discard changes?',
+        body: 'Are you sure you want to discard the changes you made?',
+        confirmText: 'Discard changes',
     },
 };
 
