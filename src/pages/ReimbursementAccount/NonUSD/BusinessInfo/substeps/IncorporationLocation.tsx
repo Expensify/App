@@ -18,7 +18,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type IncorporationLocationProps = SubStepProps;
 
-const {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY, COMPANY_STATE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY_CODE, COMPANY_STATE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE];
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -40,12 +40,17 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const onyxValues = useMemo(
-        () => getSubstepValues({FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY, COMPANY_STATE}, reimbursementAccountDraft, reimbursementAccount),
+        () =>
+            getSubstepValues(
+                {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY: COMPANY_COUNTRY_CODE, COMPANY_STATE},
+                reimbursementAccountDraft,
+                reimbursementAccount,
+            ),
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const incorporationCountryInitialValue = onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] !== '' ? onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] : onyxValues[COMPANY_COUNTRY];
-    const businessAddressStateDefaultValue = isCountryWithSelectableState(onyxValues[COMPANY_COUNTRY]) ? onyxValues[COMPANY_STATE] : '';
+    const incorporationCountryInitialValue = onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] !== '' ? onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] : onyxValues[COMPANY_COUNTRY_CODE];
+    const businessAddressStateDefaultValue = isCountryWithSelectableState(onyxValues[COMPANY_COUNTRY_CODE]) ? onyxValues[COMPANY_STATE] : '';
     const incorporationStateInitialValue = onyxValues[FORMATION_INCORPORATION_STATE] !== '' ? onyxValues[FORMATION_INCORPORATION_STATE] : businessAddressStateDefaultValue;
 
     const [selectedCountry, setSelectedCountry] = useState<string>(incorporationCountryInitialValue);
