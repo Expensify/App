@@ -531,7 +531,7 @@ type OptionData = {
     icons?: Icon[];
     iouReportAmount?: number;
     displayName?: string;
-} & Omit<Report, 'reportID'>;
+} & Report;
 
 type OnyxDataTaskAssigneeChat = {
     optimisticData: OnyxUpdate[];
