@@ -279,7 +279,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
