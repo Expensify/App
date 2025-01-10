@@ -1,20 +1,13 @@
-import type {InitialState} from '@react-navigation/native';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
-import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import switchPolicyAfterInteractions from '@pages/WorkspaceSwitcherPage/switchPolicyAfterInteractions';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-
-const RootStack = createRootStackNavigator<AuthScreensParamList>();
-const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
+import TestNavigationContainer from '../utils/TestNavigationContainer';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
@@ -23,47 +16,6 @@ jest.mock('@pages/home/sidebar/BottomTabAvatar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
-
-function ReportsSplitNavigator() {
-    return (
-        <ReportsSplit.Navigator
-            sidebarScreen={SCREENS.HOME}
-            defaultCentralScreen={SCREENS.REPORT}
-            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
-        >
-            <ReportsSplit.Screen
-                name={SCREENS.HOME}
-                getComponent={() => jest.fn()}
-            />
-            <ReportsSplit.Screen
-                name={SCREENS.REPORT}
-                getComponent={() => jest.fn()}
-            />
-        </ReportsSplit.Navigator>
-    );
-}
-
-type TestNavigationContainerProps = {initialState: InitialState};
-
-function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
-    return (
-        <NavigationContainer
-            ref={navigationRef}
-            initialState={initialState}
-        >
-            <RootStack.Navigator>
-                <RootStack.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    component={ReportsSplitNavigator}
-                />
-                <RootStack.Screen
-                    name={SCREENS.SEARCH.ROOT}
-                    getComponent={() => jest.fn()}
-                />
-            </RootStack.Navigator>
-        </NavigationContainer>
-    );
-}
 
 describe('Switch policy ID', () => {
     beforeEach(() => {
