@@ -28,6 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {getConciergeReportID} from '@libs/actions/Report';
@@ -262,6 +263,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     if (!integrationData) {
                         return undefined;
                     }
+                    if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
+                        return;
+                    }
                     const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                     return {
@@ -272,7 +276,15 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         title: integrationData?.title,
                         rightComponent: (
                             <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
+                                onPress={() => {
+                                    if (integrationData.multiConnectorAlias) {
+                                        Navigation.navigate(
+                                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(integrationData.multiConnectorAlias)),
+                                        );
+                                        return;
+                                    }
+                                    startIntegrationFlow({name: integration});
+                                }}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
@@ -423,6 +435,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 if (!integrationData) {
                     return undefined;
                 }
+                if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
+                    return;
+                }
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                 return {
@@ -430,13 +445,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() =>
+                            onPress={() => {
+                                if (integrationData.multiConnectorAlias) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(integrationData.multiConnectorAlias)),
+                                    );
+                                    return;
+                                }
                                 startIntegrationFlow({
                                     name: integration,
                                     integrationToDisconnect: connectedIntegration,
                                     shouldDisconnectIntegrationBeforeConnecting: true,
-                                })
-                            }
+                                });
+                            }}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small

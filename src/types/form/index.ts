@@ -70,6 +70,7 @@ export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
 export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
+export type {NetSuiteQuickStartOAuth2Form} from './NetSuiteQuickStartOAuth2Form';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';

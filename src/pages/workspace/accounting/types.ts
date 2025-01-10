@@ -1,7 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import CONST from '@src/CONST';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -25,6 +27,7 @@ type WorkspaceUpgradeNavigationDetails = {
 };
 
 type AccountingIntegration = {
+    connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     title: string;
     icon: IconAsset;
     setupConnectionFlow: React.ReactNode;
@@ -38,6 +41,8 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
+    // s77rt: explain or use better field name
+    multiConnectorAlias?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 };
 
 export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};

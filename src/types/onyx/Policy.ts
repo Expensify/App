@@ -1368,6 +1368,9 @@ type Connections = {
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
+    /** NetSuite QuickStart integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: NetSuiteConnection; // s77rt: NSQSConnection
+
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 
