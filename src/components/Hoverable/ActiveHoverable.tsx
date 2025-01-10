@@ -17,22 +17,31 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const [isHovered, setIsHovered] = useState(false);
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
-    const lastKnownHoverState = useRef(false);
+    const isHoveredRef = useRef(false);
+    const isVisibilityHidden = useRef(false);
 
-    const updateHoverState = useCallback(
-        (value: boolean) => {
-            if (lastKnownHoverState.current === value) {
+    const updateIsHovered = useCallback(
+        (hovered: boolean) => {
+            if (shouldFreezeCapture) {
                 return;
             }
-            lastKnownHoverState.current = value;
-            setIsHovered(value);
-            if (value) {
+
+            isHoveredRef.current = hovered;
+            isVisibilityHidden.current = false;
+
+            if (shouldHandleScroll && isScrollingRef.current) {
+                return;
+            }
+
+            setIsHovered(hovered);
+
+            if (hovered) {
                 onHoverIn?.();
             } else {
                 onHoverOut?.();
             }
         },
-        [onHoverIn, onHoverOut],
+        [shouldHandleScroll, shouldFreezeCapture, onHoverIn, onHoverOut],
     );
 
     useEffect(() => {
@@ -41,77 +50,51 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         }
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
-            const wasScrolling = isScrollingRef.current;
             isScrollingRef.current = scrolling;
-
-            if (scrolling) {
-                // Store current hover state before clearing it
-                if (isHovered) {
-                    lastKnownHoverState.current = true;
-                }
-                updateHoverState(false);
-            } else if (wasScrolling) {
-                // Only check hover state when scroll actually ends
-                const isMouseOver = elementRef.current?.matches(':hover');
-                if (isMouseOver && !shouldFreezeCapture && lastKnownHoverState.current) {
-                    updateHoverState(true);
-                }
+            if (scrolling && isHovered) {
+                setIsHovered(false);
+                onHoverOut?.();
+            } else if (!scrolling && elementRef.current?.matches(':hover')) {
+                setIsHovered(true);
+                onHoverIn?.();
             }
         });
 
         return () => scrollingListener.remove();
-    }, [shouldHandleScroll, shouldFreezeCapture, updateHoverState, isHovered]);
+    }, [shouldHandleScroll, isHovered, onHoverIn, onHoverOut]);
 
-    // Handle visibility changes
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
-                if (isHovered) {
-                    lastKnownHoverState.current = true;
-                }
-                updateHoverState(false);
-            } else if (lastKnownHoverState.current) {
-                // When becoming visible, check if we should restore hover
-                const isMouseOver = elementRef.current?.matches(':hover');
-                if (isMouseOver && !shouldFreezeCapture) {
-                    requestAnimationFrame(() => {
-                        updateHoverState(true);
-                    });
-                }
+                isVisibilityHidden.current = true;
+                setIsHovered(false);
+            } else {
+                isVisibilityHidden.current = false;
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [updateHoverState, isHovered, shouldFreezeCapture]);
+    }, []);
 
     const handleMouseEvents = useCallback(
-        (type: 'enter' | 'leave' | 'blur' | 'move') => (e: MouseEvent) => {
-            if (shouldFreezeCapture ?? (shouldHandleScroll && isScrollingRef.current)) {
+        (type: 'enter' | 'leave' | 'blur') => (e: MouseEvent) => {
+            if (shouldFreezeCapture) {
                 return;
             }
 
-            if (type === 'blur') {
-                if (!elementRef.current?.contains(e.relatedTarget as Node)) {
-                    updateHoverState(false);
-                }
-                return;
-            }
+            const newHoverState = type === 'enter';
+            isHoveredRef.current = newHoverState;
+            isVisibilityHidden.current = false;
 
-            // Handle quick mouse movements with move event
-            if (type === 'move' && !isHovered && lastKnownHoverState.current) {
-                updateHoverState(true);
-                return;
-            }
-
-            updateHoverState(type === 'enter');
+            updateIsHovered(newHoverState);
         },
-        [shouldFreezeCapture, shouldHandleScroll, updateHoverState, isHovered],
+        [shouldFreezeCapture, updateIsHovered],
     );
 
-    const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
+    const child = useMemo(() => getReturnValue(children, isHovered), [children, isHovered]);
 
-    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur} = child.props as OnMouseEvents;
+    const {onMouseEnter, onMouseLeave, onBlur} = child.props as OnMouseEvents;
 
     return cloneElement(child, {
         ref: mergeRefs(elementRef, outerRef, child.ref),
@@ -123,14 +106,11 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
             handleMouseEvents('leave')(e);
             onMouseLeave?.(e);
         },
-        onMouseMove: (e: MouseEvent) => {
-            handleMouseEvents('move')(e);
-            onMouseMove?.(e);
-        },
         onBlur: (e: MouseEvent) => {
             handleMouseEvents('blur')(e);
             onBlur?.(e);
         },
     });
 }
+
 export default forwardRef(ActiveHoverable);
