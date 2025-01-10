@@ -457,8 +457,8 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+function clearError(transactionID: string, oldTransactionValues: Partial<Transaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...oldTransactionValues, errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
 function markAsCash(transactionID: string, transactionThreadReportID: string) {

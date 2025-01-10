@@ -81,6 +81,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import Transaction from '@src/types/onyx';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -227,7 +228,7 @@ type PureReportActionItemProps = {
     isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
 
     /** Function to clear an error from a transaction */
-    clearError?: (transactionID: string) => void;
+    clearError?: (transactionID: string, oldTransactionValues: Partial<Transaction>) => void;
 
     /** Function to clear all errors from a report action */
     clearAllRelatedReportActionErrors?: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
@@ -1126,9 +1127,32 @@ function PureReportActionItem({
                         >
                             <OfflineWithFeedback
                                 onClose={() => {
-                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+                                    let transactionID;
+                                    let data = {};
+                                    if (ReportActionsUtils.isMoneyRequestAction(action)) {
+                                        transactionID = ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID;
+                                    } else if (ReportActionsUtils.isModifiedExpenseAction(action) && report?.reportID) {
+                                        const moneyRequestAction = Object.values(ReportActionsUtils.getAllReportActions(report?.reportID)).find(ReportActionsUtils.isMoneyRequestAction);
+                                        if (!moneyRequestAction) {
+                                            return;
+                                        }
+                                        transactionID = ReportActionsUtils.getOriginalMessage(moneyRequestAction)?.IOUTransactionID;
+                                        const moneyRequestActionOriginalMessage = ReportActionsUtils.getOriginalMessage(action);
+                                        if (
+                                            moneyRequestActionOriginalMessage && typeof moneyRequestActionOriginalMessage === 'object' &&
+                                            moneyRequestActionOriginalMessage.oldAmount &&
+                                            moneyRequestActionOriginalMessage.oldCurrency &&
+                                            'amount' in moneyRequestActionOriginalMessage &&
+                                            'currency' in moneyRequestActionOriginalMessage
+                                        ) {
+                                            data = {
+                                                modifiedAmount: moneyRequestActionOriginalMessage.oldAmount,
+                                                modifiedCurrency: moneyRequestActionOriginalMessage.oldCurrency,
+                                            };
+                                        }
+                                    }
                                     if (transactionID) {
-                                        clearError(transactionID);
+                                        clearError(transactionID, data);
                                     }
                                     clearAllRelatedReportActionErrors(reportID, action);
                                 }}
