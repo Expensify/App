@@ -125,21 +125,6 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
         },
-        {
-            type: 'addBankAccount',
-            autoCompleted: false,
-            title: 'Add personal bank account',
-            description:
-                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                '\n' +
-                'Here’s how to set up your bank account:\n' +
-                '\n' +
-                '1. Click the settings tab.\n' +
-                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                '3. Connect your bank account.\n' +
-                '\n' +
-                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
-        },
     ],
 };
 
@@ -163,21 +148,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '5. Click *Submit*.\n' +
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
-        },
-        {
-            type: 'addBankAccount',
-            autoCompleted: false,
-            title: 'Add personal bank account',
-            description:
-                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                '\n' +
-                'Here’s how to set up your bank account:\n' +
-                '\n' +
-                '1. Click the settings tab.\n' +
-                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                '3. Connect your bank account.\n' +
-                '\n' +
-                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
         },
     ],
 };
@@ -688,6 +658,7 @@ const CONST = {
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
+        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -730,6 +701,9 @@ const CONST = {
         },
         SHIFT: {
             DEFAULT: 'shift',
+        },
+        ENTER: {
+            DEFAULT: 'enter',
         },
     },
     KEYBOARD_SHORTCUTS: {
@@ -860,6 +834,11 @@ const CONST = {
                 [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
             },
         },
+        BACKSPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Backspace',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -902,7 +881,7 @@ const CONST = {
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
-    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive--practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
+    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
@@ -947,6 +926,7 @@ const CONST = {
         ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
+        COMPLETED: 'completed',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1466,6 +1446,8 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
+    // The number of milliseconds for an idle session to expire
+    SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -1488,8 +1470,8 @@ const CONST = {
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
-    // 6 numeric digits
-    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
+    // We allow either 6 digits for validated users or 9-character base26 for unvalidated users
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$|^[A-Z]{9}$/,
 
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
@@ -1581,6 +1563,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -1694,6 +1677,16 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    },
+
+    FULL_STORY: {
+        MASK: 'fs-mask',
+        UNMASK: 'fs-unmask',
+        CUSTOMER: 'customer',
+        CONCIERGE: 'concierge',
+        OTHER: 'other',
+        WEB_PROP_ATTR: 'data-testid',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -2035,76 +2028,82 @@ const CONST = {
      * Should mirror the list on the OldDot.
      */
     NETSUITE_TAX_COUNTRIES: [
-        '_canada',
-        '_unitedKingdomGB',
-        '_unitedKingdom',
-        '_australia',
-        '_southAfrica',
-        '_india',
-        '_france',
-        '_netherlands',
-        '_germany',
-        '_singapore',
-        '_spain',
-        '_ireland',
-        '_denmark',
-        '_brazil',
-        '_japan',
-        '_philippines',
-        '_china',
         '_argentina',
-        '_newZealand',
-        '_switzerland',
-        '_sweden',
-        '_portugal',
-        '_mexico',
-        '_israel',
-        '_thailand',
+        '_australia',
+        '_austria',
+        '_azerbaijan',
+        '_belgium',
+        '_brazil',
+        '_bulgaria',
+        '_canada',
+        '_china',
+        '_costaRica',
+        '_croatia',
+        '_croatiaHrvatska',
+        '_cyprus',
         '_czechRepublic',
+        '_denmark',
         '_egypt',
+        '_estonia',
+        '_finland',
+        '_france',
+        '_georgia',
+        '_germany',
         '_ghana',
+        '_greece',
+        '_hongKong',
+        '_hungary',
+        '_india',
         '_indonesia',
         '_iranIslamicRepublicOf',
+        '_ireland',
+        '_israel',
+        '_italy',
+        '_japan',
         '_jordan',
         '_kenya',
+        '_koreaRepublicOf',
+        '_koreaTheRepublicOf',
         '_kuwait',
+        '_latvia',
         '_lebanon',
+        '_lithuania',
+        '_luxembourg',
         '_malaysia',
+        '_malta',
+        '_mexico',
         '_morocco',
         '_myanmar',
+        '_netherlands',
+        '_newZealand',
         '_nigeria',
-        '_pakistan',
-        '_saudiArabia',
-        '_sriLanka',
-        '_unitedArabEmirates',
-        '_vietnam',
-        '_austria',
-        '_bulgaria',
-        '_greece',
-        '_cyprus',
         '_norway',
-        '_romania',
+        '_pakistan',
+        '_philippines',
         '_poland',
-        '_hongKong',
-        '_luxembourg',
-        '_lithuania',
-        '_malta',
-        '_finland',
-        '_koreaRepublicOf',
-        '_italy',
-        '_georgia',
-        '_hungary',
-        '_latvia',
-        '_estonia',
-        '_slovenia',
+        '_portugal',
+        '_romania',
+        '_saudiArabia',
         '_serbia',
-        '_croatiaHrvatska',
-        '_belgium',
-        '_turkey',
-        '_taiwan',
-        '_azerbaijan',
+        '_singapore',
         '_slovakRepublic',
-        '_costaRica',
+        '_slovakia',
+        '_slovenia',
+        '_southAfrica',
+        '_spain',
+        '_sriLanka',
+        '_sweden',
+        '_switzerland',
+        '_taiwan',
+        '_thailand',
+        '_turkey',
+        '_turkiye',
+        '_ukraine',
+        '_unitedArabEmirates',
+        '_unitedKingdom',
+        '_unitedKingdomGB',
+        '_vietnam',
+        '_vietNam',
     ] as string[],
 
     QUICKBOOKS_EXPORT_DATE: {
@@ -2770,6 +2769,7 @@ const CONST = {
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
+            BANK_CONNECTION: 'BankConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
@@ -3249,6 +3249,7 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
+        GO_TO_WORKSPACE: 'goToWorkspace',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -5186,21 +5187,6 @@ const CONST = {
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
-                {
-                    type: 'addBankAccount',
-                    autoCompleted: false,
-                    title: 'Add personal bank account',
-                    description:
-                        'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
-                        '\n' +
-                        'Here’s how to set up your bank account:\n' +
-                        '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
-                        '3. Connect your bank account.\n' +
-                        '\n' +
-                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
-                },
             ],
         },
         [onboardingChoices.ADMIN]: {
@@ -6493,6 +6479,7 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
