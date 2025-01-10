@@ -48,10 +48,10 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
 }
 
 function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
-    const personalDetails = personalDetailsList[card?.accountID ?? ''];
+    const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
-    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+    const cardName = card?.nameValuePairs?.cardTitle;
     const text1 = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
     const text = personalDetails?.displayName ?? text1;
 

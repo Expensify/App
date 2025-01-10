@@ -52,8 +52,8 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
     const submit = () => {
-        if (isStripeFeedProvider) {
-            Card.updateSelectedFeed(feedProvider, policyID ?? '-1');
+        if (isStripeFeedProvider && policyID) {
+            Card.updateSelectedFeed(feedProvider, policyID);
             Navigation.goBack();
             return;
         }
