@@ -1,5 +1,5 @@
-import isEqual from 'lodash/isEqual';
 import cloneDeep from 'lodash/cloneDeep';
+import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
