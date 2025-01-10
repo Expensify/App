@@ -327,7 +327,7 @@ const ROUTES = {
     ATTACHMENTS: {
         route: 'attachment',
         getRoute: (
-            reportID: string,
+            reportID: string | undefined,
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
             url: string,
             accountID?: number,
