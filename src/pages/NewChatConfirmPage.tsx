@@ -103,7 +103,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             return;
         }
 
-        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
+        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
         Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
     }, [newGroupDraft, avatarFile]);
 
