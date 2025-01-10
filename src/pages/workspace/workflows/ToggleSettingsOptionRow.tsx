@@ -48,6 +48,9 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
 
+    /** Used to apply styles to the Accordion */
+    accordionStyle?: StyleProp<ViewStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
 
@@ -83,6 +86,7 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -185,7 +189,12 @@ function ToggleSettingOptionRow({
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                <Accordion isExpanded={isExpanded}>{subMenuItems}</Accordion>
+                <Accordion
+                    isExpanded={isExpanded}
+                    style={accordionStyle}
+                >
+                    {subMenuItems}
+                </Accordion>
             </View>
         </OfflineWithFeedback>
     );

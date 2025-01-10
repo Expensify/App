@@ -122,7 +122,14 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                                 />
                             );
                         case 'accordion':
-                            return <Accordion isExpanded={item.shouldExpand} style={styles.overflowHidden}>{item.children.map((child) => renderDefault(child))}</Accordion>;
+                            return (
+                                <Accordion
+                                    isExpanded={item.shouldExpand}
+                                    style={styles.overflowHidden}
+                                >
+                                    {item.children.map((child) => renderDefault(child))}
+                                </Accordion>
+                            );
                         default:
                             return renderDefault(item);
                     }

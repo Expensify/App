@@ -1,5 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -47,7 +49,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
     const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
-    const sectionMenuItems = [
+    const shouldExpandAccordion = useSharedValue(isSyncReimbursedSwitchOn);
+
+    useEffect(() => {
+        shouldExpandAccordion.set(isSyncReimbursedSwitchOn);
+    }, [isSyncReimbursedSwitchOn, shouldExpandAccordion]);
+
+    const AccordionMenuItems = [
         {
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
@@ -68,7 +76,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const syncReimbursedSubMenuItems = () => (
         <View style={[styles.mt3]}>
-            {sectionMenuItems.map((item) => (
+            {AccordionMenuItems.map((item) => (
                 <OfflineWithFeedback pendingAction={item.pendingAction}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
@@ -173,7 +181,12 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
                 />
             ))}
-            {isSyncReimbursedSwitchOn && syncReimbursedSubMenuItems()}
+            <Accordion
+                isExpanded={shouldExpandAccordion}
+                style={styles.overflowHidden}
+            >
+                {syncReimbursedSubMenuItems()}
+            </Accordion>
         </ConnectionLayout>
     );
 }
