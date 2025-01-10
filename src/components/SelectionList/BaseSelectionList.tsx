@@ -119,6 +119,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldScrollToFocusedIndex = true,
         onContentSizeChange,
         listItemTitleStyles,
+        initialNumToRender = 12,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -831,7 +832,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        initialNumToRender={12}
+                        initialNumToRender={initialNumToRender}
                         maxToRenderPerBatch={maxToRenderPerBatch}
                         windowSize={windowSize}
                         updateCellsBatchingPeriod={updateCellsBatchingPeriod}
