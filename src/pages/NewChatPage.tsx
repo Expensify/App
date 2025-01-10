@@ -236,6 +236,8 @@ function NewChatPage() {
 
                 selectionListRef?.current?.clearInputAfterSelect?.();
 
+                selectionListRef.current?.focusTextInput();
+                selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
                 setSelectedOptions(newSelectedOptions);
             }
 
