@@ -276,7 +276,7 @@ function NewChatPage() {
             return;
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
-            login: option.login ?? CONST.EMPTY_STRING,
+            login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
