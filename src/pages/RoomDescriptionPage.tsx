@@ -51,7 +51,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     }, []);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)));
     }, [report.reportID, backTo]);
 
     const submitForm = useCallback(() => {
