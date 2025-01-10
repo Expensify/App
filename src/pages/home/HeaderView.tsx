@@ -52,7 +52,7 @@ type HeaderViewProps = {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** The reportID of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;

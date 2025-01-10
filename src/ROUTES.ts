@@ -366,7 +366,12 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/details`, backTo);
+        },
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
@@ -402,7 +407,12 @@ const ROUTES = {
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_DESCRIPTION route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/description` as const, backTo);
+        },
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
