@@ -1099,8 +1099,8 @@ const translations = {
             one: `Viaje: 1 día completo`,
             other: (count: number) => `Viaje: ${count} días completos`,
         }),
-        dates: 'Dates',
-        rates: 'Rates',
+        dates: 'Fechas',
+        rates: 'Tasas',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
