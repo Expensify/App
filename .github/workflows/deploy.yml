@@ -166,7 +166,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./firebase.json firebase.json
+          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --out-file ./firebase.json
           op document get --output ./upload-key.keystore upload-key.keystore 
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
@@ -361,8 +361,7 @@ jobs:
       - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op document get --output ./firebase.json firebase.json
+        run: op read op://Mobile-Deploy-CI/firebase.json/firebase.json --out-file ./firebase.json
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
