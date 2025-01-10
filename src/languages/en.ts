@@ -523,6 +523,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -4410,7 +4411,7 @@ const translations = {
             },
             completed: {
                 headline: 'Your workspace has been downgraded',
-                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                description: 'You have other workspaces on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
                 gotIt: 'Got it, thanks',
             },
         },
