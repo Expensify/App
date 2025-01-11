@@ -68,7 +68,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
             goBack();
         } else {
-            ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            if (value !== '') {
+                ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
+            }
             Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
         }
     };
