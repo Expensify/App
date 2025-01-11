@@ -12905,7 +12905,7 @@ const CONST = {
     },
     ACTIONS: {
         CREATED: 'created',
-        EDIT: 'edited',
+        EDITED: 'edited',
     },
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
@@ -12924,6 +12924,7 @@ const CONST = {
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
     NO_ACTION: 'NO_ACTION',
+    ACTION_REQUIRED: 'ACTION_REQUIRED',
     OPENAI_POLL_RATE: 1500,
     OPENAI_POLL_TIMEOUT: 90000,
 };
