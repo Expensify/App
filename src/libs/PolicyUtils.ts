@@ -34,6 +34,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -1185,6 +1186,25 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
+// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
+// is being accessed from the Subscriptions page without a specific policyID.
+// In this case, check if the user is an admin on more than one policy.
+// If the user is an admin for multiple policies, we can render the page as it contains a condition
+// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
+// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
+
+function canModifyPlan(policyID?: string) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
+
+    if (!policyID) {
+        return ownerPolicies.length > 1;
+    }
+    const policy = getPolicy(policyID);
+
+    return !!policy && isPolicyAdmin(policy);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1312,6 +1332,7 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
+    canModifyPlan,
 };
 
 export type {MemberEmailsToAccountIDs};
