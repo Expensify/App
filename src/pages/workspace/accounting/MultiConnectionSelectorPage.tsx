@@ -17,6 +17,7 @@ import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import SCREENS from '@src/SCREENS';
 import AccessOrNotFoundWrapper from '../AccessOrNotFoundWrapper';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
@@ -80,9 +81,8 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                 includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton title={translate('workspace.common.accounting')} />
-                <Text style={[styles.mh5, styles.mv3]}>{translate('workspace.planTypePage.description')}</Text>
-
+                <HeaderWithBackButton title={translate(`workspace.${connection}.multiConnector.title` as TranslationPaths)} />
+                <Text style={[styles.ph5, styles.pt3, styles.mb5]}>{translate(`workspace.${connection}.multiConnector.description` as TranslationPaths)}</Text>
                 <MenuItemList
                     menuItems={connectionsMenuItems}
                     shouldUseSingleExecution

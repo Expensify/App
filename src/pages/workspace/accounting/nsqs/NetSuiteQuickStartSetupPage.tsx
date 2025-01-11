@@ -19,6 +19,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteQuickStartOAuth2Form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -34,35 +35,35 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
         // s77rt: do not use ConnectionLayout here. Just a regular ScreenWrapper
         <ConnectionLayout
             displayName={NetSuiteQuickStartSetupPage.displayName}
-            headerTitle="workspace.netsuite.tokenInput.title"
+            headerTitle="workspace.nsqs.setup.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE))} // s77rt: it's not clear why we passed netsuite here, clarify or find better appraoch
             shouldIncludeSafeAreaPaddingBottom
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS])}
             shouldBeBlocked={shouldPageBeBlocked}
         >
-            <View style={[styles.flexGrow1, styles.ph5]}>
+            <View style={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NSQS_OAUTH2_FORM}
                     style={styles.flexGrow1}
                     // validate={() => null}
                     onSubmit={() => null}
-                    submitButtonText={translate('common.continue')} // s77rt: use connect
+                    submitButtonText={translate('workspace.accounting.setup')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
-                    <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{'Enter your NetSuite account ID'}</Text> {/* s77rt translate */}
+                    <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.nsqs.setup.description')}</Text>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.NSQS_ACCOUNT_ID}
                         ref={inputCallbackRef}
-                        label={'ID please'} // s77rt
-                        aria-label={'ID please'} // s77rt
+                        label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
+                        aria-label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
                         role={CONST.ROLE.PRESENTATION}
                         spellCheck={false}
                     />
