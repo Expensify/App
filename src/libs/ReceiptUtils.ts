@@ -94,7 +94,7 @@ function validateReceipt(file: FileObject): Promise<ValidateReceiptResult> {
                 return {
                     isValid: false,
                     title: 'attachmentPicker.attachmentTooLarge' as TranslationPaths,
-                    reason: 'attachmentPicker.sizeExceeded' as TranslationPaths,
+                    reason: 'attachmentPicker.sizeExceededWithLimit' as TranslationPaths,
                 };
             }
 
