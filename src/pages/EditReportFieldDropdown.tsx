@@ -20,10 +20,6 @@ type EditReportFieldDropdownPageComponentProps = {
     /** Key of the policy report field */
     fieldKey: string;
 
-    /** ID of the policy this report field belongs to */
-    // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
-
     /** Options of the policy report field */
     fieldOptions: string[];
 

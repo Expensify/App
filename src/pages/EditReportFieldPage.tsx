@@ -141,7 +141,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions.at(index))}
