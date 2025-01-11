@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, Platform} from 'react-native';
+import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -33,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
@@ -279,11 +280,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                     shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
                     onThreeDotsButtonPress={() => {
-                        if (Platform.OS === 'web') {
-                            blurActiveElement();
-                        } else {
-                            Keyboard.dismiss();
-                        }
+                        // Hide the keyboard when the user clicks the three-dot menu.
+                        // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                        blurActiveElement();
+                        KeyboardUtils.dismiss();
                     }}
                     threeDotsMenuItems={[
                         {
