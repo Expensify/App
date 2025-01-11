@@ -3299,8 +3299,19 @@ const translations = {
                     },
                 },
             },
+            multiConnector: {
+                title: 'NetSuite setup',
+                description: 'Select your NetSuite version to continue.',
+            },
         },
         nsqs: {
+            setup: {
+                title: 'NetSuite setup',
+                description: 'Enter your NetSuite account ID',
+                formInputs: {
+                    netSuiteAccountID: 'NetSuite Account ID',
+                },
+            },
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',

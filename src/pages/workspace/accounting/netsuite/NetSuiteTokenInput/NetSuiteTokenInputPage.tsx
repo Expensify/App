@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
@@ -41,7 +42,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
             return;
         }
         ref.current?.movePrevious();
