@@ -114,7 +114,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
                     />
-                    <View style={[styles.sectionDividerLine]} />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
                         {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                             <SelectionList

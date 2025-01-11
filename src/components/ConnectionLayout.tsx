@@ -129,7 +129,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={false} // s77rt: revert this line
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
