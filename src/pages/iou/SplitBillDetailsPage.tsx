@@ -36,9 +36,9 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
     const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-    const IOUTransactionID = originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : '-1';
+    const IOUTransactionID = originalMessage?.IOUTransactionID;
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`);
@@ -57,7 +57,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     } else {
         participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
-    const actorAccountID = reportAction?.actorAccountID ?? -1;
+    const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
@@ -137,7 +137,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {billable});
+                                    IOU.setDraftSplitTransaction(transaction?.transactionID, {billable});
                                 }}
                                 isConfirmed={isConfirmed}
                             />
