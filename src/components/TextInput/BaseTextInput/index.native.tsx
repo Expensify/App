@@ -376,7 +376,7 @@ function BaseTextInput(
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
-                                keyboardType={getSecureEntryKeyboardType(inputProps.keyboardType, inputProps.secureTextEntry ?? false, passwordHidden ?? false)}
+                                keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
                                 value={value}
                                 selection={inputProps.selection}
