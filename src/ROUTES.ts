@@ -1828,8 +1828,48 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
     POLICY_ACCOUNTING_NSQS_SETUP: {
-        route: 'settings/workspaces/:policyID/connections/netsuite-quickstart/setup',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite-quickstart/setup` as const,
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/setup',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/setup` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/import` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/import/customers/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/import/customers/displayed-as` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/import/projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/import/projects` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/import/projects/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/import/projects/displayed-as` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/export` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/export/date` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/advanced` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite-quickstart/advanced/approval-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite-quickstart/advanced/approval-account` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',

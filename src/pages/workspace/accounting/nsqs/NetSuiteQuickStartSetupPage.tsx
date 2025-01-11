@@ -31,6 +31,7 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
     const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NSQS);
 
     return (
+        // s77rt: do not use ConnectionLayout here. Just a regular ScreenWrapper
         <ConnectionLayout
             displayName={NetSuiteQuickStartSetupPage.displayName}
             headerTitle="workspace.netsuite.tokenInput.title"

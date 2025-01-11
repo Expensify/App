@@ -3300,7 +3300,63 @@ const translations = {
                 },
             },
         },
-        nsqs: {},
+        nsqs: {
+            import: {
+                expenseCategories: 'Expense categories',
+                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Tags',
+                        description: 'Line-item level',
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Report fields',
+                        description: 'Report level',
+                    },
+                },
+                importFields: {
+                    customers: {
+                        title: 'Customers',
+                        subtitle: 'Choose how to handle NetSuite *customers* in Expensify.',
+                    },
+                    projects: {
+                        title: 'Projects',
+                        subtitle: 'Choose how to handle NetSuite *projects* in Expensify.',
+                    },
+                },
+            },
+            export: {
+                description: 'Configure how Expensify data exports to NetSuite.',
+                exportDate: {
+                    label: 'Export date',
+                    description: 'Use this date when exporting reports to NetSuite.',
+                    values: {
+                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
+                            label: 'Date of last expense',
+                            description: 'Date of the most recent expense on the report.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
+                            label: 'Export date',
+                            description: 'Date the report was exported to NetSuite.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
+                            label: 'Submitted date',
+                            description: 'Date the report was submitted for approval.',
+                        },
+                    },
+                },
+                expense: 'Expense',
+                reimbursableExpenses: 'Export reimbursable expenses as',
+                nonReimbursableExpenses: 'Export non-reimbursable expenses as',
+            },
+            advanced: {
+                autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day.',
+                defaultApprovalAccount: 'NetSuite default',
+                approvalAccount: 'A/P approval account',
+                approvalAccountDescription:
+                    'Choose the account that transactions will be approved against in NetSuite. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
+            },
+        },
         intacct: {
             sageIntacctSetup: 'Sage Intacct setup',
             prerequisitesTitle: 'Before you connect...',

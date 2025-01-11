@@ -435,6 +435,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 if (!integrationData) {
                     return undefined;
                 }
+                // s77rt: if NetSuite Legacy is the current connection, should we display NetSuite QuickStart in other integrations? (and vice-versa)
                 if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
                     return;
                 }
