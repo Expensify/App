@@ -4263,7 +4263,7 @@ function getReportName(
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
+        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy, personalDetails);
     }
 
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
