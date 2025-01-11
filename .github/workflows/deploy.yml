@@ -137,6 +137,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
 
       - name: Run grunt build
         run: |
@@ -164,8 +166,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./upload-key.keystore upload-key.keystore 
-          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
+          op read op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore --force --out-file ./upload-key.keystore
+          op read op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json --force --out-file ./android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
@@ -216,7 +219,7 @@ jobs:
           else
               echo "Skipping the completion of the previous version rollout"
           fi
-          
+
           # Submit the new version for review and slow rollout when it's approved
           bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
@@ -227,6 +230,31 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Generate APK from AAB
+        run: |
+          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
+          downloadUrl=$(echo "$json" | jq -r ".assets | .[].browser_download_url")
+          curl "$downloadUrl" -4 -sL -o 'bundletool.jar'
+          java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
+            --mode=universal \
+            --ks=upload-key.keystore \
+            --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          
+          unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Upload Android APK build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-hybrid-apk-artifact
+          path: Expensify.apk
+
+      - name: Upload Android build to Firebase distribution
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android upload_firebase_distribution
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -449,6 +477,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
@@ -484,9 +514,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
-          op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
-          op document get --output ./OldApp_AppStore_Notification_Service.mobileprovision OldApp_AppStore_Notification_Service
+          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
+          op read op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision --force --out-file ./OldApp_AppStore.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
@@ -533,8 +564,8 @@ jobs:
         run: |
           # Complete the previous version rollout
           bundle exec fastlane ios complete_hybrid_rollout
-          
-          # Submit the new version for review and phased rollout when it's approved 
+
+          # Submit the new version for review and phased rollout when it's approved
           bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
@@ -544,6 +575,10 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload iOS build to Firebase distribution
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_firebase_distribution
 
       - name: Upload iOS build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -752,6 +787,7 @@ jobs:
             "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./android-aab-artifact/app-production-release.aab#android.aab"
             "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
+            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
             "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"

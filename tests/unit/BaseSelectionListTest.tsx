@@ -56,12 +56,8 @@ describe('BaseSelectionList', () => {
             isSelected: section.keyForList === '2',
         }));
         const {rerender} = render(<BaseListItemRenderer sections={mockSections} />);
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveAccessibilityState({
-            selected: true,
-        });
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeSelected();
         rerender(<BaseListItemRenderer sections={updatedMockSections} />);
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toHaveAccessibilityState({
-            selected: true,
-        });
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
     });
 });

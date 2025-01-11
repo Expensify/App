@@ -126,7 +126,6 @@ type CategorizeTrackedExpenseTransactionParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
-    receipt?: Receipt;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -3740,7 +3739,6 @@ function convertTrackedExpenseToRequest(
     merchant: string,
     created: string,
     attendees?: Attendee[],
-    receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3770,7 +3768,6 @@ function convertTrackedExpenseToRequest(
         comment,
         created,
         merchant,
-        receipt,
         payerAccountID,
         payerEmail,
         chatReportID,
@@ -3812,10 +3809,10 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
     const parameters = {
-        onyxData,
         ...reportInformation,
         ...policyParams,
         ...transactionParams,
+        linkedTrackedExpenseReportAction: undefined,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
@@ -3854,7 +3851,6 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3897,7 +3893,6 @@ function shareTrackedExpense(
         taxCode,
         taxAmount,
         billable,
-        receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3990,7 +3985,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 merchant,
                 created,
                 attendees,
-                receipt,
             );
             break;
         }
@@ -4010,7 +4004,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                receipt,
+                receipt: receipt instanceof Blob ? receipt : undefined,
                 receiptState: receipt?.state,
                 category,
                 tag,
@@ -4189,7 +4183,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: CategorizeTrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
@@ -4201,13 +4195,12 @@ function trackExpense(
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt,
             };
-            const policyParams = {
+            const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
             };
-            const reportInformation = {
+            const reportInformation: CategorizeTrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
@@ -4217,7 +4210,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: CategorizeTrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4254,7 +4247,6 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
-                trackedReceipt,
                 createdWorkspaceParams,
             );
             break;
@@ -4273,7 +4265,7 @@ function trackExpense(
                 createdChatReportActionID: createdChatReportActionID ?? '-1',
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt: trackedReceipt,
+                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
                 tag,
@@ -8393,6 +8385,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     const parentReportActionOptimistic = ReportUtils.getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8417,6 +8410,13 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: updatedViolations,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportActionComment.created,
+            },
         },
     ];
 
@@ -8461,6 +8461,21 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
                     hold: null,
                 },
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+                [createdReportActionComment.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
             },
         },
     ];
@@ -8516,6 +8531,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8539,6 +8555,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportAction.created,
+            },
         },
     ];
 
@@ -8572,6 +8595,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
@@ -8582,6 +8612,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: transactionViolations ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            },
         },
     ];
 

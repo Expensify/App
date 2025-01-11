@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 46277ea..2e70c0c 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -4,6 +4,7 @@ import * as PropTypes from 'prop-types';
+ import * as animatable from 'react-native-animatable';
+ import { initializeAnimations, buildAnimations, reversePercentage, } from './utils';
+ import styles from './modal.style';
++
+ // Override default react-native-animatable animations
+ initializeAnimations();
+ const defaultProps = {
+@@ -535,7 +536,7 @@ export class ReactNativeModal extends React.Component {
+         const _children = this.props.hideModalContentWhileAnimating &&
+             this.props.useNativeDriver &&
+             !this.state.showContent ? (React.createElement(animatable.View, null)) : (children);
+-        const containerView = (React.createElement(animatable.View, Object.assign({}, panHandlers, { ref: ref => (this.contentRef = ref), style: [panPosition, computedStyle], pointerEvents: "box-none", useNativeDriver: useNativeDriver }, containerProps), _children));
++        const containerView = (React.createElement(animatable.View, Object.assign({}, panHandlers, { ref: ref => (this.contentRef = ref), style: [panPosition, computedStyle], pointerEvents: "box-none", useNativeDriver: useNativeDriver, animation: animationIn }, containerProps), _children));
+         // If coverScreen is set to false by the user
+         // we render the modal inside the parent view directly
+         if (!coverScreen && this.state.isVisible) {
