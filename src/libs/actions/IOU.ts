@@ -126,7 +126,6 @@ type CategorizeTrackedExpenseTransactionParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
-    receipt?: Receipt;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -3743,7 +3742,6 @@ function convertTrackedExpenseToRequest(
     merchant: string,
     created: string,
     attendees?: Attendee[],
-    receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3773,7 +3771,6 @@ function convertTrackedExpenseToRequest(
         comment,
         created,
         merchant,
-        receipt,
         payerAccountID,
         payerEmail,
         chatReportID,
@@ -3815,10 +3812,10 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
     const parameters = {
-        onyxData,
         ...reportInformation,
         ...policyParams,
         ...transactionParams,
+        linkedTrackedExpenseReportAction: undefined,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
@@ -3857,7 +3854,6 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3900,7 +3896,6 @@ function shareTrackedExpense(
         taxCode,
         taxAmount,
         billable,
-        receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3993,7 +3988,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 merchant,
                 created,
                 attendees,
-                receipt,
             );
             break;
         }
@@ -4013,7 +4007,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                receipt,
+                receipt: receipt instanceof Blob ? receipt : undefined,
                 receiptState: receipt?.state,
                 category,
                 tag,
@@ -4192,7 +4186,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: CategorizeTrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
@@ -4204,13 +4198,12 @@ function trackExpense(
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt,
             };
-            const policyParams = {
+            const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
             };
-            const reportInformation = {
+            const reportInformation: CategorizeTrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
@@ -4220,7 +4213,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: CategorizeTrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4257,7 +4250,6 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
-                trackedReceipt,
                 createdWorkspaceParams,
             );
             break;
@@ -4276,7 +4268,7 @@ function trackExpense(
                 createdChatReportActionID: createdChatReportActionID ?? '-1',
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt: trackedReceipt,
+                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
                 tag,
