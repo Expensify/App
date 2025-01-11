@@ -46,7 +46,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
     }, [preferredCurrency, isCategorizing]);
 
-    if (!feature || !policyID) {
+    if (!feature || (!isCategorizing && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
