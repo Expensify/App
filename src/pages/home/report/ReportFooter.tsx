@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -45,9 +45,6 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Whether the chat is empty */
-    isEmptyChat?: boolean;
-
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -62,6 +59,12 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
+
+    /** Whether to show the keyboard on focus */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -70,11 +73,12 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
+    showSoftInputOnFocus,
     onComposerBlur,
     onComposerFocus,
+    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -99,7 +103,7 @@ function ReportFooter({
             }
         },
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
@@ -114,7 +118,8 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
+
+    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -168,6 +173,15 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
+
+    useEffect(() => {
+        if (didHideComposerInput || shouldShowComposeInput) {
+            return;
+        }
+        setDidHideComposerInput(true);
+    }, [shouldShowComposeInput, didHideComposerInput]);
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -209,12 +223,14 @@ function ReportFooter({
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
-                            isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
+                            showSoftInputOnFocus={showSoftInputOnFocus}
+                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
+                            didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>
                 </View>
@@ -231,9 +247,9 @@ export default memo(
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-        prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
