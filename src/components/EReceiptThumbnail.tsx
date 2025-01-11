@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -10,7 +9,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
@@ -18,13 +16,9 @@ import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
 import Text from './Text';
 
-type EReceiptThumbnailOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
-};
-
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
-type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
+type EReceiptThumbnailProps = {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string | undefined;
@@ -54,7 +48,9 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
@@ -158,9 +154,5 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
 }
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
-export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(EReceiptThumbnail);
-export type {IconSize, EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};
+export default EReceiptThumbnail;
+export type {EReceiptThumbnailProps, IconSize};
