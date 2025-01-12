@@ -144,10 +144,10 @@ function getDestinationListSections({
         });
     }
 
-    const selectedOptionRateID = selectedOptions.map((selectedOption) => selectedOption.rateID);
+    const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateID.includes(rateID));
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.includes(rateID));
         if (filteredNonSelectedDestinations.length === 0) {
             return destinationSections;
         }
@@ -163,7 +163,7 @@ function getDestinationListSections({
         return destinationSections;
     }
 
-    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateID.includes(rateID));
+    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.includes(rateID));
 
     if (filteredRecentlyUsedDestinations.length > 0) {
         const cutRecentlyUsedDestinations = filteredRecentlyUsedDestinations.slice(0, maxRecentReportsToShow);

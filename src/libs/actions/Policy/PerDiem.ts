@@ -398,11 +398,11 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-let allRecentlyUsedDestination: OnyxCollection<RecentlyUsedCategories> = {};
+let allRecentlyUsedDestinations: OnyxCollection<RecentlyUsedCategories> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS,
     waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedDestination = val),
+    callback: (val) => (allRecentlyUsedDestinations = val),
 });
 
 function buildOptimisticPolicyRecentlyUsedDestinations(policyID: string | undefined, destination: string | undefined) {
@@ -410,7 +410,7 @@ function buildOptimisticPolicyRecentlyUsedDestinations(policyID: string | undefi
         return [];
     }
 
-    const policyRecentlyUsedDestinations = allRecentlyUsedDestination?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`] ?? [];
+    const policyRecentlyUsedDestinations = allRecentlyUsedDestinations?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`] ?? [];
 
     return lodashUnion([destination], policyRecentlyUsedDestinations);
 }
