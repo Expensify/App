@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -62,7 +63,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
-        <>
+        <FullPageOfflineBlockingView>
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
@@ -84,7 +85,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
                 isConfirmButtonDisabled={isOffline}
                 shouldUpdateFocusedIndex
             />
-        </>
+        </FullPageOfflineBlockingView>
     );
 }
 
