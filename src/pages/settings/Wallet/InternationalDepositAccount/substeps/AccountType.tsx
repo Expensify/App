@@ -10,21 +10,25 @@ import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepos
 import * as FormActions from '@userActions/FormActions';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [currentAccountType, setCurrentAccountType] = useState(formValues[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]);
+    const [error, setError] = useState<TranslationPaths | undefined>(undefined);
 
     const fieldData = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]?.[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] ?? {};
 
     const onAccountTypeSelected = useCallback(() => {
+        setError(undefined);
         if (isEditing && formValues[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] === currentAccountType) {
             onNext();
             return;
         }
         if (fieldData.isRequired && !currentAccountType) {
+            setError('common.error.pleaseSelectOne');
             return;
         }
         FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
@@ -59,14 +63,15 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
         const buttonText = isEditing ? translate('common.confirm') : translate('common.next');
         return (
             <FormAlertWithSubmitButton
-                isDisabled={fieldData.isRequired && !currentAccountType}
+                message={error ? translate(error) : ''}
+                isAlertVisible={!!error}
                 buttonText={buttonText}
                 onSubmit={onAccountTypeSelected}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
         );
-    }, [currentAccountType, fieldData.isRequired, isEditing, onAccountTypeSelected, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    }, [error, isEditing, onAccountTypeSelected, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     return (
         <>
