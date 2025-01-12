@@ -296,6 +296,8 @@ type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: b
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
+type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
+
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
 type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
@@ -855,4 +857,5 @@ export type {
     AddedPolicyCustomUnitRateParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagFieldParams,
 };

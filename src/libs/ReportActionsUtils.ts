@@ -1844,7 +1844,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceTagUpdateMessage(action: ReportAction): string {
-    const {tagListName, tagName, enabled, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
         return Localize.translateLocal('workspaceActions.addTag', {
@@ -1873,6 +1874,23 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
             tagListName,
             newName,
             oldName,
+        });
+    }
+
+    if (
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG &&
+        tagListName &&
+        typeof oldValue === 'string' &&
+        typeof newValue === 'string' &&
+        tagName &&
+        updatedField
+    ) {
+        return Localize.translateLocal('workspaceActions.updateTag', {
+            tagListName,
+            oldValue,
+            newValue,
+            tagName,
+            updatedField,
         });
     }
 

@@ -180,6 +180,7 @@ import type {
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
@@ -4658,9 +4659,15 @@ const translations = {
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `Renombró la categoría "${oldName}" a "${newName}".`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `agregó la etiqueta "${tagName}" a la lista "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+            if (oldValue) {
+                return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} de "${oldValue}" a "${newValue}"`;
+            }
+            return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
+        },
         addedReportField: ({fieldType, fieldName}: AddedPolicyReportFieldParams) => `agregó el Campo de Informe ${fieldType} "${fieldName}"`,
         addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `agregó una nueva tasa de "${rateName}" para "${customUnitName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>

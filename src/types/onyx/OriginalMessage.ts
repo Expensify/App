@@ -312,10 +312,10 @@ type OriginalMessagePolicyChangeLog = {
     /** When was it last modified */
     lastModified?: string;
 
-    /** New Value */
+    /** New Value of the category/tag field */
     newValue?: boolean | string;
 
-    /** Old Value */
+    /** Old Value of the category/tag field */
     oldValue?: boolean | string;
 
     /** Old currency of the workspace */
