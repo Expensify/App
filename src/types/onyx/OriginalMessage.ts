@@ -374,6 +374,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Report field name */
     fieldName?: string;
+
+    /** Custom unit name */
+    customUnitName?: string;
+
+    /** Custom unit name */
+    rateName?: string;
 };
 
 /** Model of `join policy changelog` report action */

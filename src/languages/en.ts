@@ -5,6 +5,7 @@ import type {Country} from '@src/CONST';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddedPolicyCustomUnitRateParams,
     AddedPolicyReportFieldParams,
     AddEmployeeParams,
     AddressLineParams,
@@ -4606,6 +4607,7 @@ const translations = {
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent Self-Approval" from "${oldValue === 'true' ? 'Enabled' : 'Disabled'}" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}"`,

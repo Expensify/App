@@ -1843,6 +1843,19 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
+    const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (customUnitName && rateName) {
+        return Localize.translateLocal('workspaceActions.addCustomUnitRate', {
+            customUnitName,
+            rateName,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
     const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -2192,6 +2205,7 @@ export {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
 };
 
 export type {LastVisibleMessage};
