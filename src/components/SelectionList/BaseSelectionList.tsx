@@ -120,6 +120,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldScrollToFocusedIndex = true,
         onContentSizeChange,
         listItemTitleStyles,
+        initialNumToRender = 12,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -755,14 +756,11 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption}), [
-        scrollAndHighlightItem,
-        clearInputAfterSelect,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        scrollToIndex,
-        getFocusedOption,
-    ]);
+    useImperativeHandle(
+        ref,
+        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+    );
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -832,7 +830,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        initialNumToRender={12}
+                        initialNumToRender={initialNumToRender}
                         maxToRenderPerBatch={maxToRenderPerBatch}
                         windowSize={windowSize}
                         updateCellsBatchingPeriod={updateCellsBatchingPeriod}

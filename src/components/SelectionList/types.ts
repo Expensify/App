@@ -636,6 +636,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
+
+    /** Initial number of items to render */
+    initialNumToRender?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -645,6 +648,7 @@ type SelectionListHandle = {
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
+    focusTextInput: () => void;
 };
 
 type ItemLayout = {
