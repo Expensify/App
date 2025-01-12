@@ -1864,6 +1864,7 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         return Localize.translateLocal('workspaceActions.updateTagEnabled', {
             tagListName,
             tagName,
+            enabled,
         });
     }
 
