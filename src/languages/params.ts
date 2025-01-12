@@ -294,6 +294,8 @@ type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
 type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
 
+type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
+
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
 type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
@@ -852,4 +854,5 @@ export type {
     AddedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTagNameParams,
 };

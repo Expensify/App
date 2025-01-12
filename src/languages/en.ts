@@ -181,6 +181,7 @@ import type {
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
@@ -4611,6 +4612,7 @@ const translations = {
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removed the tag "${tagName}" from the list "${tagListName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to be "${newName}"`,
         addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>

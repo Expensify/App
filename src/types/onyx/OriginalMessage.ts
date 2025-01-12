@@ -297,10 +297,10 @@ type OriginalMessagePolicyChangeLog = {
     /** ID of the report */
     reportID?: number;
 
-    /** Old name of the workspace */
+    /** Old name of the workspace/tag */
     oldName?: string;
 
-    /** New name of the workspace */
+    /** New name of the workspace/tag */
     newName?: string;
 
     /** Email of user */
