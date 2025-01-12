@@ -88,12 +88,15 @@ function MoneyRequestAction({
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
-            const reportActionID = action.reportActionID ?? '-1';
+            const reportActionID = action.reportActionID;
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
-        const childReportID = action?.childReportID ?? '-1';
+        const childReportID = action?.childReportID;
+        if (!childReportID) {
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 

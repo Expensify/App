@@ -52,8 +52,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
 
-    const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
+    const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report.policyID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
