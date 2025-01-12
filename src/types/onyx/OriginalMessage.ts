@@ -386,6 +386,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Updated tag list name */
     tagListName?: string;
+
+    /** Updated tag enabled/disabled value */
+    enabled?: boolean;
 };
 
 /** Model of `join policy changelog` report action */
