@@ -26,6 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import * as Modal from '@userActions/Modal';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -289,7 +290,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('common.remove'),
-                            onSelected: () => toggleDeleteModal(true),
+                            onSelected: () => Modal.close(() => toggleDeleteModal(true)),
                         },
                     ]}
                     footer={getDeleteConfirmationModal}
