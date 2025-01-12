@@ -58,13 +58,14 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
-                        source={sourceURLWithAuth}
+                        source={source}
                         file={{name: displayName}}
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                         isDeleted={!!isDeleted}
                         isUploading={!sourceID}
+                        isAuthTokenRequired={!!sourceID}
                     />
                 </PressableWithoutFeedback>
             )}
