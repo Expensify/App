@@ -7,6 +7,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
+import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
@@ -221,6 +222,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    ArrowsLeftRight,
     ArrowUpLong,
     ArrowDownLong,
     AttachmentNotFound,

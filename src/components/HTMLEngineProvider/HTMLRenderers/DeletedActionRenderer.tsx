@@ -15,14 +15,14 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
     const theme = useTheme();
     const htmlAttribs = tnode.attributes;
 
-    const isReversedTransaction = htmlAttribs[CONST.REVERSED_TRANSACTION_ATTRIBUTE];
-    const isHiddenMessage = htmlAttribs[CONST.HIDDEN_MESSAGE_ATTRIBUTE];
+    const reversedTransactionValue = htmlAttribs[CONST.REVERSED_TRANSACTION_ATTRIBUTE];
+    const hiddenMessageValue = htmlAttribs[CONST.HIDDEN_MESSAGE_ATTRIBUTE];
 
     const getIcon = () => {
-        if (isReversedTransaction) {
-            return Expensicons.CircularArrowBackwards;
+        if (reversedTransactionValue === 'true') {
+            return Expensicons.ArrowsLeftRight;
         }
-        if (isHiddenMessage) {
+        if (hiddenMessageValue === 'true') {
             return Expensicons.EyeDisabled;
         }
         return Expensicons.Trashcan;
