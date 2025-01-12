@@ -82,6 +82,7 @@ function IOURequestStepPerDiemWorkspace({
 
     return (
         <SelectionList
+            key={selectedWorkspace?.policyID}
             sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
             onSelectRow={selectWorkspace}
             shouldSingleExecuteRowSelect
