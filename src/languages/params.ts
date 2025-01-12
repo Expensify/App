@@ -292,6 +292,8 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
+type UpdatedPolicyTagParams = {tagListName: string; tagName: string};
+
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
 type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
@@ -849,4 +851,5 @@ export type {
     FlightLayoverParams,
     AddedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
+    UpdatedPolicyTagParams,
 };

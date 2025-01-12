@@ -490,6 +490,8 @@ function getOptionData({
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
         ) {
             result.alternateText = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(lastAction);
+        } else if (ReportActionsUtils.isTagModificationAction(lastAction?.actionName)) {
+            result.alternateText = PolicyUtils.getCleanedTagName(ReportActionsUtils.getWorkspaceTagUpdateMessage(lastAction) ?? '');
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
             result.alternateText = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD)) {
@@ -510,8 +512,6 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getCardIssuedMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
-        } else if (ReportActionsUtils.isTagModificationAction(lastAction?.actionName)) {
-            result.alternateText = PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(lastAction)?.text ?? '');
         } else if (lastAction && ReportActionsUtils.isOldDotReportAction(lastAction)) {
             result.alternateText = ReportActionsUtils.getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {

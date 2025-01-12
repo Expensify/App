@@ -380,6 +380,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Custom unit name */
     rateName?: string;
+
+    /** Added/Updated tag name */
+    tagName?: string;
+
+    /** Updated tag list name */
+    tagListName?: string;
 };
 
 /** Model of `join policy changelog` report action */
