@@ -218,7 +218,7 @@ function IOURequestStepSubrate({
                     validate={validate}
                     onSubmit={submit}
                     shouldValidateOnChange
-                    shouldValidateOnBlur
+                    shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                 >
                     <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
