@@ -77,6 +77,7 @@ function IOURequestStepPerDiemWorkspace({
             },
         ]);
         IOU.setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        IOU.setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
