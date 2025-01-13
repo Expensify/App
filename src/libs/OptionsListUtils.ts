@@ -111,7 +111,7 @@ type GetOptionsConfig = {
 };
 
 type GetUserToInviteConfig = {
-    searchValue: string;
+    searchValue: string | undefined;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
     shouldAcceptName?: boolean;
@@ -1077,6 +1077,10 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
+    if (!searchValue) {
+        return null;
+    }
+
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
@@ -1085,7 +1089,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
+    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
     }
 
