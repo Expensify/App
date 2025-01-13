@@ -227,3 +227,4 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 export default useSearchHighlightAndScroll;
+export type {UseSearchHighlightAndScroll};
