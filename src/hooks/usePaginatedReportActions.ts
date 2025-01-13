@@ -9,17 +9,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
-    // Use `||` instead of `??` to handle empty string.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportIDWithDefault = reportID || '-1';
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithDefault}`);
+    const nonEmptyStringReportID = ReportUtils.getNonEmptyStringReportID(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
         canEvict: false,
         selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
     });
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
     const {
         data: reportActions,
