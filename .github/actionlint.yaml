@@ -2,7 +2,7 @@
 self-hosted-runner:
   labels:
     - ubuntu-latest-xl
-    - macos-13-large
-    - macos-13-xlarge
+    - macos-15-large
+    - macos-15-xlarge
     - ubuntu-latest-reassure-tests
     - macos-12
