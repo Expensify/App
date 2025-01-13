@@ -7361,7 +7361,7 @@ function isReportDataReady(): boolean {
  * Return true if reportID from path is valid
  */
 function isValidReportIDFromPath(reportIDFromPath: string | undefined): boolean {
-    return !!reportIDFromPath && !['', 'null', '0', '-1'].includes(reportIDFromPath);
+    return !!reportIDFromPath && !['', 'null', 'undefined', '0', '-1'].includes(reportIDFromPath);
 }
 
 /**
