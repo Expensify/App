@@ -4656,7 +4656,7 @@ const translations = {
             };
         },
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
-        downgradedWorkspace: 'bajó este espacio de trabajo al plan Recopilar',
+        downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
