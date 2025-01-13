@@ -18,7 +18,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
@@ -37,42 +36,16 @@ function ShareDetailsPage({
     const {translate} = useLocalize();
 
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOrAccountID}`, {allowStaleData: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const currentUserID = Report.getCurrentUserAccountID();
-
-    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportOrAccountID, 10));
-    const report = onyxReport ?? optimisticReport;
-    const displayReport = OptionsListUtils.getReportDisplayOption(report);
-
-    if (unknownUserDetails) {
-        optimisticReport.reportID = unknownUserDetails?.accountID?.toString() ?? '';
-        displayReport.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
-    }
-
-    if (!onyxReport || onyxReport?.ownerAccountID === 0) {
-        const participants = onyxReport
-            ? ReportUtils.getDisplayNamesWithTooltips(
-                  OptionsListUtils.getPersonalDetailsForAccountIDs(
-                      Object.keys(onyxReport?.participants ?? {})
-                          .map((p) => parseInt(p ?? '', 10))
-                          .filter((u) => u !== currentUserID),
-                      personalDetails,
-                  ),
-                  false,
-              )
-            : displayReport.participantsList;
-        const participant = participants?.filter((u) => u.accountID !== currentUserID).at(0);
-        displayReport.text = participant?.displayName;
-        displayReport.alternateText = participant?.login;
-    }
-
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
+    const currentUserID = Report.getCurrentUserAccountID();
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportOrAccountID, 10));
+    optimisticReport.reportID = unknownUserDetails?.accountID?.toString() ?? '';
+    const report = onyxReport ?? optimisticReport;
+    const displayReport = OptionsListUtils.getReportDisplayOption(report, unknownUserDetails);
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
-
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
-
     const fileName = currentAttachment?.content.split('/').pop();
 
     const handleShare = () => {

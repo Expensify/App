@@ -785,7 +785,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>): ReportUtils.OptionData {
+function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>): ReportUtils.OptionData {
     const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -805,7 +805,11 @@ function getReportDisplayOption(report: OnyxEntry<Report>): ReportUtils.OptionDa
     } else if (option.isInvoiceRoom) {
         option.text = ReportUtils.getReportName(report);
         option.alternateText = Localize.translateLocal('workspace.common.invoices');
-    } else {
+    } else if (unknownUserDetails && !option.text) {
+        option.text = unknownUserDetails.text ?? unknownUserDetails.login;
+        option.alternateText = unknownUserDetails.login;
+        option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
+    } else if (report?.ownerAccountID !== 0 || !option.text) {
         option.text = ReportUtils.getPolicyName(report);
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
     }
