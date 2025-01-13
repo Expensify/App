@@ -15,26 +15,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
+import BottomDockedModal from './BottomDockedModal';
+import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
-import BottomDockedModal from './ReactNativeModal/Modal';
-import type ModalProps from './ReactNativeModal/types';
 import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    shouldUseNewModal: boolean;
 };
 
-function ModalComponent(props: ModalComponentProps) {
-    switch (props.type) {
-        case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
-            return <BottomDockedModal {...(props as ModalProps)} />;
-        default:
-            return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
+function ModalComponent({type, shouldUseNewModal, ...props}: ModalComponentProps) {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && shouldUseNewModal) {
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <BottomDockedModal {...(props as ModalProps)} />;
     }
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
 }
 
 function BaseModal(
@@ -52,15 +54,19 @@ function BaseModal(
         fullscreen = true,
         animationIn,
         animationOut,
+        useNativeDriver: useNativeDriverProp,
+        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
+        animationInDelay,
         statusBarTranslucent = true,
         navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        shouldUseNewModal = false,
         onBackdropPress,
         modalId,
         shouldEnableNewFocusManagement = false,
@@ -143,12 +149,12 @@ function BaseModal(
         [],
     );
 
-    const handleShowModal = () => {
+    const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
             Modal.setModalVisibility(true);
         }
         onModalShow();
-    };
+    }, [onModalShow, shouldSetModalVisibility]);
 
     const handleBackdropPress = (e?: KeyboardEvent) => {
         if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -239,14 +245,6 @@ function BaseModal(
                 style={[styles.pAbsolute, {zIndex: 1}]}
             >
                 <ModalComponent
-                    backdropTransitionInTiming={300}
-                    panResponderThreshold={100}
-                    onModalWillHide={() => {}}
-                    scrollTo={null}
-                    scrollOffset={0}
-                    scrollOffsetMax={0}
-                    scrollHorizontal={false}
-                    supportedOrientations={['portrait', 'landscape']}
                     // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                     onClick={(e) => e.stopPropagation()}
                     onBackdropPress={handleBackdropPress}
@@ -270,16 +268,13 @@ function BaseModal(
                     style={modalStyle}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
-                    /* eslint-disable @typescript-eslint/ban-ts-comment */
-                    // @ts-ignore
                     animationIn={animationIn ?? modalStyleAnimationIn}
-                    /* eslint-disable @typescript-eslint/ban-ts-comment */
-                    // @ts-ignoreanimationOut={animationOut ?? modalStyleAnimationOut}
+                    animationInDelay={animationInDelay}
                     animationOut={animationOut ?? modalStyleAnimationOut}
                     // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriver={false}
+                    useNativeDriver={useNativeDriverProp && useNativeDriver}
                     // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriverForBackdrop={false}
+                    useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming ?? 300}
                     animationOutTiming={animationOutTiming ?? 300}
@@ -289,6 +284,7 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                     type={type}
+                    shouldUseNewModal={shouldUseNewModal}
                 >
                     <ModalContent
                         onModalWillShow={saveFocusState}

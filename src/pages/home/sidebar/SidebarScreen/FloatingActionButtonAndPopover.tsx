@@ -537,6 +537,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
+                animationInDelay={200}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,

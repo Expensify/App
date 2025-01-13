@@ -23,6 +23,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -56,7 +57,7 @@ type PopoverMenuItem = MenuItemProps & {
     pendingAction?: PendingAction;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -159,6 +160,7 @@ function PopoverMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     animationIn = 'fadeIn',
+    animationInDelay,
     animationOut = 'fadeOut',
     animationInTiming = CONST.ANIMATED_TRANSITION,
     disableAnimation = true,
@@ -347,6 +349,7 @@ function PopoverMenu({
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
+            animationInDelay={animationInDelay}
             animationInTiming={animationInTiming}
             disableAnimation={disableAnimation}
             fromSidebarMediumScreen={fromSidebarMediumScreen}
@@ -357,6 +360,7 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            shouldUseNewModal
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>

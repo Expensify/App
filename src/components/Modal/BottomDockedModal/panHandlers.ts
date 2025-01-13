@@ -1,7 +1,6 @@
 import type {GestureResponderEvent, PanResponderGestureState} from 'react-native';
 import {Animated} from 'react-native';
-import type {Direction} from './types';
-import {isSwipeHorizontal} from './utils';
+import type {AnimationEvent, Direction} from './types';
 
 const reversePercentage = (x: number) => -(x - 1);
 
@@ -14,16 +13,12 @@ const calcDistancePercentage = (gestureState: PanResponderGestureState, currentS
     switch (currentSwipingDirection) {
         case 'down':
             return deviceHeight - y0 > 0 ? deltaY / (deviceHeight - y0) : 0;
-
         case 'up':
             return y0 > 0 ? reversePercentage(moveY / y0) : 0;
-
         case 'left':
             return x0 > 0 ? reversePercentage(moveX / x0) : 0;
-
         case 'right':
             return deviceWidth - x0 > 0 ? deltaX / (deviceWidth - x0) : 0;
-
         default:
             return 0;
     }
@@ -44,8 +39,8 @@ const getAccDistancePerDirection = (gestureState: PanResponderGestureState, curr
     }
 };
 
-const createAnimationEventForSwipe = (currentSwipingDirection: Direction | null, pan: Animated.ValueXY) => {
-    if (isSwipeHorizontal(currentSwipingDirection)) {
+const createAnimationEventForSwipe = (currentSwipingDirection: Direction | null, pan: Animated.ValueXY): AnimationEvent => {
+    if (currentSwipingDirection === 'left' || currentSwipingDirection === 'right') {
         return Animated.event([null, {dx: pan.x}], {
             useNativeDriver: false,
         });
@@ -88,4 +83,4 @@ const shouldPropagateSwipe = (
     return typeof propagateSwipe === 'function' ? propagateSwipe(evt, gestureState) : propagateSwipe;
 };
 
-export {shouldPropagateSwipe, getSwipingDirection, isSwipeDirectionAllowed, calcDistancePercentage, getAccDistancePerDirection, createAnimationEventForSwipe};
+export {shouldPropagateSwipe, getSwipingDirection, isSwipeDirectionAllowed, isDirectionIncluded, calcDistancePercentage, getAccDistancePerDirection, createAnimationEventForSwipe};

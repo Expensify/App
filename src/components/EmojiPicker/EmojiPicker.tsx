@@ -215,7 +215,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }}
             anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)}
-            innerContainerStyle={styles.popoverInnerContainer}
+            innerContainerStyle={styles.popoverInnerContainer(shouldUseNarrowLayout)}
             anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
             shoudSwitchPositionIfOverflow

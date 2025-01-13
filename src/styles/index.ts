@@ -1840,10 +1840,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
-        popoverInnerContainer: {
+        popoverInnerContainer: (isSmallScreenWidth: boolean) => ({
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
-            maxHeight: '95%',
-        },
+            maxHeight: isSmallScreenWidth ? '100%' : '95%',
+        }),
 
         menuItemTextContainer: {
             minHeight: variables.componentSizeNormal,
@@ -2676,6 +2676,21 @@ const styles = (theme: ThemeColors) =>
         defaultModalContainer: {
             backgroundColor: theme.componentBG,
             borderColor: theme.transparent,
+        },
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
         },
 
         reportActionContextMenuMiniButton: {

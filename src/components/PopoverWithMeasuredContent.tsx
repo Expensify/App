@@ -163,6 +163,7 @@ function PopoverWithMeasuredContent({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
+            shouldUseNewModal
         >
             <View onLayout={measurePopover}>{children}</View>
         </Popover>
