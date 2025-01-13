@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-at */
 import CONST from '@src/CONST';
 import Timing from './actions/Timing';
+import DynamicArrayBuffer from './DynamicArrayBuffer';
 import SuffixUkkonenTree from './SuffixUkkonenTree';
 
 type SearchableData<T> = {
@@ -25,6 +26,8 @@ type SearchableData<T> = {
 
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
 const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ', ',', '(', ')']);
+// For an account with 12k+ personal details the average search value length was ~60 characters.
+const averageSearchValueLength = 60;
 
 /**
  * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for substrings in a list of strings.
@@ -35,27 +38,30 @@ const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/',
  */
 function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
-    const maxNumericListSize = 400_000;
+    const itemsCount = dataSets.reduce((acc, {data}) => acc + data.length, 0);
+    // An approximation of how many chars the final search string will have (if it gets bigger the underlying buffer will resize aromatically, but its best to avoid resizes):
+    const initialListSize = itemsCount * averageSearchValueLength;
     // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
-    let concatenatedNumericList = new Uint8Array(maxNumericListSize);
+    const concatenatedNumericList = new DynamicArrayBuffer(initialListSize, Uint8Array);
     // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
-    const occurrenceToIndex = new Uint32Array(maxNumericListSize * 4);
-    // As we are working with ArrayBuffers, we need to keep track of the current offset:
-    const offset = {value: 1};
+    const occurrenceToIndex = new DynamicArrayBuffer(initialListSize, Uint32Array);
     // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
     const listOffsets: number[] = [];
 
+    // The tree is 1-indexed, so we need to add a 0 at the beginning:
+    concatenatedNumericList.push(0);
+
     for (const {data, toSearchableString} of dataSets) {
         // Performance critical: the array parameters are passed by reference, so we don't have to create new arrays every time:
-        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, offset, {data, toSearchableString});
-        listOffsets.push(offset.value);
+        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, {data, toSearchableString});
+        listOffsets.push(concatenatedNumericList.length);
     }
-    concatenatedNumericList[offset.value++] = SuffixUkkonenTree.END_CHAR_CODE;
-    listOffsets[listOffsets.length - 1] = offset.value;
+    concatenatedNumericList.push(SuffixUkkonenTree.END_CHAR_CODE);
+    listOffsets[listOffsets.length - 1] = concatenatedNumericList.length;
     Timing.end(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
 
     // The list might be larger than necessary, so we clamp it to the actual size:
-    concatenatedNumericList = concatenatedNumericList.slice(0, offset.value);
+    concatenatedNumericList.truncate();
 
     // Create & build the suffix tree:
     Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
@@ -84,7 +90,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < result.length; i++) {
             const occurrenceIndex = result[i];
-            const itemIndexInDataSet = occurrenceToIndex[occurrenceIndex];
+            const itemIndexInDataSet = occurrenceToIndex.array[occurrenceIndex];
             const dataSetIndex = listOffsets.findIndex((listOffset) => occurrenceIndex < listOffset);
 
             if (dataSetIndex === -1) {
@@ -128,7 +134,11 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
  * This function converts the user data (which are most likely objects) to a numeric representation.
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
-function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occurrenceToIndex: Uint32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
+function dataToNumericRepresentation<T>(
+    concatenatedNumericList: DynamicArrayBuffer<Uint8Array>,
+    occurrenceToIndex: DynamicArrayBuffer<Uint32Array>,
+    {data, toSearchableString}: SearchableData<T>,
+): void {
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
@@ -140,16 +150,13 @@ function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occ
         SuffixUkkonenTree.stringToNumeric(cleanedSearchStringForTree, {
             charSetToSkip,
             out: {
-                outArray: concatenatedNumericList,
-                offset,
-                outOccurrenceToIndex: occurrenceToIndex,
                 index,
+                occurrenceToIndex,
+                array: concatenatedNumericList,
             },
         });
-        // eslint-disable-next-line no-param-reassign
-        occurrenceToIndex[offset.value] = index;
-        // eslint-disable-next-line no-param-reassign
-        concatenatedNumericList[offset.value++] = SuffixUkkonenTree.DELIMITER_CHAR_CODE;
+        occurrenceToIndex.set(concatenatedNumericList.length, index);
+        concatenatedNumericList.push(SuffixUkkonenTree.DELIMITER_CHAR_CODE);
     });
 }
 
