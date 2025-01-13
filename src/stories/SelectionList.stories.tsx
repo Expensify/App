@@ -19,6 +19,13 @@ const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 const story: Meta<typeof SelectionList> = {
     title: 'Components/SelectionList',
     component: SelectionList,
+    parameters: {
+        docs: {
+            source: {
+                type: 'code',
+            },
+        },
+    },
 };
 
 const SECTIONS = [
@@ -417,6 +424,7 @@ WithConfirmButton.args = {
     ...MultipleSelection.args,
     onConfirm: () => {},
     confirmButtonText: 'Confirm',
+    showConfirmButton: true,
 };
 
 export {Default, WithTextInput, WithHeaderMessage, WithAlternateText, MultipleSelection, WithSectionHeader, WithConfirmButton};

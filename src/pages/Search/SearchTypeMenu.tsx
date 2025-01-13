@@ -21,7 +21,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, hasWorkspaceWithInvoices} from '@libs/PolicyUtils';
+import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -71,7 +71,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
@@ -97,7 +97,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         },
     ];
 
-    if (hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports()) {
+    if (canSendInvoice(allPolicies, session?.email) || hasInvoiceReports()) {
         typeMenuItems.push({
             title: translate('workspace.common.invoices'),
             type: CONST.SEARCH.DATA_TYPES.INVOICE,
@@ -146,6 +146,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
                     />
                 ),
                 styles: [styles.alignItemsCenter],
@@ -165,7 +166,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    onHideTooltip: hideProductTrainingTooltip,
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
