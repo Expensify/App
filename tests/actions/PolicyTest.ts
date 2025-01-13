@@ -190,4 +190,36 @@ describe('actions/Policy', () => {
             });
         });
     });
+
+    describe('upgradeToCorporate', () => {
+        it('upgradeToCorporate should not alter initial values of autoReporting and autoReportingFrequency', async () => {
+            const autoReporting = true;
+            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to instant.
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                autoReporting,
+                autoReportingFrequency,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When a policy is upgradeToCorporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy autoReporting and autoReportingFrequency should equal the initial value.
+            expect(policy?.autoReporting).toBe(autoReporting);
+            expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
+        });
+    });
 });

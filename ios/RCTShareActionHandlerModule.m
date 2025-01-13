@@ -9,7 +9,7 @@ NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 @implementation RCTShareActionHandlerModule
 
-RCT_EXPORT_MODULE(RCTShareActionHandlerModule);
+RCT_EXPORT_MODULE(ShareActionHandler);
 
 RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
   RCTLogInfo(@"Processing share extension files");

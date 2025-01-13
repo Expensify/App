@@ -7,6 +7,7 @@ import os
 class ShareViewController: UIViewController {
     let APP_GROUP_ID = "group.com.expensify.new"
     let FILES_DIRECTORY_NAME = "sharedFiles"
+    let READ_FROM_FILE_FILE_NAME = "text_to_read.txt"
     enum FileSaveError: String {
         case CouldNotLoad
         case URLError
@@ -113,9 +114,8 @@ class ShareViewController: UIViewController {
     }
 
     private func handleURL(_ url: URL, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
-        let filename = "text_to_read.txt"
         if let fileData = url.absoluteString.data(using: .utf8) as NSData? {
-            if let fileFinalPath = saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
+            if let fileFinalPath = saveFileToFolder(folder: folder, filename: READ_FROM_FILE_FILE_NAME, fileData: fileData) {
                 completion(nil)
             }
             else {
@@ -148,8 +148,7 @@ class ShareViewController: UIViewController {
 
     private func handleStringData(_ dataString: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         if !dataString.hasPrefix("file://") {
-            let filename = "text_to_read.txt"
-            processAndSave(data: dataString.data(using: .utf8), filename: filename, folder: folder, completion: completion)
+            processAndSave(data: dataString.data(using: .utf8), filename: READ_FROM_FILE_FILE_NAME, folder: folder, completion: completion)
         }
     }
 

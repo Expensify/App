@@ -17,7 +17,7 @@ object FileUtils {
     private fun getInternalStorageDirectory(context: Context): File {
         val internalStorageDirectory = File(context.filesDir.absolutePath, directoryName)
         if (!internalStorageDirectory.exists()) {
-            internalStorageDirectory.mkdir()
+            internalStorageDirectory.mkdirs()
         }
         return internalStorageDirectory
     }
@@ -54,8 +54,8 @@ object FileUtils {
      * @throws IOException
      */
     @Throws(IOException::class)
-    fun saveFileFromProviderUri(fileUri: Uri?, destinationFile: File?, context: Context) {
-        val inputStream: InputStream? = fileUri?.let { context.contentResolver.openInputStream(it) }
+    fun saveFileFromProviderUri(fileUri: Uri, destinationFile: File?, context: Context) {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(fileUri)
         val outputStream: OutputStream = FileOutputStream(destinationFile)
         inputStream?.use { input ->
             outputStream.use { output ->
@@ -73,13 +73,11 @@ object FileUtils {
      * @throws IOException
      */
     @Throws(IOException::class)
-    fun createTemporaryFile(uri: Uri?, context: Context): File {
+    fun createTemporaryFile(uri: Uri, context: Context): File {
 
         val mimeTypeMap = MimeTypeMap.getSingleton()
 
-        val fileExtension = uri?.let {
-            ".${mimeTypeMap.getExtensionFromMimeType(context.contentResolver.getType(it))}"
-        } ?: throw IllegalArgumentException("URI must not be null")
+        val fileExtension = ".${mimeTypeMap.getExtensionFromMimeType(context.contentResolver.getType(uri))}"
 
         val file: File = File.createTempFile(
             getUniqueFilePrefix(),
@@ -98,7 +96,7 @@ object FileUtils {
      * @param context
      * @return The absolute path of the image
      */
-    fun copyUriToStorage(uri: Uri?, context: Context): String? {
+    fun copyUriToStorage(uri: Uri, context: Context): String? {
         try {
             val imageFile: File = createTemporaryFile(uri, context)
             saveFileFromProviderUri(uri, imageFile, context)

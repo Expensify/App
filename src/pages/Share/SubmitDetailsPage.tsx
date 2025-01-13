@@ -138,7 +138,7 @@ function SubmitDetailsPage({
 
         FileUtils.readFileAsync(
             currentAttachment?.content ?? '',
-            FileUtils.getFileName(currentAttachment?.content ?? 'shared_image.jpg'),
+            FileUtils.getFileName(currentAttachment?.content ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
             currentAttachment?.mimeType ?? 'image/jpeg',
