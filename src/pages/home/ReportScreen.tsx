@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -95,6 +95,12 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     }
     return parentReportActions[parentReportActionID ?? '0'];
 }
+
+type SoftInputContextType = {
+    setShowSoftInputOnFocus: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const SoftInputContext = createContext<SoftInputContextType>({setShowSoftInputOnFocus: () => {}});
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
@@ -674,6 +680,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
+    const softInputContextValue = useMemo(() => {
+        return {setShowSoftInputOnFocus};
+    }, [setShowSoftInputOnFocus]);
+
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -775,7 +785,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             shouldShowErrorMessages={false}
                             needsOffscreenAlphaCompositing
                         >
-                            {headerView}
+                            <SoftInputContext.Provider value={softInputContextValue}>{headerView}</SoftInputContext.Provider>
                         </OfflineWithFeedback>
                         {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
@@ -861,4 +871,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 }
 
 ReportScreen.displayName = 'ReportScreen';
+export {SoftInputContext};
 export default memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
