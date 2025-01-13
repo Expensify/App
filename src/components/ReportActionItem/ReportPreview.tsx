@@ -558,7 +558,12 @@ function ReportPreview({
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text style={[styles.textLabelSupporting, styles.lh20]}>{previewMessage}</Text>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.lh20]}
+                                                testID="reportPreview-previewMessage"
+                                            >
+                                                {previewMessage}
+                                            </Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon
