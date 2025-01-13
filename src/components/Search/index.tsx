@@ -90,7 +90,7 @@ function mapToItemWithSelectionInfo(
               ...item,
               shouldAnimateInHighlight,
               transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              isSelected: item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -520,6 +520,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             scrollEventThrottle={1}
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
+            initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
         />
     );
 }
