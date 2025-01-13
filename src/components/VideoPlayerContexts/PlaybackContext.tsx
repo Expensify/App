@@ -90,8 +90,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             setCurrentlyPlayingURL(null);
             setSharedElement(null);
             setOriginalParent(null);
-            currentVideoPlayerRef.current = null;
+            setCurrentlyPlayingURLReportID(undefined);
             unloadVideo();
+            currentVideoPlayerRef.current = null;
         });
     }, [stopVideo, unloadVideo]);
 

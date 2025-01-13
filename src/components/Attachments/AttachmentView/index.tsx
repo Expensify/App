@@ -78,6 +78,9 @@ type AttachmentViewProps = Attachment & {
 
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
 };
 
 function AttachmentView({
@@ -104,6 +107,7 @@ function AttachmentView({
     isUploaded = true,
     isDeleted,
     isUploading = false,
+    reportID,
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
@@ -291,6 +295,7 @@ function AttachmentView({
                 shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
+                reportID={reportID}
             />
         );
     }

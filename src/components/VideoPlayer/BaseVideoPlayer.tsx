@@ -50,6 +50,7 @@ function BaseVideoPlayer({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
     isPreview,
+    reportID = '-1',
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -63,6 +64,7 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
+        currentlyPlayingURLReportID,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -336,11 +338,11 @@ function BaseVideoPlayer({
     );
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
@@ -373,7 +375,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {

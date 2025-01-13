@@ -230,10 +230,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     isFocused={activeSource === item.source}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
+                    reportID={report.reportID}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, handleTap, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
