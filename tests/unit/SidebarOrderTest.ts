@@ -867,8 +867,8 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportCollectionDataSet,
                             ...reportNameValuePairsCollectionDataSet,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -1021,8 +1021,8 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportCollectionDataSet,
                             ...reportNameValuePairsCollectionDataSet,
+                            ...reportCollectionDataSet,
                         }),
                     )
 

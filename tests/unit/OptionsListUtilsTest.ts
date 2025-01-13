@@ -7,6 +7,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import DateUtils from '@libs/DateUtils';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
@@ -390,7 +391,13 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
 
+
+    const reportNameValuePairs = {
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
     beforeEach(() => {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
