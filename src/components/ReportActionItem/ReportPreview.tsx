@@ -80,7 +80,7 @@ import {
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -241,7 +241,7 @@ function ReportPreview({
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowSubmitButton = IOU.canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
