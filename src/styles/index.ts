@@ -4013,7 +4013,7 @@ const styles = (theme: ThemeColors) =>
 
         productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
         },
 
