@@ -9,7 +9,6 @@ type HybridAppModule = {
     closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
     completeOnboarding: (status: boolean) => void;
     switchAccount: (newDotCurrentAccount: string) => void;
-    exitApp: () => void;
 };
 
 type RNTextInputResetModule = {
