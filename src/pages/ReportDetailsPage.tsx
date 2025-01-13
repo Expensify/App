@@ -87,9 +87,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
 
@@ -277,6 +279,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
+    const shouldShowGoToWorkspace = PolicyUtils.shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
     const reportName = ReportUtils.getReportName(report);
 
@@ -454,23 +457,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -512,6 +498,43 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (shouldShowGoToWorkspace) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'workspace.common.goToWorkspace',
+                icon: Expensicons.Building,
+                action: () => {
+                    if (!report?.policyID) {
+                        return;
+                    }
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
+        if (shouldShowLeaveButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
+            });
+        }
+
         if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
@@ -528,7 +551,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -537,35 +559,38 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         report,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isTrackExpenseReport,
+        isDeletedParentAction,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowCancelPaymentButton,
+        shouldShowLeaveButton,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
-        canModifyTask,
-        shouldShowMenuItem,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        shouldOpenRoomMembersPage,
-        shouldShowCancelPaymentButton,
-        session,
-        isOffline,
-        transactionIDList,
-        leaveChat,
+        isExpenseReport,
         canUnapproveRequest,
         isDebugModeEnabled,
-        unapproveExpenseReportOrShowModal,
-        isExpenseReport,
+        shouldShowGoToWorkspace,
+        activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         backTo,
-        canActionTask,
-        isTrackExpenseReport,
-        iouTransactionID,
         parentReportAction,
+        iouTransactionID,
         moneyRequestReport?.reportID,
-        isDeletedParentAction,
+        session,
+        canModifyTask,
+        canActionTask,
+        isRootGroupChat,
+        leaveChat,
+        isOffline,
+        transactionIDList,
+        unapproveExpenseReportOrShowModal,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

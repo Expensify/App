@@ -320,7 +320,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: true,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -332,6 +332,16 @@ function BaseSelectionList<TItem extends ListItem>(
         },
         isFocused,
     });
+
+    const selectedItemIndex = useMemo(() => flattenedSections.allOptions.findIndex((option) => option.isSelected), [flattenedSections.allOptions]);
+
+    useEffect(() => {
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+            return;
+        }
+        setFocusedIndex(selectedItemIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
@@ -396,10 +406,20 @@ function BaseSelectionList<TItem extends ListItem>(
         }
     };
 
-    const selectFocusedOption = () => {
+    const getFocusedOption = useCallback(() => {
         const focusedOption = focusedIndex !== -1 ? flattenedSections.allOptions.at(focusedIndex) : undefined;
 
         if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
+            return;
+        }
+
+        return focusedOption;
+    }, [flattenedSections.allOptions, focusedIndex]);
+
+    const selectFocusedOption = () => {
+        const focusedOption = getFocusedOption();
+
+        if (!focusedOption) {
             return;
         }
 
@@ -734,12 +754,13 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption}), [
         scrollAndHighlightItem,
         clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
         updateExternalTextInputFocus,
         scrollToIndex,
+        getFocusedOption,
     ]);
 
     /** Selects row when pressing Enter */

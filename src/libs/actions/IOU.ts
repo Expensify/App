@@ -45,6 +45,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PerDiemRequestUtils from '@libs/PerDiemRequestUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -499,6 +500,7 @@ function initMoneyRequest(
     }
 
     const comment: Comment = {};
+    let requestCategory: string | null = null;
 
     // Add initial empty waypoints when starting a distance expense
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
@@ -512,6 +514,22 @@ function initMoneyRequest(
         }
     }
 
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        comment.customUnit = {
+            attributes: {
+                dates: {
+                    start: DateUtils.getStartOfToday(),
+                    end: DateUtils.getStartOfToday(),
+                },
+            },
+        };
+        if (!isFromGlobalCreate) {
+            const {customUnitID, category} = PerDiemRequestUtils.getCustomUnitID(reportID);
+            comment.customUnit = {...comment.customUnit, customUnitID};
+            requestCategory = category ?? null;
+        }
+    }
+
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
@@ -520,6 +538,7 @@ function initMoneyRequest(
         comment,
         created,
         currency,
+        category: requestCategory,
         iouRequestType: newIouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -569,6 +588,10 @@ function setMoneyRequestAmount(transactionID: string, amount: number, currency: 
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+}
+
+function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {attributes: {dates: {start, end}}}}});
 }
 
 function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
@@ -635,6 +658,115 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+}
+
+/**
+ * Set custom unit ID for the transaction draft
+ */
+function setCustomUnitID(transactionID: string, customUnitID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID}}});
+}
+
+function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1);
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index >= existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1, {quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function clearSubrates(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
+}
+
+function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index !== existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.push({quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
 /** Set the distance rate of a new  transaction */
@@ -2144,25 +2276,23 @@ function getSendInvoiceInformation(
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        amount,
-        currency,
-        optimisticInvoiceReport.reportID,
-        trimmedComment,
-        [],
-        created,
-        '',
-        '',
-        merchant,
-        receiptObject,
-        filename,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-    );
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticInvoiceReport.reportID,
+            comment: trimmedComment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
@@ -2312,29 +2442,27 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
-        currency,
-        iouReport.reportID,
-        comment,
-        attendees,
-        created,
-        '',
-        '',
-        merchant,
-        receipt,
-        '',
+    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
         existingTransactionID,
-        category,
-        tag,
-        taxCode,
-        ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        undefined,
         existingTransaction,
         policy,
-    );
+        transactionParams: {
+            amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: iouReport.reportID,
+            comment,
+            attendees,
+            created,
+            merchant,
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount: ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
@@ -2570,30 +2698,29 @@ function getTrackExpenseInformation(
     if (!filename) {
         filename = existingTransaction?.filename;
     }
-    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
-        currency,
-        shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
-        comment,
-        [],
-        created,
-        '',
-        '',
-        merchant,
-        receiptObject,
-        filename,
-        existingTransactionID ?? null,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        false,
+    const isDistanceRequest = existingTransaction && TransactionUtils.isDistanceRequest(existingTransaction);
+    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        existingTransactionID,
         existingTransaction,
         policy,
-    );
+        transactionParams: {
+            amount: ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
+            comment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            reimbursable: false,
+            filename,
+        },
+    });
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -3463,15 +3590,8 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, policy);
     const transactionChanges: TransactionChanges = {
         category,
-        ...(categoryTaxCode &&
-            categoryTaxAmount !== undefined && {
-                taxCode: categoryTaxCode,
-                taxAmount: categoryTaxAmount,
-            }),
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
@@ -4270,28 +4390,24 @@ function createSplitsAndOnyxData(
 
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let splitTransaction = TransactionUtils.buildOptimisticTransaction(
-        amount,
-        currency,
-        CONST.REPORT.SPLIT_REPORTID,
-        comment,
-        [],
-        created,
-        '',
-        '',
-        merchant || Localize.translateLocal('iou.expense'),
-        receipt,
-        undefined,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-        undefined,
+    let splitTransaction = TransactionUtils.buildOptimisticTransaction({
         existingTransaction,
-    );
+        transactionParams: {
+            amount,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment,
+            created,
+            merchant: merchant || Localize.translateLocal('iou.expense'),
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
 
     // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
     if (isDistanceRequest) {
@@ -4514,25 +4630,23 @@ function createSplitsAndOnyxData(
         }
 
         // STEP 3: Build optimistic transaction
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
-            currency,
-            oneOnOneIOUReport.reportID,
-            comment,
-            [],
-            created,
-            CONST.IOU.TYPE.SPLIT,
-            splitTransaction.transactionID,
-            merchant || Localize.translateLocal('iou.expense'),
-            undefined,
-            undefined,
-            undefined,
-            category,
-            tag,
-            taxCode,
-            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
-            billable,
-        );
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
+            originalTransactionID: splitTransaction.transactionID,
+            transactionParams: {
+                amount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
+                currency,
+                reportID: oneOnOneIOUReport.reportID,
+                comment,
+                created,
+                merchant: merchant || Localize.translateLocal('iou.expense'),
+                category,
+                tag,
+                taxCode,
+                taxAmount: ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                billable,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport
@@ -4869,25 +4983,22 @@ function startSplitBill({
     const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
-        0,
-        currency,
-        CONST.REPORT.SPLIT_REPORTID,
-        comment,
-        [],
-        '',
-        '',
-        '',
-        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        receiptObject,
-        filename,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-    );
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount: 0,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -5280,25 +5391,25 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
 
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            isPolicyExpenseChat ? -splitAmount : splitAmount,
-            currency ?? '',
-            oneOnOneIOUReport?.reportID ?? '-1',
-            updatedTransaction?.comment?.comment,
-            [],
-            updatedTransaction?.modifiedCreated,
-            CONST.IOU.TYPE.SPLIT,
-            transactionID,
-            updatedTransaction?.modifiedMerchant,
-            {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
-            updatedTransaction?.filename,
-            undefined,
-            updatedTransaction?.category,
-            updatedTransaction?.tag,
-            updatedTransaction?.taxCode,
-            isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
-            updatedTransaction?.billable,
-        );
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction({
+            originalTransactionID: transactionID,
+            transactionParams: {
+                amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
+                currency: currency ?? '',
+                reportID: oneOnOneIOUReport?.reportID ?? '-1',
+                comment: updatedTransaction?.comment?.comment,
+                created: updatedTransaction?.modifiedCreated,
+                merchant: updatedTransaction?.modifiedMerchant,
+                receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
+                category: updatedTransaction?.category,
+                tag: updatedTransaction?.tag,
+                taxCode: updatedTransaction?.taxCode,
+                taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                billable: updatedTransaction?.billable,
+                source: CONST.IOU.TYPE.SPLIT,
+                filename: updatedTransaction?.filename,
+            },
+        });
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             ReportUtils.buildOptimisticMoneyRequestEntities(
@@ -5399,27 +5510,19 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 }
 
 function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
-    const newTransactionChanges = {...transactionChanges};
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    if (transactionChanges.category) {
-        const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(transactionChanges.category, draftSplitTransaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
-            newTransactionChanges.taxCode = categoryTaxCode;
-            newTransactionChanges.taxAmount = categoryTaxAmount;
-        }
-    }
-
     const updatedTransaction = draftSplitTransaction
         ? TransactionUtils.getUpdatedTransaction({
               transaction: draftSplitTransaction,
-              transactionChanges: newTransactionChanges,
+              transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
+              policy,
           })
         : null;
 
@@ -6312,7 +6415,14 @@ function getSendMoneyParams(
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, optimisticIOUReport.reportID, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticIOUReport.reportID,
+            comment,
+        },
+    });
     const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -7001,6 +7111,7 @@ function getPayMoneyRequestParams(
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
         {
@@ -7024,6 +7135,7 @@ function getPayMoneyRequestParams(
                 reimbursed: null,
                 partial: null,
             },
+            errors: null,
         },
     });
 
@@ -7783,6 +7895,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticReportAction),
                 stateNum,
@@ -7886,6 +7999,8 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal();
+    Report.notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
@@ -7945,6 +8060,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
+    Report.notifyNewAction(iouReport?.reportID ?? '', userAccountID);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
@@ -8320,6 +8436,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     const parentReportActionOptimistic = ReportUtils.getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8344,6 +8461,13 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: updatedViolations,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportActionComment.created,
+            },
         },
     ];
 
@@ -8388,6 +8512,21 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
                     hold: null,
                 },
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+                [createdReportActionComment.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
             },
         },
     ];
@@ -8443,6 +8582,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8466,6 +8606,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportAction.created,
+            },
         },
     ];
 
@@ -8499,6 +8646,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
@@ -8509,6 +8663,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: transactionViolations ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            },
         },
     ];
 
@@ -8932,6 +9093,11 @@ export {
     sendMoneyElsewhere,
     sendMoneyWithWallet,
     setCustomUnitRateID,
+    setCustomUnitID,
+    removeSubrate,
+    addSubrate,
+    updateSubrate,
+    clearSubrates,
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,
@@ -8939,6 +9105,7 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestDistanceRate,

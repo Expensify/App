@@ -1,15 +1,13 @@
 /* eslint-disable */
+/* prettier-ignore */
+
 // Google Tag Manager
-(function (w, d, s, l, i) {
-    w[l] = w[l] || [];
-    w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
-    const f = d.getElementsByTagName(s)[0];
-    const j = d.createElement(s);
-    const dl = l !== 'dataLayer' ? '&l=' + l : '';
-    j.async = true;
-    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-    f.parentNode.insertBefore(j, f);
-})(window, document, 'script', 'dataLayer', 'GTM-N4M3FLJZ');
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelector('[nonce]');
+n&&j.setAttribute('nonce',n.nonce||n.getAttribute('nonce'));f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-N4M3FLJZ');
 
 // FullStory
 window['_fs_host'] = 'fullstory.com';
