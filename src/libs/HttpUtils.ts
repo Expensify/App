@@ -159,7 +159,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param shouldUseSecure should we use the secure server
  */
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
-    return prepareRequestPayload(data, initiatedOffline).then((formData) => {
+    return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
         const url = ApiUtils.getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
 

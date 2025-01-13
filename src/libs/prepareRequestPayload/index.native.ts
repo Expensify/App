@@ -1,17 +1,20 @@
+import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
-const prepareRequestPayload: PrepareRequestPayload = (data, initiatedOffline) => {
+const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOffline) => {
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
     Object.keys(data).forEach((key) => {
         promiseChain = promiseChain.then(() => {
-            if (typeof data[key] === 'undefined') {
+            const value = data[key];
+
+            if (value === undefined) {
                 return Promise.resolve();
             }
 
             if (key === 'receipt' && initiatedOffline) {
-                const {uri: path = '', source} = data[key] as File;
+                const {uri: path = '', source} = value as File;
 
                 return import('@libs/fileDownload/FileUtils').then(({readFileAsync}) =>
                     readFileAsync(source, path, () => {}).then((file) => {
@@ -19,12 +22,14 @@ const prepareRequestPayload: PrepareRequestPayload = (data, initiatedOffline) =>
                             return;
                         }
 
+                        validateFormDataParameter(command, key, value);
                         formData.append(key, file);
                     }),
                 );
             }
 
-            formData.append(key, data[key] as string | Blob);
+            validateFormDataParameter(command, key, value);
+            formData.append(key, value as string | Blob);
 
             return Promise.resolve();
         });

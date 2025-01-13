@@ -1,3 +1,3 @@
-type PrepareRequestPayload = (data: Record<string, unknown>, initiatedOffline: boolean) => Promise<FormData>;
+type PrepareRequestPayload = (command: string, data: Record<string, unknown>, initiatedOffline: boolean) => Promise<FormData>;
 
 export default PrepareRequestPayload;
