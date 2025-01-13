@@ -59,6 +59,22 @@ const tests = [
         },
     },
     {
+        query: parserCommonTests.quotesIOS,
+        expected: {
+            autocomplete: {
+                key: 'category',
+                length: 5,
+                start: 33,
+                value: 'a b',
+            },
+            ranges: [
+                {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'status', value: 'all', start: 20, length: 3},
+                {key: 'category', value: 'a b', start: 33, length: 5},
+            ],
+        },
+    },
+    {
         query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportid:123456789 word',
         expected: {
             autocomplete: null,

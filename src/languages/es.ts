@@ -2599,6 +2599,7 @@ const translations = {
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             goToWorkspace: 'Ir al espacio de trabajo',
+            goToWorkspaces: 'Ir a espacios de trabajo',
             clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
             workspaceOwner: 'Dueño',
@@ -4450,7 +4451,8 @@ const translations = {
                 title: 'Mejorar al plan Controlar',
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
-                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    startsAt: 'El plan Controlar comienza desde ',
+                    perMember: 'por miembro activo al mes.',
                     learnMore: 'Más información',
                     pricing: 'sobre nuestros planes y precios.',
                     benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
@@ -4477,7 +4479,7 @@ const translations = {
             },
             completed: {
                 headline: 'Tu espacio de trabajo ha sido bajado de categoría',
-                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                description: 'Tienes otros espacios de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
                 gotIt: 'Entendido, gracias.',
             },
         },
