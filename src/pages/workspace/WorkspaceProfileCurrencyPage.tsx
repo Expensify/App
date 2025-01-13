@@ -4,7 +4,6 @@ import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
@@ -26,13 +25,14 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
+        if (!policy) {
+            return;
+        }
         FormActions.clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
-        Policy.updateGeneralSettings(policy?.name ?? '', item.currencyCode, policy?.id);
+        Policy.updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
-
-    const outputCurrency = policy?.outputCurrency ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.currency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency;
 
     return (
         <AccessOrNotFoundWrapper
@@ -52,7 +52,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
                 <CurrencySelectionList
                     searchInputLabel={translate('workspace.editor.currencyInputLabel')}
                     onSelect={onSelectCurrency}
-                    initiallySelectedCurrencyCode={outputCurrency}
+                    initiallySelectedCurrencyCode={policy?.outputCurrency}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

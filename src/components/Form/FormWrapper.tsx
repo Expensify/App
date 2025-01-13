@@ -120,7 +120,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                        isLoading={!!formState?.isLoading || isLoading}
+                        isLoading={!!formState?.isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
@@ -152,7 +152,6 @@ function FormWrapper({
             formState?.isLoading,
             shouldHideFixErrorsAlert,
             errorMessage,
-            isLoading,
             onSubmit,
             footerContent,
             onFixTheErrorsLinkPressed,

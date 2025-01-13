@@ -46,6 +46,14 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+}
+
+function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
+}
+
 export default {
     canUsePrivateDomainOnboardingCheck,
     canUseDefaultRooms,
@@ -55,4 +63,6 @@ export default {
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUsePerDiem,
+    canUseMergeAccounts,
+    canUseManagerMcTest,
 };

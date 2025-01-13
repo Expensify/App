@@ -1,15 +1,6 @@
 import type {ComponentType} from 'react';
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
-
-function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = []) {
-    let lastIndex = bodyContentLength - 1;
-    while (skipSteps.includes(lastIndex)) {
-        lastIndex -= 1;
-    }
-
-    return lastIndex;
-}
 
 /**
  * This hook ensures uniform handling of components across different screens, enabling seamless integration and navigation through sub steps of the VBBA flow.
@@ -17,56 +8,41 @@ function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = [])
  * @param onFinished - callback triggered after finish last step
  * @param startFrom - initial index for bodyContent array
  * @param onNextSubStep - callback triggered after finish each step
- * @param skipSteps - array of indexes to skip
  */
-export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, skipSteps = [], onNextSubStep = () => {}}: UseSubStep<TProps>) {
+export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, onNextSubStep = () => {}}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 
-    if (bodyContent.length === skipSteps.length) {
-        throw new Error('All steps are skipped');
-    }
-
-    const lastScreenIndex = useMemo(() => calculateLastIndex(bodyContent.length, skipSteps), [bodyContent.length, skipSteps]);
-
     const prevScreen = useCallback(() => {
-        let decrementNumber = 1;
-        while (screenIndex - decrementNumber >= 0 && skipSteps.includes(screenIndex - decrementNumber)) {
-            decrementNumber += 1;
-        }
-        const prevScreenIndex = screenIndex - decrementNumber;
+        const prevScreenIndex = screenIndex - 1;
 
         if (prevScreenIndex < 0) {
             return;
         }
 
         setScreenIndex(prevScreenIndex);
-    }, [screenIndex, skipSteps]);
+    }, [screenIndex]);
 
     const nextScreen = useCallback(
         (finishData?: unknown) => {
             if (isEditing.current) {
                 isEditing.current = false;
 
-                setScreenIndex(lastScreenIndex);
+                setScreenIndex(bodyContent.length - 1);
 
                 return;
             }
 
-            let incrementNumber = 1;
-            while (screenIndex + incrementNumber < lastScreenIndex && skipSteps.includes(screenIndex + incrementNumber)) {
-                incrementNumber += 1;
-            }
-            const nextScreenIndex = screenIndex + incrementNumber;
+            const nextScreenIndex = screenIndex + 1;
 
-            if (nextScreenIndex === lastScreenIndex + 1) {
+            if (nextScreenIndex === bodyContent.length) {
                 onFinished(finishData);
             } else {
                 onNextSubStep();
                 setScreenIndex(nextScreenIndex);
             }
         },
-        [screenIndex, lastScreenIndex, skipSteps, onFinished, onNextSubStep],
+        [screenIndex, bodyContent.length, onFinished, onNextSubStep],
     );
 
     const moveTo = useCallback((step: number) => {
@@ -74,15 +50,14 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(step);
     }, []);
 
-    const resetScreenIndex = useCallback((newScreenIndex = 0) => {
-        isEditing.current = false;
-        setScreenIndex(newScreenIndex);
+    const resetScreenIndex = useCallback(() => {
+        setScreenIndex(0);
     }, []);
 
     const goToTheLastStep = useCallback(() => {
         isEditing.current = false;
-        setScreenIndex(lastScreenIndex);
-    }, [lastScreenIndex]);
+        setScreenIndex(bodyContent.length - 1);
+    }, [bodyContent]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     return {

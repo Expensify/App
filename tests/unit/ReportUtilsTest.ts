@@ -312,6 +312,25 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
+
+            test('Invited/Removed Room Member Action', () => {
+                const threadOfRemovedRoomMemberAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    parentReportID: '101',
+                    parentReportActionID: '102',
+                    policyID: policy.id,
+                };
+                const removedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+                    originalMessage: {
+                        targetAccountIDs: [1],
+                    },
+                } as ReportAction;
+
+                expect(ReportUtils.getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
+            });
         });
     });
 
@@ -1608,6 +1627,19 @@ describe('ReportUtils', () => {
 
             // Then no invoice chat should be returned because the receiver type does not match
             expect(invoiceChatReport).toBeUndefined();
+        });
+    });
+    describe('getWorkspaceNameUpdatedMessage', () => {
+        it('return the encoded workspace name updated message', () => {
+            const action = {
+                originalMessage: {
+                    newName: '&#104;&#101;&#108;&#108;&#111;',
+                    oldName: 'workspace 1',
+                },
+            };
+            expect(ReportUtils.getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
+                'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
+            );
         });
     });
 });

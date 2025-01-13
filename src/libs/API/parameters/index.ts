@@ -8,6 +8,7 @@ export type {default as RestartBankAccountSetupParams} from './RestartBankAccoun
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
+export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';
@@ -29,6 +30,7 @@ export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
+export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';
@@ -353,8 +355,6 @@ export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypePara
 export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
-export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
-export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
