@@ -91,6 +91,10 @@ function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
 
+function isCardIssued(card: Card) {
+    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
     const feedCards: CardList = {...cardList};
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
@@ -480,4 +484,5 @@ export {
     isCard,
     getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
+    isCardIssued,
 };

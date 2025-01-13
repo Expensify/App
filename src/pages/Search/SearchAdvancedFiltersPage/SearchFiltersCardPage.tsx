@@ -28,10 +28,6 @@ type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilt
 
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
 
-function isCardIssued(card: Card) {
-    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
-}
-
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
     for (const key of workspaceCardFeedsKeys) {
@@ -77,7 +73,7 @@ function buildIndividualCardsData(
     selectedCards: string[],
 ): ItemsGroupedBySelection {
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => isCardIssued(card))
+        .filter((card) => CardUtils.isCardIssued(card))
         .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
@@ -85,7 +81,7 @@ function buildIndividualCardsData(
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID] && isCardIssued(card))
+                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID] && CardUtils.isCardIssued(card))
                 .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
         });
 
@@ -169,7 +165,7 @@ function buildCardFeedsData(
         .forEach(([cardFeedKey, cardFeed]) => {
             const cardFeedArray = Object.values(cardFeed ?? {});
             const representativeCard = cardFeedArray.find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
-            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => CardUtils.isCard(cardFeedItem) && isCardIssued(cardFeedItem))) {
+            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => CardUtils.isCard(cardFeedItem) && CardUtils.isCardIssued(cardFeedItem))) {
                 return;
             }
             const {domainName, bank} = representativeCard;
@@ -177,7 +173,7 @@ function buildCardFeedsData(
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
-                .filter(([cardKey, card]) => cardKey !== 'cardList' && CardUtils.isCard(card) && isCardIssued(card))
+                .filter(([cardKey, card]) => cardKey !== 'cardList' && CardUtils.isCard(card) && CardUtils.isCardIssued(card))
                 .map(([cardKey]) => cardKey);
 
             const feedItem = createCardFeedItem({
@@ -223,7 +219,7 @@ function SearchFiltersCardPage() {
         () =>
             Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
                 // Cards in cardList can also be domain cards, we use them to compute domain feed
-                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && isCardIssued(currentCard)) {
+                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && CardUtils.isCardIssued(currentCard)) {
                     if (accumulator[currentCard.domainName]) {
                         accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
                     } else {
@@ -246,8 +242,11 @@ function SearchFiltersCardPage() {
 
     const searchFunction = useCallback(
         (item: CardFilterItem) =>
-            !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()),
-        [debouncedSearchTerm],
+            !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            !!item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+        [debouncedSearchTerm, translate],
     );
 
     const sections = useMemo(() => {
@@ -299,6 +298,8 @@ function SearchFiltersCardPage() {
         [selectedCards],
     );
 
+    const headerMessage = debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '';
+
     const footerContent = useMemo(
         () => (
             <Button
@@ -330,6 +331,7 @@ function SearchFiltersCardPage() {
                     sections={sections}
                     onSelectRow={updateNewCards}
                     footerContent={footerContent}
+                    headerMessage={headerMessage}
                     shouldStopPropagation
                     shouldShowTooltips
                     canSelectMultiple

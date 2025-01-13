@@ -108,7 +108,6 @@ function CardListItem<TItem extends ListItem>({
                                         width={variables.cardMiniatureWidth}
                                         height={variables.cardMiniatureHeight}
                                         additionalStyles={styles.cardMiniature}
-                                        fill={theme.componentBG}
                                     />
                                 </View>
                             </View>

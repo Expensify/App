@@ -336,6 +336,7 @@ function SearchRouterList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
+                    .filter((card) => CardUtils.isCard(card) && CardUtils.isCardIssued(card))
                     .filter(
                         (card) =>
                             card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(CardUtils.getCardDescription(card.cardID).toLowerCase()),
