@@ -12,11 +12,11 @@ import type {AdditionalCardProps} from '@components/SelectionList/Search/CardLis
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
+import {getBankName, getCardFeedIcon, getDescriptionForPolicyDomainCard, isCard, isCardIssued} from '@libs/CardUtils';
+import {getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +46,7 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
 function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
-    const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
+    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
 
@@ -73,7 +73,7 @@ function buildIndividualCardsData(
     selectedCards: string[],
 ): ItemsGroupedBySelection {
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => CardUtils.isCardIssued(card))
+        .filter((card) => isCardIssued(card))
         .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
@@ -81,7 +81,7 @@ function buildIndividualCardsData(
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID] && CardUtils.isCardIssued(card))
+                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && isCardIssued(card))
                 .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
         });
 
@@ -113,11 +113,11 @@ function createCardFeedItem({
     selectedCards: string[];
     translate: LocaleContextProps['translate'];
 }): CardFilterItem {
-    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getBankName(bank as CompanyCardFeed);
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
     const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
 
-    const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
+    const icon = getCardFeedIcon(bank as CompanyCardFeed);
     return {
         text,
         keyForList,
@@ -148,7 +148,7 @@ function buildCardFeedsData(
         const feedItem = createCardFeedItem({
             bank,
             correspondingCardIDs,
-            cardFeedLabel: isBankRepeating ? CardUtils.getDescriptionForPolicyDomainCard(domainName) : undefined,
+            cardFeedLabel: isBankRepeating ? getDescriptionForPolicyDomainCard(domainName) : undefined,
             translate,
             keyForList: `${domainName}-${bank}`,
             selectedCards,
@@ -164,16 +164,16 @@ function buildCardFeedsData(
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
         .forEach(([cardFeedKey, cardFeed]) => {
             const cardFeedArray = Object.values(cardFeed ?? {});
-            const representativeCard = cardFeedArray.find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
-            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => CardUtils.isCard(cardFeedItem) && CardUtils.isCardIssued(cardFeedItem))) {
+            const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
+            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && isCardIssued(cardFeedItem))) {
                 return;
             }
             const {domainName, bank} = representativeCard;
             const isBankRepeating = repeatingBanks.includes(bank);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
-            const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
+            const correspondingPolicy = getPolicy(policyID?.toUpperCase());
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
-                .filter(([cardKey, card]) => cardKey !== 'cardList' && CardUtils.isCard(card) && CardUtils.isCardIssued(card))
+                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && isCardIssued(card))
                 .map(([cardKey]) => cardKey);
 
             const feedItem = createCardFeedItem({
@@ -207,7 +207,7 @@ function SearchFiltersCardPage() {
     const personalDetails = usePersonalDetails();
 
     useEffect(() => {
-        SearchActions.openSearchFiltersCardPage();
+        openSearchFiltersCardPage();
     }, []);
 
     const individualCardsSectionData = useMemo(
@@ -219,7 +219,7 @@ function SearchFiltersCardPage() {
         () =>
             Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
                 // Cards in cardList can also be domain cards, we use them to compute domain feed
-                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && CardUtils.isCardIssued(currentCard)) {
+                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && isCardIssued(currentCard)) {
                     if (accumulator[currentCard.domainName]) {
                         accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
                     } else {
@@ -272,7 +272,7 @@ function SearchFiltersCardPage() {
     }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
 
     const handleConfirmSelection = useCallback(() => {
-        SearchActions.updateAdvancedFilters({
+        updateAdvancedFilters({
             cardID: selectedCards,
         });
 

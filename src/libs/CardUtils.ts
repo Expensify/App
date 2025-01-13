@@ -15,9 +15,9 @@ import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
-import * as Localize from './Localize';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PolicyUtils from './PolicyUtils';
+import {translateLocal} from './Localize';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPolicy} from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -82,7 +82,7 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!card) {
         return '';
     }
-    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getBankName(card.bank as CompanyCardFeed);
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
@@ -239,8 +239,8 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
         const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
         const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
 
-        const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
-        const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
+        const aName = getDisplayNameOrDefault(userA);
+        const bName = getDisplayNameOrDefault(userB);
 
         return localeCompare(aName, bName);
     });
@@ -346,7 +346,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
         return '';
     }
 
-    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
+    const formattedFeedName = translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
     return customFeedName ?? formattedFeedName;
 }
 
@@ -445,7 +445,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
-        const policy = PolicyUtils.getPolicy(policyID.toUpperCase());
+        const policy = getPolicy(policyID.toUpperCase());
         return policy?.name ?? domainName;
     }
     return domainName;

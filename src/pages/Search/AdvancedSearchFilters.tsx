@@ -15,16 +15,16 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as CardUtils from '@libs/CardUtils';
+import {clearAllFilters, saveSearch} from '@libs/actions/Search';
+import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
-import * as SearchActions from '@userActions/Search';
+import {getReportName} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -217,7 +217,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return filterValue
         ? Object.values(cards)
               .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => CardUtils.getCardDescription(card.cardID, cards))
+              .map((card) => getCardDescription(card.cardID, cards))
               .join(', ')
         : undefined;
 }
@@ -231,7 +231,7 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
                 return '';
             }
 
-            return PersonalDetailsUtils.createDisplayName(personalDetail.login ?? '', personalDetail);
+            return createDisplayName(personalDetail.login ?? '', personalDetail);
         })
         .filter(Boolean)
         .join(', ');
@@ -340,7 +340,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
               .filter((expenseType) => filterValue.includes(expenseType))
-              .map((expenseType) => translate(SearchUIUtils.getExpenseTypeTranslationKey(expenseType)))
+              .map((expenseType) => translate(getExpenseTypeTranslationKey(expenseType)))
               .join(', ')
         : undefined;
 }
@@ -348,7 +348,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
         ? filters.in
-              .map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+              .map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
               .filter(Boolean)
               .join(', ')
         : undefined;
@@ -376,7 +376,7 @@ function AdvancedSearchFilters() {
     const policyID = searchAdvancedFilters.policyID;
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -421,11 +421,11 @@ function AdvancedSearchFilters() {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
+    const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
-        SearchActions.clearAllFilters();
+        clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
@@ -442,7 +442,7 @@ function AdvancedSearchFilters() {
             return;
         }
 
-        SearchActions.saveSearch({
+        saveSearch({
             queryJSON,
         });
 
@@ -511,7 +511,7 @@ function AdvancedSearchFilters() {
                 .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
-    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     return (
         <>

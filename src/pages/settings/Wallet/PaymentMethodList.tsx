@@ -18,12 +18,12 @@ import useNetwork from '@hooks/useNetwork';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
+import {getCardFeedIcon, getDescriptionForPolicyDomainCard, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PaymentUtils from '@libs/PaymentUtils';
+import {formatPaymentMethods} from '@libs/PaymentUtils';
 import variables from '@styles/variables';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -120,7 +120,7 @@ type PaymentMethodItem = PaymentMethod & {
 
 function dismissError(item: PaymentMethodItem) {
     if (item.cardID) {
-        PaymentMethods.clearDeletePaymentMethodError(ONYXKEYS.CARD_LIST, item.cardID);
+        clearDeletePaymentMethodError(ONYXKEYS.CARD_LIST, item.cardID);
         return;
     }
 
@@ -134,14 +134,14 @@ function dismissError(item: PaymentMethodItem) {
     }
 
     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        clearDeletePaymentMethodError(paymentList, paymentID);
         if (!isBankAccount) {
-            PaymentMethods.clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
+            clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
         }
     } else {
-        PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
+        clearAddPaymentMethodError(paymentList, paymentID);
         if (!isBankAccount) {
-            PaymentMethods.clearAddPaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
+            clearAddPaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
         }
     }
 }
@@ -218,17 +218,17 @@ function PaymentMethodList({
             const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
-                const icon = CardUtils.getCardFeedIcon(card.bank as CompanyCardFeed);
+                const icon = getCardFeedIcon(card.bank as CompanyCardFeed);
 
-                if (!CardUtils.isExpensifyCard(card.cardID)) {
+                if (!isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: CardUtils.maskCardNumber(card.cardName, card.bank),
-                        description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
+                        title: maskCardNumber(card.cardName, card.bank),
+                        description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
@@ -266,7 +266,7 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
+                    description: getDescriptionForPolicyDomainCard(card.domainName),
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
@@ -293,7 +293,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
 
         if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
