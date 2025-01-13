@@ -1,4 +1,4 @@
-name: Build and deploy hybrid apps for testing
+name: Build and deploy hybird apps for testing
 
 on:
   workflow_dispatch:
@@ -115,6 +115,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with: 
+          IS_HYBRID_BUILD: 'true'
       
       - name: Run grunt build
         run: |
@@ -195,8 +197,8 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+    runs-on: macos-15-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -223,6 +225,8 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with: 
+          IS_HYBRID_BUILD: 'true'
       
       - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
         run: |
@@ -231,7 +235,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
     

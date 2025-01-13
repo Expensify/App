@@ -225,7 +225,7 @@ function CalendarPicker({
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
                         const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                         const handleOnPress = () => {
-                            if (!day) {
+                            if (!day || isDisabled) {
                                 return;
                             }
 
