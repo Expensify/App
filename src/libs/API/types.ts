@@ -445,7 +445,7 @@ const WRITE_COMMANDS = {
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
     ADD_WORK_EMAIL: 'AddWorkEmail',
-    MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogin',
+    MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
