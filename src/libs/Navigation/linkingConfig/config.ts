@@ -1381,6 +1381,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
+                        [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

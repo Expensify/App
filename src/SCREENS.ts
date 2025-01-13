@@ -29,6 +29,7 @@ const SCREENS = {
         TCS: 'Travel_TCS',
         TRIP_SUMMARY: 'Travel_TripSummary',
         TRIP_DETAILS: 'Travel_TripDetails',
+        DOMAIN_SELECTOR: 'Travel_DomainSelector',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',

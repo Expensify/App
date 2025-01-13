@@ -1439,6 +1439,7 @@ const ROUTES = {
         getRoute: (reportID: string, transactionID: string, reservationIndex: number, backTo?: string) =>
             getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
     },
+    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
