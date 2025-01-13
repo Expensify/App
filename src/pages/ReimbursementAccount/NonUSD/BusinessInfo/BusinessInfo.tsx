@@ -5,6 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -28,6 +29,8 @@ type BusinessInfoProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 };
+
+type BusinessInfoParamsPartial = Omit<SaveCorpayOnboardingCompanyDetails, 'currencyNeeded' | 'purposeOfTransactionId'>;
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
     Name,
@@ -79,32 +82,20 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
+        const params = {} as BusinessInfoParamsPartial;
+        Object.values(INPUT_KEYS).forEach((currentKey) => {
+            params[currentKey] = businessInfoStepValues[currentKey];
+        });
+
         BankAccounts.saveCorpayOnboardingCompanyDetails(
             {
-                annualVolume: businessInfoStepValues[INPUT_KEYS.ANNUAL_VOLUME],
-                applicantTypeId: businessInfoStepValues[INPUT_KEYS.APPLICANT_TYPE_ID],
-                companyName: businessInfoStepValues[INPUT_KEYS.NAME],
-                companyStreetAddress: businessInfoStepValues[INPUT_KEYS.STREET],
-                companyCity: businessInfoStepValues[INPUT_KEYS.CITY],
-                companyState: businessInfoStepValues[INPUT_KEYS.STATE],
-                companyPostalCode: businessInfoStepValues[INPUT_KEYS.COMPANY_POSTAL_CODE],
-                companyCountryCode: businessInfoStepValues[INPUT_KEYS.COMPANY_COUNTRY_CODE],
+                ...params,
                 currencyNeeded: currency,
-                businessContactNumber: businessInfoStepValues[INPUT_KEYS.CONTACT_NUMBER],
-                businessConfirmationEmail: businessInfoStepValues[INPUT_KEYS.CONFIRMATION_EMAIL],
-                businessRegistrationIncorporationNumber: businessInfoStepValues[INPUT_KEYS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
-                formationIncorporationState: businessInfoStepValues[INPUT_KEYS.INCORPORATION_STATE],
-                formationIncorporationCountryCode: businessInfoStepValues[INPUT_KEYS.INCORPORATION_COUNTRY],
-                fundSourceCountries: businessInfoStepValues[INPUT_KEYS.COMPANY_COUNTRY_CODE],
-                fundDestinationCountries: businessInfoStepValues[INPUT_KEYS.STATE],
-                natureOfBusiness: businessInfoStepValues[INPUT_KEYS.BUSINESS_CATEGORY],
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
-                tradeVolume: businessInfoStepValues[INPUT_KEYS.TRADE_VOLUME],
-                taxIDEINNumber: businessInfoStepValues[INPUT_KEYS.TAX_ID_EIN_NUMBER],
             },
             bankAccountID,
         );
-    }, [bankAccountID, currency, businessInfoStepValues]);
+    }, [currency, bankAccountID, businessInfoStepValues]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
