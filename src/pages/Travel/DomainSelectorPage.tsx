@@ -1,9 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
+import TravelDomainListItem from '@components/SelectionList/TravelDomainListItem';
 import { ListItem } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -48,8 +46,8 @@ function DomainSelectorPage() {
             <SelectionList
                 onSelectRow={() => {}}
                 sections={[{title: translate('travel.domainSelector.title'), data}]}
-                canSelectMultiple={false}
-                ListItem={InviteMemberListItem}
+                canSelectMultiple
+                ListItem={TravelDomainListItem}
                 shouldShowTooltips
             />
         </ScreenWrapper>
