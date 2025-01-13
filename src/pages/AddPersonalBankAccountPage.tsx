@@ -29,7 +29,6 @@ function AddPersonalBankAccountPage() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
-    console.log('testing');
     const goBack = useCallback(() => {
         switch (topMostCentralPane?.name) {
             case SCREENS.SETTINGS.WALLET.ROOT:
