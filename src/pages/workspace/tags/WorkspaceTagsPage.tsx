@@ -15,11 +15,11 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -103,49 +103,23 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             : undefined;
     };
 
-    const updateWorkspaceTagEnabled = useCallback(
-        (value: boolean, tagName: string) => {
-            Tag.setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
-        },
-        [policyID],
-    );
-
-    const updateWorkspaceRequiresTag = useCallback(
-        (value: boolean, orderWeight: number) => {
-            Tag.setPolicyTagsRequired(policyID, value, orderWeight);
-        },
-        [policyID],
-    );
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
-            return policyTagLists.map((policyTagList) => {
-                const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
-                const isSwitchDisabled = !policyTagList.required && !areTagsEnabled;
-                const isSwitchEnabled = policyTagList.required && areTagsEnabled;
-
-                if (policyTagList.required && !areTagsEnabled) {
-                    updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
-                }
-
-                return {
-                    value: policyTagList.name,
-                    orderWeight: policyTagList.orderWeight,
-                    text: PolicyUtils.getCleanedTagName(policyTagList.name),
-                    keyForList: String(policyTagList.orderWeight),
-                    isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
-                    pendingAction: getPendingAction(policyTagList),
-                    enabled: true,
-                    required: policyTagList.required,
-                    rightElement: (
-                        <Switch
-                            isOn={isSwitchEnabled}
-                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(newValue: boolean) => updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight)}
-                            disabled={isSwitchDisabled}
-                        />
-                    ),
-                };
-            });
+            return policyTagLists.map((policyTagList) => ({
+                value: policyTagList.name,
+                orderWeight: policyTagList.orderWeight,
+                text: PolicyUtils.getCleanedTagName(policyTagList.name),
+                keyForList: String(policyTagList.orderWeight),
+                isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
+                pendingAction: getPendingAction(policyTagList),
+                enabled: true,
+                required: policyTagList.required,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
+                    />
+                ),
+            }));
         }
         const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
         return sortedTags.map((tag) => ({
@@ -157,16 +131,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             errors: tag.errors ?? undefined,
             enabled: tag.enabled,
             isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            rightElement: (
-                <Switch
-                    isOn={tag.enabled}
-                    disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    accessibilityLabel={translate('workspace.tags.enableTag')}
-                    onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
-                />
-            ),
+            rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate]);
 
     const tagListKeyedByName = useMemo(
         () =>
