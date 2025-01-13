@@ -3,6 +3,7 @@ import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import Log from './libs/Log';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -1017,13 +1018,13 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
-        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
+        route: 'settings/workspaces/:policyID?/upgrade/:featureName?',
+        getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
+            policyID ? getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo) : (`settings/workspaces/upgrade` as const),
     },
     WORKSPACE_DOWNGRADE: {
-        route: 'settings/workspaces/:policyID/downgrade/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/downgrade/` as const,
+        route: 'settings/workspaces/:policyID?/downgrade/',
+        getRoute: (policyID?: string) => (policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : `settings/workspaces/downgrade`),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
@@ -1221,7 +1222,12 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/company-cards` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS route');
+            }
+            return `settings/workspaces/${policyID}/company-cards` as const;
+        },
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',

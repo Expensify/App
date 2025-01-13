@@ -874,22 +874,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        let urlToNavigateBack: string | undefined;
-
+        // If transaction was not deleted (i.e. Cancel was clicked), do nothing
+        // which only dismiss the delete confirmation modal
         if (!isTransactionDeleted.current) {
-            if (caseID === CASES.DEFAULT) {
-                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
-                if (urlToNavigateBack) {
-                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                    Navigation.goBack(urlToNavigateBack as Route);
-                } else {
-                    Navigation.dismissModal();
-                }
-                return;
-            }
             return;
         }
 
+        let urlToNavigateBack: string | undefined;
+
+        // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
@@ -905,7 +898,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
