@@ -22,7 +22,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                             return;
                         }
 
-                        validateFormDataParameter(command, key, value);
+                        validateFormDataParameter(command, key, file);
                         formData.append(key, file);
                     }),
                 );
