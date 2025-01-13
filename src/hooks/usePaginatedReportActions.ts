@@ -33,7 +33,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     }, [reportActionID, reportActionPages, sortedAllReportActions]);
 
     const linkedAction = useMemo(
-        () => sortedAllReportActions?.find((reportAction) => String(reportAction.reportActionID) === String(reportActionID)),
+        () => sortedAllReportActions?.find((reportAction) => reportActionID && String(reportAction.reportActionID) === String(reportActionID)),
         [reportActionID, sortedAllReportActions],
     );
 

@@ -244,7 +244,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const indexOfLinkedMessage = useMemo(
-        (): number => reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
+        (): number => reportActions.findIndex((obj) => reportActionIDFromRoute && String(obj.reportActionID) === String(reportActionIDFromRoute)),
         [reportActions, reportActionIDFromRoute],
     );
 
