@@ -4,7 +4,7 @@ type SelectedParticipant = {
     accountID: number;
 
     /** Participant login name */
-    login: string;
+    login: string | undefined;
 };
 
 /** Model of new group chat draft */
