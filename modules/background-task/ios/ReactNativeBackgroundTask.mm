@@ -16,7 +16,7 @@ RCT_EXPORT_MODULE()
     return self;
 }
 
-- (BOOL)scheduleNewBackgroundTask:(NSString *)identifier {
+- (BOOL)scheduleNewBackgroundTask:(NSString *)identifier error:(NSError **)outError {
     BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:identifier];
     
     // Set earliest begin date to some time in the future
@@ -27,6 +27,9 @@ RCT_EXPORT_MODULE()
     
     if (!success) {
         NSLog(@"[ReactNativeBackgroundTask] Failed to schedule task: %@", error.localizedDescription);
+        if (outError != nil) {
+            *outError = error;
+        }
     }
     
     return success;
@@ -60,7 +63,8 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     
     NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
     
-    BOOL allSuccess = YES; 
+    BOOL allSuccess = YES;
+    NSError *taskError = nil;
 
     for (NSString *identifier in backgroundIdentifiers) {
         [[RNBackgroundTaskManager shared] setHandlerForIdentifier:identifier completion:^(BGTask * _Nonnull task) {
@@ -72,17 +76,20 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
                 [self emitOnBackgroundTaskExecution:(taskName)];
             }];
             
-            [self scheduleNewBackgroundTask:identifier];
+            NSError *scheduleError = nil;
+            [self scheduleNewBackgroundTask:identifier error:&scheduleError];
             
             [task setTaskCompletedWithSuccess:YES];
         }];
         
-        BOOL success = [self scheduleNewBackgroundTask:identifier];
+        NSError *scheduleError = nil;
+        BOOL success = [self scheduleNewBackgroundTask:identifier error:&scheduleError];
 
         if (success) {
             _taskExecutors[taskName] = taskExecutor;
         } else {
             allSuccess = NO;
+            taskError = scheduleError;
             break;  
         }
     }
@@ -90,10 +97,11 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     if (allSuccess) {
         resolve(@YES);
     } else {
-        reject(@"error", @"Failed to schedule initial background task", nil);
+        reject(@"ERR_SCHEDULE_TASK_FAILED", 
+               taskError.localizedDescription ?: @"Failed to schedule initial background task",
+               taskError);
     }
 
-        
     _taskExecutors[taskName] = taskExecutor;
 }
 
