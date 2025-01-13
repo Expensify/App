@@ -240,6 +240,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             : undefined;
         const reportID = transactionThreadReport?.reportID;
 
+        if (!iouTransactionID || !reportID) {
+            return;
+        }
+
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
