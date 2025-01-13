@@ -1,6 +1,4 @@
 import React from 'react';
-import {useSharedValue} from 'react-native-reanimated';
-import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -9,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import type {AccordionItem, MenuItemWithSubscribedSettings, ToggleItem} from '@pages/workspace/accounting/intacct/types';
+import type {MenuItem, ToggleItem} from '@pages/workspace/accounting/intacct/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -18,6 +16,8 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {getDefaultVendorName} from './utils';
+
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 type ToggleItemWithKey = ToggleItem & {key: string};
 
@@ -30,24 +30,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     const defaultVendorName = getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors);
 
-    const shouldExpand = useSharedValue(!(reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT || !reimbursableExpenseReportDefaultVendor));
-    const renderDefault = (item: MenuItemWithSubscribedSettings) => {
-        return (
-            <OfflineWithFeedback
-                key={item.description}
-                pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
-            >
-                <MenuItemWithTopDescription
-                    title={item.title}
-                    description={item.description}
-                    shouldShowRightIcon
-                    onPress={item?.onPress}
-                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-        );
-    };
-    const menuItems: Array<(MenuItemWithSubscribedSettings | ToggleItemWithKey) | AccordionItem> = [
+    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItemWithKey> = [
         {
             type: 'menuitem',
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : translate('workspace.sageIntacct.notConfigured'),
@@ -67,7 +50,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             onToggle: (enabled) => {
                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, config?.export.reimbursableExpenseReportDefaultVendor);
-                shouldExpand.set(enabled);
             },
             onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR),
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields),
@@ -75,21 +57,14 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             shouldHide: reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT,
         },
         {
-            type: 'accordion',
-            children: [
-                {
-                    type: 'menuitem',
-                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
-                    description: translate('workspace.sageIntacct.defaultVendor'),
-                    onPress: () => {
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE));
-                    },
-                    subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
-                    shouldHide: reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT || !reimbursableExpenseReportDefaultVendor,
-                },
-            ],
-            shouldHide: false,
-            shouldExpand: shouldExpand,
+            type: 'menuitem',
+            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
+            description: translate('workspace.sageIntacct.defaultVendor'),
+            onPress: () => {
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE));
+            },
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
+            shouldHide: reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT || !reimbursableExpenseReportDefaultVendor,
         },
     ];
 
@@ -121,17 +96,21 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />
                             );
-                        case 'accordion':
-                            return (
-                                <Accordion
-                                    isExpanded={item.shouldExpand}
-                                    style={styles.overflowHidden}
-                                >
-                                    {item.children.map((child) => renderDefault(child))}
-                                </Accordion>
-                            );
                         default:
-                            return renderDefault(item);
+                            return (
+                                <OfflineWithFeedback
+                                    key={item.description}
+                                    pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                                >
+                                    <MenuItemWithTopDescription
+                                        title={item.title}
+                                        description={item.description}
+                                        shouldShowRightIcon
+                                        onPress={item?.onPress}
+                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    />
+                                </OfflineWithFeedback>
+                            );
                     }
                 })}
         </ConnectionLayout>

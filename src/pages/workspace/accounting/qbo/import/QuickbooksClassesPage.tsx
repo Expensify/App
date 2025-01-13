@@ -1,6 +1,4 @@
-import React, {useEffect} from 'react';
-import {useSharedValue} from 'react-native-reanimated';
-import Accordion from '@components/Accordion';
+import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,12 +22,6 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncClasses && qboConfig.syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = qboConfig?.syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
-
-    const isAccordionExpanded = useSharedValue(isSwitchOn);
-
-    useEffect(() => {
-        isAccordionExpanded.set(isSwitchOn);
-    }, [isAccordionExpanded, isSwitchOn]);
 
     return (
         <ConnectionLayout
@@ -58,10 +50,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
             />
-            <Accordion
-                isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
-            >
+            {isSwitchOn && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -72,7 +61,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                         brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
-            </Accordion>
+            )}
         </ConnectionLayout>
     );
 }

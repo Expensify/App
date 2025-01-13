@@ -1,9 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -30,18 +27,4 @@ type ToggleItem = ToggleSettingOptionRowProps & {
     shouldHide?: boolean;
 };
 
-type AccordionItem = {
-    /** Indicates the item type. Here, 'accordion' means that this is used to render an accordion section. */
-    type: 'accordion';
-
-    /** Child elements that are displayed inside the accordion. */
-    children: MenuItemWithSubscribedSettings[];
-
-    /** Determines whether the entire section should be hidden. */
-    shouldHide: boolean;
-
-    /** Controls whether the content of the accordion should be expanded. */
-    shouldExpand: SharedValue<boolean>;
-};
-
-export type {MenuItem, ToggleItem, MenuItemWithSubscribedSettings, AccordionItem};
+export type {MenuItem, ToggleItem};

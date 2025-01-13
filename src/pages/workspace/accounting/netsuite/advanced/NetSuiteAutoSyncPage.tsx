@@ -1,7 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {useSharedValue} from 'react-native-reanimated';
-import Accordion from '@components/Accordion';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,12 +28,6 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
-
-    const isAccordionExpanded = useSharedValue(!!autoSyncConfig?.autoSync?.enabled);
-
-    useEffect(() => {
-        isAccordionExpanded.set(!!autoSyncConfig?.autoSync?.enabled);
-    }, [isAccordionExpanded, autoSyncConfig?.autoSync?.enabled]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -66,11 +58,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     pendingAction={pendingAction}
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
-
-                <Accordion
-                    isExpanded={isAccordionExpanded}
-                    style={styles.overflowHidden}
-                >
+                {!!autoSyncConfig?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={
@@ -83,7 +71,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
-                </Accordion>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
