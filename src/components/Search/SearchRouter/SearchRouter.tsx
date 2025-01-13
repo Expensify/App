@@ -113,15 +113,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
             let autocompleteID: string | undefined = reportForContextualSearch.reportID;
 
-            if (reportForContextualSearch.isPolicyExpenseChat) {
-                roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                if (reportForContextualSearch.policyID) {
-                    autocompleteID = reportForContextualSearch.policyID;
-                } else {
-                    autocompleteID = '';
-                }
-            }
-
             if (reportForContextualSearch.isInvoiceRoom) {
                 roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
                 const report = reportForContextualSearch as SearchOption<Report>;
@@ -133,7 +124,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             }
             if (reportForContextualSearch.isPolicyExpenseChat) {
                 roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                autocompleteID = reportForContextualSearch.policyID;
+                if (reportForContextualSearch.policyID) {
+                    autocompleteID = reportForContextualSearch.policyID;
+                } else {
+                    autocompleteID = '';
+                }
             }
 
             return [
