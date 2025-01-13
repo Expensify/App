@@ -1,4 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import {StyleSheet} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -27,6 +29,8 @@ type ExportWithDropdownMenuProps = {
     connectionName: ConnectionName;
 
     dropdownAnchorAlignment?: AnchorAlignment;
+
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ExportWithDropdownMenu({
@@ -37,6 +41,7 @@ function ExportWithDropdownMenu({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
+    wrapperStyle,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
@@ -50,6 +55,7 @@ function ExportWithDropdownMenu({
     const canBeExported = ReportUtils.canBeExported(report);
     const isExported = ReportUtils.isExported(reportActions);
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
+    const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -72,7 +78,7 @@ function ExportWithDropdownMenu({
                 ...optionTemplate,
             },
         ];
-        const exportMethod = exportMethods?.[report?.policyID ?? ''] ?? null;
+        const exportMethod = report?.policyID ? exportMethods?.[report.policyID] : null;
         if (exportMethod) {
             options.sort((method) => (method.value === exportMethod ? -1 : 0));
         }
@@ -124,7 +130,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={styles.flex1}
+                wrapperStyle={flattenedWrapperStyle}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal

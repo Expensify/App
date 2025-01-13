@@ -122,7 +122,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         }
         if (reportForContextualSearch.isPolicyExpenseChat) {
             roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            autocompleteID = reportForContextualSearch.policyID ?? '';
+            if (reportForContextualSearch.policyID) {
+                autocompleteID = reportForContextualSearch.policyID;
+            } else {
+                autocompleteID = '';
+            }
         }
 
         additionalSections.push({
@@ -283,7 +287,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
                         onSubmit={() => {
-                            submitSearch(textInputValue);
+                            const focusedOption = listRef.current?.getFocusedOption();
+
+                            if (!focusedOption) {
+                                submitSearch(textInputValue);
+                                return;
+                            }
+
+                            onListItemPress(focusedOption);
                         }}
                         caretHidden={shouldHideInputCaret}
                         routerListRef={listRef}
