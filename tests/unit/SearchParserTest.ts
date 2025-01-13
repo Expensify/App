@@ -136,6 +136,20 @@ const tests = [
         },
     },
     {
+        query: parserCommonTests.quotesIOS,
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'category',
+                right: 'a b',
+            },
+        },
+    },
+    {
         query: ',',
         expected: {
             type: 'expense',
