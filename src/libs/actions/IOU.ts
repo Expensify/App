@@ -1219,7 +1219,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
-        optimisticData.push(violationsOnyxData);
+        optimisticData.push(violationsOnyxData, {
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            onyxMethod: Onyx.METHOD.SET,
+            value: NextStepUtils.buildNextStep(iouReport, iouReport?.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, true),
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
@@ -3157,18 +3161,35 @@ function getUpdateMoneyRequestParams(
         });
     }
 
+    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`] ?? {};
+    let nextViolationOnyxUpdate: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
     if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                policy,
-                policyTagList ?? {},
-                policyCategories ?? {},
-                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
-            ),
+        nextViolationOnyxUpdate = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            policy,
+            policyTagList ?? {},
+            policyCategories ?? {},
+            PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
         );
+    }
+
+    if (nextViolationOnyxUpdate?.value) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+            value: NextStepUtils.buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, nextViolationOnyxUpdate.value.length > 0),
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+            value: currentNextStep,
+        });
+    }
+
+    if (nextViolationOnyxUpdate && ('tag' in transactionChanges || 'category' in transactionChanges)) {
+        optimisticData.push(nextViolationOnyxUpdate);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
