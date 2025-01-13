@@ -25,6 +25,15 @@ type LazyLoadLHNTestUtils = {
 
 const mockedNavigate = jest.fn();
 
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    getFSAttributes: jest.fn(),
+    getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
+}));
+
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
     const lazyLoadLHNTestUtils = () => require<LazyLoadLHNTestUtils>('../utils/LHNTestUtils');
