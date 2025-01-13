@@ -4962,7 +4962,7 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
 
 function getDeletedTransactionMessage(action: ReportAction) {
     const deletedTransactionOriginalMessage = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>) ?? {};
-    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0);
+    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0) / 100;
     const currency = CurrencyUtils.getCurrencySymbol(deletedTransactionOriginalMessage.currency ?? '');
     const message = Localize.translateLocal('iou.deletedTransaction', {
         amount: `${currency}${amount}`,
