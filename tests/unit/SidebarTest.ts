@@ -1,4 +1,3 @@
-
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -170,4 +169,3 @@ describe('Sidebar', () => {
         });
     });
 });
-

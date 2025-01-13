@@ -789,7 +789,7 @@ describe('DebugUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
 
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
