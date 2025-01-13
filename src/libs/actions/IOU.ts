@@ -126,6 +126,7 @@ type CategorizeTrackedExpenseTransactionParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
+    receipt?: Receipt;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -3851,6 +3852,7 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
+    receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3893,6 +3895,7 @@ function shareTrackedExpense(
         taxCode,
         taxAmount,
         billable,
+        receipt: receipt instanceof Blob ? receipt : undefined,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -4195,6 +4198,7 @@ function trackExpense(
                 category,
                 tag,
                 billable,
+                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
             };
             const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
@@ -4247,6 +4251,7 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
+                trackedReceipt,
                 createdWorkspaceParams,
             );
             break;
