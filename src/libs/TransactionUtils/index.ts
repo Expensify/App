@@ -1106,7 +1106,11 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(reviewingTransactionID?: string, reportID?: string, selectedTransactionID?: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+function compareDuplicateTransactionFields(
+    reviewingTransactionID?: string | undefined,
+    reportID?: string | undefined,
+    selectedTransactionID?: string | undefined,
+): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     if (!reviewingTransactionID || !reportID) {
         return {change: {}, keep: {}};
     }

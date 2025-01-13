@@ -251,9 +251,6 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (isScanning) {
-            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
-        }
         if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
