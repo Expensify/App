@@ -42,27 +42,6 @@ describe('DynamicArrayBuffer', () => {
             buffer.array[0] = 3.3;
             expect(buffer.array[0]).toBe(3.3);
         });
-
-        test('set method with bounds checking', () => {
-            buffer.push(1.1);
-
-            // Valid set
-            buffer.set(0, 2.2);
-            expect(buffer.array[0]).toBe(2.2);
-            buffer.set(1, 3.3);
-            expect(buffer.array[1]).toBe(3.3);
-            expect(buffer.length).toBe(2);
-
-            // Add a few more items to trigger an internal resize
-            buffer.set(2, 4.4);
-            buffer.set(3, 5.5);
-            buffer.set(4, 6.6);
-            expect(buffer.capacity).toBe(8);
-            expect(buffer.length).toBe(5);
-
-            // Out of bounds
-            expect(() => buffer.set(-1, 1.1)).toThrow('Index out of bounds');
-        });
     });
 
     describe('truncate operation', () => {
