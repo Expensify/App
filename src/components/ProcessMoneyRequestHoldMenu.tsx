@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {Keyboard, View} from 'react-native';
+import type {EmitterSubscription} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -11,6 +12,7 @@ import Popover from './Popover';
 import Text from './Text';
 import TextPill from './TextPill';
 
+let keyboardDidShowListener: EmitterSubscription | null = null;
 type ProcessMoneyRequestHoldMenuProps = {
     /** Whether the content is visible */
     isVisible: boolean;
@@ -41,6 +43,16 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
         return unsub;
     }, [navigation, onClose]);
 
+    const addKeyboardListener = useCallback(() => {
+        keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => {
+            Keyboard.dismiss();
+        });
+    }, []);
+
+    const removeKeyboardListener = useCallback(() => {
+        keyboardDidShowListener?.remove();
+    }, []);
+
     return (
         <Popover
             isVisible={isVisible}
@@ -51,6 +63,8 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             disableAnimation={false}
             withoutOverlay={false}
             shouldCloseWhenBrowserNavigationChanged={false}
+            onModalShow={addKeyboardListener}
+            onModalHide={removeKeyboardListener}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
