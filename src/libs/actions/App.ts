@@ -97,6 +97,14 @@ Onyx.connect({
     },
 });
 
+let preservedShouldUseStagingServer: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (value) => {
+        preservedShouldUseStagingServer = value?.shouldUseStagingServer;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -554,6 +562,7 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
+    const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = PersistedRequests.getAll();
     Onyx.clear(KEYS_TO_PRESERVE).then(() => {
         // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
@@ -568,6 +577,10 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
         if (preservedUserSession) {
             Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
             Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+        }
+
+        if (shouldUseStagingServer) {
+            Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
         }
 
         // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
