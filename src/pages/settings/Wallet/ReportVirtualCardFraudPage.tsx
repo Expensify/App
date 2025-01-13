@@ -39,6 +39,7 @@ function ReportVirtualCardFraudPage({
     const loginData = loginList?.[primaryLogin];
 
     const virtualCard = cardList?.[cardID];
+    const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
     const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
@@ -56,8 +57,10 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+        if (latestIssuedVirtualCardID) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
+        }
+    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors, latestIssuedVirtualCardID]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
