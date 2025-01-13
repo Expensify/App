@@ -8,7 +8,8 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 function toLocaleDigitMock(dot: string): string {
     return dot;
@@ -230,11 +231,12 @@ describe('PolicyUtils', () => {
 
     describe('getSubmitToAccountID', () => {
         beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            return waitForBatchedUpdates();
         });
-        afterEach(() => {
-            Onyx.clear();
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
         });
         describe('Has no rule approver', () => {
             it('should return the policy approver/owner if the policy use the optional or basic workflow', () => {
@@ -270,7 +272,7 @@ describe('PolicyUtils', () => {
             });
         });
         describe('Has category/tag approver', () => {
-            it('should return the first category approver if has any transaction category match with category approver rule', () => {
+            it('should return the first category approver if has any transaction category match with category approver rule', async() => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
@@ -278,6 +280,7 @@ describe('PolicyUtils', () => {
                     type: 'team',
                     employeeList,
                     rules,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
                     ...createRandomReport(0),
@@ -294,14 +297,13 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
-                }).then(() => {
-                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
                 });
+                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
             });
-            it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', () => {
+            it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async() => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
@@ -309,6 +311,7 @@ describe('PolicyUtils', () => {
                     type: 'team',
                     employeeList,
                     rules,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
                     ...createRandomReport(0),
@@ -327,15 +330,14 @@ describe('PolicyUtils', () => {
                     created: '2',
                     reportID: expenseReport.reportID,
                 };
-                Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
-                }).then(() => {
-                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
                 });
+                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
-                it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', () => {
+                it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async() => {
                     const policy: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
@@ -343,6 +345,7 @@ describe('PolicyUtils', () => {
                         type: 'team',
                         employeeList,
                         rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
                         ...createRandomReport(0),
@@ -363,14 +366,13 @@ describe('PolicyUtils', () => {
                         created: '2',
                         reportID: expenseReport.reportID,
                     };
-                    Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
-                    }).then(() => {
-                        expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
                     });
+                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
                 });
-                it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', () => {
+                it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async() => {
                     const policy: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
@@ -378,6 +380,7 @@ describe('PolicyUtils', () => {
                         type: 'team',
                         employeeList,
                         rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
                         ...createRandomReport(0),
@@ -398,12 +401,11 @@ describe('PolicyUtils', () => {
                         created: '2',
                         reportID: expenseReport.reportID,
                     };
-                    Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
-                    }).then(() => {
-                        expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
                     });
+                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
                 });
             });
         });
