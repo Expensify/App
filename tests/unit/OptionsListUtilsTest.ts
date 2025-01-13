@@ -153,7 +153,6 @@ describe('OptionsListUtils', () => {
             stateNum: 2,
             statusNum: 2,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
@@ -392,7 +391,12 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
 
+    const reportNameValuePairs = {
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
     beforeEach(() => {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);

@@ -117,7 +117,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 if (isDisabled) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
                             }}
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}

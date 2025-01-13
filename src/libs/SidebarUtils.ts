@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -208,7 +208,7 @@ function getOrderedReportIDs(
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        } else if (ReportUtils.isArchivedRoom(reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -291,6 +291,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    reportNameValuePairs,
     reportActions,
     personalDetails,
     preferredLocale,
@@ -302,6 +303,7 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
@@ -365,7 +367,7 @@ function getOptionData({
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    result.private_isArchived = report?.private_isArchived;
+    result.private_isArchived = reportNameValuePairs?.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -622,7 +624,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (report?.private_isArchived) {
+    if (ReportUtils.isArchivedRoomWithID(report?.reportID)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {

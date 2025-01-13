@@ -509,7 +509,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (report?.private_isArchived) {
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(reportID);
+
+    if (reportNameValuePairs?.private_isArchived) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -679,7 +681,7 @@ function createOption(
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        result.private_isArchived = report.private_isArchived;
+        result.private_isArchived = ReportUtils.getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
