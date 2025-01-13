@@ -1636,4 +1636,17 @@ describe('ReportUtils', () => {
             expect(invoiceChatReport).toBeUndefined();
         });
     });
+    describe('getWorkspaceNameUpdatedMessage', () => {
+        it('return the encoded workspace name updated message', () => {
+            const action = {
+                originalMessage: {
+                    newName: '&#104;&#101;&#108;&#108;&#111;',
+                    oldName: 'workspace 1',
+                },
+            };
+            expect(ReportUtils.getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
+                'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
+            );
+        });
+    });
 });

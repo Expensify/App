@@ -1,9 +1,10 @@
+import DynamicArrayBuffer from '@libs/DynamicArrayBuffer';
 import SuffixUkkonenTree from '@libs/SuffixUkkonenTree/index';
 
 describe('SuffixUkkonenTree', () => {
     // The suffix tree doesn't take strings, but expects an array buffer, where strings have been separated by a delimiter.
-    function helperStringsToNumericForTree(strings: string[]) {
-        const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true}));
+    function helperStringsToNumericForTree(strings: string[], charSetToSkip?: Set<string>): DynamicArrayBuffer<Uint8Array> {
+        const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true, charSetToSkip}));
         const numericList = numericLists.reduce(
             (acc, {numeric}) => {
                 acc.push(...numeric, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
@@ -13,8 +14,16 @@ describe('SuffixUkkonenTree', () => {
             [0],
         );
         numericList.push(SuffixUkkonenTree.END_CHAR_CODE);
-        return Uint8Array.from(numericList);
+        const arrayBuffer = new DynamicArrayBuffer(numericList.length, Uint8Array);
+        numericList.forEach((n) => arrayBuffer.push(n));
+        return arrayBuffer;
     }
+
+    it('should build strings correctly', () => {
+        const string = 'abc';
+        const numeric = SuffixUkkonenTree.stringToNumeric(string, {clamp: true}).numeric;
+        expect(Array.from(numeric)).toEqual(expect.arrayContaining([0, 1, 2]));
+    });
 
     it('should insert, build, and find all occurrences', () => {
         const strings = ['banana', 'pancake'];
@@ -59,5 +68,15 @@ describe('SuffixUkkonenTree', () => {
 
         // "2" in ASCII is 50, so base26(50) = [0, 23]
         expect(Array.from(numeric)).toEqual([SuffixUkkonenTree.SPECIAL_CHAR_CODE, 0, 23]);
+    });
+
+    it('should find words that contain chars to skip', () => {
+        const strings = ['b.an.ana', 'panca.ke'];
+        const numericIntArray = helperStringsToNumericForTree(strings, new Set(['.']));
+        const tree = SuffixUkkonenTree.makeTree(numericIntArray);
+        tree.build();
+
+        const searchValue = SuffixUkkonenTree.stringToNumeric('an', {clamp: true}).numeric;
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([2, 4, 9]));
     });
 });
