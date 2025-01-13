@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,7 +102,7 @@ describe('PolicyUtils', () => {
             });
         });
     });
-    describe('getActivePolicies', () => {
+    describe('shouldShowPolicy', () => {
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -116,42 +116,32 @@ describe('PolicyUtils', () => {
             global.fetch = TestHelper.getGlobalFetchMock();
             return Onyx.clear().then(waitForBatchedUpdates);
         });
-        it('should return empty array', () => {
-            // Given a user with a single archived paid policy.
-            const policies = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: '',
-                },
+        it('should return false', () => {
+            // Given a archived paid policy.
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: '',
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
-            // The result should be an empty array since we have no active policies.
-            expect(result.length).toBe(0);
+            const result = PolicyUtils.shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be false since it is an archived paid policy.
+            expect(result).toBe(false);
         });
-        it('should return array contains policy which has id = 1', () => {
-            // Given a user with only a paid policy.
-            const randomPolicy1 = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
-            const policies = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                1: randomPolicy1,
-            };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
-            // The result should contain the mock paid policy, since it is our only active paid policy.
-            expect(result).toContainEqual(randomPolicy1);
+        it('should return true', () => {
+            // Given a paid policy.
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
+            const result = PolicyUtils.shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be true, since it is active paid policy.
+            expect(result).toBe(true);
         });
-        it('should return empty array', () => {
-            // Given a user with only one control workspace which is pending delete.
-            const policies = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
+        it('should returnfalse', () => {
+            // Given a control workspace which is pending delete.
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
-            // The result should be an empty array since there is only one policy which is pending deletion, so we have no active paid policies.
-            expect(result).toEqual([]);
+            const result = PolicyUtils.shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be false since it is a policy which is pending deletion.
+            expect(result).toEqual(false);
         });
     });
 });
