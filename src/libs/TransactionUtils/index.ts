@@ -795,7 +795,7 @@ function shouldShowBrokenConnectionViolation(transactionID: string | undefined, 
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[]): boolean {
+function allHavePendingRTERViolation(transactionIds: Array<string | undefined>): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
         const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
@@ -894,7 +894,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param transactionID - the transaction to check
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
-function isDuplicate(transactionID: string, checkDismissed = false): boolean {
+function isDuplicate(transactionID: string | undefined, checkDismissed = false): boolean {
     const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
