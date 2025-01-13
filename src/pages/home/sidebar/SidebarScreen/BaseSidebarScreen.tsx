@@ -15,13 +15,15 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -29,13 +31,13 @@ function BaseSidebarScreen() {
     }, []);
 
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined) {
+        if (!!activeWorkspace || activeWorkspaceID === undefined || isLoading) {
             return;
         }
 
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID]);
+    }, [activeWorkspace, activeWorkspaceID, isLoading]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 

@@ -35,7 +35,7 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
-    SCHEME="Expensify Dev"
+    SCHEME="Expensify"
     APP_ID="org.me.mobiexpensifyg.dev"
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
