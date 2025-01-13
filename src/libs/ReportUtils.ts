@@ -4063,6 +4063,12 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
+        return getUpgradeWorkspaceMessage();
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+        return getDowngradeWorkspaceMessage();
+    }
     if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
@@ -4952,6 +4958,14 @@ function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
 
 function getRejectedReportMessage() {
     return Localize.translateLocal('iou.rejectedThisReport');
+}
+
+function getUpgradeWorkspaceMessage() {
+    return Localize.translateLocal('workspaceActions.upgradedWorkspace');
+}
+
+function getDowngradeWorkspaceMessage() {
+    return Localize.translateLocal('workspaceActions.downgradedWorkspace');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -8795,6 +8809,8 @@ export {
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
+    getUpgradeWorkspaceMessage,
+    getDowngradeWorkspaceMessage,
     getReportAutomaticallySubmittedMessage,
     getIOUSubmittedMessage,
     getIcons,

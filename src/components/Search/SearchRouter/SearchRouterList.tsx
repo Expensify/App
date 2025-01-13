@@ -47,6 +47,8 @@ type AutocompleteItemData = {
     mapKey?: SearchFilterKey;
 };
 
+type GetAdditionalSectionsCallback = (options: OptionsListUtils.Options) => Array<SectionListDataType<OptionData | SearchQueryItem>> | undefined;
+
 type SearchRouterListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
@@ -54,8 +56,8 @@ type SearchRouterListProps = {
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
 
-    /** Any extra sections that should be displayed in the router list */
-    additionalSections?: Array<SectionListDataType<OptionData | SearchQueryItem>>;
+    /** Any extra sections that should be displayed in the router list. */
+    getAdditionalSections?: GetAdditionalSectionsCallback;
 
     /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
@@ -117,7 +119,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -419,6 +421,10 @@ function SearchRouterList(
         sections.push({data: [searchQueryItem]});
     }
 
+    const additionalSections = useMemo(() => {
+        return getAdditionalSections?.(searchOptions);
+    }, [getAdditionalSections, searchOptions]);
+
     if (additionalSections) {
         sections.push(...additionalSections);
     }
@@ -485,3 +491,4 @@ function SearchRouterList(
 
 export default forwardRef(SearchRouterList);
 export {SearchRouterItem};
+export type {GetAdditionalSectionsCallback};
