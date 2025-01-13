@@ -4954,7 +4954,7 @@ function getRejectedReportMessage() {
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
     const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
-    return message;
+    return Str.htmlEncode(message);
 }
 
 /**
@@ -8346,13 +8346,11 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter(
-        (policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserEmail));
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         const activePolicy = getPolicy(activePolicyID);
-        if (activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL && activePolicy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (PolicyUtils.shouldShowPolicy(activePolicy, false, currentUserEmail)) {
             const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, activePolicyID)?.reportID;
             IOU.setMoneyRequestParticipants(transactionID, [
                 {
