@@ -282,7 +282,6 @@ function ReportPreview({
     };
 
     const getDisplayAmount = (): string => {
-        console.log('totalDisplaySpend', totalDisplaySpend);
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
