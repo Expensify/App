@@ -13,7 +13,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './Curren
 import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
@@ -203,10 +203,10 @@ function getFilters(queryJSON: SearchQueryJSON) {
 function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         if (typeof filterValue === 'string') {
-            return PersonalDetailsUtils.getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
+            return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
         }
 
-        return filterValue.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+        return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {

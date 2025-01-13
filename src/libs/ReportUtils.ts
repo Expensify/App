@@ -60,19 +60,19 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
-import * as PriorityModeActions from './actions/PriorityMode';
-import * as store from './actions/ReimbursementAccount/store';
-import * as ReportHelperActions from './actions/Report';
+import {autoSwitchToFocusMode} from './actions/PriorityMode';
+import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
+import {handleReportChanged} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import * as CurrencyUtils from './CurrencyUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
-import * as ErrorUtils from './ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as Localize from './Localize';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
@@ -752,7 +752,7 @@ Onyx.connect({
         });
 
         // Each time a new report is added we will check to see if the user should be switched
-        PriorityModeActions.autoSwitchToFocusMode();
+        autoSwitchToFocusMode();
 
         if (!value) {
             return;
@@ -761,7 +761,7 @@ Onyx.connect({
             if (!report) {
                 return;
             }
-            ReportHelperActions.handleReportChanged(report);
+            handleReportChanged(report);
         });
     },
 });
@@ -983,7 +983,7 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
-const unavailableTranslation = Localize.translateLocal('workspace.common.unavailable');
+const unavailableTranslation = translateLocal('workspace.common.unavailable');
 /**
  * Get the policy name from a given report
  */
@@ -2292,7 +2292,7 @@ function getPersonalDetailsOrDefault(personalDetails: Partial<PersonalDetails> |
     return personalDetails ?? {isOptimisticPersonalDetail: true};
 }
 
-const hiddenTranslation = Localize.translateLocal('common.hidden');
+const hiddenTranslation = translateLocal('common.hidden');
 
 const phoneNumberCache: Record<string, string> = {};
 
@@ -2320,7 +2320,7 @@ function getDisplayNameForParticipant(
     // Check if the phone number is already cached
     let formattedLogin = phoneNumberCache[login];
     if (!formattedLogin) {
-        formattedLogin = LocalePhoneNumber.formatPhoneNumber(login);
+        formattedLogin = formatPhoneNumber(login);
         // Store the formatted phone number in the cache
         phoneNumberCache[login] = formattedLogin;
     }
@@ -2339,7 +2339,7 @@ function getDisplayNameForParticipant(
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return LocalePhoneNumber.formatPhoneNumber(longName);
+        return formatPhoneNumber(longName);
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
@@ -2466,16 +2466,13 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
 
     if (isMultipleParticipantReport) {
         return participantAccountIDs
-            .map(
-                (participantAccountID, index) =>
-                    getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(participants?.[index]?.login ?? ''),
-            )
+            .map((participantAccountID, index) => getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || formatPhoneNumber(participants?.[index]?.login ?? ''))
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
     }
 
-    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participantAccountIDs.at(0), false)});
+    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participantAccountIDs.at(0), false)});
 }
 
 function getParticipants(reportID: string) {
@@ -2534,7 +2531,7 @@ function getIcons(
         const actorIcon = {
             id: actorAccountID,
             source: actorDetails?.avatar ?? FallbackAvatar,
-            name: LocalePhoneNumber.formatPhoneNumber(actorDisplayName),
+            name: formatPhoneNumber(actorDisplayName),
             type: CONST.ICON_TYPE_AVATAR,
             fallbackIcon: actorDetails?.fallbackIcon,
         };
@@ -2705,7 +2702,7 @@ function getDisplayNamesWithTooltips(
             let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
+                pronouns = translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
             }
 
             return {
@@ -2744,10 +2741,10 @@ function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = '
  */
 function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<ReportAction>): string {
     // By default, let us display [Deleted message]
-    let deletedMessageText = Localize.translateLocal('parentReportAction.deletedMessage');
+    let deletedMessageText = translateLocal('parentReportAction.deletedMessage');
     if (isCreatedTaskReportAction(reportAction)) {
         // For canceled task report, let us display [Deleted task]
-        deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
+        deletedMessageText = translateLocal('parentReportAction.deletedTask');
     }
     return deletedMessageText;
 }
@@ -2770,7 +2767,7 @@ function getReimbursementQueuedActionMessage(
         messageKey = 'iou.waitingOnBankAccount';
     }
 
-    return Localize.translateLocal(messageKey, {submitterDisplayName});
+    return translateLocal(messageKey, {submitterDisplayName});
 }
 
 /**
@@ -2785,13 +2782,13 @@ function getReimbursementDeQueuedActionMessage(
     const originalMessage = getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+    const formattedAmount = convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
         const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant(report?.managerID, true);
-        return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
-    return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+    return translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
 }
 
 /**
@@ -3242,7 +3239,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
+    const formattedAmount = convertToDisplayString(moneyRequestTotal, report?.currency);
 
     let payerOrApproverName;
     if (isExpenseReport(report)) {
@@ -3255,29 +3252,29 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
         payerOrApproverName = getDisplayNameForParticipant(report?.managerID) ?? '';
     }
 
-    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
     });
 
     if (isReportApproved(report)) {
-        return Localize.translateLocal('iou.managerApprovedAmount', {
+        return translateLocal('iou.managerApprovedAmount', {
             manager: payerOrApproverName,
             amount: formattedAmount,
         });
     }
 
     if (report?.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.pending')}`;
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant(report?.ownerAccountID) ?? '';
-        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     return payerPaidAmountMessage;
@@ -3646,30 +3643,30 @@ function shouldShowRBRForMissingSmartscanFields(iouReportID: string | undefined)
  */
 function getTransactionReportName(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): string {
     if (isReversedTransaction(reportAction)) {
-        return Localize.translateLocal('parentReportAction.reversedTransaction');
+        return translateLocal('parentReportAction.reversedTransaction');
     }
 
     if (isDeletedAction(reportAction)) {
-        return Localize.translateLocal('parentReportAction.deletedExpense');
+        return translateLocal('parentReportAction.deletedExpense');
     }
 
     const transaction = getLinkedTransaction(reportAction);
 
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
-        return isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.trackExpense') : Localize.translateLocal('iou.expense');
+        return isTrackExpenseAction(reportAction) ? translateLocal('iou.trackExpense') : translateLocal('iou.expense');
     }
 
     if (hasReceiptTransactionUtils(transaction) && isReceiptBeingScanned(transaction)) {
-        return Localize.translateLocal('iou.receiptScanning', {count: 1});
+        return translateLocal('iou.receiptScanning', {count: 1});
     }
 
     if (hasMissingSmartscanFieldsTransactionUtils(transaction)) {
-        return Localize.translateLocal('iou.receiptMissingDetails');
+        return translateLocal('iou.receiptMissingDetails');
     }
 
-    if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === Localize.translateLocal('iou.fieldPending')) {
-        return Localize.translateLocal('iou.fieldPending');
+    if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translateLocal('iou.fieldPending')) {
+        return translateLocal('iou.fieldPending');
     }
 
     if (isSentMoneyReportAction(reportAction)) {
@@ -3678,12 +3675,12 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     const report = getReportOrDraftReport(transaction?.reportID);
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(transaction)) ?? '';
+    const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     if (isTrackExpenseAction(reportAction)) {
-        return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
+        return translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
     }
-    return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
+    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
 /**
@@ -3729,16 +3726,16 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning', {count: 1});
+                return translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptMissingDetails');
+                return translateLocal('iou.receiptMissingDetails');
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
-            const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+            return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
     }
 
@@ -3751,16 +3748,16 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning', {count: 1});
+                return translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptMissingDetails');
+                return translateLocal('iou.receiptMissingDetails');
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
-            const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+            return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
     }
 
@@ -3771,10 +3768,10 @@ function getReportPreviewMessage(
     const policyName = getPolicyName(parentReport ?? report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+    const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && isPaidGroupPolicy(report)) {
-        return Localize.translateLocal('iou.managerApprovedAmount', {
+        return translateLocal('iou.managerApprovedAmount', {
             manager: payerName ?? '',
             amount: formattedAmount,
         });
@@ -3786,11 +3783,11 @@ function getReportPreviewMessage(
     }
 
     if (!isEmptyObject(linkedTransaction) && hasReceiptTransactionUtils(linkedTransaction) && isReceiptBeingScanned(linkedTransaction)) {
-        return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
+        return translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
     if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
-        return Localize.translateLocal('iou.fieldPending');
+        return translateLocal('iou.fieldPending');
     }
 
     const originalMessage = !isEmptyObject(iouReportAction) && isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction) : undefined;
@@ -3816,12 +3813,12 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
+        return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
     }
 
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true) ?? '';
-        return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
+        return translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
@@ -3844,18 +3841,18 @@ function getReportPreviewMessage(
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
+        const amountToDisplay = convertToDisplayString(Math.abs(amount), currency);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.submittedAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.submittedAmount', {formattedAmount: amountToDisplay, comment})}`;
     }
 
     if (containsNonReimbursable) {
-        return Localize.translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
+    return translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**
@@ -3928,8 +3925,8 @@ function getModifiedExpenseOriginalMessage(
 
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
-        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
-        originalMessage.billable = transactionChanges?.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
+        originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
+        originalMessage.billable = transactionChanges?.billable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
     }
 
     if ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) {
@@ -3964,13 +3961,13 @@ function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): Original
  */
 function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAction>, parentReportActionMessage: string) {
     if (isEmptyObject(parentReportAction)) {
-        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+        return parentReportActionMessage || translateLocal('parentReportAction.deletedMessage');
     }
     if (!getOriginalMessage(parentReportAction)) {
-        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+        return parentReportActionMessage || translateLocal('parentReportAction.deletedMessage');
     }
     if (!isPolicyChangeLogAction(parentReportAction) && !isRoomChangeLogAction(parentReportAction)) {
-        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+        return parentReportActionMessage || translateLocal('parentReportAction.deletedMessage');
     }
 
     const originalMessage = isChangeLogObject(getOriginalMessage(parentReportAction));
@@ -3981,9 +3978,9 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
         if (name && name?.length > 0) {
             return name;
         }
-        return Localize.translateLocal('common.hidden');
+        return translateLocal('common.hidden');
     });
-    const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants.at(0);
+    const users = participants.length > 1 ? participants.join(` ${translateLocal('common.and')} `) : participants.at(0);
     if (!users) {
         return parentReportActionMessage;
     }
@@ -3993,8 +3990,8 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
     const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
 
-    const verb = Localize.translateLocal(verbKey);
-    const preposition = Localize.translateLocal(prepositionKey);
+    const verb = translateLocal(verbKey);
+    const preposition = translateLocal(prepositionKey);
 
     const roomName = originalMessage?.roomName ?? '';
 
@@ -4011,7 +4008,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return LocalePhoneNumber.formatPhoneNumber(getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]));
+        return formatPhoneNumber(getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]));
     }
 
     return getPolicyName(report, false, invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
@@ -4067,7 +4064,7 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
         return '';
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-        return Localize.translateLocal('iou.heldExpense');
+        return translateLocal('iou.heldExpense');
     }
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -4075,7 +4072,7 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
     }
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
-        return Localize.translateLocal('iou.unheldExpense');
+        return translateLocal('iou.unheldExpense');
     }
     if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         return getReportActionMessageText(reportAction);
@@ -4103,7 +4100,7 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
     }
 
     if (isIndividual) {
-        return LocalePhoneNumber.formatPhoneNumber(getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]));
+        return formatPhoneNumber(getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]));
     }
 
     return getPolicyName(report, false, invoiceReceiverPolicy);
@@ -4184,7 +4181,7 @@ function getReportName(
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
             if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-                formattedName += ` (${Localize.translateLocal('common.archived')})`;
+                formattedName += ` (${translateLocal('common.archived')})`;
             }
             return formatReportLastMessageText(formattedName);
         }
@@ -4194,26 +4191,26 @@ function getReportName(
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
-            return Localize.translateLocal('parentReportAction.deletedMessage');
+            return translateLocal('parentReportAction.deletedMessage');
         }
 
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
-            return `[${Localize.translateLocal('common.attachment')}]`;
+            return `[${translateLocal('common.attachment')}]`;
         }
         if (
             parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
             parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
             parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
-            return Localize.translateLocal('parentReportAction.hiddenMessage');
+            return translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
         if (reportActionMessage && isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-            return `${reportActionMessage} (${Localize.translateLocal('common.archived')})`;
+            return `${reportActionMessage} (${translateLocal('common.archived')})`;
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
@@ -4230,11 +4227,11 @@ function getReportName(
     }
 
     if (isClosedExpenseReportWithNoExpenses(report)) {
-        return Localize.translateLocal('parentReportAction.deletedReport');
+        return translateLocal('parentReportAction.deletedReport');
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return Localize.translateLocal('parentReportAction.deletedTask');
+        return translateLocal('parentReportAction.deletedTask');
     }
 
     if (isGroupChat(report)) {
@@ -4262,7 +4259,7 @@ function getReportName(
     }
 
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-        formattedName += ` (${Localize.translateLocal('common.archived')})`;
+        formattedName += ` (${translateLocal('common.archived')})`;
     }
 
     if (isSelfDM(report)) {
@@ -4322,13 +4319,13 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return '';
     }
     if (isSelfDM(report)) {
-        return Localize.translateLocal('reportActionsView.yourSpace');
+        return translateLocal('reportActionsView.yourSpace');
     }
     if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
+        return translateLocal('workspace.common.invoices');
     }
     if (isConciergeChatReport(report)) {
-        return Localize.translateLocal('reportActionsView.conciergeSupport');
+        return translateLocal('reportActionsView.conciergeSupport');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -4338,7 +4335,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return Localize.translateLocal('workspace.common.workspace');
+        return translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
@@ -4367,7 +4364,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
         let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
 
         if (isArchivedRoom(parentReport, getReportNameValuePairs(parentReport?.reportID))) {
-            reportName += ` (${Localize.translateLocal('common.archived')})`;
+            reportName += ` (${translateLocal('common.archived')})`;
         }
 
         return {
@@ -4784,7 +4781,7 @@ function buildOptimisticIOUReport(
     isSendingMoney = false,
     parentReportActionID?: string,
 ): OptimisticIOUReport {
-    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+    const formattedTotal = convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = getReport(chatReportID)?.policyID;
@@ -4837,7 +4834,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         // We don't translate because the server response is always in English
         .replaceAll('{report:type}', 'Expense Report')
         .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll('{report:total}', report.total !== undefined ? CurrencyUtils.convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
+        .replaceAll('{report:total}', report.total !== undefined ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll('{report:currency}', report.currency ?? '')
         .replaceAll('{report:policyname}', policy?.name ?? '')
         .replaceAll('{report:created}', createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
@@ -4852,7 +4849,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
-    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+    const formattedTotal = convertToDisplayString(total, currency);
     const invoiceReport = {
         reportID: generateReportID(),
         chatReportID,
@@ -4935,7 +4932,7 @@ function buildOptimisticExpenseReport(
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const policyName = getPolicyName(getReport(chatReportID));
-    const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
+    const formattedTotal = convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
@@ -4992,30 +4989,30 @@ function getFormattedAmount(reportAction: ReportAction) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+    const formattedAmount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
     return formattedAmount;
 }
 
 function getReportAutomaticallySubmittedMessage(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
 ) {
-    return Localize.translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
 function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>) {
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
 function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
-    return Localize.translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 /**
@@ -5031,10 +5028,10 @@ function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeo
     if (originalMessage?.amount) {
         formattedAmount = getFormattedAmount(reportAction);
     } else {
-        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+        formattedAmount = convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
     }
 
-    return Localize.translateLocal('iou.automaticallyForwardedAmount', {amount: formattedAmount});
+    return translateLocal('iou.automaticallyForwardedAmount', {amount: formattedAmount});
 }
 
 /**
@@ -5050,27 +5047,27 @@ function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
     if (originalMessage?.amount) {
         formattedAmount = getFormattedAmount(reportAction);
     } else {
-        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+        formattedAmount = convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
     }
 
-    return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
+    return translateLocal('iou.forwardedAmount', {amount: formattedAmount});
 }
 
 function getRejectedReportMessage() {
-    return Localize.translateLocal('iou.rejectedThisReport');
+    return translateLocal('iou.rejectedThisReport');
 }
 
 function getUpgradeWorkspaceMessage() {
-    return Localize.translateLocal('workspaceActions.upgradedWorkspace');
+    return translateLocal('workspaceActions.upgradedWorkspace');
 }
 
 function getDowngradeWorkspaceMessage() {
-    return Localize.translateLocal('workspaceActions.downgradedWorkspace');
+    return translateLocal('workspaceActions.downgradedWorkspace');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
+    const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
     return Str.htmlEncode(message);
 }
 
@@ -5087,8 +5084,8 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReportOrDraftReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
-            : CurrencyUtils.convertToDisplayString(total, currency);
+            ? convertToDisplayString(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
+            : convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
     switch (paymentType) {
@@ -5107,7 +5104,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `approved ${amount}`;
             break;
         case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
-            iouMessage = Localize.translateLocal('iou.forwardedAmount', {amount});
+            iouMessage = translateLocal('iou.forwardedAmount', {amount});
             break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
@@ -5128,7 +5125,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-            iouMessage = Localize.translateLocal('iou.submittedAmount', {formattedAmount: amount});
+            iouMessage = translateLocal('iou.submittedAmount', {formattedAmount: amount});
             break;
         default:
             break;
@@ -5890,7 +5887,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.heldExpense'),
+                text: translateLocal('iou.heldExpense'),
             },
         ],
         person: [
@@ -5952,7 +5949,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.unheldExpense'),
+                text: translateLocal('iou.unheldExpense'),
             },
         ],
         person: [
@@ -6699,16 +6696,16 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
             const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (hasMissingSmartscanFieldsTransactionUtils(transaction ?? null) && !isSettled(transaction?.reportID)) {
-                reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+                reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
                 reportAction = undefined;
             }
         } else if ((isIOUReport(report) || isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
             if (shouldShowRBRForMissingSmartscanFields(report?.reportID) && !isSettled(report?.reportID)) {
-                reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+                reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
                 reportAction = getReportActionWithMissingSmartscanFields(report?.reportID);
             }
         } else if (hasSmartscanError(reportActionsArray)) {
-            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
             reportAction = getReportActionWithSmartscanError(reportActionsArray);
         }
     }
@@ -6757,7 +6754,7 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
     return (
         doesTransactionThreadReportHasViolations ||
         doesReportHaveViolations ||
-        Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'))
+        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage'))
     );
 }
 
@@ -7422,7 +7419,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
     if (isWhisperOnlyVisibleToCurrentUser) {
-        return Localize.translateLocal('common.youAfterPreposition');
+        return translateLocal('common.youAfterPreposition');
     }
 
     return participantAccountIDs?.map((accountID) => getDisplayNameForParticipant(accountID, !isWhisperOnlyVisibleToCurrentUser)).join(', ');
@@ -7771,7 +7768,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
         // property. If it does, it indicates that this is a 'Pay someone' action.
         const {amount, currency} = originalMessage?.IOUDetails ?? originalMessage ?? {};
-        const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency) ?? '';
+        const formattedAmount = convertToDisplayString(Math.abs(amount), currency) ?? '';
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -7788,20 +7785,20 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 translationKey = 'iou.payerPaidAmount';
                 break;
         }
-        return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
+        return translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
     const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(transaction)) ?? '';
+    const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved(iouReport);
     if (isRequestSettled) {
-        return Localize.translateLocal('iou.payerSettled', {
+        return translateLocal('iou.payerSettled', {
             amount: formattedAmount,
         });
     }
     if (isApproved) {
-        return Localize.translateLocal('iou.approvedAmount', {
+        return translateLocal('iou.approvedAmount', {
             amount: formattedAmount,
         });
     }
@@ -7812,7 +7809,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     } else {
         translationKey = 'iou.submittedAmount';
     }
-    return Localize.translateLocal(translationKey, {
+    return translateLocal(translationKey, {
         formattedAmount,
         comment: getMerchantOrDescription(transaction),
     });
@@ -8041,8 +8038,8 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     }
 
     return {
-        nonHeldAmount: CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-        fullAmount: CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency),
+        nonHeldAmount: convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
+        fullAmount: convertToDisplayString(total * coefficient, iouReport?.currency),
         hasValidNonHeldAmount: unheldTotal * coefficient >= 0,
     };
 }
@@ -8258,7 +8255,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
         return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
-    return !store.hasCreditBankAccount() ? 'bankAccount' : undefined;
+    return !hasCreditBankAccount() ? 'bankAccount' : undefined;
 }
 
 /**
@@ -8600,7 +8597,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
+            return translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
         default:
             return '';
     }

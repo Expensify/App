@@ -12,9 +12,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
+import {clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
+import {addBillingCardAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -43,11 +43,11 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 
     useEffect(
         () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
             checkIfCanBeRendered();
 
             return () => {
-                PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+                clearPaymentCardFormErrorAndSubmit();
             };
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -61,15 +61,15 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardNumber: getMCardNumberString(values.cardNumber),
+                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
                 currency: values.currency,
             };
-            PolicyActions.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
+            addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
         },
         [policyID],
     );

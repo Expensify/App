@@ -36,9 +36,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import * as NetworkStore from './Network/NetworkStore';
+import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 
@@ -668,7 +668,7 @@ function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -888,7 +888,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-        name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+        name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
@@ -1161,11 +1161,11 @@ function getActivePolicy(): OnyxEntry<Policy> {
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
-            return Localize.translateLocal('workspace.type.control');
+            return translateLocal('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
-            return Localize.translateLocal('workspace.type.collect');
+            return translateLocal('workspace.type.collect');
         default:
-            return Localize.translateLocal('workspace.type.free');
+            return translateLocal('workspace.type.free');
     }
 }
 

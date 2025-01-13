@@ -156,8 +156,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as CachedPDFPaths from './CachedPDFPaths';
-import * as Modal from './Modal';
+import {clearByKey} from './CachedPDFPaths';
+import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
     createUpdateCommentMatcher,
@@ -166,9 +166,9 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from './RequestConflictUtils';
-import * as Session from './Session';
-import * as Welcome from './Welcome';
-import * as OnboardingFlow from './Welcome/OnboardingFlow';
+import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
+import {startOnboardingFlow} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -1683,7 +1683,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
-    CachedPDFPaths.clearByKey(reportActionID);
+    clearByKey(reportActionID);
 
     API.write(
         WRITE_COMMANDS.DELETE_COMMENT,
@@ -2356,7 +2356,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        Welcome.onServerDataReady().then(() => {
+        onServerDataReady().then(() => {
             // If we don't have a chat with Concierge then create it
             if (!checkIfCurrentPageActive()) {
                 return;
@@ -2702,7 +2702,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     }
 
     const onClick = () =>
-        Modal.close(() => {
+        close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
             const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
             const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
@@ -2861,7 +2861,7 @@ function toggleEmojiReaction(
 
 function openReportFromDeepLink(url: string) {
     const reportID = getReportIDFromLink(url);
-    const isAuthenticated = Session.hasAuthToken();
+    const isAuthenticated = hasAuthToken();
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
@@ -2885,13 +2885,13 @@ function openReportFromDeepLink(url: string) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSignIn().then(() => {
+        waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: () => {
                     Navigation.waitForProtectedRoutes().then(() => {
-                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                            Session.signOutAndRedirectToSignIn(true);
+                        if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                            signOutAndRedirectToSignIn(true);
                             return;
                         }
 
@@ -2911,7 +2911,7 @@ function openReportFromDeepLink(url: string) {
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
                                 return;
                             }
 
@@ -2927,8 +2927,8 @@ function openReportFromDeepLink(url: string) {
                         };
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        Welcome.isOnboardingFlowCompleted({
-                            onNotCompleted: OnboardingFlow.startOnboardingFlow,
+                        isOnboardingFlowCompleted({
+                            onNotCompleted: startOnboardingFlow,
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -3550,7 +3550,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 
 /** Fetches all the private notes for a given report */
 function getReportPrivateNote(reportID: string | undefined) {
-    if (Session.isAnonymousUser()) {
+    if (isAnonymousUser()) {
         return;
     }
 
