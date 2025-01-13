@@ -8,8 +8,8 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 function toLocaleDigitMock(dot: string): string {
     return dot;
@@ -272,7 +272,7 @@ describe('PolicyUtils', () => {
             });
         });
         describe('Has category/tag approver', () => {
-            it('should return the first category approver if has any transaction category match with category approver rule', async() => {
+            it('should return the first category approver if has any transaction category match with category approver rule', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
@@ -303,7 +303,7 @@ describe('PolicyUtils', () => {
                 });
                 expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
             });
-            it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async() => {
+            it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
@@ -337,7 +337,7 @@ describe('PolicyUtils', () => {
                 expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
-                it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async() => {
+                it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
                     const policy: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
@@ -372,7 +372,7 @@ describe('PolicyUtils', () => {
                     });
                     expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
                 });
-                it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async() => {
+                it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
