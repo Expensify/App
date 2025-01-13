@@ -2,6 +2,7 @@ package com.expensify.chat.utils
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import android.webkit.MimeTypeMap
 import java.io.File
@@ -96,14 +97,30 @@ object FileUtils {
      * @param context
      * @return The absolute path of the image
      */
-    fun copyUriToStorage(uri: Uri, context: Context): String? {
-        try {
-            val imageFile: File = createTemporaryFile(uri, context)
-            saveFileFromProviderUri(uri, imageFile, context)
-            return imageFile.absolutePath
+    fun copyUriToStorage(fileUri: Uri, context: Context): String? {
+        val fileName = getFileName(context, fileUri) ?: return null
+        val destinationFile = File(getInternalStorageDirectory(context), fileName)
+
+        return try {
+            saveFileFromProviderUri(fileUri, destinationFile, context)
+            destinationFile.absolutePath
         } catch (ex: IOException) {
-            Log.e(tag, "Couldn't save image from intent", ex)
+            Log.e(tag, "Couldn't save file from intent", ex)
+            null
         }
-        return null
+    }
+
+    private fun getFileName(context: Context, uri: Uri): String? {
+        var name: String? = null
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
     }
 }
