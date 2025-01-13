@@ -86,9 +86,9 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportNameValuePairsCollection,
                             ...reportCollection,
                             ...reportAction,
-                            ...reportNameValuePairsCollection,
                         });
                     })
                     .then(() => {
@@ -121,6 +121,10 @@ describe('Sidebar', () => {
                     reason: 'policyDeleted',
                 },
             };
+            const reportNameValuePairs = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -137,11 +141,16 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionsCollectionDataSet;
 
+                        const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                        };
+
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportNameValuePairsCollection,
                             ...reportCollection,
                             ...reportAction,
                         });
