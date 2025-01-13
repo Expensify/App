@@ -30,7 +30,7 @@ export default function useFetchRoute(
     const shouldFetchRoute =
         isDistanceRequest &&
         (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || (isInitialMount && hasRouteError)) &&
-        !isLoadingRoute &&
+        (!isLoadingRoute || haveValidatedWaypointsChanged) &&
         Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
