@@ -14,12 +14,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
@@ -42,8 +42,8 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Modal from '@userActions/Modal';
-import * as Category from '@userActions/Policy/Category';
 import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -105,13 +105,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories({});
     }, [isFocused]);
 
-    const updateWorkspaceRequiresCategory = useCallback(
-        (value: boolean, categoryName: string) => {
-            Category.setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}});
-        },
-        [policyId],
-    );
-
     const categoryList = useMemo<PolicyOption[]>(() => {
         const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
         return categories.reduce<PolicyOption[]>((acc, value) => {
@@ -128,19 +121,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
-                rightElement: (
-                    <Switch
-                        isOn={value.enabled}
-                        disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
-                        onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
-                    />
-                ),
+                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
