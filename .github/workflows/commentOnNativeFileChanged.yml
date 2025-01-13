@@ -10,9 +10,9 @@ on:
       - '**.swift'
       - '**.mm'
       - '**.h'
+      - '**.cpp'
       - 'AndroidManifest.xml'
       - 'project.pbxproj'
-      - 'package.json'
 
 jobs:
   commentOnNativeFilesChanged:
@@ -22,6 +22,6 @@ jobs:
       - name: Comment
         run: |
           gh pr comment ${{ github.event.number }} --body \
-          ":warning: This PR may change native code. It may cause problems in Hybrid App. Please notify people working on it to review those changes. :warning:"
+          ":warning: This PR may change native code. It may cause problems in Hybrid App. Please ask Hybrid App team to review those changes. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
