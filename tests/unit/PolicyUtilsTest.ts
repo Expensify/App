@@ -117,7 +117,7 @@ describe('PolicyUtils', () => {
             return Onyx.clear().then(waitForBatchedUpdates);
         });
         it('should return false', () => {
-            // Given a archived paid policy.
+            // Given an archived paid policy.
             const policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role: '',
@@ -130,7 +130,7 @@ describe('PolicyUtils', () => {
             // Given a paid policy.
             const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
             const result = PolicyUtils.shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
-            // The result should be true, since it is active paid policy.
+            // The result should be true, since it is an active paid policy.
             expect(result).toBe(true);
         });
         it('should returnfalse', () => {
