@@ -184,7 +184,13 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    if (action && 'payload' in action && action.payload && 'name' in action.payload && isSideModalNavigator(action.payload.name)) {
+    if (
+        action &&
+        'payload' in action &&
+        action.payload &&
+        'name' in action.payload &&
+        (isSideModalNavigator(action.payload.name) || action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR)
+    ) {
         // Information about the state may be in the params.
         const currentFocusedRoute = findFocusedRoute(extrapolateStateFromParams(rootState));
         const targetFocusedRoute = findFocusedRoute(stateFromPath);
@@ -202,7 +208,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // There are situations where a route already exists on the current navigation stack
             // But we want to push the same route instead of going back in the stack
             // Which would break the user navigation history
-            if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+            if ((!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) || action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             }
             root.dispatch(minimalAction);
