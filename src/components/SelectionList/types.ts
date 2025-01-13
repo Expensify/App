@@ -12,7 +12,7 @@ import type {
     ViewStyle,
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';

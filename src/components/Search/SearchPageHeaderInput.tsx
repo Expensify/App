@@ -28,14 +28,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SearchAutocompleteList from './SearchAutocompleteList';
+import SearchInputSelectionWrapper from './SearchInputSelectionWrapper';
 import {buildSubstitutionsMap} from './SearchRouter/buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './SearchRouter/getUpdatedSubstitutionsMap';
 import SearchButton from './SearchRouter/SearchButton';
 import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
-import SearchRouterInput from './SearchRouter/SearchRouterInput';
-import SearchRouterList from './SearchRouter/SearchRouterList';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
 // When counting absolute positioning, we need to account for borders
@@ -79,7 +79,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);
-    // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
+    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(queryText);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
@@ -262,7 +262,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             style={[styles.searchResultsHeaderBar, isAutocompleteListVisible && styles.ph3]}
         >
             <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                <SearchRouterInput
+                <SearchInputSelectionWrapper
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
@@ -276,12 +276,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={children}
-                    routerListRef={listRef}
+                    autocompleteListRef={listRef}
                     ref={textInputRef}
                     selection={selection}
                 />
                 <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
-                    <SearchRouterList
+                    <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}
                         onListItemPress={onListItemPress}

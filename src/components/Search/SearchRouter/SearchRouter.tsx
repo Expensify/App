@@ -8,6 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -35,8 +37,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-import SearchRouterInput from './SearchRouterInput';
-import SearchRouterList from './SearchRouterList';
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
@@ -85,7 +85,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
-    // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
+    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
@@ -295,7 +295,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             )}
             {isRecentSearchesDataLoaded && (
                 <>
-                    <SearchRouterInput
+                    <SearchInputSelectionWrapper
                         value={textInputValue}
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
@@ -310,7 +310,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                             onListItemPress(focusedOption);
                         }}
                         caretHidden={shouldHideInputCaret}
-                        routerListRef={listRef}
+                        autocompleteListRef={listRef}
                         shouldShowOfflineMessage
                         wrapperStyle={[styles.border, styles.alignItemsCenter]}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
@@ -319,7 +319,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         selection={selection}
                         ref={textInputRef}
                     />
-                    <SearchRouterList
+                    <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         searchQueryItem={searchQueryItem}
                         additionalSections={additionalSections}

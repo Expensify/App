@@ -1,7 +1,9 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,14 +15,60 @@ import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type SearchRouterInputProps from './types';
 
-function SearchRouterInput(
+type SearchAutocompleteInputProps = {
+    /** Value of TextInput */
+    value: string;
+
+    /** Callback to update search in SearchRouter */
+    onSearchQueryChange: (searchTerm: string) => void;
+
+    /** Callback invoked when the user submits the input */
+    onSubmit?: () => void;
+
+    /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
+    autocompleteListRef?: RefObject<SelectionListHandle>;
+
+    /** Whether the input is full width */
+    isFullWidth: boolean;
+
+    /** Whether the input is disabled */
+    disabled?: boolean;
+
+    /** Whether the offline message should be shown */
+    shouldShowOfflineMessage?: boolean;
+
+    /** Callback to call when the input gets focus */
+    onFocus?: () => void;
+
+    /** Callback to call when the input gets blur */
+    onBlur?: () => void;
+
+    /** Any additional styles to apply */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Any additional styles to apply when input is focused */
+    wrapperFocusedStyle?: StyleProp<ViewStyle>;
+
+    /** Any additional styles to apply to text input along with FormHelperMessage */
+    outerWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Component to be displayed on the right */
+    rightComponent?: ReactNode;
+
+    /** Whether the search reports API call is running  */
+    isSearchingForReports?: boolean;
+
+    /** input style */
+    inputStyle?: StyleProp<TextStyle>;
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
+
+function SearchAutocompleteInput(
     {
         value,
         onSearchQueryChange,
         onSubmit = () => {},
-        routerListRef,
+        autocompleteListRef,
         isFullWidth,
         disabled = false,
         shouldShowOfflineMessage = false,
@@ -34,7 +82,8 @@ function SearchRouterInput(
         rightComponent,
         isSearchingForReports,
         selection,
-    }: SearchRouterInputProps,
+        inputStyle,
+    }: SearchAutocompleteInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -51,7 +100,7 @@ function SearchRouterInput(
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View style={styles.flex1}>
                     <TextInput
-                        testID="search-router-text-input"
+                        testID="search-autocomplete-text-input"
                         value={value}
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
@@ -70,15 +119,15 @@ function SearchRouterInput(
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[inputWidth, styles.p3, styles.dFlex, styles.alignItemsCenter]}
+                        inputStyle={[inputWidth, inputStyle]}
                         onFocus={() => {
                             setIsFocused(true);
-                            routerListRef?.current?.updateExternalTextInputFocus(true);
+                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             onFocus?.();
                         }}
                         onBlur={() => {
                             setIsFocused(false);
-                            routerListRef?.current?.updateExternalTextInputFocus(false);
+                            autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
@@ -86,7 +135,11 @@ function SearchRouterInput(
                         onKeyPress={handleKeyPress(onSubmit)}
                         isMarkdownEnabled
                         multiline={false}
-                        parser={(input: string) => parseForLiveMarkdown(input, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.displayName ?? '')}
+                        parser={(input: string) => {
+                            'worklet';
+
+                            return parseForLiveMarkdown(input, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.displayName ?? '');
+                        }}
                         selection={selection}
                     />
                 </View>
@@ -101,6 +154,7 @@ function SearchRouterInput(
     );
 }
 
-SearchRouterInput.displayName = 'SearchRouterInput';
+SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
-export default forwardRef(SearchRouterInput);
+export type {SearchAutocompleteInputProps};
+export default forwardRef(SearchAutocompleteInput);
