@@ -520,6 +520,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             scrollEventThrottle={1}
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
+            initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
         />
     );
 }
