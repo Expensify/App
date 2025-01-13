@@ -1,6 +1,7 @@
+import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import * as Illustrations from '@src/components/Icon/Illustrations';
@@ -26,6 +27,15 @@ Onyx.connect({
         }
 
         allCards = val;
+    },
+});
+
+let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allWorkspaceCards = value;
     },
 });
 
@@ -308,6 +318,11 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     }
 
     const customFeedName = companyCardNicknames?.[feed];
+
+    if (customFeedName && typeof customFeedName !== 'string') {
+        return '';
+    }
+
     const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
     return customFeedName ?? formattedFeedName;
 }
@@ -350,6 +365,14 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
+    if (!directFeed) {
+        return false;
+    }
+
+    return isBefore(fromUnixTime(directFeed.expiration), new Date());
+}
+
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
@@ -384,6 +407,17 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
+function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+    const cards = {};
+    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+        if (key.includes(workspaceAccountID.toString()) && values) {
+            const {cardList, ...rest} = values;
+            Object.assign(cards, rest);
+        }
+    }
+    return cards;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -401,6 +435,7 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    isSelectedFeedExpired,
     getCardFeedName,
     getCompanyFeeds,
     isCustomFeed,
@@ -412,4 +447,5 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getAllCardsForWorkspace,
 };

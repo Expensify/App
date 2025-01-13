@@ -34,6 +34,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -257,7 +258,7 @@ const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -420,7 +421,7 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
-    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
 }
@@ -657,11 +658,11 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
-    if (!allPolicies || !policyID) {
+function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
+    if (!policies || !policyID) {
         return undefined;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /** Return active policies where current user is an admin */
@@ -676,14 +677,15 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
     return policy?.areInvoicesEnabled ?? false;
 }
 
+/** Whether the user can submit per diem expense from the workspace */
+function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
-}
-
-function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
-    const activePolicies = getActivePolicies(allPolicies, currentUserLogin);
-    return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -1184,6 +1186,25 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
+// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
+// is being accessed from the Subscriptions page without a specific policyID.
+// In this case, check if the user is an admin on more than one policy.
+// If the user is an admin for multiple policies, we can render the page as it contains a condition
+// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
+// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
+
+function canModifyPlan(policyID?: string) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
+
+    if (!policyID) {
+        return ownerPolicies.length > 1;
+    }
+    const policy = getPolicy(policyID);
+
+    return !!policy && isPolicyAdmin(policy);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1241,8 +1262,8 @@ export {
     getActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
-    hasWorkspaceWithInvoices,
     hasDependentTags,
     hasVBBA,
     getXeroTenants,
@@ -1311,6 +1332,7 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
+    canModifyPlan,
 };
 
 export type {MemberEmailsToAccountIDs};
