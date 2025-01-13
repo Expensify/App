@@ -785,7 +785,12 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
         it('returns correct reason when report is archived', async () => {
+            const reportNameValuePairs = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
             });

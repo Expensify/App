@@ -7,6 +7,8 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import { ReportNameValuePairsCollectionDataSet } from '@src/types/onyx/ReportNameValuePairs';
+import DateUtils from '@libs/DateUtils';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
@@ -147,11 +149,6 @@ describe('OptionsListUtils', () => {
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
-
-            // This indicates that the report is archived
-            stateNum: 2,
-            statusNum: 2,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
         },
     };
 
@@ -366,6 +363,11 @@ describe('OptionsListUtils', () => {
         isPolicyExpenseChatEnabled: false,
     };
 
+    const reportNameValuePairs = {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -391,6 +393,7 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
 
     beforeEach(() => {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
