@@ -11,6 +11,7 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -76,6 +77,10 @@ function IOURequestStepParticipants({
     const receiptType = transaction?.receipt?.type;
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = Browser.isMobileSafari();
+
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+    }, []);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -156,6 +161,7 @@ function IOURequestStepParticipants({
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
+        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
         handleNavigation(route);
     }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 

@@ -33,6 +33,9 @@ type TabSelectorItemProps = {
 
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
 function TabSelectorItem({
@@ -44,6 +47,7 @@ function TabSelectorItem({
     inactiveOpacity = 1,
     isActive = false,
     shouldShowLabelWhenInactive = true,
+    testID,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -58,6 +62,7 @@ function TabSelectorItem({
             onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.BUTTON}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
         >
             <TabIcon
                 icon={icon}
