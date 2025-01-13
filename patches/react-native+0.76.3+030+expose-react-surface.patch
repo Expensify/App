@@ -1,0 +1,34 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactActivityDelegate.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactActivityDelegate.java
+index 9ca1639..65be4e8 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactActivityDelegate.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactActivityDelegate.java
+@@ -89,7 +89,7 @@ public class ReactActivityDelegate {
+     return ((ReactApplication) getPlainActivity().getApplication()).getReactHost();
+   }
+ 
+-  protected @Nullable ReactDelegate getReactDelegate() {
++  public @Nullable ReactDelegate getReactDelegate() {
+     return mReactDelegate;
+   }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactDelegate.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactDelegate.java
+index 10aecd0..9c1a356 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactDelegate.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactDelegate.java
+@@ -21,6 +21,7 @@ import com.facebook.react.devsupport.ReleaseDevSupportManager;
+ import com.facebook.react.devsupport.interfaces.DevSupportManager;
+ import com.facebook.react.interfaces.fabric.ReactSurface;
+ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
++import com.facebook.react.runtime.ReactSurfaceImpl;
+ 
+ /**
+  * A delegate for handling React Application support. This delegate is unaware whether it is used in
+@@ -363,4 +364,8 @@ public class ReactDelegate {
+   protected boolean isFabricEnabled() {
+     return mFabricEnabled;
+   }
++
++  public ReactSurfaceImpl getSurface() {
++    return (ReactSurfaceImpl) mReactSurface;
++  }
+ } 
