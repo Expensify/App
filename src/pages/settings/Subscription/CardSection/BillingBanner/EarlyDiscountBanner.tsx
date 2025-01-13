@@ -16,10 +16,12 @@ import BillingBanner from './BillingBanner';
 type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
-}; 
+};
 
-function EarlyDiscountBanner({isSubscriptionPage} : EarlyDiscountBannerProps) {
+function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -38,22 +40,15 @@ function EarlyDiscountBanner({isSubscriptionPage} : EarlyDiscountBannerProps) {
 
     const title = isSubscriptionPage ? (
         <Text style={styles.textStrong}>
-            {discountInfo?.discountType}% off your first year!&nbsp;
-            <Text>Just add payment card and start an annual subscription!</Text>
+            {translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase1', {discountType: discountInfo?.discountType})}&nbsp;
+            <Text>{translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase2')}</Text>
         </Text>
     ) : (
         <Text style={styles.textStrong}>
-            Limited time offer:&nbsp;
-            <Text>{discountInfo?.discountType}% off your first year!</Text>
+            {translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase1')}&nbsp;
+            <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
         </Text>
     );
-
-    const formatTimeRemaining = useCallback(() => {
-        if (discountInfo?.days === 0) {
-            return `Claim within ${discountInfo?.hours}h : ${discountInfo?.minutes}m : ${discountInfo?.seconds}s`;
-        }
-        return `Claim within ${discountInfo?.days}d : ${discountInfo?.hours}h : ${discountInfo?.minutes}m : ${discountInfo?.seconds}s`;
-    }, [discountInfo]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rightComponent = useMemo(() => {
@@ -86,7 +81,12 @@ function EarlyDiscountBanner({isSubscriptionPage} : EarlyDiscountBannerProps) {
     return (
         <BillingBanner
             title={title}
-            subtitle={formatTimeRemaining()}
+            subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', {
+                days: discountInfo?.days,
+                hours: discountInfo?.hours,
+                minutes: discountInfo?.minutes,
+                seconds: discountInfo?.seconds,
+            })}
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel]}
             icon={Illustrations.TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}

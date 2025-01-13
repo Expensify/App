@@ -467,9 +467,6 @@ describe('SubscriptionUtils', () => {
         });
     });
 
-    // write tests for shouldShowDiscountBanner and getEarlyDiscountInfo
-    // write tests for getEarlyDiscountInfo
-
     describe('shouldShowDiscountBanner', () => {
         afterEach(async () => {
             await Onyx.clear();
