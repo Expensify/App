@@ -22,6 +22,6 @@ jobs:
       - name: Comment
         run: |
           gh pr comment ${{ github.event.number }} --body \
-          ":warning: This PR may change native code. It may cause problems in Hybrid App. Please ask Hybrid App team to review those changes. :warning:"
+          ":warning: This PR is possibly changing native code. It may cause problems in Hybrid App. Please ask Hybrid App team to review those changes in the Slack open-source channel. The C+ can help you with that. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
