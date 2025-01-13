@@ -12,11 +12,9 @@ import createRandomReport from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
-    const {View} = require('react-native');
     return {
-        __esModule: true,
-        default: View,
-        MarkerView: View,
+        default: jest.fn(),
+        MarkerView: jest.fn(),
         setAccessToken: jest.fn(),
     };
 });
