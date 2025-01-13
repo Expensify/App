@@ -1,4 +1,5 @@
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import StatusBar from '@libs/StatusBar';
 import defaultInsets from './defaultInsets';
 
 /**
@@ -8,7 +9,10 @@ import defaultInsets from './defaultInsets';
 function getSafeAreaInsets(safeAreaInsets: EdgeInsets | null): EdgeInsets {
     const insets = safeAreaInsets ?? defaultInsets;
 
-    return insets;
+    return {
+        ...insets,
+        top: StatusBar.currentHeight ?? insets.top,
+    };
 }
 
 export default getSafeAreaInsets;
