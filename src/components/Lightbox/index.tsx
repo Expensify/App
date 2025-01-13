@@ -195,8 +195,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
 
     const scaleChange = useCallback(
         (scale: number) => {
-            'worklet';
-
             onScaleChangedProp?.(scale);
             onScaleChangedContext?.(scale);
         },

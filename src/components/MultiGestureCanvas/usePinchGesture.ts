@@ -114,8 +114,6 @@ const usePinchGesture = ({
             state.fail();
         })
         .onStart((evt) => {
-            'worklet';
-
             stopAnimation();
 
             // Set the origin focal point of the pinch gesture at the start of the gesture
@@ -160,8 +158,6 @@ const usePinchGesture = ({
             }
         })
         .onEnd(() => {
-            'worklet';
-
             // Add pinch translation to total offset and reset gesture variables
             offsetX.set((value) => value + pinchTranslateX.get());
             offsetY.set((value) => value + pinchTranslateY.get());
