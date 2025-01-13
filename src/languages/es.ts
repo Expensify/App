@@ -4655,6 +4655,8 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
+        downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
