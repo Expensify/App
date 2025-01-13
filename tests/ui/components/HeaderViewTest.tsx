@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
+import type Navigation from '@libs/Navigation/Navigation';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
