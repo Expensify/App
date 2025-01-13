@@ -4,13 +4,7 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import * as Search from '@libs/actions/Search';
 
-jest.mock('@libs/actions/Search', () => {
-    const actualModule = jest.requireActual<typeof Search>('@libs/actions/Search');
-    return {
-        ...actualModule,
-        search: jest.fn(),
-    };
-});
+jest.mock('@libs/actions/Search');
 
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {
