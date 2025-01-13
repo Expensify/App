@@ -1,7 +1,7 @@
-type MergeIntoAccountAndLoginParams = {
+type MergeIntoAccountAndLogInParams = {
     workEmail: string;
     validateCode: string;
     accountID: string;
 };
 
-export default MergeIntoAccountAndLoginParams;
+export default MergeIntoAccountAndLogInParams;

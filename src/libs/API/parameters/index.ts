@@ -361,5 +361,5 @@ export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as AddWorkEmailParams} from './AddWorkEmailParams';
-export type {default as MergeIntoAccountAndLoginParams} from './MergeIntoAccountAndLoginParams';
+export type {default as MergeIntoAccountAndLogInParams} from './MergeIntoAccountAndLogInParams';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
