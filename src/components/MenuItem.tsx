@@ -611,7 +611,7 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
                                 testID={pressableTestID}
                                 style={({pressed}) =>
