@@ -216,10 +216,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         />
                     </View>
                 )}
-                <LoadingBar
-                    shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false}
-                    height={1}
-                />
+                <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
             {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu

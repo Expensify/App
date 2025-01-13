@@ -6,11 +6,9 @@ import CONST from '@src/CONST';
 type LoadingBarProps = {
     // Whether or not to show the loading bar
     shouldShow: boolean;
-
-    height?: number;
 };
 
-function LoadingBar({shouldShow, height = 2}: LoadingBarProps) {
+function LoadingBar({shouldShow}: LoadingBarProps) {
     const left = useSharedValue(0);
     const width = useSharedValue(0);
     const opacity = useSharedValue(0);
@@ -71,7 +69,6 @@ function LoadingBar({shouldShow, height = 2}: LoadingBarProps) {
 
     const animatedContainerStyle = useAnimatedStyle(() => ({
         opacity: opacity.get(),
-        height,
     }));
 
     return (

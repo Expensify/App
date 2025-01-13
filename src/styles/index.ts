@@ -5340,7 +5340,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         progressBarWrapper: {
-            height: 1,
+            height: 2,
             width: '100%',
             backgroundColor: theme.border,
             borderRadius: 2,
