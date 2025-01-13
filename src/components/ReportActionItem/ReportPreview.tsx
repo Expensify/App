@@ -57,7 +57,7 @@ import {
     hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedRoomWithID,
+    isArchivedReport,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isOpenExpenseReport as isOpenExpenseReportUtils,
@@ -242,12 +242,12 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const isArchivedReport = ReportUtils.isArchivedReport(iouReport);
+    const isArchived = isArchivedReport(iouReport);
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowSubmitButton =
         isOpenExpenseReport &&
-        !isArchivedReport &&
+        !isArchived &&
         reimbursableSpend !== 0 &&
         !showRTERViolationMessage &&
         !shouldShowBrokenConnectionViolation &&
@@ -432,10 +432,10 @@ function ReportPreview({
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isPayAtEndExpense) {
-            if (!isArchivedReport) {
+            if (!isArchived) {
                 return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
             }
-            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
+            if (isArchived && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
                 return {
                     shouldShow: true,
                     messageIcon: Expensicons.Box,
