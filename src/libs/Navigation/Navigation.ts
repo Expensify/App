@@ -450,15 +450,14 @@ function removeScreenFromNavigationState(screen: Screen) {
 }
 
 function removeScreenByKey(key: string) {
-    isNavigationReady().then(() => {
-        navigationRef.dispatch((state) => {
-            const routes = state.routes?.filter((item) => item.key !== key);
+    const state = navigationRef.getRootState();
+    const routes = state.routes.filter((item) => item.key !== key);
 
-            return CommonActions.reset({
-                ...state,
-                routes,
-                index: routes.length < state.routes.length ? state.index - 1 : state.index,
-            });
+    navigationRef.current?.dispatch(() => {
+        return CommonActions.reset({
+            ...state,
+            routes,
+            index: routes.length < state.routes.length ? state.index - 1 : state.index,
         });
     });
 }
