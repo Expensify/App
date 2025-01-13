@@ -2,18 +2,16 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, PriorityMode, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
 import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
-import SidebarUtils from './SidebarUtils';
 
 type CheckingMethod = () => boolean;
 
@@ -138,23 +136,8 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     );
 }
 
-function getChatTabBrickRoadReport(
-    policyID: string | undefined,
-    currentReportId: string | null,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PolicySelector>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    policyMemberAccountIDs: number[] = [],
-): OnyxEntry<Report> {
-    const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyID, policyMemberAccountIDs);
-    if (!reportIDs.length) {
-        return undefined;
-    }
-
-    const allReports = reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
-
+function getChatTabBrickRoadReport(policyID: string | undefined, orderedReportIDs: string[] = []): OnyxEntry<Report> {
+    const allReports = orderedReportIDs.map((reportID) => reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
@@ -180,17 +163,8 @@ function getChatTabBrickRoadReport(
     return undefined;
 }
 
-function getChatTabBrickRoad(
-    policyID: string | undefined,
-    currentReportId: string | null,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PolicySelector>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    policyMemberAccountIDs: number[] = [],
-): BrickRoad | undefined {
-    const report = getChatTabBrickRoadReport(policyID, currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyMemberAccountIDs);
+function getChatTabBrickRoad(policyID: string | undefined, orderedReportIDs: string[]): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(policyID, orderedReportIDs);
     return report ? getBrickRoadForPolicy(report) : undefined;
 }
 
