@@ -599,6 +599,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = ReportUtils.getRejectedReportMessage();
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
+        lastMessageTextFromReport = ReportUtils.getUpgradeWorkspaceMessage();
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+        lastMessageTextFromReport = ReportUtils.getDowngradeWorkspaceMessage();
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
@@ -607,6 +611,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
+    // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
+    if (reportID && !report.private_isArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return lastMessageTextFromReport || (ReportUtils.getReportLastMessage(reportID).lastMessageText ?? '');
+    }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
