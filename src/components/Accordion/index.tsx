@@ -18,25 +18,33 @@ type AccordionProps = {
 
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
+
+    /** Should active animation */
+    shouldActiveAnimation?: React.RefObject<boolean>;
 };
 
-function Accordion({isExpanded, children, duration = 300, style}: AccordionProps) {
+function Accordion({isExpanded, children, duration = 300, style, shouldActiveAnimation = React.useRef(true)}: AccordionProps) {
     const height = useSharedValue(0);
     const styles = useThemeStyles();
 
     const derivedHeight = useDerivedValue(() =>
-        withTiming(height.get() * Number(isExpanded.get()), {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        }),
+        shouldActiveAnimation.current
+            ? withTiming(height.get() * Number(isExpanded.get()), {
+                  duration,
+                  easing: Easing.inOut(Easing.quad),
+              })
+            : height.get() * Number(isExpanded.get()),
     );
 
-    const derivedOpacity = useDerivedValue(() =>
-        withTiming(isExpanded.get() ? 1 : 0, {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        }),
-    );
+    const derivedOpacity = useDerivedValue(() => {
+        if (shouldActiveAnimation.current) {
+            return withTiming(isExpanded.get() ? 1 : 0, {
+                duration,
+                easing: Easing.inOut(Easing.quad),
+            });
+        }
+        return isExpanded.get() ? 1 : 0;
+    });
 
     const bodyStyle = useAnimatedStyle(() => ({
         height: derivedHeight.get(),

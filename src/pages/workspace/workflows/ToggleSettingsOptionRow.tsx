@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
@@ -105,10 +105,24 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
     const isExpanded = useSharedValue(isActive);
+    const shouldActiveAnimation = React.useRef(false);
+    const [isVisible, setIsVisible] = useState(false); // State to track visibility
 
     useEffect(() => {
         isExpanded.set(isActive);
     }, [isExpanded, isActive]);
+
+    const handleVisibilityChange = (e: LayoutChangeEvent) => {
+        const {height, y} = e.nativeEvent.layout;
+        const isInViewport = y + height > 0 && y < height; // Check if the element is in the viewport
+
+        if (isInViewport && !isVisible) {
+            setIsVisible(true);
+        } else if (!isInViewport && isVisible) {
+            setIsVisible(false);
+            shouldActiveAnimation.current = false; // Set to false when it's not visible
+        }
+    };
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -161,7 +175,10 @@ function ToggleSettingOptionRow({
             style={[wrapperStyle]}
             onClose={onCloseError}
         >
-            <View style={styles.pRelative}>
+            <View
+                style={styles.pRelative}
+                onLayout={handleVisibilityChange}
+            >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!icon && (
@@ -182,7 +199,10 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
+                        onToggle={(isEnabled) => {
+                            onToggle(isEnabled);
+                            shouldActiveAnimation.current = true;
+                        }}
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
@@ -192,6 +212,7 @@ function ToggleSettingOptionRow({
                 <Accordion
                     isExpanded={isExpanded}
                     style={accordionStyle}
+                    shouldActiveAnimation={shouldActiveAnimation}
                 >
                     {subMenuItems}
                 </Accordion>
