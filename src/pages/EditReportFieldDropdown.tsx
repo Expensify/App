@@ -13,7 +13,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportFieldOptionsListUtils from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type EditReportFieldDropdownPageComponentProps = {
+type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
     fieldValue: string;
 
@@ -27,7 +27,7 @@ type EditReportFieldDropdownPageComponentProps = {
     onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageComponentProps) {
+function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
