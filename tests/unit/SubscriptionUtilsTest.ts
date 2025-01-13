@@ -466,4 +466,78 @@ describe('SubscriptionUtils', () => {
             });
         });
     });
+
+    // write tests for shouldShowDiscountBanner and getEarlyDiscountInfo
+    // write tests for getEarlyDiscountInfo
+
+    describe('shouldShowDiscountBanner', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should return false if the user is not on a free trial', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
+            });
+            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeFalsy();
+        });
+
+        it(`should return false if user has already added a payment method`, async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
+            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeFalsy();
+        });
+
+        it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeTruthy();
+        });
+    });
+
+    describe('getEarlyDiscountInfo', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+        it('should return the discount info if the user is on a free trial and trial was started less than 24 hours before', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addMinutes(subDays(new Date(), 1), 12), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.getEarlyDiscountInfo()).toEqual({
+                discountType: 50,
+                days: 0,
+                hours: 0,
+                minutes: 12,
+                seconds: 0,
+            });
+        });
+
+        it('should return the discount info if the user is on a free trial and trial was started more than 24 hours before', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.getEarlyDiscountInfo()).toEqual({
+                discountType: 25,
+                days: 6,
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+            });
+        });
+
+        it('should return null if the user is not on a free trial', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
+            });
+
+            expect(SubscriptionUtils.getEarlyDiscountInfo()).toBeNull();
+        });
+    });
 });

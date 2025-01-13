@@ -337,7 +337,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         );
     }
 
-
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      */
