@@ -9,13 +9,24 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {
+    allHavePendingRTERViolation,
+    getTransactionViolations,
+    hasPendingRTERViolation,
+    hasReceipt,
+    isDuplicate as isDuplicateTransactionUtils,
+    isExpensifyCardTransaction,
+    isOnHold as isOnHoldTransactionUtils,
+    isPending,
+    isReceiptBeingScanned,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as TransactionActions from '@userActions/Transaction';
+import {dismissHoldUseExplanation} from '@userActions/IOU';
+import {markAsCash as markAsCashTransactionActions} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,9 +65,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
-            ReportActionsUtils.isMoneyRequestAction(parentReportAction)
-                ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
-                : CONST.DEFAULT_NUMBER_ID
+            isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID
         }`,
     );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -66,25 +75,25 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const theme = useTheme();
     const {translate} = useLocalize();
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
+    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const transactionIDList = transaction ? [transaction.transactionID] : [];
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transactionIDList);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
 
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transactionIDList, parentReport, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, parentReport, policy);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(parentReport?.reportID ?? '')));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID ?? '')));
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
+        markAsCashTransactionActions(transaction?.transactionID ?? '-1', reportID ?? '');
     }, [reportID, transaction?.transactionID]);
 
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -100,7 +109,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')};
         }
 
-        if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
+        if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
             return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (shouldShowBrokenConnectionViolation) {
@@ -115,7 +124,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 ),
             };
         }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
+        if (hasPendingRTERViolation(getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
@@ -147,7 +156,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.dismissHoldUseExplanation();
+        dismissHoldUseExplanation();
     };
 
     return (
