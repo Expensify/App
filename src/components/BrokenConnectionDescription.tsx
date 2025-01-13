@@ -14,7 +14,7 @@ import TextLink from './TextLink';
 
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
-    transactionID: string;
+    transactionID?: string;
 
     /** Current report */
     report: OnyxEntry<Report>;
@@ -26,7 +26,7 @@ type BrokenConnectionDescriptionProps = {
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
@@ -46,7 +46,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id))}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
                 .
             </>
