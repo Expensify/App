@@ -60,7 +60,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
     const shouldShowUsePlusButtonText =
         (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
@@ -105,18 +104,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
                     (welcomeMessage?.messageHtml ? (
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                if (!canEditPolicyDescription) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id));
-                            }}
-                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                        >
+                        <View style={[styles.renderHTML, styles.cursorText]}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
-                        </PressableWithoutFeedback>
+                        </View>
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
