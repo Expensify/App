@@ -1136,14 +1136,14 @@ function getUserToInviteOption({
 }
 
 function getUserToInviteContactOption({
-    searchValue,
+    searchValue = '',
     optionsToExclude = [],
     selectedOptions = [],
-    firstName,
-    lastName,
-    email,
-    phone,
-    avatar,
+    firstName = '',
+    lastName = '',
+    email = '',
+    phone = '',
+    avatar = '',
 }: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
     // If email is provided, use it as the primary identifier
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
