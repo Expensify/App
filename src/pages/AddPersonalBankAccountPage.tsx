@@ -52,7 +52,7 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, policyID ?? '', source ?? '');
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
         }
     }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
