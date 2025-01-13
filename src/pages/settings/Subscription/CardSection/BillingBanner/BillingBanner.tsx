@@ -42,6 +42,9 @@ type BillingBannerProps = {
 
     /** Accessibility label for the right icon. */
     rightIconAccessibilityLabel?: string;
+    
+    /** A component to be rendered on the right side of the banner. */
+    rightComponent?: React.ReactNode;
 };
 
 function BillingBanner({

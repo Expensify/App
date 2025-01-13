@@ -10,7 +10,6 @@ import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -30,7 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getDiscountTimeRemaining, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import * as Report from '@userActions/Report';
@@ -38,7 +37,6 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BillingBanner from '@src/pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -94,8 +92,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
 
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const isChatThread = ReportUtils.isChatThread(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -162,7 +158,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     return (
         <>
             <View
-                style={[shouldShowBorderBottom && styles.borderBottom]}
+                style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
@@ -266,7 +262,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
+                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID));
                                                         return;
                                                     }
                                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));

@@ -337,9 +337,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         );
     }
 
-    if (ReportUtils.isAdminRoom(report)) {
-        console.log('uyes');
-    }
 
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.

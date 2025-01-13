@@ -13,8 +13,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
-function EarlyDiscountBanner({isSubscriptionPage}) {
-    const {translate} = useLocalize();
+type EarlyDiscountBannerProps = {
+    /** Whether the banner is being displayed on the subscription page. */
+    isSubscriptionPage: boolean;
+}; 
+
+function EarlyDiscountBanner({isSubscriptionPage} : EarlyDiscountBannerProps) {
     const styles = useThemeStyles();
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
