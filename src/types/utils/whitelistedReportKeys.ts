@@ -47,6 +47,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         unheldNonReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
+        errors: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
         iouReportID: unknown;
