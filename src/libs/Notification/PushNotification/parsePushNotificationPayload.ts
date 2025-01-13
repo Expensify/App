@@ -28,7 +28,7 @@ export default function parsePushNotificationPayload(payload: JsonValue | undefi
             const jsonObject = JSON.parse(jsonString) as JsonObject;
             return jsonObject as PushNotificationData;
         } catch {
-            Log.hmmm('[PushNotification] Gzipped payload is not supported yet', payload);
+            Log.hmmm('[PushNotification] Failed to parse the payload as a Gzipped JSON string', payload);
             return undefined;
         }
     }
@@ -37,7 +37,7 @@ export default function parsePushNotificationPayload(payload: JsonValue | undefi
     try {
         return JSON.parse(payload) as JsonObject as PushNotificationData;
     } catch {
-        Log.hmmm(`[PushNotification] Failed to parse the JSON payload`, payload);
+        Log.hmmm(`[PushNotification] Failed to parse the payload as a JSON string`, payload);
         return undefined;
     }
 }
