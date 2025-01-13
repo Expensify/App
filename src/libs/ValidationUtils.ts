@@ -391,8 +391,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
-    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string | undefined): boolean {
+    return Object.values(reports ?? {}).some((report) => report && policyID && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -556,7 +556,7 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 }
 
 /**
- * Validates the given value if it is correct ABN number
+ * Validates the given value if it is correct ABN number - https://abr.business.gov.au/Help/AbnFormat
  * @param registrationNumber - number to validate.
  */
 function isValidABN(registrationNumber: string): boolean {
@@ -578,7 +578,7 @@ function isValidABN(registrationNumber: string): boolean {
 }
 
 /**
- * Validates the given value if it is correct ACN number
+ * Validates the given value if it is correct ACN number - https://asic.gov.au/for-business/registering-a-company/steps-to-register-a-company/australian-company-numbers/australian-company-number-digit-check/
  * @param registrationNumber - number to validate.
  */
 function isValidACN(registrationNumber: string): boolean {

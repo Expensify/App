@@ -21,11 +21,11 @@ const {
     COMPANY_NAME,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     TAX_ID_EIN_NUMBER,
-    COMPANY_COUNTRY,
+    COMPANY_COUNTRY_CODE,
     COMPANY_STREET,
     COMPANY_CITY,
     COMPANY_STATE,
-    COMPANY_ZIP_CODE,
+    COMPANY_POSTAL_CODE,
     BUSINESS_CONTACT_NUMBER,
     BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
@@ -105,7 +105,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                     />
                     <MenuItemWithTopDescription
                         description={translate('businessInfoStep.businessAddress')}
-                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_ZIP_CODE], values[COMPANY_COUNTRY])}
+                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE])}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(1);
