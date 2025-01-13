@@ -17,6 +17,7 @@ jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 
 describe('Sidebar', () => {
     beforeAll(() =>
