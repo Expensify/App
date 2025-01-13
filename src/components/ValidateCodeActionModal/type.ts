@@ -51,9 +51,6 @@ type ValidateCodeActionModalProps = {
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
 
-    /** Whether we should show a more options (threedots) button */
-    shouldShowThreeDotsButton?: boolean;
-
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
 };

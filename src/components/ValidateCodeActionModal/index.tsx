@@ -30,7 +30,6 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
-    shouldShowThreeDotsButton = false,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
 }: ValidateCodeActionModalProps) {
@@ -83,7 +82,7 @@ function ValidateCodeActionModal({
                     title={title}
                     onBackButtonPress={hide}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}

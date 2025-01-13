@@ -157,6 +157,18 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
+    const getThreeDotsMenuItems = useCallback(() => {
+        const menuItems = [];
+        if (isValidateCodeActionModalVisible && !isDefaultContactMethod) {
+            menuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('common.remove'),
+                onSelected: () => Modal.close(() => toggleDeleteModal(true)),
+            });
+        }
+        return menuItems;
+    }, [isValidateCodeActionModalVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
+
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
@@ -279,20 +291,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                    shouldShowThreeDotsButton={isValidateCodeActionModalVisible}
                     onThreeDotsButtonPress={() => {
                         // Hide the keyboard when the user clicks the three-dot menu.
                         // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
                         blurActiveElement();
                         KeyboardUtils.dismiss();
                     }}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: translate('common.remove'),
-                            onSelected: () => Modal.close(() => toggleDeleteModal(true)),
-                        },
-                    ]}
+                    threeDotsMenuItems={getThreeDotsMenuItems()}
                     footer={getDeleteConfirmationModal}
                 />
 
