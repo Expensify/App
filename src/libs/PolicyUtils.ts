@@ -73,15 +73,10 @@ Onyx.connect({
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, excludePersonalPolicy: boolean): Policy[] {
+function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            !!policy.name &&
-            !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            (!excludePersonalPolicy || policy.type !== CONST.POLICY.TYPE.PERSONAL),
+            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
 /**
@@ -672,7 +667,7 @@ function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy
 
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies, currentUserLogin, false);
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
