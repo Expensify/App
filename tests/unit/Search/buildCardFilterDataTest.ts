@@ -186,7 +186,7 @@ describe('buildIndividualCardsData', () => {
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
         const result = buildIndividualCardsData({}, {}, {}, []);
-        expect(result).toEqual([]);
+        expect(result).toEqual({selected: [], unselected: []});
     });
 });
 
@@ -230,6 +230,6 @@ describe('buildCardFeedsData', () => {
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
         const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate']);
-        expect(result).toEqual([]);
+        expect(result).toEqual({selected: [], unselected: []});
     });
 });
