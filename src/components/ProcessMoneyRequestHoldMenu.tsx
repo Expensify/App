@@ -42,7 +42,8 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
         return unsub;
     }, [navigation, onClose]);
 
-    const {setShowSoftInputOnFocus} = useContext(SoftInputContext);
+    const {setShowSoftInputOnFocus, showSoftInputOnFocus} = useContext(SoftInputContext);
+    const prevShowSoftInputOnFocus = useRef(showSoftInputOnFocus);
 
     return (
         <Popover
@@ -54,8 +55,11 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             disableAnimation={false}
             withoutOverlay={false}
             shouldCloseWhenBrowserNavigationChanged={false}
-            onModalShow={() => setShowSoftInputOnFocus(false)}
-            onModalHide={() => setShowSoftInputOnFocus(true)}
+            onModalShow={() => {
+                prevShowSoftInputOnFocus.current = showSoftInputOnFocus;
+                setShowSoftInputOnFocus(false);
+            }}
+            onModalHide={() => setShowSoftInputOnFocus(prevShowSoftInputOnFocus.current ?? true)}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>

@@ -98,6 +98,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 type SoftInputContextType = {
     setShowSoftInputOnFocus: React.Dispatch<React.SetStateAction<boolean>>;
+    showSoftInputOnFocus?: boolean;
 };
 
 const SoftInputContext = createContext<SoftInputContextType>({setShowSoftInputOnFocus: () => {}});
@@ -681,8 +682,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const softInputContextValue = useMemo(() => {
-        return {setShowSoftInputOnFocus};
-    }, [setShowSoftInputOnFocus]);
+        return {setShowSoftInputOnFocus, showSoftInputOnFocus};
+    }, [setShowSoftInputOnFocus, showSoftInputOnFocus]);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
