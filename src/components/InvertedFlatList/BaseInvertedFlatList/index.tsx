@@ -44,10 +44,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const [isInitialData, setIsInitialData] = useState(true);
     const currentDataIndex = useMemo(() => data.findIndex((item, index) => keyExtractor(item, index) === currentDataId), [currentDataId, data, keyExtractor]);
     const displayedData = useMemo(() => {
-        if (currentDataIndex === -1) {
-            return [];
-        }
-        if (currentDataIndex === 0) {
+        if (currentDataIndex <= 0) {
             return data;
         }
         return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
