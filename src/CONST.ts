@@ -6493,7 +6493,7 @@ const CONST = {
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
-    SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null'] as string[],
+    SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
