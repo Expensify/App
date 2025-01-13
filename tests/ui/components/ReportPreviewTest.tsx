@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
+import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -76,7 +77,7 @@ describe('ReportPreview', () => {
 
         await waitForBatchedUpdates();
 
-        expect(screen.getByTestId('reportPreview-previewMessage')).toHaveTextContent(`${displayName} owes:`);
+        expect(screen.getByTestId('reportPreview-previewMessage')).toHaveTextContent(translateLocal('iou.payerOwes', {payer: displayName}));
 
         // When the invoice receiver display name is updated
         displayName = 'test edit';
@@ -87,6 +88,6 @@ describe('ReportPreview', () => {
         });
 
         // Then the report preview's preview message should be updated using the new display name
-        expect(screen.getByTestId('reportPreview-previewMessage')).toHaveTextContent(`${displayName} owes:`);
+        expect(screen.getByTestId('reportPreview-previewMessage')).toHaveTextContent(translateLocal('iou.payerOwes', {payer: displayName}));
     });
 });
