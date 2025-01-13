@@ -3632,7 +3632,7 @@ describe('actions/IOU', () => {
     });
 
     describe('payMoneyRequest', () => {
-        it.only('calls notifyNewAction for the top most report', () => {
+        it('calls notifyNewAction for the top most report', () => {
             // Given two expenses in an iou report where one of them held
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction1 = TransactionUtils.buildOptimisticTransaction({
