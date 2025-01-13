@@ -256,7 +256,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const errors = ReportUtils.getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {

@@ -98,6 +98,7 @@ import {
     isPolicyAuditor,
     isPolicyOwner,
     isSubmitAndClose,
+    shouldShowPolicy,
 } from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import {
@@ -4162,6 +4163,12 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
+        return getUpgradeWorkspaceMessage();
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+        return getDowngradeWorkspaceMessage();
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
@@ -5051,6 +5058,14 @@ function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
 
 function getRejectedReportMessage() {
     return Localize.translateLocal('iou.rejectedThisReport');
+}
+
+function getUpgradeWorkspaceMessage() {
+    return Localize.translateLocal('workspaceActions.upgradedWorkspace');
+}
+
+function getDowngradeWorkspaceMessage() {
+    return Localize.translateLocal('workspaceActions.downgradedWorkspace');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -8447,11 +8462,11 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserEmail));
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         const activePolicy = getPolicy(activePolicyID);
-        if (PolicyUtils.shouldShowPolicy(activePolicy, false, currentUserEmail)) {
+        if (shouldShowPolicy(activePolicy, false, currentUserEmail)) {
             const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, activePolicyID)?.reportID;
             setMoneyRequestParticipants(transactionID, [
                 {
@@ -8886,6 +8901,8 @@ export {
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
+    getUpgradeWorkspaceMessage,
+    getDowngradeWorkspaceMessage,
     getReportAutomaticallySubmittedMessage,
     getIOUSubmittedMessage,
     getIcons,
