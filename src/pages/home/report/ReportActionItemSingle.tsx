@@ -59,7 +59,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     isHovered?: boolean;
 };
 
-const showUserDetails = (accountID: number) => {
+const showUserDetails = (accountID: number | undefined) => {
     Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
 };
 
@@ -197,7 +197,7 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
-            showUserDetails(action?.delegateAccountID ? action.delegateAccountID : Number(actorAccountID));
+            showUserDetails(action?.delegateAccountID ? action.delegateAccountID : actorAccountID);
         }
     }, [isWorkspaceActor, reportID, actorAccountID, action?.delegateAccountID, iouReportID, displayAllActors]);
 
