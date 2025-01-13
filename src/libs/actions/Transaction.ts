@@ -355,7 +355,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -365,9 +365,9 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -388,7 +388,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
-                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
+                        [`${dissmissedPersonalDetails.login}`]: getUnixTime(new Date()),
                     },
                 },
             },
@@ -413,9 +413,9 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: null,
         },
     }));
 
@@ -425,9 +425,9 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
+            [`${optimisticDissmidedViolationReportActions.at(index)?.reportActionID}`]: null,
         },
     }));
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
@@ -457,7 +457,10 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID: string) {
+function clearError(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 

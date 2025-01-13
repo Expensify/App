@@ -117,10 +117,17 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, transactionViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, transactionViolations, true);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasViolations = TransactionUtils.shouldShowViolation({transactionID: transaction?.transactionID, transactionViolations, showInReview: true, parentReportAction: action});
+    const hasNoticeTypeViolations =
+        TransactionUtils.shouldShowNoticeTypeViolation({transactionID: transaction?.transactionID, transactionViolations, showInReview: true, parentReportAction: action}) &&
+        ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = TransactionUtils.shouldShowWarningTypeViolation({
+        transactionID: transaction?.transactionID,
+        transactionViolations,
+        showInReview: true,
+        parentReportAction: action,
+    });
+    const hasFieldErrors = TransactionUtils.shouldShowMissingSmartscanFieldsError(transaction, action);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);

@@ -809,6 +809,9 @@ function isDraftReport(reportID: string | undefined): boolean {
  * Returns the report
  */
 function getReport(reportID: string | undefined): OnyxEntry<Report> {
+    if (!reportID) {
+        return undefined;
+    }
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
@@ -3503,12 +3506,15 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 }
 
 /**
- * Check if any of the transactions in the report has required missing fields
+ * Check if any of the transactions in the report has
+ * required missing smart scan fields error we should show.
  */
-function hasMissingSmartscanFields(iouReportID: string): boolean {
+function shouldShowMissingSmartscanFieldsError(iouReportID: string): boolean {
     const reportTransactions = getReportTransactions(iouReportID);
 
-    return reportTransactions.some(TransactionUtils.hasMissingSmartscanFields);
+    return reportTransactions.some((transaction) =>
+        TransactionUtils.shouldShowMissingSmartscanFieldsError(transaction, ReportActionsUtils.getIOUActionForReportID(iouReportID, transaction.transactionID)),
+    );
 }
 
 /**
@@ -3527,7 +3533,7 @@ function getReportActionWithMissingSmartscanFields(iouReportID: string | undefin
         if (!ReportActionsUtils.wasActionTakenByCurrentUser(action)) {
             return false;
         }
-        return TransactionUtils.hasMissingSmartscanFields(transaction);
+        return TransactionUtils.shouldShowMissingSmartscanFieldsError(transaction, action);
     });
 }
 
@@ -6520,32 +6526,53 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     const reports = Object.values(allReports ?? {}) as Report[];
     const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
     return potentialReports.some(
-        (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
+        (potentialReport) => shouldShowViolations(potentialReport.reportID, transactionViolations) || shouldShowWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
 }
 
 /**
- * Checks to see if a report contains a violation
+ * Checks to see if a report contains a violation we should display.
  */
-function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
+function shouldShowViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
-    return transactions.some((transaction) => TransactionUtils.hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) =>
+        TransactionUtils.shouldShowViolation({
+            transactionID: transaction.transactionID,
+            transactionViolations,
+            showInReview: shouldShowInReview,
+            parentReportAction: ReportActionsUtils.getIOUActionForReportID(reportID, transaction.transactionID),
+        }),
+    );
 }
 
 /**
- * Checks to see if a report contains a violation of type `warning`
+ * Checks to see if a report contains a violation of type `warning` we should display
  */
-function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
+function shouldShowWarningTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
-    return transactions.some((transaction) => TransactionUtils.hasWarningTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) =>
+        TransactionUtils.shouldShowWarningTypeViolation({
+            transactionID: transaction.transactionID,
+            transactionViolations,
+            showInReview: shouldShowInReview,
+            parentReportAction: ReportActionsUtils.getIOUActionForReportID(reportID, transaction.transactionID),
+        }),
+    );
 }
 
 /**
- * Checks to see if a report contains a violation of type `notice`
+ * Checks to see if a report contains a violation of type `notice` we should display
  */
-function hasNoticeTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
+function shouldShowNoticeTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
-    return transactions.some((transaction) => TransactionUtils.hasNoticeTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) =>
+        TransactionUtils.shouldShowNoticeTypeViolation({
+            transactionID: transaction.transactionID,
+            transactionViolations,
+            showInReview: shouldShowInReview,
+            parentReportAction: ReportActionsUtils.getIOUActionForReportID(reportID, transaction.transactionID),
+        }),
+    );
 }
 
 function hasReportViolations(reportID: string) {
@@ -6595,7 +6622,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
         if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !isSettled(transaction?.reportID)) {
+            if (TransactionUtils.shouldShowMissingSmartscanFieldsError(transaction ?? null, parentReportAction) && !isSettled(transaction?.reportID)) {
                 reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
                 reportAction = undefined;
             }
@@ -7415,7 +7442,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
 /**
  * Returns ID of the original report from which the given reportAction is first created.
  */
-function getOriginalReportID(reportID: string, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportAction?.reportActionID ? reportActions?.[reportAction.reportActionID] : undefined;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
@@ -8864,7 +8891,7 @@ export {
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
     hasMissingPaymentMethod,
-    hasMissingSmartscanFields,
+    shouldShowMissingSmartscanFieldsError,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
@@ -8872,9 +8899,9 @@ export {
     getReportActionWithSmartscanError,
     hasSmartscanError,
     hasUpdatedTotal,
-    hasViolations,
-    hasWarningTypeViolations,
-    hasNoticeTypeViolations,
+    shouldShowViolations,
+    shouldShowWarningTypeViolations,
+    shouldShowNoticeTypeViolations,
     isActionCreator,
     isAdminRoom,
     isAdminsOnlyPostingRoom,
