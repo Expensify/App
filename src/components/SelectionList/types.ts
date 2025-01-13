@@ -297,6 +297,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles applied for the title */
+    titleStyles?: StyleProp<TextStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -563,6 +566,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
+    /** Styles applid for the title of the list item */
+    listItemTitleStyles?: StyleProp<TextStyle>;
+
     /** This may improve scroll performance for large lists */
     removeClippedSubviews?: boolean;
 
@@ -627,6 +633,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
+
+    /** Initial number of items to render */
+    initialNumToRender?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -635,6 +644,8 @@ type SelectionListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    getFocusedOption: () => ListItem | undefined;
+    focusTextInput: () => void;
 };
 
 type ItemLayout = {

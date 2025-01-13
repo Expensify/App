@@ -1,5 +1,5 @@
 type RemoveDelegateParams = {
-    delegate: string;
+    delegateEmail: string;
 };
 
 export default RemoveDelegateParams;

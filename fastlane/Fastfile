@@ -71,9 +71,9 @@ platform :android do
 
   desc "Generate a production HybridApp AAB"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: "bundleRelease",
         flags: "--refresh-dependencies",
         properties: {
@@ -88,9 +88,9 @@ platform :android do
 
   desc "Generate AdHoc HybridApp apk"
     lane :build_adhoc_hybrid do
-      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assembleAdhoc',
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
@@ -116,9 +116,9 @@ platform :android do
 
   desc "Generate a new local HybridApp APK"
     lane :build_local_hybrid do
-      ENV["ENVFILE"]=".env.production"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
         flavor: 'Production',
         build_type: 'Release',
@@ -197,6 +197,17 @@ platform :android do
     )
   end
 
+  desc "Upload app to Firebase distribution"
+    lane :upload_firebase_distribution do
+      firebase_app_distribution(
+          app: "1:1008697809946:android:2e48f9ffe8d0b6a2",
+          service_credentials_file: "./firebase.json",
+          groups: "applause",
+          android_artifact_path: ENV[KEY_GRADLE_AAB_PATH],
+          android_artifact_type: "AAB"
+      )
+    end
+
     desc "Upload HybridApp to Google Play for internal testing"
     lane :upload_google_play_internal_hybrid do
       # Google is very unreliable, so we retry a few times
@@ -258,16 +269,11 @@ platform :android do
     lane :upload_google_play_production_hybrid_rollout do
       # Google is very unreliable, so we retry a few times
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-      google_play_track_version_codes(
-        package_name: "org.me.mobiexpensifyg",
-        json_key: './android-fastlane-json-key.json',
-        track: 'internal'
-      )
       upload_to_play_store(
         package_name: "org.me.mobiexpensifyg",
         json_key: './android-fastlane-json-key.json',
         version_code: ENV["VERSION"].to_i,
-        track: 'internal',
+        track: 'beta',
         track_promote_to: 'production',
         rollout: '0.01',
         skip_upload_apk: true,
@@ -377,7 +383,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp production build"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.ios"
 
       setupIOSSigningCertificate()
 
@@ -394,7 +400,7 @@ platform :ios do
       )
 
       build_app(
-        workspace: "../iOS/Expensify.xcworkspace",
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
         export_method: "app-store",
@@ -404,6 +410,42 @@ platform :ios do
               "com.expensify.expensifylite" => "(OldApp) AppStore",
               "com.expensify.expensifylite.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
               "com.expensify.expensifylite.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
+          }
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
+  desc "Build an iOS HybridApp Adhoc build"
+    lane :build_adhoc_hybrid do
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.ios"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Share_Extension.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Notification_Service.mobileprovision"
+      )
+
+      build_app(
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
+        scheme: "Expensify",
+        output_name: "Expensify.ipa",
+        export_method: "app-store",
+        export_options: {
+          manageAppVersionAndBuildNumber: false,
+          provisioningProfiles: {
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AppStore",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
           }
         }
       )
@@ -423,9 +465,9 @@ platform :ios do
 
   desc "Build an unsigned iOS HybridApp production build"
     lane :build_unsigned_hybrid do
-      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
-          workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
+          workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
           scheme: "Expensify"
       )
       setIOSBuildOutputsInEnv()
@@ -475,6 +517,16 @@ platform :ios do
     )
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
+
+  desc "Upload app to Firebase distribution"
+    lane :upload_firebase_distribution do
+      firebase_app_distribution(
+          app: "1:1008697809946:ios:3ffad71f664f2886",
+          service_credentials_file: "./firebase.json",
+          groups: "applause",
+          ipa_path: ENV[KEY_IPA_PATH],
+      )
+    end
 
   desc "Upload app to TestFlight"
   lane :upload_testflight do
@@ -542,7 +594,7 @@ platform :ios do
       dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       # Assuming we are running this from the react-native submodule directory for HybridApp
-      binary_path: "../iOS/Pods/FirebaseCrashlytics/upload-symbols"
+      binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
     end
 
@@ -613,11 +665,20 @@ platform :ios do
 
   desc "Submit HybridApp to 100% rollout on App Store"
     lane :complete_hybrid_rollout do
-        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios-fastlane-json-key.json")
+        # Local path is different when using Spaceship::ConnectAPI::Token.from_json_file,
+        # the working directory is: /Users/runner/work/App/App/Mobile-Expensify/react-native/fastlane
+        api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios/ios-fastlane-json-key.json")
         Spaceship::ConnectAPI.token = api_token
 
         app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
         version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+
+        # Skip if the version is already at 100% rollout
+        if version.fetch_app_store_version_phased_release.phased_release_state == "COMPLETE"
+          UI.important "Version is already at 100% rollout, skipping completing the rollout"
+          next
+        end
+
         version.fetch_app_store_version_phased_release.complete
     end
 
@@ -625,7 +686,7 @@ platform :ios do
     lane :submit_hybrid_for_rollout do
       deliver(
         app_identifier: "com.expensify.expensifylite",
-        api_key_path: "./ios-fastlane-json-key.json",
+        api_key_path: "./ios/ios-fastlane-json-key.json",
 
         # Skip HTML report verification
         force: true,

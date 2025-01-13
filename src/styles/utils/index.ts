@@ -29,6 +29,7 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
+import searchHeaderHeight from './searchHeaderHeight';
 import type {
     AllStyles,
     AvatarSize,
@@ -290,7 +291,10 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
+    if (!transactionID) {
+        return CONST.ERECEIPT_COLORS.YELLOW;
+    }
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -933,9 +937,16 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     if (windowHeight) {
         // dimensions of content above the emoji picker list
         const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        const maxHeight = windowHeight - dimensions;
         return {
             ...style,
-            maxHeight: windowHeight - dimensions,
+            maxHeight,
+            /**
+             * On native platforms, `maxHeight` doesn't work as expected, so we manually
+             * enforce the height by returning the smaller of the element's height or the
+             * `maxHeight`, ensuring it doesn't exceed the maximum allowed.
+             */
+            height: Math.min(style.height, maxHeight),
         };
     }
     return style;
@@ -1159,6 +1170,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
+    searchHeaderHeight,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1288,6 +1300,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
+     */
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+        if (!!width && !!extraSpace) {
+            return {marginRight: -extraSpace, width: width + extraSpace};
+        }
+        return {width};
     },
 
     /*

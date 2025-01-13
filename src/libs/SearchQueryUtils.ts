@@ -1,11 +1,11 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import * as CardUtils from './CardUtils';
@@ -35,12 +35,42 @@ const operatorToCharMap = {
 };
 
 /**
+ * A mapping object that maps filter names from the internal codebase format to user-friendly names.
+ */
+const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, UserFriendlyKey> = {
+    type: 'type',
+    status: 'status',
+    sortBy: 'sort-by',
+    sortOrder: 'sort-order',
+    policyID: 'workspace',
+    date: 'date',
+    amount: 'amount',
+    expenseType: 'expense-type',
+    currency: 'currency',
+    merchant: 'merchant',
+    description: 'description',
+    from: 'from',
+    to: 'to',
+    category: 'category',
+    tag: 'tag',
+    taxRate: 'tax-rate',
+    cardID: 'card',
+    reportID: 'reportid',
+    keyword: 'keyword',
+    in: 'in',
+    submitted: 'submitted',
+    approved: 'approved',
+    paid: 'paid',
+    exported: 'exported',
+    posted: 'posted',
+};
+
+/**
  * @private
- * Returns string value wrapped in quotes "", if the value contains special characters.
+ * Returns string value wrapped in quotes "", if the value contains space.
  */
 function sanitizeSearchValue(str: string) {
-    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
-    if (regexp.test(str)) {
+    if (str.includes(' ')) {
         return `"${str}"`;
     }
     return str;
@@ -50,19 +80,19 @@ function sanitizeSearchValue(str: string) {
  * @private
  * Returns date filter value for QueryString.
  */
-function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const dateBefore = filterValues[FILTER_KEYS.DATE_BEFORE];
-    const dateAfter = filterValues[FILTER_KEYS.DATE_AFTER];
+function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
+    const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+    const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
 
     let dateFilter = '';
     if (dateBefore) {
-        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<${dateBefore}`;
+        dateFilter += `${filterKey}<${dateBefore}`;
     }
     if (dateBefore && dateAfter) {
         dateFilter += ' ';
     }
     if (dateAfter) {
-        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
+        dateFilter += `${filterKey}>${dateAfter}`;
     }
 
     return dateFilter;
@@ -354,8 +384,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
-    const dateFilter = buildDateFilterQuery(filterValues);
-    filtersString.push(dateFilter);
+    DATE_FILTER_KEYS.forEach((dateKey) => {
+        const dateFilter = buildDateFilterQuery(filterValues, dateKey);
+        filtersString.push(dateFilter);
+    });
 
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
@@ -374,7 +406,7 @@ function buildFilterFormValuesFromQuery(
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
-    personalDetails: OnyxTypes.PersonalDetailsList,
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
@@ -404,7 +436,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filtersForm[filterKey] = filterValues.filter((id) => personalDetails[id]);
+            filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
@@ -441,11 +473,12 @@ function buildFilterFormValuesFromQuery(
                 })
                 .join(' ');
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
-            filtersForm[FILTER_KEYS.DATE_BEFORE] =
-                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
-            filtersForm[FILTER_KEYS.DATE_AFTER] =
-                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_AFTER];
+        if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
+            const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+            const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+            filtersForm[beforeKey] =
+                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[beforeKey];
+            filtersForm[afterKey] = filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[afterKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
@@ -501,7 +534,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList, reports: OnyxCollection<OnyxTypes.Report>) {
+function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList | undefined, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -532,7 +565,7 @@ function getFilterDisplayValue(filterName: string, filterValue: string, personal
  */
 function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList,
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
 ) {
@@ -569,7 +602,7 @@ function buildUserReadableQueryString(
                 value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
             }));
         }
-        title += buildFilterValuesString(key, displayQueryFilters);
+        title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 
     return title;
@@ -658,6 +691,21 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
     return buildSearchQueryString(standardizedQuery);
 }
 
+/**
+ * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
+ *
+ * There are two types of keys used in the context of Search.
+ * The `camelCase` naming (ex: `sortBy`, `taxRate`) is more friendly to developers, but not nice to show to people. This was the default key naming in the past.
+ * The "user friendly" naming (ex: `sort-by`, `tax-rate`) was introduced at a later point, to offer better experience for the users.
+ * Currently search parsers support both versions as an input, but output the `camelCase` form. Whenever we display some query to the user however, we always do it in the newer pretty format.
+ *
+ * @example
+ * getUserFriendlyKey("taxRate") // returns "tax-rate"
+ */
+function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    return UserFriendlyKeyMap[keyName];
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -670,4 +718,5 @@ export {
     isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getUserFriendlyKey,
 };

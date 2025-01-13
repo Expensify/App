@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -11,7 +11,6 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
-import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -25,6 +24,7 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
@@ -69,6 +69,7 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
@@ -146,7 +147,7 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = value.accountID ?? -1;
+        currentAccountID = value.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
@@ -168,7 +169,6 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
                 selected: currentTimezone,
@@ -208,8 +208,6 @@ const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        // Since we don't cancel the tooltip in setModalVisibility, we need to do it here so it will be cancelled when a modal screen is shown.
-        TooltipManager.cancelPendingAndActiveTooltips();
         Modal.setModalVisibility(true);
     },
     blur: () => {
@@ -240,8 +238,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
-    const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+
+    // On HybridApp we need to prevent flickering during transition to OldDot
+    const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
+        return NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
+    }, [isOnboardingCompleted]);
+
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
@@ -250,7 +253,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
+        return initialReport?.reportID;
     });
 
     useEffect(() => {
@@ -279,9 +282,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher().then(() => {
-            setDidPusherInit(true);
-        });
+        initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!NativeModules.HybridAppModule) {
@@ -467,7 +468,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={{
                             headerShown: false,
                             presentation: Presentation.TRANSPARENT_MODAL,
-                            animation: 'none',
+                            animation: Animations.NONE,
                         }}
                         getComponent={loadProfileAvatar}
                         listeners={modalScreenListeners}
@@ -523,6 +524,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={ExplanationModalNavigator}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
+                        options={rootNavigatorOptions.basicModalNavigator}
+                        component={MigratedUserWelcomeModalNavigator}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={FeatureTrainingModalNavigator}
@@ -533,7 +539,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {isOnboardingCompleted === false && (
+                    {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                             options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
@@ -585,7 +591,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <TestToolsModal />
                 <SearchRouterModal />
             </View>
-            {didPusherInit && <ActiveGuidesEventListener />}
+            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

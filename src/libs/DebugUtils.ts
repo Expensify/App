@@ -458,10 +458,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'policyID':
         case 'reportName':
         case 'reportID':
-        case 'reportActionID':
         case 'chatReportID':
         case 'type':
-        case 'lastMessageTranslationKey':
         case 'parentReportID':
         case 'parentReportActionID':
         case 'lastVisibleActionLastModified':
@@ -470,6 +468,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -515,11 +514,14 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
         case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
+        case 'errors':
+            return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         case 'privateNotes':
             return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
@@ -531,12 +533,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        case 'pendingChatMembers':
-            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
-                accountID: 'string',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                errors: 'object',
-            });
         case 'fieldList':
             return validateObject<ObjectElement<Report, 'fieldList'>>(
                 value,
@@ -595,14 +591,12 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 hasParentAccess: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isDeletedParentAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                lastMessageTranslationKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -620,7 +614,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -632,6 +625,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -923,6 +918,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
+        case 'inserted':
         case 'posted':
             return validateDate(value);
         case 'isLoading':
@@ -985,6 +981,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
                 value,
                 {
+                    attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1048,6 +1046,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1369,7 +1368,7 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtils.getTransactionID(report?.reportID ?? '-1');
+    const transactionID = TransactionUtils.getTransactionID(report?.reportID);
 
     return Number(transactionID) > 0
         ? transactionID

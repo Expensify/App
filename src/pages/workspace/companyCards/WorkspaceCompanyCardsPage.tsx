@@ -49,11 +49,12 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const companyCards = CardUtils.getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
+    const isFeedExpired = CardUtils.isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
     const fetchCompanyCards = useCallback(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -100,6 +101,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 data.cardNumber = Object.keys(filteredCardList).at(0);
                 data.encryptedCardNumber = Object.values(filteredCardList).at(0);
             }
+        }
+
+        if (isFeedExpired) {
+            currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
         }
 
         CompanyCards.setAssignCardStepAndData({data, currentStep});

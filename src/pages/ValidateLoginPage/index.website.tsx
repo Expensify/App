@@ -6,6 +6,7 @@ import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +30,8 @@ function ValidateLoginPage({
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
-    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo);
+    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && ValidationUtils.isValidValidateCode(validateCode);
+    const isNavigatingToExitTo = isSignedIn && !!exitTo;
 
     useEffect(() => {
         if (isUserClickedSignIn) {
@@ -78,7 +80,7 @@ function ValidateLoginPage({
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && !!login && <JustSignedInModal is2FARequired />}
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}
             {/* If session.autoAuthState isn't available yet, we use shouldStartSignInWithValidateCode to conditionally render the component instead of local autoAuthState which contains a default value of NOT_STARTED */}
-            {(!autoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED) && !exitTo && (
+            {(!autoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isNavigatingToExitTo) && (
                 <ValidateCodeModal
                     accountID={Number(accountID)}
                     code={validateCode}

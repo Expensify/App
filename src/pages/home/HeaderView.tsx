@@ -70,9 +70,11 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -100,7 +102,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const reportDescription = Parser.htmlToText(ReportUtils.getReportDescription(report));
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID);
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
@@ -126,8 +128,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         />
     );
 
-    const freeTrialButton = <FreeTrial pressable />;
-
     const renderAdditionalText = () => {
         if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
@@ -144,10 +144,10 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
+    const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -155,7 +155,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
 
     return (
         <View
-            style={[shouldShowBorderBottom && styles.borderBottom]}
+            style={[styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
@@ -200,10 +200,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     />
                                 ) : (
                                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                        <MultipleAvatars
-                                            icons={icons}
-                                            shouldShowTooltip={!isChatRoom || isChatThread}
-                                        />
+                                        <MultipleAvatars icons={icons} />
                                     </OfflineWithFeedback>
                                 )}
                                 <View
@@ -262,7 +259,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                         <PressableWithoutFeedback
                                             onPress={() => {
                                                 if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
+                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID));
                                                     return;
                                                 }
                                                 Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
@@ -289,9 +286,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
-                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
-                                {canJoin && !shouldUseNarrowLayout && joinButton}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
+                                {!shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
                             {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                         </View>
@@ -312,8 +309,20 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     </View>
                 )}
             </View>
-            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
+            {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                <FreeTrial
+                    pressable
+                    addSpacing
+                />
+            )}
+            {!!report && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                <View style={[styles.appBG, styles.pl0]}>
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <TaskHeaderActionButton report={report} />
+                    </View>
+                </View>
+            )}
         </View>
     );
 }
