@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ describe('PolicyUtils', () => {
                 (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
                 2,
             );
-            expect(PolicyUtils.getActivePolicies(policies, undefined, false)).toHaveLength(1);
+            expect(PolicyUtils.getActivePolicies(policies, undefined)).toHaveLength(1);
         });
     });
     describe('getRateDisplayValue', () => {
