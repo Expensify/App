@@ -606,6 +606,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type DomainPermissionInfoParams = {
+    domain: string;
+}
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -819,4 +823,5 @@ export type {
     TripLengthTextParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    DomainPermissionInfoParams,
 };

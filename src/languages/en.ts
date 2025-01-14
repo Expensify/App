@@ -60,6 +60,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DomainPermissionInfoParams,
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
@@ -205,6 +206,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+import { title } from 'process';
 
 type StateValue = {
     stateISO: string;
@@ -2533,6 +2535,11 @@ const translations = {
             subtitle: 'Choose a domain for travel stuff or something. We can get real copy to go here that makes sense.',
             recommended: 'Recommended',
         },
+        domainPermissionInfo: {
+            title: 'Domain',
+            restriction: ({domain}: DomainPermissionInfoParams) => `You don't have permission to enable Expensify Travel for the domain <strong>${domain}</strong>. You'll need to ask someone from that domain to enable travel instead.`,
+            accountantInvitation: `If you're a accountant, consider joining the ExpensifyApproved! accountants program to enable travel for this domain.`,
+        }
     },
     workspace: {
         common: {
