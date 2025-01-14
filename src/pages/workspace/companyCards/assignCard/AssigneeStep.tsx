@@ -39,7 +39,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -73,8 +73,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             data: {
                 email: selectedMember,
                 cardName: CardUtils.getDefaultCardName(memberName),
-                cardNumber: Object.keys(filteredCardList).at(0),
-                encryptedCardNumber: Object.values(filteredCardList).at(0),
             },
             isEditing: false,
         });

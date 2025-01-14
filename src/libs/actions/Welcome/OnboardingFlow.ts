@@ -1,7 +1,7 @@
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
-import linkingConfig from '@libs/Navigation/linkingConfig';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -30,7 +30,7 @@ Onyx.connect({
         if (value === undefined) {
             return;
         }
-        onboardingValues = value as Onboarding;
+        onboardingValues = value;
     },
 });
 

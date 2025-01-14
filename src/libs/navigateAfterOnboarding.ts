@@ -1,17 +1,9 @@
 import ROUTES from '@src/ROUTES';
-import * as Report from './actions/Report';
 import Navigation from './Navigation/Navigation';
 import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from './ReportUtils';
 
-const navigateAfterOnboarding = (
-    isSmallScreenWidth: boolean,
-    shouldUseNarrowLayout: boolean,
-    canUseDefaultRooms: boolean | undefined,
-    onboardingPolicyID?: string,
-    activeWorkspaceID?: string,
-    backTo?: string,
-) => {
+const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms: boolean | undefined, onboardingPolicyID?: string, activeWorkspaceID?: string) => {
     Navigation.dismissModal();
 
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
@@ -24,16 +16,11 @@ const navigateAfterOnboarding = (
     const lastAccessedReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
     const lastAccessedReportID = lastAccessedReport?.reportID;
     // we don't want to navigate to newly creaded workspace after onboarding completed.
-    if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID) {
-        // Only navigate to concierge chat when central pane is visible
-        // Otherwise stay on the chats screen.
-        if (!shouldUseNarrowLayout && !backTo) {
-            Report.navigateToConciergeChat();
-        }
+    if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID || ReportUtils.isConciergeChatReport(lastAccessedReport)) {
         return;
     }
 
-    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
+    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
     Navigation.navigate(lastAccessedReportRoute);
 };
 

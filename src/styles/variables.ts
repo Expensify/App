@@ -239,6 +239,9 @@ export default {
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
+    cardMiniatureWidth: 20,
+    cardMiniatureHeight: 13,
+    cardMiniatureBorderRadius: 2,
 
     cardNameWidth: 156,
     holdMenuIconSize: 64,
@@ -258,6 +261,12 @@ export default {
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+    fabTooltipShiftHorizontal: -15,
+    workspaceLHNtooltipShiftHorizontal: 26,
+    searchFiltersTooltipShiftHorizontal: -20,
+    searchFiltersTooltipShiftHorizontalNarrow: -10,
+    searchFiltersTooltipShiftVerticalNarrow: 5,
+    bottomTabInboxTooltipShiftHorizontal: 36,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -265,6 +274,7 @@ export default {
     minimalTopBarOffset: -26,
     searchHeaderHeight: 80,
     searchListContentMarginTop: 116,
+    searchTopBarZIndex: 9,
 
     h20: 20,
     h28: 28,
