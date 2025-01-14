@@ -100,7 +100,7 @@ function ensureSingleSpacing(text: string) {
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
@@ -155,7 +155,7 @@ function getOrderedReportIDs(
         if (
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportId ?? '',
+                currentReportId,
                 isInFocusMode,
                 betas,
                 policies: policies as OnyxCollection<Policy>,
@@ -208,7 +208,7 @@ function getOrderedReportIDs(
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        } else if (ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -239,12 +239,7 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
 
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => {
-        if (!report?.reportID) {
-            return '';
-        }
-        return report?.reportID;
-    });
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return LHNReports;
@@ -261,7 +256,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const errors = ReportUtils.getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
