@@ -1,6 +1,6 @@
 type ResolveDuplicatesParams = {
     /** The ID of the transaction that we want to keep */
-    transactionID: string;
+    transactionID: string | undefined;
 
     /** The list of other duplicated transactions */
     transactionIDList: string[];
