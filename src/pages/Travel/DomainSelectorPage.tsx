@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import Button from '@components/Button';
 
 function DomainSelectorPage() {
     const styles = useThemeStyles();
@@ -28,6 +29,20 @@ function DomainSelectorPage() {
         [domains, selectedDomain],
     );
 
+    const footerContent = useMemo(
+        () => (
+            <Button
+                isDisabled={selectedDomain.length <= 0}
+                success
+                large
+                style={[styles.w100]}
+                onPress={() => {}}
+                text={translate('common.continue')}
+            />
+        ),
+        [selectedDomain, translate, styles],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -45,11 +60,12 @@ function DomainSelectorPage() {
                 canSelectMultiple
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
+                footerContent={footerContent}
             />
         </ScreenWrapper>
     );
 }
 
-DomainSelectorPage.displayName = 'TravelDomain';
+DomainSelectorPage.displayName = 'DomainSelectorPage';
 
 export default DomainSelectorPage;
