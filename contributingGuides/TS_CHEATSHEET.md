@@ -100,22 +100,42 @@
 <a name="animated-style"></a><a name="1.4"></a>
 
 - [1.4](#animated-style) **Animated styles**
-
+  
+The only recommended way to create animations is by using the 
+`react-native-reanimated` library because it is much more efficient and convenient 
+than using `Animated` directly from `React Native`.
   ```ts
-  import {useRef} from 'react';
-  import {Animated, StyleProp, ViewStyle} from 'react-native';
+  import React from 'react';
+  import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+  import Animated, { useAnimatedStyle, useSharedValue, withTiming, SharedValue, WithTimingConfig } from 'react-native-reanimated';
 
   type MyComponentProps = {
-      style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
+  style: {
+    opacity: SharedValue<number>;
+    };
   };
-
+  
   function MyComponent({ style }: MyComponentProps) {
-      return <Animated.View style={style} />;
+    const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: style.opacity.get(),
+      };
+    });
+  
+    return <Animated.View style={animatedStyle}/>;
   }
-
+  
   function App() {
-      const anim = useRef(new Animated.Value(0)).current;
-      return <MyComponent style={{opacity: anim.interpolate({...})}} />;
+    const opacity = useSharedValue(0);
+    
+    const animate = () => {
+      opacity.set(withTiming(1, {
+      duration: 1000,
+      easing: Easing.inOut(Easing.quad),
+      reduceMotion: ReduceMotion.System,
+    }))}
+  
+    return <MyComponent style={{ opacity }} />;
   }
   ```
 

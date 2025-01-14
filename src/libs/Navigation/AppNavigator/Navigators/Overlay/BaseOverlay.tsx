@@ -7,9 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
-    /* Whether to use native styles tailored for native devices */
-    shouldUseNativeStyles: boolean;
-
     /* Callback to close the modal */
     onPress?: () => void;
 
@@ -17,7 +14,7 @@ type BaseOverlayProps = {
     isModalOnTheLeft?: boolean;
 };
 
-function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
+function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
@@ -25,7 +22,7 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
     return (
         <Animated.View
             id="BaseOverlay"
-            style={shouldUseNativeStyles ? styles.nativeOverlayStyles(current) : styles.overlayStyles(current, isModalOnTheLeft)}
+            style={styles.overlayStyles(current, isModalOnTheLeft)}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

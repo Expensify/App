@@ -2013,19 +2013,6 @@ const styles = (theme: ThemeColors) =>
                 }),
             } satisfies ViewStyle),
 
-        nativeOverlayStyles: (current: OverlayStylesParams) =>
-            ({
-                position: 'absolute',
-                backgroundColor: theme.overlay,
-                width: '100%',
-                height: '100%',
-                opacity: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, variables.overlayOpacity],
-                    extrapolate: 'clamp',
-                }),
-            } satisfies ViewStyle),
-
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',

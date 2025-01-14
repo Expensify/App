@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -747,15 +747,6 @@ function getMaximumWidth(maxWidth: number): ViewStyle {
     };
 }
 
-/**
- * Return style for opacity animation.
- */
-function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        opacity: fadeAnimation,
-    };
-}
-
 type AvatarBorderStyleParams = {
     theme: ThemeColors;
     isHovered: boolean;
@@ -1192,7 +1183,6 @@ const staticStyleUtils = {
     getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
-    fade,
     getHorizontalStackedAvatarBorderStyle,
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
