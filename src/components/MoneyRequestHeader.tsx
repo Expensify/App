@@ -161,40 +161,41 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     return (
         <>
             <View style={[styles.pl0]}>
-                <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps && !isOnHold}
-                    shouldShowReportAvatarWithDisplay
-                    shouldEnableDetailPageNavigation
-                    shouldShowPinButton={false}
-                    report={{
-                        ...report,
-                        reportID: reportID ?? '',
-                        ownerAccountID: parentReport?.ownerAccountID,
-                    }}
-                    policy={policy}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                    onBackButtonPress={onBackButtonPress}
-                >
-                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.p0]}
-                            onPress={markAsCash}
-                        />
-                    )}
-                    {isDuplicate && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.p0, styles.ml2]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
-                            }}
-                        />
-                    )}
-                </HeaderWithBackButton>
+                {!!report && (
+                    <HeaderWithBackButton
+                        shouldShowBorderBottom={!statusBarProps && !isOnHold}
+                        shouldShowReportAvatarWithDisplay
+                        shouldEnableDetailPageNavigation
+                        shouldShowPinButton={false}
+                        report={{
+                            ...report,
+                            ownerAccountID: parentReport?.ownerAccountID,
+                        }}
+                        policy={policy}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                        onBackButtonPress={onBackButtonPress}
+                    >
+                        {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                            <Button
+                                success
+                                text={translate('iou.markAsCash')}
+                                style={[styles.p0]}
+                                onPress={markAsCash}
+                            />
+                        )}
+                        {isDuplicate && !shouldUseNarrowLayout && (
+                            <Button
+                                success
+                                text={translate('iou.reviewDuplicates')}
+                                style={[styles.p0, styles.ml2]}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
+                                }}
+                            />
+                        )}
+                    </HeaderWithBackButton>
+                )}
                 {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
