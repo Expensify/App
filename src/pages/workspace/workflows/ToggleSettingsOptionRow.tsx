@@ -105,7 +105,7 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
     const isExpanded = useSharedValue(isActive);
-    const isToggleTriggered = React.useRef(false);
+    const isToggleTriggered = useSharedValue(false);
 
     useEffect(() => {
         isExpanded.set(isActive);
@@ -184,7 +184,7 @@ function ToggleSettingOptionRow({
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
                         onToggle={(isOn) => {
-                            isToggleTriggered.current = true;
+                            isToggleTriggered.set(true);
                             onToggle(isOn);
                         }}
                         isOn={isActive}
