@@ -414,6 +414,21 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
+    const handleModalHide = useCallback((isNavigating: boolean) => {
+        if (isNavigating) {
+            return;
+        }
+        const activeElementId = DomUtils.getActiveElement()?.id;
+        if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
+            return;
+        }
+        focus();
+    }, []);
+
+    const onEmojiSelected = useCallback((emojiCode: string, emojiObject: Emoji) => composerRef.current?.replaceSelectionWithText(emojiCode, emojiObject), [composerRef]);
+
+    const onModalHide = useCallback((isNavigating?: boolean) => handleModalHide(!!isNavigating), [handleModalHide]);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -531,17 +546,8 @@ function ReportActionCompose({
                             {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
-                                    onModalHide={(isNavigating) => {
-                                        if (isNavigating) {
-                                            return;
-                                        }
-                                        const activeElementId = DomUtils.getActiveElement()?.id;
-                                        if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
-                                            return;
-                                        }
-                                        focus();
-                                    }}
-                                    onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
+                                    onModalHide={onModalHide}
+                                    onEmojiSelected={onEmojiSelected}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
                                 />
