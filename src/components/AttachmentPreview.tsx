@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -25,15 +26,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
     const styles = useThemeStyles();
 
     const fileName = source.split('/').pop() ?? undefined;
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isSourceVideo = typeof source === 'string' && Str.isVideo(source);
-    const isFileNameImage = fileName && Str.isImage(fileName);
-    const isFileImage = isSourceImage || isFileNameImage;
-    const isFileVideo = isSourceVideo && typeof source === 'string';
-
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
 
-    if (isFileVideo) {
+    if (typeof source === 'string' && Str.isVideo(source)) {
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
@@ -66,6 +61,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
             </PressableWithFeedback>
         );
     }
+    const isFileImage = checkIsFileImage(source, fileName);
 
     if (isFileImage) {
         return (

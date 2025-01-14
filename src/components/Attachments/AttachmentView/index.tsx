@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useContext, useEffect, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -80,6 +80,13 @@ type AttachmentViewProps = Attachment & {
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
 };
+
+function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    const isFileNameImage = fileName && Str.isImage(fileName);
+
+    return isSourceImage || isFileNameImage;
+}
 
 function AttachmentView({
     source,
@@ -222,9 +229,7 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isFileNameImage = file?.name && Str.isImage(file.name);
-    const isFileImage = isSourceImage || isFileNameImage;
+    const isFileImage = checkIsFileImage(source, file?.name);
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
@@ -316,4 +321,5 @@ AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 
+export {checkIsFileImage};
 export type {AttachmentViewProps};
