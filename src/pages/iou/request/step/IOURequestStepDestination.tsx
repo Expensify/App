@@ -15,9 +15,17 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
+import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {
+    clearSubrates,
+    getIOURequestPolicyID,
+    setCustomUnitID,
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestCurrency,
+    setMoneyRequestParticipantsFromReport,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,11 +53,11 @@ function IOURequestStepDestination({
     openedFromStartPage = false,
     explicitPolicyID,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`);
     const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = policy?.id ? ReportUtils.getPolicyExpenseChat(accountID, policy.id) : undefined;
+    const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
 
-    const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+    const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
 
     const styles = useThemeStyles();
@@ -75,13 +83,13 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                IOU.setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
-                IOU.setCustomUnitID(transactionID, customUnit.customUnitID);
-                IOU.setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                setCustomUnitID(transactionID, customUnit.customUnitID);
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
             }
-            IOU.setCustomUnitRateID(transactionID, destination.keyForList ?? '');
-            IOU.setMoneyRequestCurrency(transactionID, destination.currency);
-            IOU.clearSubrates(transactionID);
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+            setMoneyRequestCurrency(transactionID, destination.currency);
+            clearSubrates(transactionID);
         }
 
         if (backTo) {
@@ -129,7 +137,7 @@ function IOURequestStepDestination({
                         subtitle={translate('workspace.perDiem.emptyList.subtitle')}
                         containerStyle={[styles.flex1, styles.justifyContentCenter]}
                     />
-                    {PolicyUtils.isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                    {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                             <Button
                                 large
