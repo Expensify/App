@@ -212,7 +212,7 @@ function PolicyDistanceRatesPage({
         deletePolicyDistanceRates(
             policyID,
             customUnit,
-            selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+            selectedDistanceRates.map((rate) => rate.customUnitRateID),
         );
         setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);
