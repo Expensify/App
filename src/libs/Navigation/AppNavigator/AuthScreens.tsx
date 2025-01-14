@@ -602,6 +602,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
+                    <RootStack.Screen
+                        name={SCREENS.BANK_CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
+                    />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
                         const centralPaneName = screenName as CentralPaneName;
                         return (

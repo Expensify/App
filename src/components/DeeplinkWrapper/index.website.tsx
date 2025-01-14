@@ -67,7 +67,8 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
         // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
         const routeRegex = new RegExp(CONST.REGEX.ROUTES.UNLINK_LOGIN);
         const isUnsupportedDeeplinkRoute = routeRegex.test(window.location.pathname);
-        const isConnectionCompleteRoute = window.location.pathname.replace('/', '') === ROUTES.CONNECTION_COMPLETE;
+        const route = window.location.pathname.replace('/', '');
+        const isConnectionCompleteRoute = route === ROUTES.CONNECTION_COMPLETE || route === ROUTES.BANK_CONNECTION_COMPLETE;
 
         // Making a few checks to exit early before checking authentication status
         if (

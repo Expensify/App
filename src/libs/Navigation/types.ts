@@ -1668,6 +1668,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
+    [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
 };
 
 type AuthScreensParamList = CentralPaneScreensParamList &
@@ -1715,6 +1716,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             isFromReviewDuplicates?: string;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
+        [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
     };
 
 type SearchReportParamList = {
