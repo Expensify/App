@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -8,24 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, ListItemProps} from './types';
-import Badge from '@components/Badge';
 
 type DomainItem = ListItem & {
-    value: string,
-    isRecommended: boolean,
+    value: string;
+    isRecommended: boolean;
 };
 
-function TravelDomainListItem({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    onSelectRow,
-    onCheckboxPress,
-    onFocus,
-    shouldSyncFocus,
-    shouldHighlightSelectedItem,
-}: ListItemProps<DomainItem>) {
+function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus, shouldHighlightSelectedItem}: ListItemProps<DomainItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,37 +41,35 @@ function TravelDomainListItem({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
-            {(hovered?: boolean) => (
-                <>
+            <>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <PressableWithFeedback
+                        onPress={handleCheckboxPress}
+                        disabled={isDisabled}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={item.text ?? ''}
+                        style={[styles.mr2, styles.optionSelectCircle]}
+                    >
+                        <SelectCircle
+                            isChecked={item.isSelected ?? false}
+                            selectCircleStyles={styles.ml0}
+                        />
+                    </PressableWithFeedback>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <PressableWithFeedback
-                            onPress={handleCheckboxPress}
-                            disabled={isDisabled}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={item.text ?? ''}
-                            style={[styles.mr2, styles.optionSelectCircle]}
-                        >
-                            <SelectCircle
-                                isChecked={item.isSelected ?? false}
-                                selectCircleStyles={styles.ml0}
-                            />
-                        </PressableWithFeedback>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={item.text ?? ''}
-                                style={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    item.isBold !== false && styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                ]}
-                            />
-                        </View>
+                        <TextWithTooltip
+                            shouldShowTooltip={showTooltip}
+                            text={item.text ?? ''}
+                            style={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                item.isBold !== false && styles.sidebarLinkTextBold,
+                                styles.pre,
+                            ]}
+                        />
                     </View>
-                    {item.isRecommended && <Badge text={translate('travel.domainSelector.recommended')} />}
-                </>
-            )}
+                </View>
+                {item.isRecommended && <Badge text={translate('travel.domainSelector.recommended')} />}
+            </>
         </BaseListItem>
     );
 }

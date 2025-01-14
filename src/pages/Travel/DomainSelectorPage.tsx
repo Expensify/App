@@ -1,3 +1,4 @@
+import React, {useCallback, useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -6,10 +7,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import React, {useCallback, useEffect, useState} from 'react';
 
 function DomainSelectorPage() {
-    
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -30,7 +29,7 @@ function DomainSelectorPage() {
         },
     ];
     return (
-    <ScreenWrapper
+        <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={DomainSelectorPage.displayName}
