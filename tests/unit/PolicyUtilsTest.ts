@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -149,50 +149,50 @@ describe('PolicyUtils', () => {
                 (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
                 2,
             );
-            expect(PolicyUtils.getActivePolicies(policies, undefined)).toHaveLength(1);
+            expect(getActivePolicies(policies, undefined)).toHaveLength(1);
         });
     });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = PolicyUtils.getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
+            const rate = getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
             expect(rate).toEqual('');
         });
 
         describe('withDecimals = false', () => {
             it('should return integer value as is', () => {
-                const rate = PolicyUtils.getRateDisplayValue(100, toLocaleDigitMock);
+                const rate = getRateDisplayValue(100, toLocaleDigitMock);
                 expect(rate).toEqual('100');
             });
 
             it('should return non-integer value as is', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.5, toLocaleDigitMock);
+                const rate = getRateDisplayValue(10.5, toLocaleDigitMock);
                 expect(rate).toEqual('10.5');
             });
         });
 
         describe('withDecimals = true', () => {
             it('should return integer value with 2 trailing zeros', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10, toLocaleDigitMock, true);
+                const rate = getRateDisplayValue(10, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.00');
             });
 
             it('should return non-integer value with up to 2 trailing zeros', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.5, toLocaleDigitMock, true);
+                const rate = getRateDisplayValue(10.5, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.50');
             });
 
             it('should return non-integer value with 4 decimals as is', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.5312, toLocaleDigitMock, true);
+                const rate = getRateDisplayValue(10.5312, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5312');
             });
 
             it('should return non-integer value with 3 decimals as is', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.531, toLocaleDigitMock, true);
+                const rate = getRateDisplayValue(10.531, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.531');
             });
 
             it('should return non-integer value with 4+ decimals cut to 4', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.53135, toLocaleDigitMock, true);
+                const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
         });
@@ -200,30 +200,30 @@ describe('PolicyUtils', () => {
 
     describe('getUnitRateValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as number});
+            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as number});
             expect(rate).toEqual('');
         });
 
         describe('withDecimals = false', () => {
             it('should return value divisible by 100 with no decimal places', () => {
-                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 100});
+                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100});
                 expect(rate).toEqual('1');
             });
 
             it('should return non-integer value as is divided by 100', () => {
-                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 11.11});
+                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11});
                 expect(rate).toEqual('0.1111');
             });
         });
 
         describe('withDecimals = true', () => {
             it('should return value divisible by 100 with 2 decimal places', () => {
-                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 100}, true);
+                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100}, true);
                 expect(rate).toEqual('1.00');
             });
 
             it('should return non-integer value as is divided by 100', () => {
-                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
+                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
                 expect(rate).toEqual('0.1111');
             });
         });
@@ -252,7 +252,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
             });
             it('should return the employee submitsTo if the policy use the advance workflow', () => {
                 const policy: Policy = {
@@ -268,7 +268,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
             });
         });
         describe('Has category/tag approver', () => {
@@ -301,7 +301,7 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -334,7 +334,7 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -370,7 +370,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -405,7 +405,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(PolicyUtils.getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
                 });
             });
         });
