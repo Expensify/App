@@ -1603,6 +1603,7 @@ function buildOnyxDataForInvoice(
         policyTagList ?? {},
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+        true,
     );
 
     if (violationsOnyxData) {
@@ -2901,6 +2902,8 @@ function getUpdateMoneyRequestParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    const hasModifiedCreated = 'created' in transactionChanges;
+    const hasModifiedAmount = 'amount' in transactionChanges;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -3157,7 +3160,27 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    if (policy && PolicyUtils.isControlPolicy(policy) && updatedTransaction && hasModifiedCreated && !ReportUtils.isInvoiceReport(parentReport)) {
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        optimisticData.push(
+            ViolationsUtils.getViolationsOnyxData(
+                updatedTransaction,
+                currentTransactionViolations,
+                policy,
+                policyTagList ?? {},
+                policyCategories ?? {},
+                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+            ),
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
+
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(

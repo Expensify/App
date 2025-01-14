@@ -170,6 +170,7 @@ const ViolationsUtils = {
         policyTagList: PolicyTagLists,
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
+        isInvoiceTransaction = false,
     ): OnyxUpdate {
         const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
@@ -191,9 +192,10 @@ const ViolationsUtils = {
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
             const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
             const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+            const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount;
             const shouldShowReceiptRequiredViolation =
-                policy.maxExpenseAmountNoReceipt && Math.abs(updatedTransaction.amount) > policy.maxExpenseAmountNoReceipt && !updatedTransaction.receipt?.receiptID;
-            const shouldShowOverLimitViolation = policy.maxExpenseAmount && Math.abs(updatedTransaction.amount) > policy.maxExpenseAmount;
+                policy.maxExpenseAmountNoReceipt && Math.abs(amount) > policy.maxExpenseAmountNoReceipt && !TransactionUtils.hasReceipt(updatedTransaction);
+            const shouldShowOverLimitViolation = policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
@@ -259,8 +261,8 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 
-        const inputDate = new Date(updatedTransaction.created);
-        const shouldDisplayFutureDateViolation = DateUtils.isFutureDate(inputDate) && policy.type === CONST.POLICY.TYPE.CORPORATE;
+        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDate(inputDate) && policy.type === CONST.POLICY.TYPE.CORPORATE;
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
