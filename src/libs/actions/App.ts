@@ -15,8 +15,8 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as SessionUtils from '@libs/SessionUtils';
+import {getMostRecentReportActionLastModified} from '@libs/ReportActionsUtils';
+import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,10 +26,10 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import * as PersistedRequests from './PersistedRequests';
-import * as Policy from './Policy/Policy';
+import {getAll, save} from './PersistedRequests';
+import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
-import * as Session from './Session';
+import {isAnonymousUser} from './Session';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -296,7 +296,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
         Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
@@ -327,7 +327,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
         Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // It is SUPER BAD FORM to return promises from action methods.
@@ -398,8 +398,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
 ) {
-    const policyIDWithDefault = policyID || Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+    const policyIDWithDefault = policyID || generatePolicyID();
+    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -424,7 +424,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [file] Optional, avatar file for workspace
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
 }
 
 /**
@@ -453,7 +453,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
 
-    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo') as Route | null;
 
@@ -502,7 +502,7 @@ function redirectThirdPartyDesktopSignIn() {
  */
 function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
-    if (Session.isAnonymousUser()) {
+    if (isAnonymousUser()) {
         return;
     }
 
@@ -563,7 +563,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
-    const sequentialQueue = PersistedRequests.getAll();
+    const sequentialQueue = getAll();
     Onyx.clear(KEYS_TO_PRESERVE).then(() => {
         // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
         if (isStateImported) {
@@ -592,7 +592,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             sequentialQueue.forEach((request) => {
-                PersistedRequests.save(request);
+                save(request);
             });
         });
     });

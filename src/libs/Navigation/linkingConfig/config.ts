@@ -1601,5 +1601,4 @@ const normalizedConfigs = Object.keys(config.screens)
         return acc;
     }, {} as Record<Screen, RouteConfig>);
 
-export {normalizedConfigs};
-export default config;
+export {normalizedConfigs, config};
