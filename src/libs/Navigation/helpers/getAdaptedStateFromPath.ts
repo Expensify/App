@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import config from '@libs/Navigation/linkingConfig/config';
+import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';

@@ -2,13 +2,9 @@
 title: Manage Travel Member Roles
 description: Modify member roles within Expensify Travel
 ---
-<div id="expensify-classic" markdown="1">
+<div id="new-expensify" markdown="1">
 
 Admins can assign roles to different travel members to determine who they can book travel for (whether for themselves and/or for others) and whether they can adjust administrative settings.
-
-</div>
-
-<div id="new-expensify" markdown="1">
   
 To assign a role to a travel member, 
 
@@ -21,8 +17,8 @@ To assign a role to a travel member,
   - **Travel Arranger**: Can book travel for themselves and for other workspace members. Arrangers can be set to arrange travel for everyone in the workspace or for specific individuals only.
   - **Company Admin**: Can book travel for themselves as well as any other workspace members. They can also access administrative features to:
     - Define travel policies
-    - Add users 
-    - Remove users 
+    - Add Users
+    - Remove Users
     - Add and configure corporate cards as payment methods
     - View analytics and metrics 
     - Use the Safety feature

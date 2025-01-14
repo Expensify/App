@@ -2,8 +2,8 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import customGetPathFromState from '@libs/Navigation/helpers/customGetPathFromState';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-import type {RootNavigatorParamList} from '@navigation/types';
-import config from './config';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {config} from './config';
 import prefixes from './prefixes';
 
 const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
@@ -13,4 +13,5 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     config,
 };
 
-export default linkingConfig;
+// eslint-disable-next-line import/prefer-default-export
+export {linkingConfig};

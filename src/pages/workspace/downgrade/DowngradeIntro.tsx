@@ -10,15 +10,18 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onDowngrade: () => void;
+    policyID?: string;
 };
 
-function DowngradeIntro({onDowngrade, buttonDisabled, loading}: Props) {
+function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -67,14 +70,23 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading}: Props) {
                     <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.warning')}</Text>
                 </Text>
             </View>
-            <Button
-                isLoading={loading}
-                text={translate('common.downgradeWorkspace')}
-                success
-                onPress={onDowngrade}
-                isDisabled={buttonDisabled}
-                large
-            />
+            {policyID ? (
+                <Button
+                    isLoading={loading}
+                    text={translate('common.downgradeWorkspace')}
+                    success
+                    onPress={onDowngrade}
+                    isDisabled={buttonDisabled}
+                    large
+                />
+            ) : (
+                <Button
+                    text={translate('workspace.common.goToWorkspaces')}
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.ACTION_TYPE.REPLACE)}
+                    large
+                />
+            )}
         </View>
     );
 }

@@ -10,7 +10,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {doesReportBelongToWorkspace, generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +28,7 @@ import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
@@ -89,12 +89,12 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         default:
             return url;
     }
@@ -451,7 +451,7 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
     const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
-    const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !ReportUtils.doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
+    const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
         linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));

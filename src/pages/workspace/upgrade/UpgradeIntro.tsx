@@ -28,9 +28,10 @@ type Props = {
     feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
+    policyID?: string;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -45,12 +46,20 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
     }, [preferredCurrency, isCategorizing]);
 
-    if (!feature) {
+    /**
+     * If the feature is null or there is no policyID, it indicates the user is not associated with any specific workspace.
+     * In this case, the generic upgrade view should be shown.
+     * However, the policyID check is only necessary when the user is not coming from the "Categorize" option.
+     * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
+     * In such scenarios, a separate Categories upgrade UI is displayed.
+     */
+    if (!feature || (!isCategorizing && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
                 buttonDisabled={buttonDisabled}
                 loading={loading}
+                policyID={policyID}
             />
         );
     }

@@ -12,6 +12,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -207,6 +208,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
@@ -388,6 +390,33 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
         };
     };
+
+    const clearStatus = () => {
+        User.clearCustomStatus();
+        User.clearDraftCustomStatus();
+    };
+
+    useEffect(() => {
+        if (!currentUserPersonalDetails.status?.clearAfter) {
+            return;
+        }
+        const currentTime = new Date();
+        const clearAfterTime = new Date(currentUserPersonalDetails.status.clearAfter);
+        if (Number.isNaN(clearAfterTime.getTime())) {
+            return;
+        }
+        const subMilisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
+        if (subMilisecondsTime > 0) {
+            const timeoutID = setTimeout(() => {
+                clearStatus();
+            }, subMilisecondsTime);
+            return () => {
+                clearTimeout(timeoutID);
+            };
+        }
+
+        clearStatus();
+    }, [currentUserPersonalDetails.status?.clearAfter]);
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>

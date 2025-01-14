@@ -2,9 +2,12 @@ import {format} from 'date-fns';
 import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ApiCommand} from '@libs/API/types';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PolicyActions from '@src/libs/actions/Policy/Policy';
@@ -43,6 +46,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
@@ -4269,6 +4273,116 @@ describe('actions/IOU', () => {
                         },
                     });
                 });
+            });
+        });
+    });
+
+    describe('should have valid parameters', () => {
+        let writeSpy: jest.SpyInstance;
+        const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
+
+        beforeEach(() => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        test.each([
+            [WRITE_COMMANDS.REQUEST_MONEY, CONST.IOU.ACTION.CREATE],
+            [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, CONST.IOU.ACTION.SUBMIT],
+        ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            // When an expense is created
+            IOU.requestMoney({
+                action,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 10000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                    linkedTrackedExpenseReportAction: {
+                        reportActionID: '',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2024-10-30',
+                    },
+                    actionableWhisperReportActionID: '1',
+                    linkedTrackedExpenseReportID: '1',
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the correct API request should be made
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const [command, params] = writeSpy.mock.calls.at(0);
+            expect(command).toBe(expectedCommand);
+
+            // And the parameters should be supported by XMLHttpRequest
+            Object.values(params as Record<string, unknown>).forEach((value) => {
+                expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
+            });
+        });
+
+        test.each([
+            [WRITE_COMMANDS.TRACK_EXPENSE, CONST.IOU.ACTION.CREATE],
+            [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
+            [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
+        ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            // When a track expense is created
+            IOU.trackExpense(
+                {reportID: ''},
+                10000,
+                CONST.CURRENCY.USD,
+                '2024-10-30',
+                'KFC',
+                RORY_EMAIL,
+                RORY_ACCOUNT_ID,
+                {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                '',
+                false,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                action,
+                '1',
+                {
+                    reportActionID: '',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-10-30',
+                },
+                '1',
+            );
+
+            await waitForBatchedUpdates();
+
+            // Then the correct API request should be made
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const [command, params] = writeSpy.mock.calls.at(0);
+            expect(command).toBe(expectedCommand);
+
+            // And the parameters should be supported by XMLHttpRequest
+            Object.values(params as Record<string, unknown>).forEach((value) => {
+                expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             });
         });
     });

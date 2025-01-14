@@ -27,7 +27,7 @@ import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavi
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import setupCustomAndroidBackHandler from './helpers/setupCustomAndroidBackHandler';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
 type NavigationRootProps = {
