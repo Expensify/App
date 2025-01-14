@@ -170,7 +170,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     pendingAction: value.pendingAction,
                     rightElement: (
                         <>
-                            <View style={styles.flex3}>
+                            <View style={styles.flex2}>
                                 <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
                             </View>
                             <View style={styles.flex1}>
@@ -208,7 +208,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <View style={styles.flex3}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
-            <View style={styles.flex3}>
+            <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
             <View style={styles.flex1}>
