@@ -42,8 +42,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardMap} from '@src/TIMEZONES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import * as CurrentDate from './actions/CurrentDate';
-import * as Localize from './Localize';
+import {setCurrentDate} from './actions/CurrentDate';
+import {translate, translateLocal} from './Localize';
 import Log from './Log';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
@@ -206,10 +206,10 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
-    let todayAt = Localize.translate(locale, 'common.todayAt');
-    let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
-    let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
-    const at = Localize.translate(locale, 'common.conjunctionAt');
+    let todayAt = translate(locale, 'common.todayAt');
+    let tomorrowAt = translate(locale, 'common.tomorrowAt');
+    let yesterdayAt = translate(locale, 'common.yesterdayAt');
+    const at = translate(locale, 'common.conjunctionAt');
     const weekStartsOn = getWeekStartsOn();
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
@@ -306,7 +306,7 @@ const THREE_HOURS = 1000 * 60 * 60 * 3;
  */
 const updateCurrentDate = throttle(() => {
     const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    CurrentDate.setCurrentDate(currentDate);
+    setCurrentDate(currentDate);
 }, THREE_HOURS);
 
 /**
@@ -523,7 +523,6 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
  * returns {string} example: 2023-05-16 11:10 PM or 'Today'
  */
 function getLocalizedTimePeriodDescription(data: string): string {
-    const {translateLocal} = Localize;
     switch (data) {
         case getEndOfToday():
             return translateLocal('statusPage.timePeriods.afterToday');
@@ -542,7 +541,6 @@ function getStatusUntilDate(inputDate: string): string {
     if (!inputDate) {
         return '';
     }
-    const {translateLocal} = Localize;
 
     const input = new Date(inputDate);
     const now = new Date();
@@ -692,7 +690,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
-        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
+        return translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -706,7 +704,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
+        return translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };
@@ -772,8 +770,6 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
 function getFormattedDateRange(date1: Date, date2: Date): string {
-    const {translateLocal} = Localize;
-
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return format(date1, 'MMM d');
@@ -799,7 +795,6 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
-    const {translateLocal} = Localize;
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d');
@@ -823,7 +818,6 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(date: Date): string {
-    const {translateLocal} = Localize;
     if (isThisYear(date)) {
         return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
     }
@@ -852,21 +846,21 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
-function getFormattedDurationBetweenDates(translate: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
         return;
     }
 
-    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
+    return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
-function getFormattedDuration(translate: LocaleContextProps['translate'], durationInSeconds: number): string {
+function getFormattedDuration(translateParam: LocaleContextProps['translate'], durationInSeconds: number): string {
     const hours = Math.floor(durationInSeconds / 3600);
     const minutes = Math.floor((durationInSeconds % 3600) / 60);
 
-    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
+    return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
