@@ -125,7 +125,7 @@ function createTaskAndNavigate(
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
-    const assigneeChatReportID = assigneeChatReport?.reportID ?? '-1';
+    const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let assigneeChatReportOnyxData;
 
@@ -220,7 +220,7 @@ function createTaskAndNavigate(
         },
     ];
 
-    if (assigneeChatReport) {
+    if (assigneeChatReport && assigneeChatReportID) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assigneeAccountID,
@@ -619,8 +619,8 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
-    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '-1';
-    const assigneeChatReportMetadata = ReportUtils.getReportMetadata(assigneeChatReport?.reportID);
+    const assigneeChatReportID = assigneeChatReport?.reportID;
+    const assigneeChatReportMetadata = ReportUtils.getReportMetadata(assigneeChatReportID);
     const parentReport = getParentReport(report);
     const taskOwnerAccountID = getTaskOwnerAccountID(report);
     const optimisticReport: OptimisticReport = {
@@ -712,7 +712,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== sessionAccountID && assigneeChatReport) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== sessionAccountID && assigneeChatReport && assigneeChatReport && assigneeChatReportID) {
         optimisticReport.participants = {
             ...(optimisticReport.participants ?? {}),
             [assigneeAccountID]: {
@@ -724,8 +724,8 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
             currentUserAccountID,
             assigneeAccountID,
             report.reportID,
-            assigneeChatReportID ?? '-1',
-            report.parentReportID ?? '-1',
+            assigneeChatReportID,
+            report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
         );
@@ -784,7 +784,7 @@ function setDescriptionValue(description: string) {
 /**
  * Sets the shareDestination value for the task
  */
-function setShareDestinationValue(shareDestination: string) {
+function setShareDestinationValue(shareDestination: string | undefined) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
@@ -844,7 +844,7 @@ function setAssigneeValue(
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareToReportID && !skipShareDestination) {
-            setShareDestinationValue(selfDMReportID ?? '-1');
+            setShareDestinationValue(selfDMReportID);
         }
     } else {
         // Check for the chatReport by participants IDs
@@ -871,7 +871,7 @@ function setAssigneeValue(
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareToReportID && !skipShareDestination) {
-            setShareDestinationValue(report?.reportID ?? '-1');
+            setShareDestinationValue(report?.reportID);
         }
     }
 
@@ -1002,7 +1002,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): stri
         return undefined;
     }
 
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1');
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
     if (!shouldDeleteTaskReport) {
         return undefined;
     }
@@ -1030,14 +1030,14 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         return;
     }
     const message = `deleted task: ${report.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '-1', CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1', canUserPerformWriteAction);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, canUserPerformWriteAction);
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
@@ -1054,9 +1054,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         errors: undefined,
         linkMetadata: [],
     };
-    const optimisticReportActions = {
-        [parentReportAction?.reportActionID ?? '-1']: optimisticReportAction,
-    };
+    const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
     const hasOutstandingChildTask = getOutstandingChildTask(report);
 
     const optimisticData: OnyxUpdate[] = [
@@ -1075,13 +1073,9 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
                 lastMessageText:
-                    ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '-1', canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ??
-                    '',
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(
-                    parentReport?.reportID ?? '-1',
-                    canUserPerformWriteAction,
-                    optimisticReportActions as OnyxTypes.ReportActions,
-                )?.created,
+                    ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID, canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID, canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions)
+                    ?.created,
                 hasOutstandingChildTask,
             },
         },
@@ -1103,7 +1097,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-            parentReport?.reportID ?? '-1',
+            parentReport?.reportID,
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -1128,11 +1122,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {
-                [parentReportAction?.reportActionID ?? '-1']: {
-                    pendingAction: null,
-                },
-            },
+            value: parentReportAction?.reportActionID ? {[parentReportAction.reportActionID]: {pendingAction: null}} : {},
         },
     ];
 
@@ -1162,11 +1152,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {
-                [parentReportAction?.reportActionID ?? '-1']: {
-                    pendingAction: null,
-                },
-            },
+            value: parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: {pendingAction: null}} : {},
         },
     ];
 
@@ -1235,7 +1221,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedReport(parentReport, reportNameValuePairs)) {
         return false;
     }
 
@@ -1256,7 +1242,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedNonExpenseReport(parentReport, reportNameValuePairs)) {
         return false;
     }
 
@@ -1270,9 +1256,7 @@ function clearTaskErrors(reportID: string) {
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-            [report.parentReportActionID ?? -1]: null,
-        });
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
         Report.navigateToConciergeChatAndDeleteReport(reportID);
         return;
