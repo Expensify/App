@@ -263,6 +263,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     if (!integrationData) {
                         return undefined;
                     }
+                    // s77rt shouldUseMultiConnectionSelector
+                    // s77rt isTheDesignatedMultiConnectionSelector
+                    // s77rt designatedConnection
+                    // s77rt multiConnectionMapping =
+                    // shouldUseMultiConnectionSelector = !!multiConnectionMapping
+                    // shouldUseMultiConnectionSelector && multiConnectionMapping != integration
                     if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
                         return;
                     }
