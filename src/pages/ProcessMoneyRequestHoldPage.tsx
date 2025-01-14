@@ -3,7 +3,7 @@ import React, {useCallback, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import ProcessMoneyRequestHoldMenu from '@components/ProcessMoneyRequestHoldMenu';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import * as IOU from '@userActions/IOU';
+import {dismissHoldUseExplanation} from '@userActions/IOU';
 import CONST from '@src/CONST';
 
 function ProcessMoneyRequestHoldPage() {
@@ -20,7 +20,7 @@ function ProcessMoneyRequestHoldPage() {
     );
 
     const onConfirm = useCallback(() => {
-        IOU.dismissHoldUseExplanation();
+        dismissHoldUseExplanation();
     }, []);
 
     return (
