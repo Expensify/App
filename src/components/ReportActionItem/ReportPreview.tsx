@@ -231,7 +231,7 @@ function ReportPreview({
     const lastThreeTransactions = allTransactions.slice(-3);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
-    const transactionIDList = [allTransactions.at(0)?.transactionID ?? '-1'];
+    const transactionIDList = [allTransactions.at(0)?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(allTransactions.at(0)) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(allTransactions.at(0)) : null;
