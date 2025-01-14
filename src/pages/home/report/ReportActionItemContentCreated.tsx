@@ -1,6 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -25,7 +26,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
-import { usePersonalDetails } from '@components/OnyxProvider';
 
 type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
@@ -37,26 +37,24 @@ type ReportActionItemContentCreatedProps = {
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Transaction that stores the distance expense data */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The transaction ID */
+    transactionID: string | undefined;
 
     /** The draft message */
     draftMessage: string | undefined;
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
-
-    /** Invoice receiver policy */
-    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transaction, draftMessage, shouldHideThreadDividerLine, invoiceReceiverPolicy}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {report, action, transactionThreadReport} = contextValue;
-    const personalDetails = usePersonalDetails();
+
     const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1');
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
@@ -98,9 +96,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             action={parentReportAction}
                             showHeader
                             report={report}
-                            policy={policy}
-                            personalDetails={personalDetails}
-                            invoiceReceiverPolicy={invoiceReceiverPolicy}
                         >
                             <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                         </ReportActionItemSingle>
@@ -135,9 +130,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             action={parentReportAction}
                             showHeader={draftMessage === undefined}
                             report={report}
-                            policy={policy}
-                            personalDetails={personalDetails}
-                            invoiceReceiverPolicy={invoiceReceiverPolicy}
                         >
                             <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
                         </ReportActionItemSingle>
@@ -208,8 +200,7 @@ export default memo(
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
         lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+        prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
-        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-        lodashIsEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy),
+        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
 );

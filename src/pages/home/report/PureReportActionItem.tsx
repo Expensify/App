@@ -240,17 +240,9 @@ type PureReportActionItemProps = {
 
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
-
     /** Type of attachment context value */
     attachmentContextValueType?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
-    /** Current connected policy */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Invoice receiver policy */
-    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
-
-    IOUTransaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 /**
@@ -305,9 +297,6 @@ function PureReportActionItem({
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
     attachmentContextValueType = CONST.ATTACHMENT_TYPE.REPORT,
-    policy,
-    invoiceReceiverPolicy,
-    IOUTransaction,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -1024,9 +1013,6 @@ function PureReportActionItem({
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
                         !ReportActionsUtils.isPendingRemove(action)
                     }
-                    personalDetails={personalDetails}
-                    policy={policy}
-                    invoiceReceiverPolicy={invoiceReceiverPolicy}
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -1037,14 +1023,17 @@ function PureReportActionItem({
     };
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
+            ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
+            : '-1';
+
         return (
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 parentReportAction={parentReportAction}
-                transaction={IOUTransaction}
+                transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                invoiceReceiverPolicy={invoiceReceiverPolicy}
             />
         );
     }

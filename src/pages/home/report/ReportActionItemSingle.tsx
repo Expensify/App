@@ -2,17 +2,20 @@ import React, {useCallback, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+// import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,13 +25,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
+import type {Report, ReportAction} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -57,15 +58,6 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
-
-    /** Personal details list */
-    personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
-
-    /** Current connected policy */
-    policy: OnyxEntry<Policy>;
-
-    /** Invoice receiver policy */
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -89,25 +81,23 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
-    personalDetails,
-    policy,
-    invoiceReceiverPolicy,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
+    const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
-    const pendingFields = personalDetails && 'pendingFields' in personalDetails ? personalDetails.pendingFields : undefined;
-    const status = personalDetails && 'status' in personalDetails ? personalDetails.status : undefined;
-    const fallbackIcon = personalDetails && 'fallbackIcon' in personalDetails && personalDetails.fallbackIcon !== null ? personalDetails.fallbackIcon : undefined;
-
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -160,7 +150,7 @@ function ReportActionItemSingle({
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(report, personalDetails, null, undefined, undefined, policy);
+        const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (ReportUtils.isInvoiceReport(iouReport)) {
@@ -252,17 +242,17 @@ function ReportActionItemSingle({
                         type={icon.type}
                         name={icon.name}
                         avatarID={icon.id}
-                        fallbackIcon={fallbackIcon as AvatarSource}
+                        fallbackIcon={fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status && 'emojiCode' in status && status?.emojiCode;
-    const statusClearAfter = status && 'clearAfter' in status ? String(status?.clearAfter) ?? '' : '';
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
-    const statusText = status && 'text' in status ? String(status?.text) ?? '' : '';
+    const hasEmojiStatus = !displayAllActors && status?.emojiCode;
+    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
+    const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
+
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -274,7 +264,7 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar as PendingAction | undefined}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
@@ -306,7 +296,7 @@ function ReportActionItemSingle({
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${String(status?.emojiCode ?? '')}`}</Text>
+                                >{`${status?.emojiCode}`}</Text>
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
