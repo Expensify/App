@@ -11,7 +11,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -418,6 +418,28 @@ function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
     return cards;
 }
 
+const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+function getFeedType(cardFeed: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+    if (CUSTOM_FEEDS.some((feed) => feed === cardFeed)) {
+        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(cardFeed));
+
+        const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(cardFeed, ''), 10)).filter(Boolean);
+        feedNumbers.sort((a, b) => a - b);
+
+        let firstAvailableNumber = 1;
+        for (const num of feedNumbers) {
+            if (num && num !== firstAvailableNumber) {
+                return `${cardFeed}${firstAvailableNumber}`;
+            }
+            firstAvailableNumber++;
+        }
+
+        return `${cardFeed}${firstAvailableNumber}`;
+    }
+    return cardFeed;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -448,4 +470,5 @@ export {
     checkIfNewFeedConnected,
     getDefaultCardName,
     getAllCardsForWorkspace,
+    getFeedType,
 };
