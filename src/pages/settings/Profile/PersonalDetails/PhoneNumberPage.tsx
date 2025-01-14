@@ -56,7 +56,7 @@ function PhoneNumberPage() {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
             }
             const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
