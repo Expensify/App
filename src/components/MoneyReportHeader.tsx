@@ -55,7 +55,8 @@ type MoneyReportHeaderProps = {
     reportActions: OnyxTypes.ReportAction[];
 
     /** The reportID of the transaction thread report associated with this current report, if any */
-    transactionThreadReportID?: string | undefined;
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionThreadReportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
@@ -66,8 +67,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const requestParentReportAction = useMemo(() => {
@@ -82,9 +83,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const transaction =
         transactions?.[
             `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-                    ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
-                    : CONST.DEFAULT_NUMBER_ID
+                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
             }`
         ] ?? undefined;
 
@@ -116,12 +115,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transaction?.transactionID ? [transaction?.transactionID] : []);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
-    const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, {selector: ReportUtils.getArchiveReason});
+    const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -145,6 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton =
         !!moneyRequestReport &&
+        !isArchivedReport &&
         isDraft &&
         reimbursableSpend !== 0 &&
         !hasAllPendingRTERViolations &&
@@ -243,7 +243,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!iouTransactionID || !reportID) {
             return;
         }
-
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 

@@ -201,7 +201,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
+    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedReport(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
