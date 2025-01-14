@@ -9,20 +9,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getPolicy} from '@libs/PolicyUtils';
 import {
-    canEditReportDescription as canEditReportDescriptionUtil,
+    canEditReportDescription as canEditReportDescriptionReportUtils,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportName,
     isArchivedNonExpenseReport,
-    isChatRoom as isChatRoomUtil,
+    isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
-    isInvoiceRoom as isInvoiceRoomUtil,
+    isInvoiceRoom as isInvoiceRoomReportUtils,
     isOptimisticPersonalDetail,
-    isPolicyExpenseChat as isPolicyExpenseChatUtil,
-    isSelfDM as isSelfDMUtil,
-    isSystemChat as isSystemChatUtil,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
+    isSelfDM as isSelfDMReportUtils,
+    isSystemChat as isSystemChatReportUtils,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -48,21 +48,21 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const isPolicyExpenseChat = isPolicyExpenseChatUtil(report);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
     const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
-    const isChatRoom = isChatRoomUtil(report);
-    const isSelfDM = isSelfDMUtil(report);
-    const isInvoiceRoom = isInvoiceRoomUtil(report);
-    const isSystemChat = isSystemChatUtil(report);
+    const isChatRoom = isChatRoomReportUtils(report);
+    const isSelfDM = isSelfDMReportUtils(report);
+    const isInvoiceRoom = isInvoiceRoomReportUtils(report);
+    const isSystemChat = isSystemChatReportUtils(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const canEditReportDescription = canEditReportDescriptionUtil(report, policy);
+    const canEditReportDescription = canEditReportDescriptionReportUtils(report, policy);
     const {canUseCombinedTrackSubmit} = usePermissions();
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
