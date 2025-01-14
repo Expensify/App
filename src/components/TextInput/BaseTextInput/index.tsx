@@ -284,6 +284,9 @@ function BaseTextInput(
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
+    // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
+    // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
+    const inputMode = inputProps.inputMode ?? (Browser.isMobileChrome() ? 'search' : undefined);
 
     return (
         <>
@@ -407,7 +410,7 @@ function BaseTextInput(
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
-                                inputMode={inputProps.inputMode}
+                                inputMode={inputMode}
                                 value={value}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
