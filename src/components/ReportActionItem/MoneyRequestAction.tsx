@@ -5,9 +5,9 @@ import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {isDeletedParentAction, isReversedTransaction, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -68,14 +68,14 @@ function MoneyRequestAction({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
-    const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
+    const isActionSplitBill = isSplitBillAction(action);
+    const isActionTrackExpense = isTrackExpenseAction(action);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
 
     const onMoneyRequestPreviewPressed = () => {
-        if (isSplitBillAction) {
+        if (isActionSplitBill) {
             const reportActionID = action.reportActionID;
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
@@ -89,8 +89,8 @@ function MoneyRequestAction({
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
+    const isParentActionDeleted = isDeletedParentAction(action);
+    const isTransactionReveresed = isReversedTransaction(action);
     if (
         !isEmptyObject(iouReport) &&
         !isEmptyObject(reportActions) &&
@@ -99,25 +99,25 @@ function MoneyRequestAction({
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
+        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    if (isDeletedParentAction || isReversedTransaction) {
+    if (isParentActionDeleted || isTransactionReveresed) {
         let message: TranslationPaths;
-        if (isReversedTransaction) {
+        if (isTransactionReveresed) {
             message = 'parentReportAction.reversedTransaction';
         } else {
             message = 'parentReportAction.deletedExpense';
         }
-        return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
+        return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isTransactionReveresed}">${translate(message)}</deleted-action>`} />;
     }
     return (
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
+            isBillSplit={isActionSplitBill}
+            isTrackExpense={isActionTrackExpense}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}

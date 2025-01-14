@@ -39,10 +39,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -720,7 +721,7 @@ function PureReportActionItem({
             );
         } else if (ReportActionsUtils.isReimbursementQueuedAction(action)) {
             const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]));
+            const submitterDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]));
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -1089,7 +1090,7 @@ function PureReportActionItem({
                 Keyboard.dismiss();
             }}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-            onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
             preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
@@ -1141,7 +1142,7 @@ function PureReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!isThreadReportParentAction}
-                                errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
+                                errors={linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
