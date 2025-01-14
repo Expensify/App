@@ -1,3 +1,5 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type CategorizeTrackedExpenseParams = {
     amount: number;
     currency: string;
@@ -14,6 +16,7 @@ type CategorizeTrackedExpenseParams = {
     reportPreviewReportActionID: string;
     category?: string;
     tag?: string;
+    receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
