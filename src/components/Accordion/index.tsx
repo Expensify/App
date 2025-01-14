@@ -68,4 +68,6 @@ function Accordion({isExpanded, children, duration = 300, style, isToggleTrigger
     );
 }
 
+Accordion.displayName = 'Accordion';
+
 export default Accordion;
