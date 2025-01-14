@@ -18,7 +18,7 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import config, {normalizedConfigs} from './config';
+import {config, normalizedConfigs} from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
@@ -347,7 +347,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             if (!isNarrowLayout) {
-                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? '-1'}});
+                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID}});
             }
             routes.push(reportAttachments);
 

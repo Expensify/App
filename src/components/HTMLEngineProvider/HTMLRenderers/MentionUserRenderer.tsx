@@ -91,7 +91,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         if (isDisabled) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(reportNameValuePairs));
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
                     }}
                     onPress={(event) => {
                         event.preventDefault();

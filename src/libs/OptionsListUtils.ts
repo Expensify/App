@@ -511,7 +511,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(reportID);
 
-    if (reportNameValuePairs?.private_isArchived) {
+    if (ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -613,6 +613,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
+    // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
+    if (reportID && !ReportUtils.isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return lastMessageTextFromReport || (ReportUtils.getReportLastMessage(reportID).lastMessageText ?? '');
+    }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
