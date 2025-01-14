@@ -28,11 +28,14 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is being hovered */
     isHovered: boolean;
 
+    /** Whether the thread item / message is being actived */
+    isActive?: boolean;
+
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
-function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
+function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -60,6 +63,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
                         icons={icons}
                         shouldStackHorizontally
                         isHovered={isHovered}
+                        isActive={isActive}
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

@@ -964,6 +964,7 @@ function PureReportActionItem({
                             isHovered={hovered}
                             icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
+                            isActive={!!isReportActionLinked}
                         />
                     </View>
                 )}

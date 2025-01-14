@@ -213,11 +213,11 @@ function ReportActionItemSingle({
     );
 
     const getBackgroundColor = () => {
-        if (isActive) {
-            return theme.messageHighlightBG;
-        }
         if (isHovered) {
             return styles.sidebarLinkActive.backgroundColor;
+        }
+        if (isActive) {
+            return theme.messageHighlightBG;
         }
         return theme.sidebar;
     };
