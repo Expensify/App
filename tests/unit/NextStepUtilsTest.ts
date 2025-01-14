@@ -122,6 +122,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -156,6 +157,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -190,6 +192,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -224,6 +227,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -259,6 +263,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -296,6 +301,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -331,6 +337,7 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: `${currentUserEmail}`,
                             clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: "'s",
@@ -364,6 +371,7 @@ describe('libs/NextStepUtils', () => {
                         },
                         {
                             text: `${currentUserEmail}`,
+                            type: 'strong',
                         },
                         {
                             text: ' to ',
