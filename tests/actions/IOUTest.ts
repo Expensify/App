@@ -2,9 +2,12 @@ import {format} from 'date-fns';
 import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ApiCommand} from '@libs/API/types';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PolicyActions from '@src/libs/actions/Policy/Policy';
@@ -21,7 +24,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -43,6 +46,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
@@ -3683,6 +3687,139 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('putOnHold', () => {
+        test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: OnyxTypes.ReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                transaction.amount,
+                transaction.currency,
+                '',
+                [],
+                transaction.transactionID,
+            );
+            const transactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport);
+
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const comment = 'hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When an expense is put on hold
+                    IOU.putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                const lastVisibleActionCreated = report?.lastVisibleActionCreated;
+                                const connection2 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection2);
+                                        resolve();
+                                        const lastAction = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        const message = ReportActionsUtils.getReportActionMessage(lastAction);
+                                        // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
+                                        expect(message?.text).toBe(comment);
+                                        expect(lastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
+                            },
+                        });
+                    });
+                });
+        });
+    });
+
+    describe('unHoldRequest', () => {
+        test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: OnyxTypes.ReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                transaction.amount,
+                transaction.currency,
+                '',
+                [],
+                transaction.transactionID,
+            );
+            const transactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport);
+
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const comment = 'hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    IOU.putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    // When an expense is unhold
+                    IOU.unholdRequest(transaction.transactionID, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                const lastVisibleActionCreated = report?.lastVisibleActionCreated;
+                                const connection2 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection2);
+                                        resolve();
+                                        const lastAction = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        // Then the transaction thread report lastVisibleActionCreated should equal the unhold action created timestamp.
+                                        expect(lastAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.UNHOLD);
+                                        expect(lastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
+                            },
+                        });
+                    });
+                });
+        });
+    });
+
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
             // Mock API.write for this test
@@ -4136,6 +4273,116 @@ describe('actions/IOU', () => {
                         },
                     });
                 });
+            });
+        });
+    });
+
+    describe('should have valid parameters', () => {
+        let writeSpy: jest.SpyInstance;
+        const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
+
+        beforeEach(() => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        test.each([
+            [WRITE_COMMANDS.REQUEST_MONEY, CONST.IOU.ACTION.CREATE],
+            [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, CONST.IOU.ACTION.SUBMIT],
+        ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            // When an expense is created
+            IOU.requestMoney({
+                action,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 10000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                    linkedTrackedExpenseReportAction: {
+                        reportActionID: '',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2024-10-30',
+                    },
+                    actionableWhisperReportActionID: '1',
+                    linkedTrackedExpenseReportID: '1',
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the correct API request should be made
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const [command, params] = writeSpy.mock.calls.at(0);
+            expect(command).toBe(expectedCommand);
+
+            // And the parameters should be supported by XMLHttpRequest
+            Object.values(params as Record<string, unknown>).forEach((value) => {
+                expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
+            });
+        });
+
+        test.each([
+            [WRITE_COMMANDS.TRACK_EXPENSE, CONST.IOU.ACTION.CREATE],
+            [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
+            [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
+        ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            // When a track expense is created
+            IOU.trackExpense(
+                {reportID: ''},
+                10000,
+                CONST.CURRENCY.USD,
+                '2024-10-30',
+                'KFC',
+                RORY_EMAIL,
+                RORY_ACCOUNT_ID,
+                {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                '',
+                false,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                action,
+                '1',
+                {
+                    reportActionID: '',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-10-30',
+                },
+                '1',
+            );
+
+            await waitForBatchedUpdates();
+
+            // Then the correct API request should be made
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const [command, params] = writeSpy.mock.calls.at(0);
+            expect(command).toBe(expectedCommand);
+
+            // And the parameters should be supported by XMLHttpRequest
+            Object.values(params as Record<string, unknown>).forEach((value) => {
+                expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             });
         });
     });

@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -817,6 +817,10 @@ function PureReportActionItem({
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
+            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+            children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -916,7 +920,7 @@ function PureReportActionItem({
                                     ref={textInputRef}
                                     shouldDisableEmojiPicker={
                                         (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        ReportUtils.isArchivedRoom(report, reportNameValuePairs)
+                                        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -1086,7 +1090,15 @@ function PureReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            onPress={draftMessage === undefined ? onPress : undefined}
+            onPress={() => {
+                if (draftMessage === undefined) {
+                    onPress?.();
+                }
+                if (!Keyboard.isVisible()) {
+                    return;
+                }
+                Keyboard.dismiss();
+            }}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
