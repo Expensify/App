@@ -56,7 +56,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         }
 
         return {
-            height: derivedHeight.get(),
+            height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
         };
     });
