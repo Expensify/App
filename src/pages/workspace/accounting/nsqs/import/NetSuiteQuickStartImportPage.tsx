@@ -3,17 +3,14 @@ import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,8 +18,9 @@ function NetSuiteQuickStartImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const nsqsConfig = policy?.connections?.nsqs?.config; // s77rt
-    const s77rt1 = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG; // s77rt
+    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const customersImportType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const projectsImportType = nsqsConfig?.syncOptions.mapping.projects ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     return (
         <ConnectionLayout
@@ -44,20 +42,30 @@ function NetSuiteQuickStartImportPage({policy}: WithPolicyProps) {
                 onToggle={noop}
             />
             <View>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.accounting.importTypes.${s77rt1}`)}
-                    description={translate('workspace.nsqs.import.importFields.customers.title')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID))}
-                />
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.accounting.importTypes.${s77rt1}`)}
-                    description={translate('workspace.nsqs.import.importFields.projects.title')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID))}
-                />
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS], nsqsConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={translate(`workspace.accounting.importTypes.${customersImportType}`)}
+                        description={translate('workspace.nsqs.import.importFields.customers.title')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID))}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={translate(`workspace.accounting.importTypes.${projectsImportType}`)}
+                        description={translate('workspace.nsqs.import.importFields.projects.title')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID))}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
             </View>
         </ConnectionLayout>
     );

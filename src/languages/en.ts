@@ -3312,11 +3312,14 @@ const translations = {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
                 importTypes: {
-                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'NetSuite employee default',
+                    },
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Line-item level',
                     },
-                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Report fields',
                         description: 'Report level',
                     },
