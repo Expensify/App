@@ -7,7 +7,6 @@ import Log from '@libs/Log';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
