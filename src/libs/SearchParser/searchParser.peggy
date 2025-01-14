@@ -85,10 +85,16 @@ defaultFilter
 
 freeTextFilter
   = _ value:(quotedString / [^ \t\r\n\xA0]+) _ { //handle no-breaking space
+      let word
       if (Array.isArray(value)) {
-        return buildFilter("eq", "keyword", value.join(""));
+        word = value.join("")
+      }else{
+        word = value
       }
-      return buildFilter("eq", "keyword", value);
+      if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+        return buildFilter("eq", "keyword", word.slice(1, -1));
+      }
+      return buildFilter("eq", "keyword", word);
     }
 
 standardFilter

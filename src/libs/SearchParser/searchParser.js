@@ -311,10 +311,19 @@ function peg$parse(input, options) {
       updateDefaultValues(key, value);
     };
   var peg$f3 = function(value) { //handle no-breaking space
+      let word
       if (Array.isArray(value)) {
-        return buildFilter("eq", "keyword", value.join(""));
+        word = value.join("")
+        // return buildFilter("eq", "keyword", value.join(""));
+      }else{
+        word = value
       }
-      return buildFilter("eq", "keyword", value);
+      if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+        return buildFilter("eq", "keyword", word.slice(1, -1));
+      }
+      return buildFilter("eq", "keyword", word);
+      
+      // return buildFilter("eq", "keyword", value);
     };
   var peg$f4 = function(field, op, values) {
       return buildFilter(op, field, values);
