@@ -21,11 +21,11 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
+import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +54,7 @@ function ProfilePage() {
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
@@ -70,7 +70,7 @@ function ProfilePage() {
         },
         {
             description: translate('contacts.contactMethod'),
-            title: LocalePhoneNumber.formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
+            title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
@@ -128,7 +128,7 @@ function ProfilePage() {
         },
         {
             description: translate('privatePersonalDetails.address'),
-            title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
+            title: getFormattedAddress(privateDetails),
             action: () => {
                 if (isActingAsDelegate) {
                     setIsNoDelegateAccessMenuVisible(true);
@@ -173,19 +173,19 @@ function ProfilePage() {
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
                                             source={avatarURL}
                                             avatarID={accountID}
-                                            onImageSelected={PersonalDetails.updateAvatar}
-                                            onImageRemoved={PersonalDetails.deleteAvatar}
+                                            onImageSelected={updateAvatar}
+                                            onImageRemoved={deleteAvatar}
                                             size={CONST.AVATAR_SIZE.XLARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                             errorRowStyles={styles.mt6}
-                                            onErrorClose={PersonalDetails.clearAvatarErrors}
+                                            onErrorClose={clearAvatarErrors}
                                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
                                             originalFileName={currentUserPersonalDetails.originalFileName}
                                             headerTitle={translate('profilePage.profileAvatar')}
                                             fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
