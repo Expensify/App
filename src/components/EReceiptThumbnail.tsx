@@ -4,8 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TripReservationUtils from '@libs/TripReservationUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -65,10 +65,10 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const transactionDetails = getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = TripReservationUtils.getTripEReceiptIcon(transaction);
+    const tripIcon = getTripEReceiptIcon(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;

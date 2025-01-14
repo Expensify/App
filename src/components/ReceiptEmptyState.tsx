@@ -4,11 +4,11 @@ import {PixelRatio, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import {validateReceipt} from '@libs/ReceiptUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from './AttachmentModal';
@@ -78,12 +78,12 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
                 setIsLoadingReceipt(true);
             }
 
-            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            resizeImageIfNeeded(originalFile).then((file) => {
                 setIsLoadingReceipt(false);
                 const source = URL.createObjectURL(file as Blob);
                 if (transactionID) {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+                    setMoneyRequestReceipt(transactionID, source, file.name || '', true);
                 }
             });
         });
