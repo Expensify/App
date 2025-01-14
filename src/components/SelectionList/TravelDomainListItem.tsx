@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -11,7 +10,12 @@ import BaseListItem from './BaseListItem';
 import type {ListItem, ListItemProps} from './types';
 import Badge from '@components/Badge';
 
-function TravelDomainListItem<TItem extends ListItem>({
+type DomainItem = ListItem & {
+    value: string,
+    isRecommended: boolean,
+};
+
+function TravelDomainListItem({
     item,
     isFocused,
     showTooltip,
@@ -21,7 +25,7 @@ function TravelDomainListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     shouldHighlightSelectedItem,
-}: ListItemProps<TItem>) {
+}: ListItemProps<DomainItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -65,7 +69,7 @@ function TravelDomainListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
+                                text={item.text ?? ''}
                                 style={[
                                     styles.optionDisplayName,
                                     isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
@@ -85,3 +89,4 @@ function TravelDomainListItem<TItem extends ListItem>({
 TravelDomainListItem.displayName = 'TravelDomainListItem';
 
 export default TravelDomainListItem;
+export type {DomainItem};

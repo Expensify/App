@@ -1,18 +1,12 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import TravelDomainListItem from '@components/SelectionList/TravelDomainListItem';
-import { ListItem } from '@components/SelectionList/types';
+import TravelDomainListItem, {DomainItem} from '@components/SelectionList/TravelDomainListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import React, {useCallback, useEffect, useState} from 'react';
-
-type DomainItem = ListItem & {
-    value: string,
-    isRecommended: boolean,
-};
 
 function DomainSelectorPage() {
     
