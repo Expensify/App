@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -11,23 +11,23 @@ import Navigation from '@libs/Navigation/Navigation';
 function DomainSelectorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [selectedDomain, setSelectedDomain] = useState('');
 
-    const data: DomainItem[] = [
-        {
-            value: 'domain.com',
-            isSelected: false,
-            keyForList: 'domain.com',
-            text: 'domain.com',
-            isRecommended: false,
-        },
-        {
-            value: 'domain2.com',
-            isSelected: true,
-            keyForList: 'domain2.com',
-            text: 'domain2.com',
-            isRecommended: true,
-        },
-    ];
+    const domains: string[] = ['domain.com', 'domain2.com', 'domain3.com'];
+    const data: DomainItem[] = useMemo(
+        () =>
+            Object.values(domains).map((domain) => {
+                return {
+                    value: domain,
+                    isSelected: domain === selectedDomain,
+                    keyForList: domain,
+                    text: domain,
+                    isRecommended: domain === 'domain.com',
+                };
+            }),
+        [domains, selectedDomain],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -40,7 +40,7 @@ function DomainSelectorPage() {
             />
             <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
             <SelectionList
-                onSelectRow={() => {}}
+                onSelectRow={(option) => setSelectedDomain(option.value)}
                 sections={[{title: translate('travel.domainSelector.title'), data}]}
                 canSelectMultiple
                 ListItem={TravelDomainListItem}
