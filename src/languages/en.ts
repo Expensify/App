@@ -2576,6 +2576,7 @@ const translations = {
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             goToWorkspace: 'Go to workspace',
+            goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
@@ -4384,7 +4385,8 @@ const translations = {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
+                    startsAt: 'The Control plan starts at ',
+                    perMember: 'per active member per month.',
                     learnMore: 'Learn more',
                     pricing: 'about our plans and pricing.',
                     benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
@@ -4605,6 +4607,8 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        downgradedWorkspace: 'downgraded this workspace to the Collect plan',
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
