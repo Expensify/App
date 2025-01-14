@@ -16,12 +16,16 @@ type TripSummaryProps = {
 function TripSummary({report}: TripSummaryProps) {
     const styles = useThemeStyles();
 
+    if (!report?.reportID) {
+        return null;
+    }
+
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
-            <OfflineWithFeedback pendingAction={report?.pendingAction}>
+            <OfflineWithFeedback pendingAction={report.pendingAction}>
                 <TripDetailsView
-                    tripRoomReportID={report?.reportID}
+                    tripRoomReportID={report.reportID}
                     shouldShowHorizontalRule={false}
                 />
             </OfflineWithFeedback>

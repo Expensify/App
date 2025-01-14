@@ -136,7 +136,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
 
 type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
-    tripRoomReportID?: string;
+    tripRoomReportID: string;
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
@@ -145,10 +145,6 @@ type TripDetailsViewProps = {
 function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    if (!tripRoomReportID) {
-        return null;
-    }
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
