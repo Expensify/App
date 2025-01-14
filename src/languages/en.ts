@@ -4725,6 +4725,13 @@ const translations = {
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
             },
+            card: {
+                expensify: 'Expensify',
+                individualCards: 'Individual cards',
+                cardFeeds: 'Card feeds',
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+            },
             current: 'Current',
             past: 'Past',
             submitted: 'Submitted',
