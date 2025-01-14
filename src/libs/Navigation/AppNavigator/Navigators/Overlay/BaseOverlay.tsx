@@ -1,5 +1,6 @@
 import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';

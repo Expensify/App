@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
