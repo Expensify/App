@@ -180,7 +180,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     ),
                 };
             }),
-        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex3, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.flex1, styles.alignSelfEnd],
+        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.flex1, styles.alignSelfEnd],
     );
 
     const toggleSubRate = (subRate: PolicyOption) => {
