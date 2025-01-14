@@ -4340,7 +4340,6 @@ describe('actions/IOU', () => {
             [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
-            // When a track expense is created
             IOU.trackExpense({
                 report: {reportID: ''},
                 amount: 10000,
@@ -4349,21 +4348,21 @@ describe('actions/IOU', () => {
                 merchant: 'KFC',
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
-                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true},
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 comment: '',
                 isDraftPolicy: false,
-                receipt: undefined,
-                category: '',
-                tag: '',
-                taxCode: '',
-                taxAmount: 0,
+                receipt: {},
+                category: undefined,
+                tag: undefined,
+                taxCode: undefined,
+                taxAmount: undefined,
                 billable: undefined,
                 policy: undefined,
                 policyTagList: undefined,
-                policyCategories: {},
+                policyCategories: undefined,
                 gpsPoints: undefined,
                 validWaypoints: undefined,
-                action: CONST.IOU.ACTION.CATEGORIZE,
+                action: action,
                 actionableWhisperReportActionID: '1',
                 linkedTrackedExpenseReportAction: {
                     reportActionID: '',
