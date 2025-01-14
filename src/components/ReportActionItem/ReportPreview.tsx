@@ -56,7 +56,7 @@ import {
     hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedRoomWithID,
+    isArchivedReport,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPayAtEndExpenseReport,
@@ -240,6 +240,7 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
+    const isArchived = isArchivedReport(iouReport);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
 
@@ -418,15 +419,14 @@ function ReportPreview({
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
     const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, allTransactions);
-    const isArchivedReport = isArchivedRoomWithID(iouReportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason});
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isPayAtEndExpense) {
-            if (!isArchivedReport) {
+            if (!isArchived) {
                 return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
             }
-            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
+            if (isArchived && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
                 return {
                     shouldShow: true,
                     messageIcon: Expensicons.Box,

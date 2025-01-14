@@ -20,12 +20,12 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasHeldExpenses as hasHeldExpensesUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesUtils,
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedRoomWithID,
+    isArchivedReport as isArchivedReportUtils,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserSubmitter,
     isInvoiceReport,
@@ -34,19 +34,19 @@ import {
 import {
     allHavePendingRTERViolation,
     getAllReportTransactions,
-    isDuplicate as isDuplicateTransactionUtils,
+    isDuplicate as isDuplicateUtils,
     isExpensifyCardTransaction,
-    isOnHold as isOnHoldTransactionUtils,
-    isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
+    isOnHold as isOnHoldUtils,
+    isPayAtEndExpense as isPayAtEndExpenseUtils,
     isPending,
     isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
-    canIOUBePaid as canIOUBePaidIOUActions,
+    canIOUBePaid as canIOUBePaidUtils,
     canSubmitReport,
     deleteMoneyRequest,
     deleteTrackExpense,
@@ -94,7 +94,7 @@ type MoneyReportHeaderProps = {
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID?: string | null;
+    transactionThreadReportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
@@ -132,9 +132,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isOnHold = isOnHoldUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const isDuplicate = isDuplicateUtils(transaction?.transactionID);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -148,19 +148,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasHeldExpenses = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const hasHeldExpenses = hasHeldExpensesUtils(moneyRequestReport?.reportID);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID) ?? [];
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
-    const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const isArchivedReport = isArchivedRoomWithID(moneyRequestReport?.reportID);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationUtils(transactionIDs, moneyRequestReport, policy);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesUtils(moneyRequestReport?.reportID);
+    const isPayAtEndExpense = isPayAtEndExpenseUtils(transaction);
+    const isArchivedReport = isArchivedReportUtils(moneyRequestReport);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidIOUActions(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        (onlyShowPayElsewhere = false) => canIOUBePaidUtils(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
         [moneyRequestReport, chatReport, policy, transaction],
     );
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -201,7 +201,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const bankAccountRoute = getBankAccountRoute(chatReport);
     const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesUtils(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -258,8 +258,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-        const reportID = transactionThreadReport?.reportID ?? '-1';
+        const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+        const reportID = transactionThreadReport?.reportID;
+
+        if (!iouTransactionID || !reportID) {
+            return;
+        }
 
         markAsCashTransactionActions(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
@@ -290,7 +294,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
                     <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID ?? '-1'}
+                        transactionID={transaction?.transactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />
@@ -379,7 +383,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             text={translate('iou.reviewDuplicates')}
                             style={styles.p0}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>
@@ -447,7 +451,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 text={translate('iou.reviewDuplicates')}
                                 style={[styles.flex1, styles.pr0]}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                                 }}
                             />
                         )}

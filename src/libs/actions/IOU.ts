@@ -108,7 +108,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
-    isArchivedRoom,
+    isArchivedReport,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -7349,7 +7349,7 @@ function canApproveIOU(
     const isApproved = isReportApproved(iouReport);
     const iouSettled = isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedReport = isArchivedRoom(iouReport, reportNameValuePairs);
+    const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -7362,7 +7362,7 @@ function canApproveIOU(
         }
     }
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
@@ -7377,7 +7377,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = isArchivedRoom(chatReport, reportNameValuePairs);
+    const isChatReportArchived = isArchivedReport(chatReport, reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
