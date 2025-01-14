@@ -7,10 +7,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import getCurrentUrl from '@navigation/currentUrl';
-import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +30,7 @@ type BankConnectionStepProps = {
 function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const bankName = CardUtils.getCardFeedName(feed);
+    const bankName = getBankName(feed);
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
     const url = getCompanyCardBankConnection(policyID, bankName);
@@ -59,7 +59,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
         }
         if (isBankConnectionCompleteRoute) {
             customWindow?.close();
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
             });

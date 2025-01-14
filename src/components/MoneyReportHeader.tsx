@@ -55,7 +55,7 @@ type MoneyReportHeaderProps = {
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID?: string | null;
+    transactionThreadReportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
@@ -84,9 +84,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const transaction =
         transactions?.[
             `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-                    ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
-                    : CONST.DEFAULT_NUMBER_ID
+                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
             }`
         ] ?? undefined;
 
@@ -117,11 +115,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transaction ? [transaction?.transactionID] : undefined);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
-    const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
+    const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
@@ -146,6 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton =
         !!moneyRequestReport &&
+        !isArchivedReport &&
         isDraft &&
         reimbursableSpend !== 0 &&
         !hasAllPendingRTERViolations &&
@@ -237,6 +236,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             : undefined;
         const reportID = transactionThreadReport?.reportID;
 
+        if (!iouTransactionID || !reportID) {
+            return;
+        }
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
@@ -338,9 +340,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             text={translate('iou.reviewDuplicates')}
                             style={styles.p0}
                             onPress={() => {
-                                if (!transactionThreadReportID) {
-                                    return;
-                                }
                                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
@@ -409,9 +408,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 text={translate('iou.reviewDuplicates')}
                                 style={[styles.flex1, styles.pr0]}
                                 onPress={() => {
-                                    if (!transactionThreadReportID) {
-                                        return;
-                                    }
                                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                                 }}
                             />

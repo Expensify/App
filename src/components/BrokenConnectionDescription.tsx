@@ -46,12 +46,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => {
-                        if (!policy) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id));
-                    }}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id))}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
                 .
             </>
