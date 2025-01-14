@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 const Options = [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] as const;
-type Option = ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+type Option = (typeof Options)[number];
 
 function NetSuiteQuickStartProjectsDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
