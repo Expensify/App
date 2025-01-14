@@ -207,8 +207,13 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import Incors from '@assets/images/incors.svg';
+import Incors2 from '@assets/images/invert-incors.svg';
+
 
 export {
+    Incors,
+    Incors2,
     ActiveRoomAvatar,
     AddReaction,
     AdminRoomAvatar,

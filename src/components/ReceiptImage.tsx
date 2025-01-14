@@ -1,5 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, { useState } from 'react';
+import {View, type LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -9,6 +9,7 @@ import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ThumbnailImage from './ThumbnailImage';
+import EReceipt from './EReceipt';
 
 type Style = {height: number; borderRadius: number; margin: number};
 
@@ -108,6 +109,16 @@ function ReceiptImage({
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
+    const [scale, setScale] = useState<number>(1);
+
+    const onParentLayout = (event: LayoutChangeEvent) => {
+        const parentWidth = event.nativeEvent.layout.width;
+        const desiredWidth = 335; // Replace with the original width of your component
+        const scaleFactor = Math.min(parentWidth / desiredWidth, 1);
+        setScale(scaleFactor);
+    };
+
+    console.log(scale);
     if (isEmptyReceipt) {
         return (
             <ReceiptEmptyState
@@ -127,16 +138,22 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt || isThumbnail) {
+    if (isEReceipt || isThumbnail || true) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
-            <View style={style ?? [styles.w100, styles.h100]}>
-                <EReceiptThumbnail
-                    transactionID={transactionID ?? '-1'}
-                    iconSize={iconSize}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+            <View style={[styles.mw100, styles.h100]}>
+                <View
+                    onLayout={onParentLayout}
+                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
+                >
+                    <EReceipt
+                        transactionID={transactionID ?? '-1'}
+                        isThumbnail
+                        // iconSize={iconSize}/
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        // {...props}
+                    />
+                </View>
             </View>
         );
     }

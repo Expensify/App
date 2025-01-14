@@ -160,7 +160,7 @@ function AttachmentView({
         );
     }
 
-    if (transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction)) {
+    if (true) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
