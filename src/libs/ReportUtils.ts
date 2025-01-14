@@ -79,7 +79,6 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
-import * as NumberUtils from './NumberUtils';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
