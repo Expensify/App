@@ -7,6 +7,7 @@ import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
+import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,9 +70,11 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const isFocused = useBottomTabIsFocused();
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
+    const isActiveRouteHome = useIsCurrentRouteHome();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
-        isFocused && isSidebarLoaded,
+        // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
+        isFocused && (!isActiveRouteHome || isSidebarLoaded),
     );
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
@@ -108,6 +111,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     );
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        hideProductTrainingTooltip();
         // Drop focus to avoid blue focus ring.
         fabPressable.current?.blur();
         onPress(event);
@@ -120,11 +124,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shouldUseOverlay
             shiftHorizontal={isNarrowScreenOnWeb ? 0 : variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
-            onHideTooltip={hideProductTrainingTooltip}
+            shouldHideOnNavigate={false}
         >
             <PressableWithoutFeedback
                 ref={(el) => {

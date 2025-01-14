@@ -29,7 +29,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as FormActions from '@libs/actions/FormActions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -212,18 +211,13 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         getWorkspaceMembers();
     }, [isOffline, prevIsOffline, getWorkspaceMembers]);
 
-    const clearInviteDraft = useCallback(() => {
-        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-    }, [route.params.policyID]);
-
     /**
      * Open the modal to invite a user
      */
-    const inviteUser = () => {
-        clearInviteDraft();
+    const inviteUser = useCallback(() => {
+        Member.clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-    };
+    }, [route.params.policyID]);
 
     /**
      * Remove selected users from the workspace
@@ -482,8 +476,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
         selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
-        clearInviteDraft();
-    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, clearInviteDraft]);
+        Member.clearInviteDraft(route.params.policyID);
+    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
