@@ -25,13 +25,22 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
+import {
+    filterAndOrderOptions,
+    formatSectionsFromSearchTerm,
+    getFirstKeyForList,
+    getHeaderMessage,
+    getPersonalDetailSearchTerms,
+    getUserToInviteOption,
+    getValidOptions,
+} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,7 +60,7 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getValidOptions(
+        const filteredOptions = getValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
@@ -66,7 +75,7 @@ function useOptions() {
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -75,11 +84,11 @@ function useOptions() {
     }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
-        return OptionsListUtils.getHeaderMessage(
+        return getHeaderMessage(
             options.personalDetails.length + options.recentReports.length !== 0,
             !!options.userToInvite,
             debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+            selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
     }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
@@ -88,7 +97,7 @@ function useOptions() {
             return;
         }
 
-        Report.searchInServer(debouncedSearchTerm);
+        searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     useEffect(() => {
@@ -102,7 +111,7 @@ function useOptions() {
             }
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
-                participantOption = OptionsListUtils.getUserToInviteOption({
+                participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
                 });
             }
@@ -146,14 +155,14 @@ function NewChatPage() {
         useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
-        const sectionsList: OptionsListUtils.Section[] = [];
+        const sectionsList: Section[] = [];
         let firstKey = '';
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
-            firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
+            firstKey = getFirstKeyForList(formatResults.section.data);
         }
 
         sectionsList.push({
@@ -162,7 +171,7 @@ function NewChatPage() {
             shouldShow: !isEmpty(recentReports),
         });
         if (!firstKey) {
-            firstKey = OptionsListUtils.getFirstKeyForList(recentReports);
+            firstKey = getFirstKeyForList(recentReports);
         }
 
         sectionsList.push({
@@ -171,7 +180,7 @@ function NewChatPage() {
             shouldShow: !isEmpty(personalDetails),
         });
         if (!firstKey) {
-            firstKey = OptionsListUtils.getFirstKeyForList(personalDetails);
+            firstKey = getFirstKeyForList(personalDetails);
         }
 
         if (userToInvite) {
@@ -181,7 +190,7 @@ function NewChatPage() {
                 shouldShow: true,
             });
             if (!firstKey) {
-                firstKey = OptionsListUtils.getFirstKeyForList([userToInvite]);
+                firstKey = getFirstKeyForList([userToInvite]);
             }
         }
 
@@ -218,7 +227,7 @@ function NewChatPage() {
      * or navigates to the existing chat if one with those participants already exists.
      */
     const selectOption = useCallback(
-        (option?: OptionsListUtils.Option) => {
+        (option?: Option) => {
             if (option?.isSelfDM) {
                 Navigation.dismissModal(option.reportID);
                 return;
@@ -239,13 +248,13 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            Report.navigateToAndOpenReport([login]);
+            navigateToAndOpenReport([login]);
         },
         [selectedOptions, toggleOption],
     );
 
     const itemRightSideComponent = useCallback(
-        (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
+        (item: ListItem & Option, isFocused?: boolean) => {
             if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
                 return null;
             }
@@ -289,7 +298,7 @@ function NewChatPage() {
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        Report.setGroupDraft({participants: logins});
+        setGroupDraft({participants: logins});
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     }, [selectedOptions, personalData]);
@@ -336,7 +345,7 @@ function NewChatPage() {
                 // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                 keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             >
-                <SelectionList<OptionsListUtils.Option & ListItem>
+                <SelectionList<Option & ListItem>
                     ref={selectionListRef}
                     ListItem={UserListItem}
                     sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
@@ -351,7 +360,7 @@ function NewChatPage() {
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
                     showLoadingPlaceholder={!areOptionsInitialized}
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
