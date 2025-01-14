@@ -22,14 +22,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {
+    clearCreateDistanceRateItemAndError,
+    clearDeleteDistanceRateError,
+    deletePolicyDistanceRates,
+    openPolicyDistanceRatesPage,
+    setPolicyDistanceRatesEnabled,
+} from '@libs/actions/Policy/DistanceRate';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -68,17 +74,17 @@ function PolicyDistanceRatesPage({
     );
 
     const fetchDistanceRates = useCallback(() => {
-        DistanceRate.openPolicyDistanceRatesPage(policyID);
+        openPolicyDistanceRatesPage(policyID);
     }, [policyID]);
 
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
                 return;
             }
 
-            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
+            clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -119,7 +125,7 @@ function PolicyDistanceRatesPage({
                     }),
                 );
 
-                DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
+                setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
             } else {
                 setIsWarningModalVisible(true);
             }
@@ -133,7 +139,7 @@ function PolicyDistanceRatesPage({
                 .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
                 .map((value) => ({
                     value: value.customUnitRateID ?? '',
-                    text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                    text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
                     keyForList: value.customUnitRateID ?? '',
@@ -177,7 +183,7 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        DistanceRate.setPolicyDistanceRatesEnabled(
+        setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
             selectedDistanceRates.filter((rate) => rate.enabled).map((rate) => ({...rate, enabled: false})),
@@ -190,7 +196,7 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        DistanceRate.setPolicyDistanceRatesEnabled(
+        setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
             selectedDistanceRates.filter((rate) => !rate.enabled).map((rate) => ({...rate, enabled: true})),
@@ -203,7 +209,7 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        DistanceRate.deletePolicyDistanceRates(
+        deletePolicyDistanceRates(
             policyID,
             customUnit,
             selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
@@ -365,7 +371,7 @@ function PolicyDistanceRatesPage({
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
                         ListItem={TableListItem}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}

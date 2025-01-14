@@ -33,14 +33,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {close} from '@libs/actions/Modal';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {
+    getCleanedTagName,
+    getCurrentConnectionName,
+    getTagLists,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    shouldShowSyncError,
+} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Modal from '@userActions/Modal';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,10 +80,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
+    const currentConnectionName = getCurrentConnectionName(policy);
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -130,7 +137,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 return {
                     value: policyTagList.name,
                     orderWeight: policyTagList.orderWeight,
-                    text: PolicyUtils.getCleanedTagName(policyTagList.name),
+                    text: getCleanedTagName(policyTagList.name),
                     keyForList: String(policyTagList.orderWeight),
                     isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
                     pendingAction: getPendingAction(policyTagList),
@@ -150,7 +157,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
         return sortedTags.map((tag) => ({
             value: tag.name,
-            text: PolicyUtils.getCleanedTagName(tag.name),
+            text: getCleanedTagName(tag.name),
             keyForList: tag.name,
             isSelected: selectedTags[tag.name] && canSelectMultiple,
             pendingAction: tag.pendingAction,
@@ -229,7 +236,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+        const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
@@ -327,13 +334,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems: PopoverMenuItem[] = [];
-        if (!PolicyUtils.hasAccountingConnections(policy)) {
+        if (!hasAccountingConnectionsPolicyUtils(policy)) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
+                        close(() => setIsOfflineModalVisible(true));
                         return;
                     }
                     Navigation.navigate(
@@ -351,10 +358,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
+                        close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Modal.close(() => {
+                    close(() => {
                         Tag.downloadTagsCSV(policyID, () => {
                             setIsDownloadFailureModalVisible(true);
                         });
@@ -462,7 +469,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => !isMultiLevelTags && Tag.clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}

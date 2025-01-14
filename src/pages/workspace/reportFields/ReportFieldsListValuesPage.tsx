@@ -22,13 +22,18 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as ReportField from '@libs/actions/Policy/ReportField';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {
+    deleteReportFieldsListValue,
+    removeReportFieldListValue,
+    setReportFieldsListValueEnabled,
+    updateReportFieldListValueEnabled as updateReportFieldListValueEnabledReportField,
+} from '@libs/actions/Policy/ReportField';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -69,7 +74,7 @@ function ReportFieldsListValuesPage({
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
     const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
@@ -78,7 +83,7 @@ function ReportFieldsListValuesPage({
         let reportFieldDisabledValues: boolean[];
 
         if (reportFieldID) {
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportFieldKey = getReportFieldKey(reportFieldID);
 
             reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
             reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
@@ -93,11 +98,11 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
                 return;
             }
 
-            ReportField.setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled([valueIndex], value);
         },
         [policyID, reportFieldID],
     );
@@ -153,9 +158,9 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            ReportField.removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
         } else {
-            ReportField.deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue(valuesToDelete);
         }
 
         setDeleteValuesConfirmModalVisible(false);
@@ -215,11 +220,11 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
                             return;
                         }
 
-                        ReportField.setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
             }
@@ -247,11 +252,11 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
                             return;
                         }
 
-                        ReportField.setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
             }
@@ -335,7 +340,7 @@ function ReportFieldsListValuesPage({
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                     />
