@@ -274,15 +274,15 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - MapboxCommon (23.10.1)
-  - MapboxCoreMaps (10.18.0):
-    - MapboxCommon (~> 23.10)
-  - MapboxMaps (10.18.2):
-    - MapboxCommon (= 23.10.1)
-    - MapboxCoreMaps (= 10.18.0)
-    - MapboxMobileEvents (= 1.0.10)
+  - MapboxCommon (23.11.2)
+  - MapboxCoreMaps (10.19.2):
+    - MapboxCommon (~> 23.11)
+  - MapboxMaps (10.19.1):
+    - MapboxCommon (= 23.11.2)
+    - MapboxCoreMaps (= 10.19.2)
+    - MapboxMobileEvents (= 2.0.0)
     - Turf (= 2.8.0)
-  - MapboxMobileEvents (1.0.10)
+  - MapboxMobileEvents (2.0.0)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
@@ -2517,16 +2517,16 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.30):
-    - MapboxMaps (~> 10.18.2)
+  - rnmapbox-maps (10.1.32):
+    - MapboxMaps (~> 10.19.0)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.30)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.32)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.30):
+  - rnmapbox-maps/DynamicLibrary (10.1.32):
     - DoubleConversion
     - hermes-engine
-    - MapboxMaps (~> 10.18.2)
+    - MapboxMaps (~> 10.19.0)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -3260,10 +3260,10 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: e50d25429207f95045253c19fa7463e288594f87
-  MapboxCommon: 0ff437e44988da6856e280d00ffb266564ed0487
-  MapboxCoreMaps: f1bd9405f5b9d3e343f2fe4138775299699a22fb
-  MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
-  MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
+  MapboxCommon: 873b75dd0e8c5d7029e0c849437eba365f4887e5
+  MapboxCoreMaps: 35685edba03e44468aed57c3dfd7f8795edafda8
+  MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
+  MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
@@ -3360,7 +3360,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 19826569be35bada5c0f21a0c48b5bc780051501
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
+  rnmapbox-maps: 428a6a3c115ed1c5ff887bdbe240536c4b338b55
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: 1b622aa38321705e0865a0c156a2bdf0a85d7ebc
