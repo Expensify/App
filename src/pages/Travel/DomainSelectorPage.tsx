@@ -11,6 +11,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 
 type DomainItem = ListItem & {
     value: string,
+    isRecommended: boolean,
 };
 
 function DomainSelectorPage() {
@@ -24,12 +25,14 @@ function DomainSelectorPage() {
             isSelected: false,
             keyForList: 'domain.com',
             text: 'domain.com',
+            isRecommended: false,
         },
         {
             value: 'domain2.com',
             isSelected: true,
             keyForList: 'domain2.com',
             text: 'domain2.com',
+            isRecommended: true,
         },
     ];
     return (
