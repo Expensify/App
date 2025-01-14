@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,7 +21,6 @@ type EarlyDiscountBannerProps = {
 function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -29,6 +28,7 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
     const [isDismissed, setIsDismissed] = useState(false);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         const intervalID = setInterval(() => {
@@ -37,6 +37,33 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
 
         return () => clearInterval(intervalID);
     }, [firstDayFreeTrial]);
+
+    const rightComponent = useMemo(() => {
+        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.flexRow, styles.justifyContentCenter] : [];
+        return (
+            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+                <Button
+                    success
+                    text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                />
+                {discountInfo?.discountType === 25 && (
+                    <Button
+                        text={translate('subscription.billingBanner.earlyDiscount.noThanks')}
+                        onPress={() => setIsDismissed(true)}
+                    />
+                )}
+            </View>
+        );
+    }, [shouldUseNarrowLayout, styles.flex0, styles.flexRow, styles.flexBasis100, styles.gap2, styles.justifyContentCenter, discountInfo, translate]);
+
+    if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
+        return null;
+    }
+
+    if (isDismissed && !isSubscriptionPage) {
+        return null;
+    }
 
     const title = isSubscriptionPage ? (
         <Text style={styles.textStrong}>
@@ -49,34 +76,6 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
             <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
         </Text>
     );
-
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.flexRow, styles.justifyContentCenter] : [];
-        return (
-            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
-                <Button
-                    success
-                    text="Claim offer"
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
-                />
-                {discountInfo?.discountType === 25 && (
-                    <Button
-                        text="No thanks"
-                        onPress={() => setIsDismissed(true)}
-                    />
-                )}
-            </View>
-        );
-    }, [shouldUseNarrowLayout, styles.flex0, styles.flexRow, styles.flexBasis100, styles.gap2, styles.justifyContentCenter, discountInfo]);
-
-    if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
-        return null;
-    }
-
-    if (isDismissed && !isSubscriptionPage) {
-        return null;
-    }
 
     return (
         <BillingBanner

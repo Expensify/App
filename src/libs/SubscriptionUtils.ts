@@ -23,6 +23,14 @@ const PAYMENT_STATUS = {
     GENERIC_API_ERROR: 'generic_api_error',
 } as const;
 
+type DiscountInfo = {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    discountType: number;
+};
+
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -254,7 +262,7 @@ function shouldShowDiscountBanner(): boolean {
     return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY;
 }
 
-function getEarlyDiscountInfo() {
+function getEarlyDiscountInfo(): DiscountInfo | null {
     if (!firstDayFreeTrial) {
         return null;
     }
