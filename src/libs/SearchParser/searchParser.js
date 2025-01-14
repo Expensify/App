@@ -217,14 +217,14 @@ function peg$parse(input, options) {
   var peg$c34 = ">";
   var peg$c35 = "<=";
   var peg$c36 = "<";
-  var peg$c37 = "\"";
 
   var peg$r0 = /^[^ \t\r\n]/;
   var peg$r1 = /^[:=]/;
-  var peg$r2 = /^[^ ,"\t\n\r]/;
-  var peg$r3 = /^[^"\r\n]/;
-  var peg$r4 = /^[^ ,\t\n\r]/;
-  var peg$r5 = /^[ \t\r\n]/;
+  var peg$r2 = /^[^ ,"\u201D\u201C\t\n\r]/;
+  var peg$r3 = /^["\u201C-\u201D]/;
+  var peg$r4 = /^[^"\u201D\u201C\r\n]/;
+  var peg$r5 = /^[^ ,\t\n\r]/;
+  var peg$r6 = /^[ \t\r\n]/;
 
   var peg$e0 = peg$classExpectation([" ", "\t", "\r", "\n"], true, false);
   var peg$e1 = peg$otherExpectation("key");
@@ -269,9 +269,9 @@ function peg$parse(input, options) {
   var peg$e40 = peg$literalExpectation("<=", false);
   var peg$e41 = peg$literalExpectation("<", false);
   var peg$e42 = peg$otherExpectation("quote");
-  var peg$e43 = peg$classExpectation([" ", ",", "\"", "\t", "\n", "\r"], true, false);
-  var peg$e44 = peg$literalExpectation("\"", false);
-  var peg$e45 = peg$classExpectation(["\"", "\r", "\n"], true, false);
+  var peg$e43 = peg$classExpectation([" ", ",", "\"", "\u201D", "\u201C", "\t", "\n", "\r"], true, false);
+  var peg$e44 = peg$classExpectation(["\"", ["\u201C", "\u201D"]], false, false);
+  var peg$e45 = peg$classExpectation(["\"", "\u201D", "\u201C", "\r", "\n"], true, false);
   var peg$e46 = peg$classExpectation([" ", ",", "\t", "\n", "\r"], true, false);
   var peg$e47 = peg$otherExpectation("word");
   var peg$e48 = peg$otherExpectation("whitespace");
@@ -298,7 +298,7 @@ function peg$parse(input, options) {
       const keywordFilter = buildFilter(
         "eq",
         "keyword",
-        keywords.map((filter) => filter.right).flat()
+        keywords.map((filter) => filter.right.replace(/^(['"])(.*)\1$/, '$2')).flat()
       );
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
@@ -1616,8 +1616,8 @@ function peg$parse(input, options) {
         if (peg$silentFails === 0) { peg$fail(peg$e43); }
       }
     }
-    if (input.charCodeAt(peg$currPos) === 34) {
-      s2 = peg$c37;
+    s2 = input.charAt(peg$currPos);
+    if (peg$r3.test(s2)) {
       peg$currPos++;
     } else {
       s2 = peg$FAILED;
@@ -1626,7 +1626,7 @@ function peg$parse(input, options) {
     if (s2 !== peg$FAILED) {
       s3 = [];
       s4 = input.charAt(peg$currPos);
-      if (peg$r3.test(s4)) {
+      if (peg$r4.test(s4)) {
         peg$currPos++;
       } else {
         s4 = peg$FAILED;
@@ -1635,15 +1635,15 @@ function peg$parse(input, options) {
       while (s4 !== peg$FAILED) {
         s3.push(s4);
         s4 = input.charAt(peg$currPos);
-        if (peg$r3.test(s4)) {
+        if (peg$r4.test(s4)) {
           peg$currPos++;
         } else {
           s4 = peg$FAILED;
           if (peg$silentFails === 0) { peg$fail(peg$e45); }
         }
       }
-      if (input.charCodeAt(peg$currPos) === 34) {
-        s4 = peg$c37;
+      s4 = input.charAt(peg$currPos);
+      if (peg$r3.test(s4)) {
         peg$currPos++;
       } else {
         s4 = peg$FAILED;
@@ -1652,7 +1652,7 @@ function peg$parse(input, options) {
       if (s4 !== peg$FAILED) {
         s5 = [];
         s6 = input.charAt(peg$currPos);
-        if (peg$r4.test(s6)) {
+        if (peg$r5.test(s6)) {
           peg$currPos++;
         } else {
           s6 = peg$FAILED;
@@ -1661,7 +1661,7 @@ function peg$parse(input, options) {
         while (s6 !== peg$FAILED) {
           s5.push(s6);
           s6 = input.charAt(peg$currPos);
-          if (peg$r4.test(s6)) {
+          if (peg$r5.test(s6)) {
             peg$currPos++;
           } else {
             s6 = peg$FAILED;
@@ -1694,7 +1694,7 @@ function peg$parse(input, options) {
     s0 = peg$currPos;
     s1 = [];
     s2 = input.charAt(peg$currPos);
-    if (peg$r4.test(s2)) {
+    if (peg$r5.test(s2)) {
       peg$currPos++;
     } else {
       s2 = peg$FAILED;
@@ -1704,7 +1704,7 @@ function peg$parse(input, options) {
       while (s2 !== peg$FAILED) {
         s1.push(s2);
         s2 = input.charAt(peg$currPos);
-        if (peg$r4.test(s2)) {
+        if (peg$r5.test(s2)) {
           peg$currPos++;
         } else {
           s2 = peg$FAILED;
@@ -1746,7 +1746,7 @@ function peg$parse(input, options) {
     peg$silentFails++;
     s0 = [];
     s1 = input.charAt(peg$currPos);
-    if (peg$r5.test(s1)) {
+    if (peg$r6.test(s1)) {
       peg$currPos++;
     } else {
       s1 = peg$FAILED;
@@ -1755,7 +1755,7 @@ function peg$parse(input, options) {
     while (s1 !== peg$FAILED) {
       s0.push(s1);
       s1 = input.charAt(peg$currPos);
-      if (peg$r5.test(s1)) {
+      if (peg$r6.test(s1)) {
         peg$currPos++;
       } else {
         s1 = peg$FAILED;

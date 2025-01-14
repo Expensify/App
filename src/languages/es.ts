@@ -69,6 +69,7 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
+    FirstDayTextParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
@@ -88,6 +89,7 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
+    LastDayTextParams,
     LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
@@ -163,6 +165,7 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
+    TripLengthTextParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
@@ -448,6 +451,7 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
+        downgradeWorkspace: 'Desmejora tu espacio de trabajo',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -480,6 +484,9 @@ const translations = {
         minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
+        destination: 'Destino',
+        subrate: 'Subtasa',
+        perDiem: 'Per diem',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -497,13 +504,6 @@ const translations = {
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
     },
-    contact: {
-        importContacts: 'Importar contactos',
-        importContactsTitle: 'Importa tus contactos',
-        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
-        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
-        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
-    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },
@@ -518,6 +518,7 @@ const translations = {
         chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo adjunto supera el límite de ${maxUploadSizeInMB} MB.`,
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
         wrongFileType: 'Tipo de archivo inválido',
@@ -655,10 +656,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
-        tooltip: {
-            title: '¡Empecemos!',
-            subtitle: ' Presenta tu primer gasto',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -848,10 +845,6 @@ const translations = {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
-        tooltip: {
-            title: '¡Acción rápida! ',
-            subtitle: 'A un click.',
-        },
     },
     iou: {
         amount: 'Importe',
@@ -891,7 +884,10 @@ const translations = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        receiptScanning: 'Escaneando recibo...',
+        receiptScanning: () => ({
+            one: 'Escaneando recibo...',
+            other: 'Escaneando recibos...',
+        }),
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
         defaultRate: 'Tasa predeterminada',
@@ -1023,6 +1019,9 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
+            invalidQuantity: 'Por favor, introduce una cantidad válida.',
+            quantityGreaterThanZero: 'La cantidad debe ser mayor que cero.',
+            invalidSubrateLength: 'Debe haber al menos una subtasa.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
@@ -1081,6 +1080,18 @@ const translations = {
         attendees: 'Asistentes',
         paymentComplete: 'Pago completo',
         justTrackIt: 'Solo guardarlo (no enviarlo)',
+        time: 'Tiempo',
+        startDate: 'Fecha de inicio',
+        endDate: 'Fecha de finalización',
+        startTime: 'Hora de inicio',
+        endTime: 'Hora de finalización',
+        deleteSubrate: 'Eliminar subtasa',
+        deleteSubrateConfirmation: '¿Estás seguro de que deseas eliminar esta subtasa?',
+        quantity: 'Cantidad',
+        subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
+        firstDayText: ({hours}: FirstDayTextParams) => `Primer día: ${hours} horas`,
+        lastDayText: ({hours}: LastDayTextParams) => `Último día: ${hours} horas`,
+        tripLengthText: ({days}: TripLengthTextParams) => `Viaje: ${days} días completos`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1263,7 +1274,8 @@ const translations = {
             usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
             debugMode: 'Modo depuración',
             invalidFile: 'Archivo inválido',
-            invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            invalidateWithDelay: 'Invalidar con retraso',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1770,6 +1782,7 @@ const translations = {
     },
     onboarding: {
         welcome: '¡Bienvenido!',
+        welcomeSignOffTitle: '¡Es un placer conocerte!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2565,8 +2578,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil',
-            perDiem: 'Per diem',
+            profile: 'Perfil del espacio de trabajo',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2578,6 +2590,8 @@ const translations = {
                 other: (count: number) => `${count} seleccionados`,
             }),
             settlementFrequency: 'Frecuencia de liquidación',
+            setAsDefault: 'Establecer como espacio de trabajo predeterminado',
+            defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2585,6 +2599,7 @@ const translations = {
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             goToWorkspace: 'Ir al espacio de trabajo',
+            goToWorkspaces: 'Ir a espacios de trabajo',
             clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
             workspaceOwner: 'Dueño',
@@ -2640,8 +2655,6 @@ const translations = {
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
-            destination: 'Destino',
-            subrate: 'Subtasa',
             amount: 'Cantidad',
             deleteRates: () => ({
                 one: 'Eliminar tasa',
@@ -2661,6 +2674,7 @@ const translations = {
             },
             importPerDiemRates: 'Importar tasas de per diem',
             editPerDiemRate: 'Editar la tasa de per diem',
+            editPerDiemRates: 'Editar las tasas de per diem',
             editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar este destino lo modificará para todas las subtasas per diem de ${destination}.`,
             editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar esta moneda la modificará para todas las subtasas per diem de ${destination}.`,
         },
@@ -3631,9 +3645,9 @@ const translations = {
                 cardName: 'Nombre de la tarjeta',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) =>
-                    `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.`,
                 integrationExportTitleLinkPart: 'opción de exportación',
+                integrationExportTitlePart: 'Seleccione una cuenta diferente',
                 integrationExportTitleSecondPart: 'para cambiar las cuentas disponibles.',
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',
@@ -4338,19 +4352,19 @@ const translations = {
         planTypePage: {
             planTypes: {
                 team: {
-                    label: 'Collect',
+                    label: 'Recopilar',
                     description: 'Para equipos que buscan automatizar sus procesos.',
                 },
                 corporate: {
-                    label: 'Recolectar',
+                    label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
                 },
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
             subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
-                one: `Tienes un compromiso anual de 1 miembro activo en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
-                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                one: `Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
             }),
             subscriptions: 'Suscripciones',
         },
@@ -4422,8 +4436,6 @@ const translations = {
                 aboutOurPlans: 'sobre nuestros planes y precios.',
             },
             pricing: {
-                collect: '$5 ',
-                amount: '$9 ',
                 perActiveMember: 'por miembro activo al mes.',
             },
             upgradeToUnlock: 'Desbloquear esta función',
@@ -4439,7 +4451,8 @@ const translations = {
                 title: 'Mejorar al plan Controlar',
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
-                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    startsAt: 'El plan Controlar comienza desde ',
+                    perMember: 'por miembro activo al mes.',
                     learnMore: 'Más información',
                     pricing: 'sobre nuestros planes y precios.',
                     benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
@@ -4447,6 +4460,27 @@ const translations = {
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
                 },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Desmejorar al plan Recopilar',
+                note: 'Si desmejoras, perderás acceso a estas funciones y más:',
+                benefits: {
+                    note: 'Para una comparación completa de nuestros planes, consulta nuestra',
+                    pricingPage: 'página de precios',
+                    confirm: '¿Estás seguro de que deseas desmejorar y eliminar tus configuraciones?',
+                    warning: 'Esto no se puede deshacer.',
+                    benefit1: 'Conexiones de contabilidad (excepto QuickBooks Online y Xero)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
+            },
+            completed: {
+                headline: 'Tu espacio de trabajo ha sido bajado de categoría',
+                description: 'Tienes otros espacios de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                gotIt: 'Entendido, gracias.',
             },
         },
         restrictedAction: {
@@ -4621,6 +4655,8 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
+        downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -4689,7 +4725,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Por favor intenta crear algo con el botón verde.',
+                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
@@ -4706,7 +4742,6 @@ const translations = {
             },
         },
         saveSearch: 'Guardar búsqueda',
-        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -6078,6 +6113,49 @@ const translations = {
             scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
         },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: '¡Comienza',
+            part2: ' aquí!',
+        },
+        saveSearchTooltip: {
+            part1: 'Renombra tus búsquedas guardadas',
+            part2: ' aquí',
+        },
+        quickActionButton: {
+            part1: '¡Acción rápida!',
+            part2: ' A solo un toque',
+        },
+        workspaceChatCreate: {
+            part1: 'Envía tus',
+            part2: ' gastos',
+            part3: ' aquí',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Personaliza tu búsqueda',
+            part2: ' aquí!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Tu lista de tareas',
+            part2: '\n🟢 = listo para ti',
+            part3: ' 🔴 = necesita revisión',
+        },
+        workspaceChatTooltip: {
+            part1: 'Envía gastos',
+            part2: ' y chatea con',
+            part3: '\naprobadores aquí!',
+        },
+        globalCreateTooltip: {
+            part1: 'Crea gastos',
+            part2: ', comienza a chatear,',
+            part3: '\ny mucho más!',
+        },
+    },
+    discardChangesConfirmation: {
+        title: '¿Descartar cambios?',
+        body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
+        confirmText: 'Descartar cambios',
     },
 };
 

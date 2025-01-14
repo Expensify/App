@@ -12,6 +12,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +47,8 @@ type AutocompleteItemData = {
     mapKey?: SearchFilterKey;
 };
 
+type GetAdditionalSectionsCallback = (options: OptionsListUtils.Options) => Array<SectionListDataType<OptionData | SearchQueryItem>> | undefined;
+
 type SearchRouterListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
@@ -53,8 +56,8 @@ type SearchRouterListProps = {
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
 
-    /** Any extra sections that should be displayed in the router list */
-    additionalSections?: Array<SectionListDataType<OptionData | SearchQueryItem>>;
+    /** Any extra sections that should be displayed in the router list. */
+    getAdditionalSections?: GetAdditionalSectionsCallback;
 
     /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
@@ -116,7 +119,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -179,7 +182,7 @@ function SearchRouterList(
         if (currentUser) {
             autocompleteOptions.push({
                 name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID?.toString() ?? '-1',
+                accountID: currentUser.accountID?.toString(),
             });
         }
 
@@ -382,21 +385,30 @@ function SearchRouterList(
         };
     });
 
+    /**
+     * Builds a suffix tree and returns a function to search in it.
+     */
+    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const filteredOptions = filterOptions(autocompleteQueryValue);
+        const orderedOptions = OptionsListUtils.combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
+            sortByReportTypeInSearch: true,
+            preferChatroomsOverThreads: true,
+        });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
         ReportUserActions.searchInServer(autocompleteQueryValue.trim());
@@ -408,6 +420,10 @@ function SearchRouterList(
     if (searchQueryItem) {
         sections.push({data: [searchQueryItem]});
     }
+
+    const additionalSections = useMemo(() => {
+        return getAdditionalSections?.(searchOptions);
+    }, [getAdditionalSections, searchOptions]);
 
     if (additionalSections) {
         sections.push(...additionalSections);
@@ -475,3 +491,4 @@ function SearchRouterList(
 
 export default forwardRef(SearchRouterList);
 export {SearchRouterItem};
+export type {GetAdditionalSectionsCallback};
