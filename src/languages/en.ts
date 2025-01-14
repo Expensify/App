@@ -4177,7 +4177,6 @@ const translations = {
             from: 'from',
         },
         inviteMessage: {
-            inviteMessageTitle: 'Add message',
             confirmDetails: 'Confirm details',
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
