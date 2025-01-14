@@ -30,7 +30,6 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NSQS);
-
     return (
         // s77rt: do not use ConnectionLayout here. Just a regular ScreenWrapper
         <ConnectionLayout
@@ -42,7 +41,11 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE))} // s77rt: it's not clear why we passed netsuite here, clarify or find better appraoch
+            onBackButtonPress={() =>
+                Navigation.goBack(
+                    ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
+                )
+            }
             shouldIncludeSafeAreaPaddingBottom
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS])}
             shouldBeBlocked={shouldPageBeBlocked}

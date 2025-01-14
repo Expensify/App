@@ -2699,6 +2699,13 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            get MULTI_CONNECTIONS_MAPPING() {
+                // s77rt: use this
+                return {
+                    [this.NAME.NETSUITE]: this.NAME.NETSUITE,
+                    [this.NAME.NSQS]: this.NAME.NETSUITE,
+                };
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',

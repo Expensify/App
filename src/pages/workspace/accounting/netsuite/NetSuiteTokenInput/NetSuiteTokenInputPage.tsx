@@ -42,7 +42,9 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
+            Navigation.goBack(
+                ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]),
+            );
             return;
         }
         ref.current?.movePrevious();
