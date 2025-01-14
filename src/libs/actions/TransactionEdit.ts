@@ -77,7 +77,11 @@ function createDraftTransaction(transaction: OnyxEntry<Transaction>) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function removeDraftTransaction(transactionID: string) {
+function removeDraftTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
