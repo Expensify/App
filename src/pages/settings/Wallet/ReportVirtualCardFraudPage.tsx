@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReportVirtualCardFraudConfirmationModal from '@components/ReportVirtualCardFraudConfirmationModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
@@ -43,6 +44,7 @@ function ReportVirtualCardFraudPage({
     const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
@@ -56,8 +58,9 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+        // if we switch from loading to not loading, show the confirmation modal
+        setIsConfirmationModalVisible(true);
+    }, [formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
@@ -81,7 +84,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard)) {
+    if (!isConfirmationModalVisible && isEmptyObject(virtualCard)) {
         return <NotFoundPage />;
     }
 
@@ -106,13 +109,18 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
-                        Card.clearCardListErrors(virtualCard.cardID);
+                        Card.clearCardListErrors(virtualCard?.cardID ?? 0);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
+                />
+                <ReportVirtualCardFraudConfirmationModal
+                    isVisible={isConfirmationModalVisible}
+                    title="Card fraud reported"
+                    descriptionPrimary="Some description"
                 />
             </View>
         </ScreenWrapper>
