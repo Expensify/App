@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import * as ReportUtils from '@libs/ReportUtils';
+import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -113,7 +113,7 @@ function ReportActionItemFragment({
                 return <RenderHTML html={`<deleted-action ${CONST.HIDDEN_MESSAGE_ATTRIBUTE}="true">${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
-            if (ReportUtils.isReportMessageAttachment(fragment)) {
+            if (isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
                         source={source}
