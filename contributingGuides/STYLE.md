@@ -548,16 +548,22 @@ WORKSPACE_PROFILE_ADDRESS: {
 
 ##### Important Note:
 
-When you change the function id arguments type to allow `undefined`, please use explicit `undefined` typing instead of just making the parameter optional. This way, we identify that the parameter should **always** be passed, even if it's `undefined`.
+When you change the function id argument type to allow `undefined`, check if it makes sense to call the function without the argument. If so, you can type the argument as optional. Otherwise, please use explicit `undefined` typing to identify that the parameter should **always** be passed, even if it's `undefined`.
 
 ``` ts
 // BAD
--function getNewerActions(reportID: string, reportActionID: string) {
-+function getNewerActions(reportID?: string, reportActionID?: string) {
+-function getReport(reportID: string) {
++function getReport(reportID?: string) { // it doesn't makes sense to call getReport() without reportID, so it can't be optional
+
+-function findLastAccessedReport(excludeReportID: string) {
++function findLastAccessedReport(excludeReportID: string | undefined) { // you can call findLastAccessedReport() without excludeReportID, so it can't be the required param
 
 // GOOD
--function getNewerActions(reportID: string, reportActionID: string) {
-+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
+-function getReport(reportID: string) {
++function getReport(reportID: string | undefined) {
+
+-function findLastAccessedReport(excludeReportID: string) {
++function findLastAccessedReport(excludeReportID?: string) {
 ```
 
 #### **Case 2**: Type 'undefined' cannot be used as an index type.
