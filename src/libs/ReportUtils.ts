@@ -8804,13 +8804,6 @@ function getReportMetadata(reportID: string | undefined) {
     return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
 
-/** Make sure the report id is not an empty string as it can break an onyx key */
-function getNonEmptyStringReportID(reportID: string | undefined): string | undefined {
-    // The report ID is used in an onyx key. If it's an empty string, onyx will return
-    // a collection instead of an individual report.
-    return reportID !== '' ? reportID : undefined;
-}
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9139,7 +9132,6 @@ export {
     shouldUnmaskChat,
     getReportMetadata,
     buildOptimisticSelfDMReport,
-    getNonEmptyStringReportID,
     isHiddenForCurrentUser,
 };
 

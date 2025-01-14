@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import PaginationUtils from '@libs/PaginationUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -9,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
-    const nonEmptyStringReportID = ReportUtils.getNonEmptyStringReportID(reportID);
+    const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
