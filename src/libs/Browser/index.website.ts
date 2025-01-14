@@ -30,7 +30,7 @@ const getBrowser: GetBrowser = () => {
         }
     }
 
-    browserName = match[1] ?? navigator.appName;
+    browserName = match[1];
     return browserName ? browserName.toLowerCase() : CONST.BROWSER.OTHER;
 };
 
