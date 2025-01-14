@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -43,7 +43,7 @@ function ShareDetailsPage({
     const optimisticReport = Report.getOptimisticChatReport(parseInt(reportOrAccountID, 10));
     optimisticReport.reportID = unknownUserDetails?.accountID?.toString() ?? '';
     const report = onyxReport ?? optimisticReport;
-    const displayReport = OptionsListUtils.getReportDisplayOption(report, unknownUserDetails);
+    const displayReport = useMemo(() => OptionsListUtils.getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
     const isTextShared = currentAttachment?.mimeType === 'txt';
     const shouldShowAttachment = !isTextShared;
 
