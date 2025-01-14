@@ -4340,37 +4340,38 @@ describe('actions/IOU', () => {
             [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
-            IOU.trackExpense(
-                {reportID: ''},
-                10000,
-                CONST.CURRENCY.USD,
-                '2024-10-30',
-                'KFC',
-                RORY_EMAIL,
-                RORY_ACCOUNT_ID,
-                {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                '',
-                false,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                action,
-                '1',
-                {
+            // When a track expense is created
+            IOU.trackExpense({
+                report: {reportID: ''},
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-10-30',
+                merchant: 'KFC',
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true},
+                comment: '',
+                isDraftPolicy: false,
+                receipt: undefined,
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                billable: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: {},
+                gpsPoints: undefined,
+                validWaypoints: undefined,
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                actionableWhisperReportActionID: '1',
+                linkedTrackedExpenseReportAction: {
                     reportActionID: '',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     created: '2024-10-30',
                 },
-                '1',
-            );
+                linkedTrackedExpenseReportID: '1',
+            });
 
             await waitForBatchedUpdates();
 
