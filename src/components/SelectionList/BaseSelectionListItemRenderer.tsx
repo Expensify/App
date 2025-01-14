@@ -2,7 +2,7 @@ import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isReportListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -45,7 +45,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     titleContainerStyles,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (SearchUIUtils.isReportListItemType(item)) {
+        if (isReportListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
