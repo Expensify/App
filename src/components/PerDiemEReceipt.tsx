@@ -4,8 +4,8 @@ import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,7 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
         const rate = subRate.rate ?? 0;
         const rateComment = subRate.name ?? '';
         const quantity = subRate.quantity ?? 0;
-        return `${quantity}x ${rateComment} @ ${CurrencyUtils.convertAmountToDisplayString(rate, currency)}`;
+        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
     });
     return subRateComments.join(', ');
 }
@@ -56,12 +56,12 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
 
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
     const datesDescription = getPerDiemDates(transactionMerchant ?? '');
     const destination = getPerDiemDestination(transactionMerchant ?? '');
-    const formattedAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
-    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency ?? '');
+    const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
+    const currency = getCurrencySymbol(transactionCurrency ?? '');
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
 
