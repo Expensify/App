@@ -8890,16 +8890,48 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
+    // Build an optimistic ReportAction for the dismissed violation named DUPLICATED_TRANSACTION
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
+        reason: 'manual',
+        violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    });
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction,
+        },
+    };
+    const failureReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
+        },
+    };
     optimisticData.push(
         optimisticTransactionData,
         ...optimisticTransactionDuplicatesData,
         ...optimisticTransactionViolations,
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
+        optimisticReportActionData,
     );
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
 
-    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
+    failureData.push(
+        failureTransactionData,
+        ...failureTransactionDuplicatesData,
+        ...failureTransactionViolations,
+        expenseReportFailureData,
+        expenseReportActionsFailureData,
+        failureReportActionData,
+    );
+    const parameters: TransactionMergeParams = {
+        ...params,
+        dismissedViolationReportActionID: optimisticReportAction.reportActionID,
+    };
+    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, parameters, {optimisticData, failureData});
 }
 
 function updateLastLocationPermissionPrompt() {
