@@ -89,7 +89,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         });
     };
 
-    const hideRecieptModal = () => {
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -129,27 +129,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         >
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {PDFThumbnailView}
-            {shouldAllowReceiptDrop && !disabled && (
-                <ReceiptDropUI
-                    onDrop={(e) => {
-                        const file = e?.dataTransfer?.files[0];
-                        if (file) {
-                            file.uri = URL.createObjectURL(file);
-                            setReceipt(file);
-                        }
-                    }}
-                    receiptImageTopPosition={receiptImageTopPosition}
-                />
-            )}
-            <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={hideRecieptModal}
-                onCancel={hideRecieptModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
+
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <Icon
                     fill={theme.border}
@@ -166,6 +146,28 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
                     />
                 )}
             </View>
+
+            {shouldAllowReceiptDrop && !disabled && (
+                <ReceiptDropUI
+                    onDrop={(e) => {
+                        const file = e?.dataTransfer?.files[0];
+                        if (file) {
+                            file.uri = URL.createObjectURL(file);
+                            setReceipt(file);
+                        }
+                    }}
+                    receiptImageTopPosition={receiptImageTopPosition}
+                />
+            )}
+            <ConfirmModal
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={hideReceiptModal}
+                onCancel={hideReceiptModal}
+                isVisible={isAttachmentInvalid}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
         </Wrapper>
     );
 }

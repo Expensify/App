@@ -194,7 +194,7 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    const hideRecieptModal = () => {
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -775,8 +775,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideRecieptModal}
-                            onCancel={hideRecieptModal}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
