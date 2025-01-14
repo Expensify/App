@@ -72,6 +72,7 @@ const defaultReportMetadata = {
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
+    console.log('getReportID', route.params?.reportID);
     return String(route.params?.reportID || 0);
 }
 
@@ -189,7 +190,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         () =>
             reportOnyx && {
                 lastReadTime: reportOnyx.lastReadTime,
-                reportID: reportOnyx.reportID ?? '',
+                reportID: reportOnyx.reportID ?? CONST.DEFAULT_NUMBER_ID,
                 policyID: reportOnyx.policyID,
                 lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
                 statusNum: reportOnyx.statusNum,

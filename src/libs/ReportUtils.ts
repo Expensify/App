@@ -8457,6 +8457,9 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
     if (isEmptyObject(onboarding)) {
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
+
+    // Onboarding guides are assigned to signups with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+    // Guides and onboarding tasks are posted to the #admins room to facilitate the onboarding process.
     return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+')
         ? isAdminRoom(optionOrReport)
         : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
