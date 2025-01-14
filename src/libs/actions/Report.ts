@@ -1135,8 +1135,8 @@ function openReport(
  * This will return an optimistic report object for a given user we want to create a chat with without saving it, when the only thing we know about recipient is his accountID. *
  * @param accountID accountID of the user that the optimistic chat report is created with.
  */
-function getOptimisticChatReport(accountID: number): ReportUtils.OptimisticChatReport {
-    return ReportUtils.buildOptimisticChatReport(
+function getOptimisticChatReport(accountID: number): OptimisticChatReport {
+    return buildOptimisticChatReport(
         [accountID, currentUserAccountID],
         undefined,
         undefined,
