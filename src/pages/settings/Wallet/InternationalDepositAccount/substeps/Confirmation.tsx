@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -48,7 +48,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setError('');
         setIsSubmitting(true);
-        BankAccounts.createCorpayBankAccountForWalletFlow(
+        createCorpayBankAccountForWalletFlow(
             {...formValues, ...values},
             corpayFields?.classification ?? '',
             corpayFields?.destinationCountry ?? '',

@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Option} from '@libs/searchOptions';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import * as FormActions from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -31,14 +31,14 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
             setError('common.error.pleaseSelectOne');
             return;
         }
-        FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
+        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
         onNext();
     }, [currentAccountType, fieldData.isRequired, formValues, isEditing, onNext]);
 
     const onSelectionChange = useCallback(
         (country: Option) => {
             if (!isEditing) {
-                FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: country.value});
+                setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: country.value});
             }
             setCurrentAccountType(country.value);
         },

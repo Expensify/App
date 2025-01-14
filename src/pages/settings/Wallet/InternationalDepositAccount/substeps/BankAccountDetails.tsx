@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {fetchCorpayFields} from '@userActions/BankAccounts';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
             if (formValues.bankCurrency === value) {
                 return;
             }
-            BankAccounts.fetchCorpayFields(formValues.bankCountry, value);
+            fetchCorpayFields(formValues.bankCountry, value);
             resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
         },
         [formValues.bankCountry, formValues.bankCurrency, resetScreenIndex],

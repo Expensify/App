@@ -12,8 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
+import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,7 +34,7 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            addPersonalBankAccount(selectedPlaidBankAccount);
         }
     }, [plaidData, selectedPlaidAccountId]);
 
@@ -62,7 +62,7 @@ function AddPersonalBankAccountPage() {
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
             } else if (shouldContinue && onSuccessFallbackRoute) {
-                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+                continueSetup(onSuccessFallbackRoute);
             } else {
                 goBack();
             }
@@ -70,7 +70,7 @@ function AddPersonalBankAccountPage() {
         [personalBankAccount, goBack],
     );
 
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
+    useEffect(() => clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
@@ -100,7 +100,7 @@ function AddPersonalBankAccountPage() {
                             submitButtonText={translate('common.saveAndContinue')}
                             scrollContextEnabled
                             onSubmit={submitBankAccountForm}
-                            validate={BankAccounts.validatePlaidSelection}
+                            validate={validatePlaidSelection}
                             style={[styles.mh5, styles.flex1]}
                         >
                             <InputWrapper

@@ -12,7 +12,7 @@ import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {fetchCorpayFields} from '@userActions/BankAccounts';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -34,7 +34,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
             onNext();
             return;
         }
-        BankAccounts.fetchCorpayFields(currentCountry);
+        fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
     }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex]);
 

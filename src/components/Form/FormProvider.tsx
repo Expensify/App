@@ -6,9 +6,9 @@ import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, V
 import {useOnyx} from 'react-native-onyx';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import * as FormActions from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues, setErrors as setErrorsFormActions} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,12 +102,12 @@ function FormProvider(
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
-            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(values) : values;
+            const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
             if (shouldClearServerError) {
-                FormActions.clearErrors(formID);
+                clearErrors(formID);
             }
-            FormActions.clearErrorFields(formID);
+            clearErrorFields(formID);
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
@@ -172,7 +172,7 @@ function FormProvider(
         }
 
         // Prepare validation values
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+        const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
@@ -198,7 +198,7 @@ function FormProvider(
             }
 
             // Prepare values before submitting
-            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+            const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
             // Touches all form inputs, so we can validate the entire form
             Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
@@ -250,8 +250,8 @@ function FormProvider(
     );
 
     const resetErrors = useCallback(() => {
-        FormActions.clearErrors(formID);
-        FormActions.clearErrorFields(formID);
+        clearErrors(formID);
+        clearErrorFields(formID);
         setErrors({});
     }, [formID]);
 
@@ -259,7 +259,7 @@ function FormProvider(
         (inputID: keyof Form) => {
             const newErrors = {...errors};
             delete newErrors[inputID];
-            FormActions.setErrors(formID, newErrors as Errors);
+            setErrorsFormActions(formID, newErrors as Errors);
             setErrors(newErrors);
         },
         [errors, formID],
@@ -391,7 +391,7 @@ function FormProvider(
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        FormActions.setDraftValues(formID, {[inputKey]: value});
+                        setDraftValues(formID, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },

@@ -3,8 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InternationalBankAccountForm} from '@src/types/form';
@@ -45,7 +45,7 @@ function getSubstepValues(
     country: OnyxEntry<string>,
     fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>,
 ): InternationalBankAccountForm {
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
     const personalDetailsFieldMap = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION];
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
@@ -72,7 +72,7 @@ function getSubstepValues(
 }
 
 function getInitialPersonalDetailsValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): InternationalBankAccountForm {
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const firstName = privatePersonalDetails?.legalFirstName ?? '';
@@ -131,13 +131,13 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     const errors = {};
     Object.entries(fieldsMap).forEach(([fieldName, field]) => {
         if (field.isRequired && values[fieldName] === '') {
-            ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
+            addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
             return;
         }
         field.validationRules.forEach((rule) => {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName])) {
-                ErrorUtils.addErrorMessage(errors, fieldName, rule.errorMessage);
+                addErrorMessage(errors, fieldName, rule.errorMessage);
             }
         });
     });

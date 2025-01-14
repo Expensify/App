@@ -5,7 +5,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
@@ -29,7 +29,7 @@ function CurrencySelectionList({
             if (!excludedCurrencies.includes(currencyCode) && (isSelectedCurrency || !currencyInfo?.retired)) {
                 acc.push({
                     currencyName: currencyInfo?.name ?? '',
-                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                    text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
                     currencyCode,
                     keyForList: currencyCode,
                     isSelected: isSelectedCurrency,
@@ -44,7 +44,7 @@ function CurrencySelectionList({
                   const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
                   return {
                       currencyName: currencyInfo?.name ?? '',
-                      text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                      text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
                       currencyCode,
                       keyForList: currencyCode,
                       isSelected: isSelectedCurrency,

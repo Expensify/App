@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import CurrencySelectionList from './CurrencySelectionList';
@@ -50,7 +50,7 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, int
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value ? `${value} - ${CurrencyUtils.getCurrencySymbol(value)}` : undefined}
+                title={value ? `${value} - ${getCurrencySymbol(value)}` : undefined}
                 description={translate('common.currency')}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
