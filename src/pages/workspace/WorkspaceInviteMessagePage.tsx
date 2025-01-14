@@ -206,7 +206,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                         <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
                     <View style={[styles.mb3]}>
-                        <View style={[styles.mhn5, styles.mb6]}>
+                        <View style={[styles.mhn5, styles.mb3]}>
                             <InputWrapper
                                 inputID={INPUT_IDS.ROLE}
                                 InputComponent={ValuePicker}
