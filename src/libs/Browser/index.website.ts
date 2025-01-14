@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsSafari, OpenRouteInDesktopApp} from './types';
 
+let isOpenRouteInDesktop = false;
 /**
  * Fetch browser name from UA string
  *
@@ -113,8 +114,17 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
             document.body.removeChild(iframe);
         }, 0);
     } else {
+        isOpenRouteInDesktop = true;
         window.location.href = expensifyDeeplinkUrl;
     }
 };
 
-export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp};
+const isOpeningRouteInDesktop = () => {
+    return isOpenRouteInDesktop;
+};
+
+const resetIsOpeningRouteInDesktop = () => {
+    isOpenRouteInDesktop = false;
+};
+
+export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp, isOpeningRouteInDesktop, resetIsOpeningRouteInDesktop};

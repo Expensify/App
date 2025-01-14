@@ -5,6 +5,7 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import {isOpeningRouteInDesktop, resetIsOpeningRouteInDesktop} from '@libs/Browser/index.website';
 import * as ActiveClients from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Init, IsClientTheLeader, IsReady} from './types';
@@ -16,6 +17,7 @@ let resolveSavedSelfPromise: () => void;
 const savedSelfPromise = new Promise<void>((resolve) => {
     resolveSavedSelfPromise = resolve;
 });
+let beforeunloadListenerAdded = false;
 
 /**
  * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
@@ -73,16 +75,34 @@ const cleanUpClientId = () => {
     ActiveClients.setActiveClients(activeClients);
 };
 
+const removeBeforeUnloadListener = () => {
+    if (!beforeunloadListenerAdded) {
+        return;
+    }
+    beforeunloadListenerAdded = false;
+    window.removeEventListener('beforeunload', cleanUpClientId);
+};
+
 /**
  * Add our client ID to the list of active IDs.
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
 const init: Init = () => {
+    removeBeforeUnloadListener();
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
-    window.addEventListener('beforeunload', cleanUpClientId);
+    beforeunloadListenerAdded = true;
+    window.addEventListener('beforeunload', () => {
+        // When we open route in desktop, beforeunload is fired unexpectedly here.
+        // So we should return early in this case to prevent cleaning the clientID
+        if (isOpeningRouteInDesktop()) {
+            resetIsOpeningRouteInDesktop();
+            return;
+        }
+        cleanUpClientId();
+    });
 };
 
 export {init, isClientTheLeader, isReady};
