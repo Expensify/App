@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as User from '@userActions/User';
+import {dismissTrackTrainingModal} from '@userActions/User';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -250,7 +250,7 @@ function FeatureTrainingModal({
 
     const closeModal = useCallback(() => {
         if (!willShowAgain) {
-            User.dismissTrackTrainingModal();
+            dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {

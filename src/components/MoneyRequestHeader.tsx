@@ -70,7 +70,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transaction ? [transaction?.transactionID] : undefined);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
 
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, parentReport, policy);
 
