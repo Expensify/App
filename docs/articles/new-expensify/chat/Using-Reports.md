@@ -1,5 +1,4 @@
-# Using Reports to Quickly Navigate Chat 
-The Reports feature allows you to easily find expenses, chats, invoices, trips, and more. Here’s how to access and use it:
+Using Reports will help you quickly navigate Chat. It allows you to easily find expenses, chats, invoices, trips, and more. Here’s how to access and use it:
 
 ## Accessing Reports
 - **Option 1**: Click Reports at the bottom of the left-hand navigation bar.
