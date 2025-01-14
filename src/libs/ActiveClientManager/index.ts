@@ -82,6 +82,7 @@ const init: Init = () => {
     activeClients.push(clientID);
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
+
     window.addEventListener('beforeunload', cleanUpClientId);
 };
 
