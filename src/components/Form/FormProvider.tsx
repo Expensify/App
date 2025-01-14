@@ -4,8 +4,10 @@ import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'rea
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {useInputBlurContext} from '@components/InputBlurContext';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
+import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setErrorsFormActions} from '@userActions/FormActions';
@@ -99,6 +101,7 @@ function FormProvider(
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const {setIsBlurred} = useInputBlurContext();
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -375,6 +378,9 @@ function FormProvider(
                         }, VALIDATE_DELAY);
                     }
                     inputProps.onBlur?.(event);
+                    if (isSafari()) {
+                        setIsBlurred(true);
+                    }
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
@@ -397,7 +403,7 @@ function FormProvider(
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
