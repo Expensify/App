@@ -1072,6 +1072,44 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/**
+ * Connection data for NetSuite QuickStart
+ */
+type NSQSConnectionData = {};
+
+/**
+ * Connection config for NetSuite QuickStart
+ */
+type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Configuration of automatic synchronization from NetSuite QuickStart to the app */
+    autoSync: {
+        /** Job ID of the synchronization */
+        jobID: string;
+
+        /** Whether changes made in NetSuite QuickStart should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    syncOptions: {
+        mapping: {
+            customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+            projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+        };
+    };
+
+    currency: string;
+    exporter: string;
+    exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
+    credentials: {
+        accountID: string;
+    };
+    isConfigured: boolean;
+    approvalAccount: string;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     /** Element ID */
@@ -1369,7 +1407,7 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
     /** NetSuite QuickStart integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: NetSuiteConnection; // s77rt: NSQSConnection
+    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
