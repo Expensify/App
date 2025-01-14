@@ -140,7 +140,14 @@ type Options = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
 };
 
-type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
+type PreviewConfig = {
+    showChatPreviewLine?: boolean;
+    forcePolicyNamePreview?: boolean;
+    showPersonalDetails?: boolean;
+    isDisabled?: boolean | null;
+    selected?: boolean;
+    isSelected?: boolean;
+};
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
@@ -632,7 +639,7 @@ function createOption(
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): ReportUtils.OptionData {
-    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
+    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: ReportUtils.OptionData = {
         text: undefined,
         alternateText: undefined,
@@ -665,6 +672,9 @@ function createOption(
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
         lastVisibleActionCreated: undefined,
+        selected,
+        isSelected,
+        isDisabled,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -769,6 +779,9 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
         {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
+            selected: participant.selected,
+            isSelected: participant.selected,
+            isDisabled: ReportUtils.isDraftReport(participant.reportID),
         },
     );
 
@@ -782,9 +795,6 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
         option.text = ReportUtils.getPolicyName(report);
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
     }
-    option.isDisabled = ReportUtils.isDraftReport(participant.reportID);
-    option.selected = participant.selected;
-    option.isSelected = participant.selected;
     return option;
 }
 
