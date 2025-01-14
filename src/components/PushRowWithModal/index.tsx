@@ -56,7 +56,7 @@ function PushRowWithModal({
     const shouldBlurOnCloseRef = useRef(true);
     const handleModalClose = () => {
         if (shouldBlurOnCloseRef.current) {
-            onBlur?.(); // onBlur comes from PushRowWithModalProps
+            onBlur?.();
         }
         setIsModalVisible(false);
     };
