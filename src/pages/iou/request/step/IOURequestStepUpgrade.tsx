@@ -67,7 +67,7 @@ function IOURequestStepUpgrade({
                 <UpgradeIntro
                     feature={feature}
                     onUpgrade={() => {
-                        const policyData = Policy.createWorkspace();
+                        const policyData = Policy.createWorkspace('', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                         setIsUpgraded(true);
                         policyDataRef.current = policyData;
                     }}
