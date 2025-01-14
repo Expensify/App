@@ -486,10 +486,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                 </View>
             )}
-            <LoadingBar
-                shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false}
-                height={1}
-            />
+            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
