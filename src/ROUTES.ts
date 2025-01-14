@@ -764,7 +764,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
@@ -1252,7 +1252,7 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
         getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export`, backTo),
+            `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export?backTo=${backTo}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
@@ -1544,7 +1544,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/export` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/xero/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
@@ -1669,7 +1669,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/connections/netsuite/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
@@ -1807,7 +1807,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/sage-intacct/export`, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
