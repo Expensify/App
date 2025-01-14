@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {PixelRatio, View} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +40,6 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
@@ -130,7 +129,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {PDFThumbnailView}
 
-            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
+            <View>
                 <Icon
                     fill={theme.border}
                     src={Expensicons.Receipt}
@@ -156,7 +155,6 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
                             setReceipt(file);
                         }
                     }}
-                    receiptImageTopPosition={receiptImageTopPosition}
                 />
             )}
             <ConfirmModal
