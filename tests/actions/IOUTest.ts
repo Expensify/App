@@ -3625,6 +3625,84 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('mergeDuplicates', () => {
+        test('Merging duplicates of two transactions should display a system message', async () => {
+            // Given two duplicate transactions
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transaction2 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+
+            const iouActions: OnyxTypes.ReportAction[] = [];
+            [transaction1, transaction2].forEach((transaction) => {
+                const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transaction.amount,
+                    transaction.currency,
+                    '',
+                    [],
+                    transaction.transactionID,
+                );
+                iouActions.push({
+                    ...optimisticReportAction,
+                    childReportID: NumberUtils.rand64(),
+                });
+            });
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {};
+            iouActions.forEach(
+                (iouAction) =>
+                    (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = {
+                        ...iouAction,
+                    }),
+            );
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet});
+
+            // When merge duplicates transaction
+            IOU.mergeDuplicates({
+                ...transaction1,
+                receiptID: 1,
+                category: '',
+                comment: '',
+                billable: false,
+                reimbursable: true,
+                tag: '',
+                transactionIDList: [transaction2.transactionID],
+            });
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActions.at(0)?.childReportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        //Then the system message 'resolved the duplicate' should be displayed
+                        const dismissedViolationReportAction = Object.values(reportActions ?? {}).at(0);
+                        const dismissedViolationMessageText = ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(dismissedViolationReportAction));
+                        const systemMessage = 'resolved the duplicate';
+                        expect(dismissedViolationMessageText).toBe(systemMessage);
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
     describe('resolveDuplicate', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
