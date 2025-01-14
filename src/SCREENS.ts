@@ -30,6 +30,7 @@ const SCREENS = {
         TRIP_SUMMARY: 'Travel_TripSummary',
         TRIP_DETAILS: 'Travel_TripDetails',
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
+        DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',

@@ -23,9 +23,13 @@ function DomainPermissionInfoPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
-            <RenderHTML 
-                html={translate('travel.domainPermissionInfo.restriction', {domain: 'domain.com'})}
-            />
+                <RenderHTML 
+                    html={translate('travel.domainPermissionInfo.restriction', {domain: 'domain.com'})}
+                />
+                <br/>
+                <RenderHTML 
+                    html={translate('travel.domainPermissionInfo.accountantInvitation')}
+                />
             </View>
         </ScreenWrapper>
     );

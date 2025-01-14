@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Button from '@components/Button';
+import ROUTES from '@src/ROUTES';
 
 function DomainSelectorPage() {
     const styles = useThemeStyles();
@@ -36,7 +37,7 @@ function DomainSelectorPage() {
                 success
                 large
                 style={[styles.w100]}
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO)}
                 text={translate('common.continue')}
             />
         ),
