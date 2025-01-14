@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
+import {Dictionary} from 'lodash';
+import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -2700,11 +2702,17 @@ const CONST = {
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
             get MULTI_CONNECTIONS_MAPPING() {
-                // s77rt: use this
                 return {
+                    [this.NAME.QBO]: null,
+                    [this.NAME.QBD]: null,
+                    [this.NAME.XERO]: null,
                     [this.NAME.NETSUITE]: this.NAME.NETSUITE,
                     [this.NAME.NSQS]: this.NAME.NETSUITE,
+                    [this.NAME.SAGE_INTACCT]: null,
                 };
+            },
+            get MULTI_CONNECTIONS_MAPPING_INVERTED() {
+                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<ValueOf<typeof this.NAME>[] | undefined>;
             },
         },
         ACCESS_VARIANTS: {

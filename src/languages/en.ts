@@ -3299,10 +3299,6 @@ const translations = {
                     },
                 },
             },
-            multiConnector: {
-                title: 'NetSuite setup',
-                description: 'Select your NetSuite version to continue.',
-            },
         },
         nsqs: {
             setup: {
@@ -3414,6 +3410,10 @@ const translations = {
                         return 'mappings';
                 }
             },
+        },
+        multiConnectionSelector: {
+            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} setup`,
+            description: ({connectionName}: ConnectionNameParams) => `Select your ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} version to continue.`,
         },
         type: {
             free: 'Free',

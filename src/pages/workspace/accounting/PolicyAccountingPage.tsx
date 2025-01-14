@@ -263,15 +263,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     if (!integrationData) {
                         return undefined;
                     }
-                    // s77rt shouldUseMultiConnectionSelector
-                    // s77rt isTheDesignatedMultiConnectionSelector
-                    // s77rt designatedConnection
-                    // s77rt multiConnectionMapping =
-                    // shouldUseMultiConnectionSelector = !!multiConnectionMapping
-                    // shouldUseMultiConnectionSelector && multiConnectionMapping != integration
-                    if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
+                    const multiConnectionMapping = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
+                    const shouldUseMultiConnectionSelector = !!multiConnectionMapping;
+                    if (shouldUseMultiConnectionSelector && multiConnectionMapping != integration) {
                         return;
                     }
+
                     const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                     return {
@@ -283,10 +280,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         rightComponent: (
                             <Button
                                 onPress={() => {
-                                    if (integrationData.multiConnectorAlias) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(integrationData.multiConnectorAlias)),
-                                        );
+                                    if (shouldUseMultiConnectionSelector) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionMapping)));
                                         return;
                                     }
                                     startIntegrationFlow({name: integration});
@@ -441,10 +436,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 if (!integrationData) {
                     return undefined;
                 }
+
                 // s77rt: if NetSuite Legacy is the current connection, should we display NetSuite QuickStart in other integrations? (and vice-versa)
-                if (integrationData.multiConnectorAlias && integrationData.multiConnectorAlias != integration) {
+                const multiConnectionMapping = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
+                const shouldUseMultiConnectionSelector = !!multiConnectionMapping;
+                if (shouldUseMultiConnectionSelector && multiConnectionMapping != integration) {
                     return;
                 }
+
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                 return {
@@ -453,10 +452,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     rightComponent: (
                         <Button
                             onPress={() => {
-                                if (integrationData.multiConnectorAlias) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(integrationData.multiConnectorAlias)),
-                                    );
+                                if (shouldUseMultiConnectionSelector) {
+                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionMapping)));
                                     return;
                                 }
                                 startIntegrationFlow({
