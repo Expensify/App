@@ -70,7 +70,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {currentReportID = null} = useCurrentReportID() ?? {};
+    const {currentReportID} = useCurrentReportID() ?? {};
     const [user] = useOnyx(ONYXKEYS.USER);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
