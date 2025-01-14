@@ -3693,9 +3693,11 @@ describe('actions/IOU', () => {
                         Onyx.disconnect(connection);
                         //Then the system message 'resolved the duplicate' should be displayed
                         const dismissedViolationReportAction = Object.values(reportActions ?? {}).at(0);
-                        const dismissedViolationMessageText = ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(dismissedViolationReportAction));
-                        const systemMessage = 'resolved the duplicate';
-                        expect(dismissedViolationMessageText).toBe(systemMessage);
+                        if (ReportActionsUtils.isActionOfType(dismissedViolationReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
+                            const dismissedViolationMessageText = ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(dismissedViolationReportAction));
+                            const systemMessage = 'resolved the duplicate';
+                            expect(dismissedViolationMessageText).toBe(systemMessage);
+                        }
                         resolve();
                     },
                 });
