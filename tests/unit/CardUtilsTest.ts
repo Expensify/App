@@ -335,19 +335,19 @@ describe('CardUtils', () => {
     describe('getCardFeedName', () => {
         it('Should return a valid name if a valid feed was provided', () => {
             const feed = 'vcf';
-            const feedName = CardUtils.getCardFeedName(feed);
+            const feedName = CardUtils.getBankName(feed);
             expect(feedName).toBe('Visa');
         });
 
         it('Should return a valid name if an OldDot feed variation was provided', () => {
             const feed = 'oauth.americanexpressfdx.com 2003' as OnyxTypes.CompanyCardFeed;
-            const feedName = CardUtils.getCardFeedName(feed);
+            const feedName = CardUtils.getBankName(feed);
             expect(feedName).toBe('American Express');
         });
 
         it('Should return empty string if invalid feed was provided', () => {
             const feed = 'vvcf' as OnyxTypes.CompanyCardFeed;
-            const feedName = CardUtils.getCardFeedName(feed);
+            const feedName = CardUtils.getBankName(feed);
             expect(feedName).toBe('');
         });
     });
