@@ -4362,7 +4362,7 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 gpsPoints: undefined,
                 validWaypoints: undefined,
-                action: action,
+                action,
                 actionableWhisperReportActionID: '1',
                 linkedTrackedExpenseReportAction: {
                     reportActionID: '',
