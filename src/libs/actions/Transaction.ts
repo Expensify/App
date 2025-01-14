@@ -380,7 +380,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 },
             };
         })
-        .filter((action) => action !== null);
+        .filter((action) => action !== null) as OnyxUpdate[];
 
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -438,7 +438,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 },
             };
         })
-        .filter((action) => action !== null);
+        .filter((action) => action !== null) as OnyxUpdate[];
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);
@@ -459,7 +459,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 },
             };
         })
-        .filter((action) => action !== null);
+        .filter((action) => action !== null) as OnyxUpdate[];
 
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
