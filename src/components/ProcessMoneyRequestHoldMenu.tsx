@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import FeatureTrainingModal from './FeatureTrainingModal';
@@ -22,6 +23,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const navigation = useNavigation();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {
@@ -32,7 +34,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
 
     const title = useMemo(
         () => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
                 <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
             </View>
