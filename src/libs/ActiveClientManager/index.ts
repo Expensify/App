@@ -6,7 +6,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import {isOpeningRouteInDesktop, resetIsOpeningRouteInDesktop} from '@libs/Browser/index.website';
-import * as ActiveClients from '@userActions/ActiveClients';
+import {setActiveClients} from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Init, IsClientTheLeader, IsReady} from './types';
 
@@ -42,7 +42,7 @@ Onyx.connect({
 
         // Save the clients back to onyx, if they changed
         if (removed) {
-            ActiveClients.setActiveClients(activeClients);
+            setActiveClients(activeClients);
         }
     },
 });
@@ -72,7 +72,7 @@ const isClientTheLeader: IsClientTheLeader = () => {
 const cleanUpClientId = () => {
     isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
-    ActiveClients.setActiveClients(activeClients);
+    setActiveClients(activeClients);
 };
 
 const removeBeforeUnloadListener = () => {
@@ -91,7 +91,7 @@ const init: Init = () => {
     removeBeforeUnloadListener();
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
-    ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
+    setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
     beforeunloadListenerAdded = true;
     window.addEventListener('beforeunload', () => {
