@@ -164,7 +164,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 'Here’s how to submit an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Submit expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
                 '\n' +
@@ -5264,7 +5264,7 @@ const CONST = {
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
-                        '2. Choose *Submit expense*.\n' +
+                        '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
                         '\n' +
