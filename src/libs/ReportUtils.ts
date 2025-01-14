@@ -4706,7 +4706,7 @@ function buildOptimisticTaskCommentReportAction(
     taskTitle: string,
     taskAssigneeAccountID: number,
     text: string,
-    parentReportID: string,
+    parentReportID: string | undefined,
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
@@ -6632,8 +6632,13 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 /**
  * Checks to see if a report contains a violation
  */
-function hasViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = getReportTransactions(reportID);
+function hasViolations(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    shouldShowInReview?: boolean,
+    reportTransactions?: SearchTransaction[],
+): boolean {
+    const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
@@ -7636,7 +7641,7 @@ function getTaskAssigneeChatOnyxData(
     assigneeAccountID: number,
     taskReportID: string,
     assigneeChatReportID: string,
-    parentReportID: string,
+    parentReportID: string | undefined,
     title: string,
     assigneeChatReport: OnyxEntry<Report>,
 ): OnyxDataTaskAssigneeChat {
@@ -8159,7 +8164,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
+function getOptimisticDataForParentReportAction(reportID: string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
     const report = getReportOrDraftReport(reportID);
 
     if (!report || isEmptyObject(report)) {
