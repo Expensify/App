@@ -9,7 +9,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getPolicy} from '@libs/PolicyUtils';
 import {
-    canEditReportDescription as canEditReportDescriptionReportUtils,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
@@ -31,7 +30,6 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -62,7 +60,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const canEditReportDescription = canEditReportDescriptionReportUtils(report, policy);
     const {canUseCombinedTrackSubmit} = usePermissions();
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
@@ -135,19 +132,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isInvoiceRoom &&
                     !isArchivedRoom &&
                     (welcomeMessage?.messageHtml ? (
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                if (!canEditReportDescription) {
-                                    return;
-                                }
-                                const activeRoute = Navigation.getActiveRoute();
-                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, activeRoute));
-                            }}
-                            style={[styles.renderHTML, canEditReportDescription ? styles.cursorPointer : styles.cursorText]}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                        >
+                        <View style={[styles.renderHTML, styles.cursorText]}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
-                        </PressableWithoutFeedback>
+                        </View>
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
@@ -166,20 +153,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isChatRoom &&
                     (!isInvoiceRoom || isArchivedRoom) &&
                     (welcomeMessage?.messageHtml ? (
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                const activeRoute = Navigation.getActiveRoute();
-                                if (canEditReportDescription) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, activeRoute));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, activeRoute));
-                            }}
-                            style={styles.renderHTML}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                        >
+                        <View style={styles.renderHTML}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
-                        </PressableWithoutFeedback>
+                        </View>
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
