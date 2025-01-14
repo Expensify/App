@@ -261,7 +261,7 @@ export default {
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
-    fabTooltipShiftHorizontal: -12,
+    fabTooltipShiftHorizontal: -11,
     workspaceLHNtooltipShiftHorizontal: 26,
     searchFiltersTooltipShiftHorizontal: -20,
     searchFiltersTooltipShiftHorizontalNarrow: -10,
