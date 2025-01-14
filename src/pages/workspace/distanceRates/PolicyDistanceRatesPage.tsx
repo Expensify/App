@@ -80,11 +80,11 @@ function PolicyDistanceRatesPage({
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                clearDeleteDistanceRateError(policyID, customUnit?.customUnitID, item.value);
                 return;
             }
 
-            clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
+            clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID, item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -138,11 +138,11 @@ function PolicyDistanceRatesPage({
             Object.values(customUnitRates)
                 .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
                 .map((value) => ({
-                    value: value.customUnitRateID ?? '',
+                    value: value.customUnitRateID,
                     text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
-                    keyForList: value.customUnitRateID ?? '',
+                    keyForList: value.customUnitRateID,
                     isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:

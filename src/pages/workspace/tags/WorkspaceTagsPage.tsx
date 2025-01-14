@@ -34,6 +34,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {close} from '@libs/actions/Modal';
+import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,7 +49,6 @@ import {
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,7 +86,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
-        Tag.openPolicyTagsPage(policyID);
+        openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
 
@@ -112,14 +112,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            Tag.setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
         [policyID],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            Tag.setPolicyTagsRequired(policyID, value, orderWeight);
+            setPolicyTagsRequired(policyID, value, orderWeight);
         },
         [policyID],
     );
@@ -229,7 +229,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const deleteTags = () => {
         setSelectedTags({});
-        Tag.deletePolicyTags(policyID, selectedTagsArray);
+        deletePolicyTags(policyID, selectedTagsArray);
         setIsDeleteTagsConfirmModalVisible(false);
     };
 
@@ -298,7 +298,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
                 },
             });
         }
@@ -310,7 +310,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
                 },
             });
         }
@@ -362,7 +362,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     close(() => {
-                        Tag.downloadTagsCSV(policyID, () => {
+                        downloadTagsCSV(policyID, () => {
                             setIsDownloadFailureModalVisible(true);
                         });
                     });
@@ -471,7 +471,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => !isMultiLevelTags && Tag.clearPolicyTagErrors(policyID, item.value, 0)}
+                        onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
