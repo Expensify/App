@@ -1,7 +1,7 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
+import {getTripTransactions, isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
@@ -72,7 +72,7 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
-    const originalMessage = useMemo(() => ReportActionsUtils.getOriginalMessage(reportAction), [reportAction]);
+    const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -143,17 +143,16 @@ function ReportActionsListItemRenderer({
     );
 
     const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
 
-    const tripTransactions = ReportUtils.getTripTransactions(report?.reportID);
-    const shouldDisplayTripSummary = shouldDisplayParentAction && ReportUtils.isTripRoom(report) && tripTransactions.length > 0;
+    const tripTransactions = getTripTransactions(report?.reportID);
+    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report) && tripTransactions.length > 0;
 
     if (shouldDisplayTripSummary) {
         return <TripSummary report={report} />;
     }
 
-    if (shouldDisplayParentAction && ReportUtils.isChatThread(report)) {
+    if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
@@ -183,7 +182,7 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isInvoiceRoom(report)) &&
+                (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
                 [
                     CONST.REPORT.ACTIONS.TYPE.IOU,
                     CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
