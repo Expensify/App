@@ -1,4 +1,5 @@
 import type React from 'react';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
@@ -49,6 +50,12 @@ type ValidateCodeActionModalProps = {
 
     /** Whether disable the animations */
     disableAnimation?: boolean;
+
+    /** List of menu items for more(three dots) menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** Method to trigger when pressing more options button of the header */
+    onThreeDotsButtonPress?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

@@ -33,7 +33,7 @@ function useOnboardingFlowRouter() {
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
-            if (isLoadingApp) {
+            if (isLoadingApp !== false) {
                 return;
             }
 
