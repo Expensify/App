@@ -673,7 +673,7 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
 
 /**
  *
- * Checks whether the current user has a policy with Xero connections
+ * Checks whether the current user has a policy with Xero accounting software integration
  */
 function hasXeroConnection(currentUserLogin: string | undefined) {
     return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
