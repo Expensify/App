@@ -32,7 +32,7 @@ export default function (pageTitle: TranslationPaths) {
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
             const {route, report, reportMetadata} = props;
-            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
@@ -56,7 +56,7 @@ export default function (pageTitle: TranslationPaths) {
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
                 // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
-                if (ReportUtils.isArchivedRoom(report, reportNameValuePairs) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
+                if (ReportUtils.isArchivedReport(report, reportNameValuePairs) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
                     return true;
                 }
 
