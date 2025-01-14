@@ -16,11 +16,6 @@ const USER_A_EMAIL = 'user_a@test.com';
 
 jest.setTimeout(60000);
 
-jest.mock('../../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
-    defineTask: jest.fn(),
-    onBackgroundTaskExecution: jest.fn(),
-}));
-
 jest.mock('@react-navigation/native');
 
 TestHelper.setupApp();
