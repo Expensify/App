@@ -8,6 +8,7 @@ import { AuthScreensParamList } from '@libs/Navigation/types';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import SCREENS from '@src/SCREENS';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 
 type BaseUseOnyxOptions = {
     canEvict?: boolean;
@@ -46,11 +47,12 @@ type BaseUseOnyxOptions = {
   ): UseOnyxResult<TReturnValue> {
 
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>>();
-    const {q} = route.params ;
+    const {q} = route?.params || {};
     console.log("[wildebug] ~ file: useOnyx.ts:51 ~ q:", q)
     const queryJSON = useMemo(() => q ? SearchQueryUtils.buildSearchQueryJSON(q) : {} as { hash?: string }, [q]);
     const hashKey = queryJSON?.hash
     const isOnSearch = !!hashKey;
+    console.log("[wildebug] ~ file: useOnyx.ts:55 ~ isSearchTopmostCentralPane():", isSearchTopmostCentralPane())
     console.log("[wildebug] ~ file: useOnyx.ts:55 ~ isOnSearch:", isOnSearch)
 
     // In search mode, get the entire snapshot
@@ -68,6 +70,9 @@ type BaseUseOnyxOptions = {
         }
 
         const keyData = (snapshotData as Record<string, any>)?.data[key as string];
+        console.log("[wildebug] ~ file: useOnyx.ts:73 ~ result ~ key:", key)
+        console.log("[wildebug] ~ file: useOnyx.ts:73 ~ result ~ keyData:", keyData)
+
         return [keyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
     }, [isOnSearch, key, snapshotData, metadata]);
 
