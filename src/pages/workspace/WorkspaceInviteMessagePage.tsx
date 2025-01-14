@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -12,6 +13,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -49,6 +51,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
+    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
@@ -100,7 +103,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
+        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, role);
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
@@ -127,6 +130,23 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const policyName = policy?.name;
 
+    const roleItems = useMemo(() => {
+        return Object.values(CONST.POLICY.ROLE).map((roleValue) => {
+            let label = '';
+            if (roleValue === CONST.POLICY.ROLE.USER) {
+                label = translate('common.member');
+            } else if (roleValue === CONST.POLICY.ROLE.ADMIN) {
+                label = translate('common.admin');
+            } else {
+                label = translate('common.auditor');
+            }
+            return {
+                label,
+                value: roleValue,
+            };
+        });
+    }, [translate]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -140,7 +160,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                 style={{marginTop: viewportOffsetTop}}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.inviteMessage.inviteMessageTitle')}
+                    title={translate('workspace.inviteMessage.confirmDetails')}
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -186,6 +206,16 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                         <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
                     <View style={[styles.mb3]}>
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                inputID={INPUT_IDS.ROLE}
+                                InputComponent={ValuePicker}
+                                label={translate('common.role')}
+                                items={roleItems}
+                                value={role}
+                                onValueChange={(value) => setRole(value as typeof role)}
+                            />
+                        </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
