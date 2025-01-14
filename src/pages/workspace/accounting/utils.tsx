@@ -67,7 +67,6 @@ function getAccountingIntegrationData(
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 title: translate('workspace.accounting.qbo'),
                 icon: Expensicons.QBOSquare,
                 setupConnectionFlow: (
@@ -113,7 +112,6 @@ function getAccountingIntegrationData(
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
                 title: translate('workspace.accounting.xero'),
                 icon: Expensicons.XeroSquare,
                 setupConnectionFlow: (
@@ -145,7 +143,6 @@ function getAccountingIntegrationData(
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionFlow: (
@@ -214,12 +211,10 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},
-                multiConnectorAlias: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
             };
         case CONST.POLICY.CONNECTIONS.NAME.NSQS:
             // s77rt: add missing fields
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.NSQS,
                 title: translate('workspace.accounting.nsqs'),
                 icon: Expensicons.NetSuiteSquare, // s77rt: wrong icon
                 setupConnectionFlow: (
@@ -228,11 +223,9 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                multiConnectorAlias: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
                 title: translate('workspace.accounting.intacct'),
                 icon: Expensicons.IntacctSquare,
                 setupConnectionFlow: (
@@ -280,7 +273,6 @@ function getAccountingIntegrationData(
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             return {
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD,
                 title: translate('workspace.accounting.qbd'),
                 icon: Expensicons.QBDSquare,
                 setupConnectionFlow: (

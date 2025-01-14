@@ -34,55 +34,61 @@ type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
 
 function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPageProps) {
     const policyID = policy?.id ?? '-1';
-    const connection = getConnectionNameFromRouteParam(route.params.connection);
+    const multiConnectionName = getConnectionNameFromRouteParam(route.params.connection);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     // s77rt: set popoverAnchorRefs
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
-    const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames);
-    const connectionsData = accountingIntegrations.reduce<AccountingIntegration[]>((data, integration) => {
-        const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-        if (integrationData?.multiConnectorAlias === connection) {
-            data.push(integrationData);
-        }
-        return data;
-    }, []);
+    const integrations = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[multiConnectionName] ?? [];
 
     const connectionsMenuItems: MenuItemData[] = useMemo(
         () =>
-            connectionsData.map<MenuItemData>((connectionData) => ({
-                title: connectionData.title,
-                icon: connectionData.icon,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    startIntegrationFlow({
-                        name: connectionData.connectionName,
-                        // s77rt
-                        //integrationToDisconnect: connectedIntegration,
-                        //shouldDisconnectIntegrationBeforeConnecting: true,
-                    });
-                },
-            })),
-        [],
+            integrations
+                .map((integration) => {
+                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                    if (!integrationData) {
+                        return undefined;
+                    }
+
+                    const connectionsMenuItem: MenuItemData = {
+                        title: integrationData.title,
+                        icon: integrationData.icon,
+                        iconType: CONST.ICON_TYPE_AVATAR,
+                        shouldShowRightIcon: true,
+                        onPress: () => {
+                            startIntegrationFlow({
+                                name: integration,
+                                // s77rt
+                                //integrationToDisconnect: connectedIntegration,
+                                //shouldDisconnectIntegrationBeforeConnecting: true,
+                            });
+                        },
+                    };
+
+                    return connectionsMenuItem;
+                })
+                .filter(Boolean) as MenuItemData[],
+        [integrations],
     );
+
+    const shouldBeBlocked = !connectionsMenuItems.length;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 testID={MultiConnectionSelectorPage.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton title={translate(`workspace.${connection}.multiConnector.title` as TranslationPaths)} />
-                <Text style={[styles.ph5, styles.pt3, styles.mb5]}>{translate(`workspace.${connection}.multiConnector.description` as TranslationPaths)}</Text>
+                <HeaderWithBackButton title={translate(`workspace.multiConnectionSelector.title`, {connectionName: multiConnectionName})} />
+                <Text style={[styles.ph5, styles.pt3, styles.mb5]}>{translate(`workspace.multiConnectionSelector.description`, {connectionName: multiConnectionName})}</Text>
                 <MenuItemList
                     menuItems={connectionsMenuItems}
                     shouldUseSingleExecution

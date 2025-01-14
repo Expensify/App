@@ -27,7 +27,6 @@ type WorkspaceUpgradeNavigationDetails = {
 };
 
 type AccountingIntegration = {
-    connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     title: string;
     icon: IconAsset;
     setupConnectionFlow: React.ReactNode;
@@ -41,8 +40,6 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
-    // s77rt: explain or use better field name
-    multiConnectorAlias?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 };
 
 export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};
