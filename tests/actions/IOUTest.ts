@@ -3691,7 +3691,7 @@ describe('actions/IOU', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActions.at(0)?.childReportID}`,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
-                        //Then the system message 'resolved the duplicate' should be displayed
+                        // Then the system message 'resolved the duplicate' should be displayed
                         const dismissedViolationReportAction = Object.values(reportActions ?? {}).at(0);
                         if (ReportActionsUtils.isActionOfType(dismissedViolationReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
                             const dismissedViolationMessageText = ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(dismissedViolationReportAction));
