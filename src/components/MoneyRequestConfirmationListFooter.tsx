@@ -469,10 +469,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                            CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
