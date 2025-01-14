@@ -5,10 +5,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import * as NetworkActions from './actions/Network';
-import * as UpdateRequired from './actions/UpdateRequired';
+import {setTimeSkew} from './actions/Network';
+import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
-import * as ApiUtils from './ApiUtils';
+import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import prepareRequestPayload from './prepareRequestPayload';
 
@@ -74,7 +74,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 const endTime = new Date().valueOf();
                 const latency = (endTime - startTime) / 2;
                 const skew = serverTime - startTime + latency;
-                NetworkActions.setTimeSkew(dateHeaderValue ? skew : 0);
+                setTimeSkew(dateHeaderValue ? skew : 0);
             }
             return response;
         })
@@ -145,7 +145,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
-                UpdateRequired.alertUser();
+                alertUser();
             }
             return response as Promise<Response>;
         });
@@ -160,7 +160,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  */
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
-        const url = ApiUtils.getCommandURL({shouldUseSecure, command});
+        const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
 
         return processHTTPRequest(url, type, formData, abortSignalController?.signal);
