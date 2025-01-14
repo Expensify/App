@@ -56,7 +56,7 @@ type MoneyReportHeaderProps = {
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID?: string | null;
+    transactionThreadReportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
@@ -67,8 +67,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const requestParentReportAction = useMemo(() => {
@@ -83,7 +83,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const transaction =
         transactions?.[
             `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? -1 : -1
+                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
             }`
         ] ?? undefined;
 
@@ -96,7 +96,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -115,12 +115,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID ?? '');
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
-    const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
+    const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -131,8 +131,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations ||
-        (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID ?? '')));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID)));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -145,6 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton =
         !!moneyRequestReport &&
+        !isArchivedReport &&
         isDraft &&
         reimbursableSpend !== 0 &&
         !hasAllPendingRTERViolations &&
@@ -215,10 +215,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
             const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-                ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
-                : '-1';
+                ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
+                : undefined;
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '-1', iouTransactionID, requestParentReportAction, true);
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
             } else {
                 navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
@@ -232,10 +232,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
         const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
-            : '-1';
-        const reportID = transactionThreadReport?.reportID ?? '-1';
+            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
+            : undefined;
+        const reportID = transactionThreadReport?.reportID;
 
+        if (!iouTransactionID || !reportID) {
+            return;
+        }
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
@@ -265,7 +268,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
                     <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID ?? '-1'}
+                        transactionID={transaction?.transactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />
@@ -354,7 +357,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             text={translate('iou.reviewDuplicates')}
                             style={styles.p0}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>
@@ -422,7 +425,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 text={translate('iou.reviewDuplicates')}
                                 style={[styles.flex1, styles.pr0]}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                                 }}
                             />
                         )}
