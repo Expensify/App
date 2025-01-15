@@ -4232,7 +4232,7 @@ const translations = {
             from: 'de',
         },
         inviteMessage: {
-            inviteMessageTitle: 'Añadir un mensaje',
+            confirmDetails: 'Confirma los detalles',
             inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
