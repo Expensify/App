@@ -239,6 +239,9 @@ export default {
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
+    cardMiniatureWidth: 20,
+    cardMiniatureHeight: 13,
+    cardMiniatureBorderRadius: 2,
 
     cardNameWidth: 156,
     holdMenuIconSize: 64,

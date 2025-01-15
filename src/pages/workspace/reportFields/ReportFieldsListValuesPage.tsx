@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -10,12 +10,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -90,18 +90,6 @@ function ReportFieldsListValuesPage({
         return [reportFieldValues, reportFieldDisabledValues];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
-    const updateReportFieldListValueEnabled = useCallback(
-        (value: boolean, valueIndex: number) => {
-            if (reportFieldID) {
-                ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
-                return;
-            }
-
-            ReportField.setReportFieldsListValueEnabled([valueIndex], value);
-        },
-        [policyID, reportFieldID],
-    );
-
     const listValuesSections = useMemo(() => {
         const data = listValues
             .map<ValueListItem>((value, index) => ({
@@ -111,17 +99,11 @@ function ReportFieldsListValuesPage({
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues.at(index) ?? true,
-                rightElement: (
-                    <Switch
-                        isOn={!disabledListValues.at(index) ?? true}
-                        accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                        onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
-                    />
-                ),
+                rightElement: <ListItemRightCaretWithLabel labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled]);
+    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
