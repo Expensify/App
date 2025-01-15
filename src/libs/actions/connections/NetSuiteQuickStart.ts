@@ -125,4 +125,26 @@ function updateNetSuiteQuickStartProjectsMapping(
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_PROJECTS_MAPPING, params, onyxData);
 }
 
-export {updateNetSuiteQuickStartCustomersMapping, updateNetSuiteQuickStartProjectsMapping};
+function updateNetSuiteQuickStartExporter(policyID: string, email: string, oldEmail: string) {
+    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'exporter', email, oldEmail, CONST.NSQS_CONFIG.EXPORTER);
+
+    const params = {
+        policyID,
+        email,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORTER, params, onyxData);
+}
+
+function updateNetSuiteQuickStartExportDate(policyID: string, value: ValueOf<typeof CONST.NSQS_EXPORT_DATE>, oldValue: ValueOf<typeof CONST.NSQS_EXPORT_DATE>) {
+    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'exportDate', value, oldValue, CONST.NSQS_CONFIG.EXPORT_DATE);
+
+    const params = {
+        policyID,
+        value,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORT_DATE, params, onyxData);
+}
+
+export {updateNetSuiteQuickStartCustomersMapping, updateNetSuiteQuickStartProjectsMapping, updateNetSuiteQuickStartExporter, updateNetSuiteQuickStartExportDate};
