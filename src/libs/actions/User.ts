@@ -888,6 +888,29 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+function subscribeToPusherPong() {
+    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
+    if (currentUserAccountID === -1) {
+        return;
+    }
+
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {});
+}
+
+let pingPongStarted = false;
+function initializePusherPingPong() {
+    // Ignore any additional calls to initialize the ping pong if it's already been started
+    if (pingPongStarted) {
+        return;
+    }
+
+    pingPongStarted = true;
+}
+
+function pingPusher() {
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
+}
+
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
