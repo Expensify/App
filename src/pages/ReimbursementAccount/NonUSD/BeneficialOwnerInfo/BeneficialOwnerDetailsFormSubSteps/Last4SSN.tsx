@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,9 +23,9 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [last4SSNInputID]);
+            const errors = getFieldRequiredErrors(values, [last4SSNInputID]);
 
-            if (values[last4SSNInputID] && !ValidationUtils.isValidSSNLastFour(String(values[last4SSNInputID]))) {
+            if (values[last4SSNInputID] && !isValidSSNLastFour(String(values[last4SSNInputID]))) {
                 errors[last4SSNInputID] = translate('bankAccount.error.ssnLast4');
             }
 
