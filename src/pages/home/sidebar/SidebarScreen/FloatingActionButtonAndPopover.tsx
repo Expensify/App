@@ -376,7 +376,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             },
-            tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+            tooltipShiftHorizontal: variables.quickActionTooltipShiftHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.productTrainingTooltipWrapper,

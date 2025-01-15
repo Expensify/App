@@ -164,8 +164,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     },
-                    tooltipShiftHorizontal: -32,
-                    tooltipShiftVertical: 15,
+                    tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
+                    tooltipShiftVertical: variables.savedSearchShiftVertical,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
