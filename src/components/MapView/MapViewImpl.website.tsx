@@ -280,11 +280,9 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                             latitude={distanceSymbolCoorinate.at(1) ?? 0}
                         >
                             <View style={{marginRight: 100}}>
-                                <View
-                                    style={{backgroundColor: '#60d184', paddingHorizontal: 10, paddingVertical: 4, color: 'white', borderRadius: 12, fontWeight: 'bold', textAlign: 'center'}}
-                                >
-                                    <View style={{fontSize: 16}}> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)}</View>
-                                    <View style={{fontSize: 12}}> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}</View>
+                                <View style={styles.distanceLabelWrapper}>
+                                    <View> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)}</View>
+                                    <View> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}</View>
                                 </View>
                             </View>
                         </Marker>

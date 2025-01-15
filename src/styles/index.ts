@@ -4005,6 +4005,16 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 8,
             borderRadius: variables.componentBorderRadiusMedium,
         },
+        distanceLabelWrapper: {
+            backgroundColor: colors.green400,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
+        },
 
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
