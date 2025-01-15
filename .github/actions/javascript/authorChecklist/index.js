@@ -17680,9 +17680,9 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
+    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        // eslint-disable-next-line rulesdir/no-default-id-values
         return this.octokit.actions
             .listWorkflowRuns({
             owner: CONST_1.default.GITHUB_OWNER,
