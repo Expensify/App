@@ -10,8 +10,8 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
-import * as LoginUtils from './LoginUtils';
+import {translateLocal} from './Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -119,7 +119,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
             return;
         }
 
-        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
+        errors[fieldKey] = translateLocal('common.error.fieldRequired');
     });
 
     return errors;
@@ -203,7 +203,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -214,10 +214,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
 
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
 /**
@@ -229,14 +229,14 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     return '';
@@ -319,7 +319,7 @@ function isValidTwoFactorCode(code: string): boolean {
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  */
 function isNumericWithSpecialChars(input: string): boolean {
-    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -516,7 +516,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
