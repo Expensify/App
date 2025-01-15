@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissHoldUseExplanation} from '@libs/actions/IOU';
 import {markAsCash as markAsCashUtil} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
@@ -27,7 +26,6 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationUtil,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

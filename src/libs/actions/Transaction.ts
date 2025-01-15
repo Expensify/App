@@ -445,7 +445,6 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 : undefined,
         };
     });
-
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
     // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE

@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getTransactionViolations} from '@libs/TransactionUtils';
 import ROUTES from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 
@@ -16,7 +16,7 @@ type DebugTransactionViolationsProps = {
 };
 
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
-    const transactionViolations = TransactionUtils.getTransactionViolations(transactionID);
+    const transactionViolations = getTransactionViolations(transactionID);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
