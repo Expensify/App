@@ -18,18 +18,18 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
+import {deactivateCard as deactivateCard_1, openCardDetailsPage} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +40,7 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<SettingsN
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -56,13 +56,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const card = cardsList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card?.availableSpend);
-    const formattedLimit = CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
+    const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend);
+    const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
+    const displayName = getDisplayNameOrDefault(cardholder);
+    const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
     const fetchCardDetails = useCallback(() => {
-        Card.openCardDetailsPage(Number(cardID));
+        openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
@@ -73,7 +73,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsDeactivateModalVisible(false);
         Navigation.goBack();
         InteractionManager.runAfterInteractions(() => {
-            Card.deactivateCard(workspaceAccountID, card);
+            deactivateCard_1(workspaceAccountID, card);
         });
     };
 
@@ -123,7 +123,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             />
                             <MenuItemWithTopDescription
                                 description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
-                                title={CardUtils.maskCard(card?.lastFourPAN)}
+                                title={maskCard(card?.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -165,7 +165,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                                            query: SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
                                         }),
                                     );
                                 }}
