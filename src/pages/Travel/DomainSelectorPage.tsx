@@ -7,14 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem, {DomainItem} from '@components/SelectionList/TravelDomainListItem';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function DomainSelectorPage() {
     const styles = useThemeStyles();
@@ -24,25 +22,23 @@ function DomainSelectorPage() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [selectedDomain, setSelectedDomain] = useState('');
 
-    const data: DomainItem[] = useMemo(
-        () =>{
-            return [
-                ...new Set(
-                    Object.entries(activePolicy?.employeeList ?? {})
-                        .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
-                        .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
-                ),
-            ].map((domain) => {
-                return {
-                    value: domain,
-                    isSelected: domain === selectedDomain,
-                    keyForList: domain,
-                    text: domain,
-                    isRecommended: domain === 'domain.com',
-                };
-            });},
-        [activePolicy, selectedDomain],
-    );
+    const data: DomainItem[] = useMemo(() => {
+        return [
+            ...new Set(
+                Object.entries(activePolicy?.employeeList ?? {})
+                    .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
+                    .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
+            ),
+        ].map((domain) => {
+            return {
+                value: domain,
+                isSelected: domain === selectedDomain,
+                keyForList: domain,
+                text: domain,
+                isRecommended: domain === 'domain.com',
+            };
+        });
+    }, [activePolicy, selectedDomain]);
 
     const footerContent = useMemo(
         () => (

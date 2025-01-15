@@ -1,12 +1,11 @@
-import React, {useMemo, useState} from 'react';
+import React from 'react';
+import {View} from 'react-native-web';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import RenderHTML from '@components/RenderHTML';
-import { View } from 'react-native-web';
 
 function DomainPermissionInfoPage() {
     const styles = useThemeStyles();
@@ -23,13 +22,9 @@ function DomainPermissionInfoPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
-                <RenderHTML 
-                    html={translate('travel.domainPermissionInfo.restriction', {domain: 'domain.com'})}
-                />
-                <br/>
-                <RenderHTML 
-                    html={translate('travel.domainPermissionInfo.accountantInvitation')}
-                />
+                <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: 'domain.com'})} />
+                <br />
+                <RenderHTML html={translate('travel.domainPermissionInfo.accountantInvitation')} />
             </View>
         </ScreenWrapper>
     );

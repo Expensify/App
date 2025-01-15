@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import {title} from 'process';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {
@@ -206,7 +207,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-import { title } from 'process';
 
 type StateValue = {
     stateISO: string;
@@ -2537,9 +2537,10 @@ const translations = {
         },
         domainPermissionInfo: {
             title: 'Domain',
-            restriction: ({domain}: DomainPermissionInfoParams) => `You don't have permission to enable Expensify Travel for the domain <strong>${domain}</strong>. You'll need to ask someone from that domain to enable travel instead.`,
+            restriction: ({domain}: DomainPermissionInfoParams) =>
+                `You don't have permission to enable Expensify Travel for the domain <strong>${domain}</strong>. You'll need to ask someone from that domain to enable travel instead.`,
             accountantInvitation: `If you're a accountant, consider joining the <a href="https://use.expensify.com/accountants-program">ExpensifyApproved! accountants program</a> to enable travel for this domain.`,
-        }
+        },
     },
     workspace: {
         common: {

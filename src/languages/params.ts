@@ -608,7 +608,7 @@ type FlightLayoverParams = {
 
 type DomainPermissionInfoParams = {
     domain: string;
-}
+};
 
 export type {
     AuthenticationErrorParams,

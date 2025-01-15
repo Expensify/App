@@ -109,17 +109,17 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID || policy?.travelSettings?.associatedTravelDomainAccountID;
     if (policy?.travelSettings?.hasAcceptedTerms || (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
         Link.openTravelDotLink(activePolicyID)
-        ?.then(() => {
-            if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
-                return;
-            }
+            ?.then(() => {
+                if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
+                    return;
+                }
 
-            Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-            NativeModules.HybridAppModule.closeReactNativeApp(false, false);
-        })
-        ?.catch(() => {
-            setCtaErrorMessage(translate('travel.errorMessage'));
-        });
+                Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
+                NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+            })
+            ?.catch(() => {
+                setCtaErrorMessage(translate('travel.errorMessage'));
+            });
         if (ctaErrorMessage) {
             setCtaErrorMessage('');
         }
@@ -128,8 +128,6 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     } else {
         Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
     }
-    
-    
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
 export type {ReservationData};
