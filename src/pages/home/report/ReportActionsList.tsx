@@ -19,7 +19,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
@@ -415,7 +415,7 @@ function ReportActionsList({
     }, []);
 
     useEffect(() => {
-        if (!Browser.isSafari()) {
+        if (!isSafari()) {
             return;
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
