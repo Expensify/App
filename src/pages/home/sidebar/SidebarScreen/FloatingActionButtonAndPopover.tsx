@@ -429,7 +429,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         translate,
         quickActionAvatars,
         isValidReport,
-        styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
         styles.pt3,
         styles.pb2,
