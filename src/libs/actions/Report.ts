@@ -3666,14 +3666,16 @@ function prepareOnboardingOnyxData(
             if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-            type SkipViewTourOnboardingChoices = "newDotSubmit" | "newDotSplitChat" | "newDotPersonalSpend" | "newDotEmployer"
+            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
             if (
                 task.type === 'viewTour' &&
-                [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.SUBMIT, CONST.ONBOARDING_CHOICES.CHAT_SPLIT].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
+                [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.SUBMIT, CONST.ONBOARDING_CHOICES.CHAT_SPLIT].includes(
+                    introSelected?.choice as SkipViewTourOnboardingChoices,
+                ) &&
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
             ) {
-                    return false;
-             }
+                return false;
+            }
             return true;
         })
         .map((task, index) => {
@@ -3715,7 +3717,7 @@ function prepareOnboardingOnyxData(
                 ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
                 : null;
             if (task.type === 'createWorkspace') {
-                createWorkspaceTaskReportID = currentTask.reportID
+                createWorkspaceTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -4170,7 +4172,6 @@ function prepareOnboardingOnyxData(
         });
         guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
     }
-
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
