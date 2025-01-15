@@ -166,7 +166,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     },
                     tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
                     tooltipShiftVertical: variables.savedSearchShiftVertical,
-                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2, {borderRadius: variables.componentBorderRadiusNormal}],
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
