@@ -3,6 +3,7 @@ import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewSt
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = {
     /** Input label */
     label?: string;
@@ -116,9 +117,6 @@ type CustomBaseTextInputProps = {
     /** Type of autocomplete */
     autoCompleteType?: string;
 
-    /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
-    isMarkdownEnabled?: boolean;
-
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
@@ -145,10 +143,16 @@ type CustomBaseTextInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
+
+    /** The type (internal implementation) of input. Cab one of: `default`, `mask`, `markdown` */
+    type?: InputType;
+
+    /** Whether the input should be enforced to be uncontrolled. Default is `false` */
+    uncontrolled?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps};
+export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps, InputType};

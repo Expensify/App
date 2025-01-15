@@ -91,7 +91,7 @@ function NewTaskDescriptionPage({task, route}: NewTaskDescriptionPageProps) {
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            isMarkdownEnabled
+                            type="markdown"
                         />
                     </View>
                 </FormProvider>

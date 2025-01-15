@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
+import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -17,9 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
-
-import TextInputMask from "react-native-text-input-mask";
-import { MaskedTextInput } from 'react-native-advanced-input-mask';
 
 function SearchFiltersAmountPage() {
     const styles = useThemeStyles();
@@ -76,17 +74,15 @@ function SearchFiltersAmountPage() {
                 </View>
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={MaskedTextInput}
-                        style={{width: '100%', height: 50, backgroundColor: 'white', color: 'black'}}
-                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                        mask="[99999999][.][99]"
-                        customNotations={[{character: '.', characterSet: '.', isOptional: true}]}
+                        InputComponent={AmountWithoutCurrencyInput}
                         inputID={INPUT_IDS.LESS_THAN}
+                        onPaste={(e) => console.log('paste', e.nativeEvent)}
                         name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThanFormattedAmount}
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
+                        uncontrolled
                     />
                 </View>
             </FormProvider>

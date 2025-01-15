@@ -159,7 +159,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             }
                             privateNotesInput.current = el;
                         }}
-                        isMarkdownEnabled
+                        type="markdown"
                     />
                 </OfflineWithFeedback>
             </FormProvider>
