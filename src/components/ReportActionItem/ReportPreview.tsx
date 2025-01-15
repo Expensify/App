@@ -368,7 +368,7 @@ function ReportPreview({
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
-            return translate('common.receipt');
+            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}`;
         }
 
         let payerOrApproverName;
