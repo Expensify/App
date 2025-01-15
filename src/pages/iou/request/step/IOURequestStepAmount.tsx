@@ -208,18 +208,22 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
                     playSound(SOUNDS.DONE);
-                    IOU.trackExpense(
+                    IOU.trackExpense({
                         report,
-                        backendAmount,
-                        currency ?? 'USD',
-                        transaction?.created ?? '',
-                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants.at(0) ?? {},
-                        '',
-                        false,
-                    );
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant: participants.at(0) ?? {},
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency: currency ?? 'USD',
+                            created: transaction?.created,
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            comment: '',
+                        },
+                    });
                     return;
                 }
             }

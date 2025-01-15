@@ -67,34 +67,29 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', () => {
-        // When we categorize a tracked expense with a draft policy
-        IOU.trackExpense(
-            {reportID: '123'},
-            1000,
-            'USD',
-            '2024-10-30',
-            'merchant',
-            undefined,
-            0,
-            {accountID},
-            'comment',
-            true,
-            undefined,
-            'category',
-            'tag',
-            'taxCode',
-            0,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            CONST.IOU.ACTION.CATEGORIZE,
-            'actionableWhisperReportActionID',
-            {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
-            'linkedTrackedExpenseReportID',
-        );
+        IOU.trackExpense({
+            report: {reportID: '123'},
+            isDraftPolicy: true,
+            action: CONST.IOU.ACTION.CATEGORIZE,
+            participantParams: {
+                payeeEmail: undefined,
+                payeeAccountID: 0,
+                participant: {accountID},
+            },
+            transactionParams: {
+                amount: 1000,
+                currency: 'USD',
+                created: '2024-10-30',
+                merchant: 'merchant',
+                comment: 'comment',
+                category: 'category',
+                tag: 'tag',
+                taxCode: 'taxCode',
+                actionableWhisperReportActionID: 'actionableWhisperReportActionID',
+                linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+                linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
+            },
+        });
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
