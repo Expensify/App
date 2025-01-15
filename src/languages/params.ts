@@ -419,7 +419,7 @@ type TrialStartedTitleParams = {numOfDays: number};
 
 type EarlyDiscountTitleParams = {discountType: number};
 
-type EarlyDiscountSubtitleParams = {days: number, hours: number, minutes: number, seconds: number};
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
 
 type CardNextPaymentParams = {nextPaymentDate: string};
 

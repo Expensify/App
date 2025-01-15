@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {translateLocal} from './Localize';
-import * as PolicyUtils from './PolicyUtils';
+import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
     POLICY_OWNER_WITH_AMOUNT_OWED: 'policy_owner_with_amount_owed',
@@ -441,7 +441,7 @@ function calculateRemainingFreeTrialDays(): number {
  * @returns The free trial badge text .
  */
 function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
-    const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
+    const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
@@ -512,7 +512,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
             // Extracts the owner account ID from the collection member key.
             const ownerAccountID = Number(entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length));
 
-            if (PolicyUtils.isPolicyOwner(policy, ownerAccountID)) {
+            if (isPolicyOwner(policy, ownerAccountID)) {
                 return true;
             }
         }
@@ -521,7 +521,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
-        PolicyUtils.isPolicyOwner(policy, currentUserAccountID) &&
+        isPolicyOwner(policy, currentUserAccountID) &&
         ownerBillingGraceEndPeriod &&
         amountOwed !== undefined &&
         amountOwed > 0 &&

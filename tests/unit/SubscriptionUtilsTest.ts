@@ -1,7 +1,16 @@
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import {
+    calculateRemainingFreeTrialDays,
+    doesUserHavePaymentCardAdded,
+    getEarlyDiscountInfo,
+    getSubscriptionStatus,
+    hasUserFreeTrialEnded,
+    isUserOnFreeTrial,
+    PAYMENT_STATUS,
+    shouldRestrictUserBillableActions,
+    shouldShowDiscountBanner,
+} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
@@ -56,22 +65,22 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return 0 if the Onyx key is not set', () => {
-            expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(0);
+            expect(calculateRemainingFreeTrialDays()).toBe(0);
         });
 
         it('should return 0 if the current date is after the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 8), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(0);
+            expect(calculateRemainingFreeTrialDays()).toBe(0);
         });
 
         it('should return 1 if the current date is on the same day of the free trial end date, but some minutes earlier', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(1);
+            expect(calculateRemainingFreeTrialDays()).toBe(1);
         });
 
         it('should return the remaining days if the current date is before the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(5);
+            expect(calculateRemainingFreeTrialDays()).toBe(5);
         });
     });
 
@@ -85,7 +94,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx keys are not set', () => {
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial()).toBeFalsy();
         });
 
         it('should return false if the current date is before the free trial start date', async () => {
@@ -94,7 +103,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial()).toBeFalsy();
         });
 
         it('should return false if the current date is after the free trial end date', async () => {
@@ -103,7 +112,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial()).toBeFalsy();
         });
 
         it('should return true if the current date is on the same date of free trial start date', async () => {
@@ -112,7 +121,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial()).toBeTruthy();
         });
 
         it('should return true if the current date is on the same date of free trial end date, but some minutes earlier', async () => {
@@ -121,7 +130,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial()).toBeTruthy();
         });
 
         it('should return true if the current date is between the free trial start and end dates', async () => {
@@ -130,7 +139,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial()).toBeTruthy();
         });
     });
 
@@ -144,17 +153,17 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx key is not set', () => {
-            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeFalsy();
+            expect(hasUserFreeTrialEnded()).toBeFalsy();
         });
 
         it('should return false if the current date is before the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeFalsy();
+            expect(hasUserFreeTrialEnded()).toBeFalsy();
         });
 
         it('should return true if the current date is after the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeTruthy();
+            expect(hasUserFreeTrialEnded()).toBeTruthy();
         });
     });
 
@@ -167,12 +176,12 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx key is not set', () => {
-            expect(SubscriptionUtils.doesUserHavePaymentCardAdded()).toBeFalsy();
+            expect(doesUserHavePaymentCardAdded()).toBeFalsy();
         });
 
         it('should return true if the Onyx key is set', async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
-            expect(SubscriptionUtils.doesUserHavePaymentCardAdded()).toBeTruthy();
+            expect(doesUserHavePaymentCardAdded()).toBeTruthy();
         });
     });
 
@@ -189,7 +198,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions('1')).toBeFalsy();
+            expect(shouldRestrictUserBillableActions('1')).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
@@ -207,7 +216,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
         it("should return false if the user is a workspace's non-owner that is not past due billing", async () => {
@@ -225,7 +234,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
         it("should return true if the user is a workspace's non-owner that is past due billing", async () => {
@@ -243,7 +252,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
 
         it("should return false if the user is the workspace's owner but is not past due billing", async () => {
@@ -259,7 +268,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -276,7 +285,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -293,7 +302,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -310,7 +319,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
     });
 
@@ -330,7 +339,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return undefined by default', () => {
-            expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
+            expect(getSubscriptionStatus()).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -339,7 +348,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -351,7 +360,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -363,7 +372,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 isError: true,
             });
@@ -374,7 +383,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
             });
@@ -386,7 +395,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -399,7 +408,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -412,7 +421,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -423,7 +432,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_EXPIRED_CARD,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -436,7 +445,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.FUND_LIST]: FUND_LIST,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -447,7 +456,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -460,7 +469,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
             });
 
-            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
@@ -477,12 +486,12 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeFalsy();
+            expect(shouldShowDiscountBanner()).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
-            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeFalsy();
+            expect(shouldShowDiscountBanner()).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
@@ -490,7 +499,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(SubscriptionUtils.shouldShowDiscountBanner()).toBeTruthy();
+            expect(shouldShowDiscountBanner()).toBeTruthy();
         });
     });
 
@@ -504,7 +513,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.getEarlyDiscountInfo()).toEqual({
+            expect(getEarlyDiscountInfo()).toEqual({
                 discountType: 50,
                 days: 0,
                 hours: 0,
@@ -519,7 +528,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(SubscriptionUtils.getEarlyDiscountInfo()).toEqual({
+            expect(getEarlyDiscountInfo()).toEqual({
                 discountType: 25,
                 days: 6,
                 hours: 0,
@@ -534,7 +543,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
 
-            expect(SubscriptionUtils.getEarlyDiscountInfo()).toBeNull();
+            expect(getEarlyDiscountInfo()).toBeNull();
         });
     });
 });
