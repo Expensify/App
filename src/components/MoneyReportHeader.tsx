@@ -13,7 +13,26 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    canBeExported,
+    canDeleteTransaction,
+    getArchiveReason,
+    getBankAccountRoute,
+    getMoneyRequestSpendBreakdown,
+    getNonHeldAndFullAmount,
+    getTransactionsWithReceipts,
+    hasHeldExpenses,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtil,
+    hasUpdatedTotal,
+    isAllowedToApproveExpenseReport,
+    isAllowedToSubmitDraftExpenseReport,
+    isArchivedReport as isArchivedReportUtil,
+    isClosedExpenseReportWithNoExpenses,
+    isCurrentUserSubmitter,
+    isInvoiceReport,
+    isOpenExpenseReport,
+    navigateBackOnDeleteTransaction,
+} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
     getAllReportTransactions,
@@ -110,7 +129,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isTransactionOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
     const isDuplicate = isTransactionDuplicate(transaction?.transactionID);
@@ -118,25 +137,25 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const canDeleteRequest = isActionOwner && ReportUtils.canDeleteTransaction(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && canDeleteTransaction(moneyRequestReport) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const allTransactions = useMemo(() => getAllReportTransactions(moneyRequestReport?.reportID, transactions), [moneyRequestReport?.reportID, transactions]);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
+    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
-    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
+    const isDraft = isOpenExpenseReport(moneyRequestReport);
     const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
+    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation([transaction?.transactionID]);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForTransaction(transaction?.transactionID, moneyRequestReport, policy);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtil(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isTransactionPayAtEndExpense(transaction);
-    const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
+    const isArchivedReport = isArchivedReportUtil(moneyRequestReport);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -147,13 +166,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(() => canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
-    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
+    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -167,16 +186,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         !shouldShowBrokenConnectionViolation &&
         (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
         (shouldShowPayButton || shouldShowApproveButton) && !hasAllPendingRTERViolations && !shouldShowExportIntegrationButton && !shouldShowBrokenConnectionViolation;
 
-    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
+    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
@@ -185,10 +204,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowNextStep ||
         shouldShowMarkAsCashButton ||
         shouldShowExportIntegrationButton;
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
+    const bankAccountRoute = getBankAccountRoute(chatReport);
     const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
-    const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
+    const isAnyTransactionOnHold = hasHeldExpenses(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -208,7 +227,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsNoDelegateAccessMenuVisible(true);
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
-            } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+            } else if (isInvoiceReport(moneyRequestReport)) {
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
@@ -517,7 +536,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
-                onModalHide={() => ReportUtils.navigateBackOnDeleteTransaction(navigateBackToAfterDelete.current)}
+                onModalHide={() => navigateBackOnDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
