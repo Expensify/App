@@ -28,6 +28,7 @@ import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -888,15 +889,48 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+// Holds a map of all the PINGs that have been sent to the server and when they were sent
+// Once a PONG is received, the event data will be removed from this map.
+type PingPongTimestampMap = Record<string, Pusher.PingPongEvent>;
+const pingIDsAndTimestamps: PingPongTimestampMap = {};
+
 function subscribeToPusherPong() {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (currentUserAccountID === -1) {
         return;
     }
 
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {});
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+        const pongEvent = pushJSON as Pusher.PingPongEvent;
+        // First, check to see if the PONG event is in the pingIDsAndTimestamps map
+        const pingEvent = pingIDsAndTimestamps[pongEvent.id];
+        if (!pingEvent) {
+            Log.info(`[Pusher PINGPONG] Received a PONG event from the server with an ID that wasn't sent by the client: ${pongEvent.id}`);
+            return;
+        }
+
+        // Calculate the latency between the client and the server
+        const latency = Date.now() - Number(pingEvent.timestamp);
+    });
 }
 
+function pingPusher() {
+    // Send a PING event to the server with a specific ID and timestamp
+    // The server will response with a PONG event with the same ID and timestamp
+    // Then we can calculate the latency between the client and the server (or if the server never replies)
+    const pingID = NumberUtils.rand64();
+    const timestamp = Date.now();
+    const eventPayload: Pusher.PingPongEvent = {
+        id: pingID,
+        timestamp,
+    };
+    Pusher.sendEvent(PusherUtils.getUserChannelName(currentUserAccountID.toString()), Pusher.TYPE.PING, eventPayload);
+    pingIDsAndTimestamps[pingID] = timestamp;
+    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${timestamp}`);
+}
+
+// Specify how long between each PING event to the server
+const PING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60000;
 let pingPongStarted = false;
 function initializePusherPingPong() {
     // Ignore any additional calls to initialize the ping pong if it's already been started
@@ -904,11 +938,10 @@ function initializePusherPingPong() {
         return;
     }
 
-    pingPongStarted = true;
-}
+    subscribeToPusherPong();
+    setInterval(pingPusher, PING_PONG_INTERVAL_LENGTH_IN_SECONDS);
 
-function pingPusher() {
-    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
+    pingPongStarted = true;
 }
 
 /**

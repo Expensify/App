@@ -30,10 +30,10 @@ function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promis
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer) => void) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: OnyxUpdatesFromServer) {
+    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -41,7 +41,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    function onEventPush(pushJSON: OnyxUpdatesFromServer) {
+    function onEventPush(pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }
