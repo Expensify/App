@@ -51,6 +51,10 @@ function ReportVirtualCardFraudPage({
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
+        Card.clearReportVirtualCardFraudForm();
+    }, []);
+
+    useEffect(() => {
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
@@ -64,6 +68,7 @@ function ReportVirtualCardFraudPage({
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
+            console.log('handleValidateCodeEntered', validateCode, virtualCard);
             if (!virtualCard) {
                 return;
             }
@@ -84,7 +89,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (!isConfirmationModalVisible && isEmptyObject(virtualCard)) {
+    if (!isConfirmationModalVisible && isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;
     }
 
@@ -100,7 +105,6 @@ function ReportVirtualCardFraudPage({
                     isAlertVisible={!!virtualCardError}
                     onSubmit={handleSubmit}
                     message={virtualCardError}
-                    isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
                     containerStyles={[styles.m5]}
                 />
@@ -116,11 +120,17 @@ function ReportVirtualCardFraudPage({
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
+                    isLoading={formData?.isLoading}
                 />
                 <ReportVirtualCardFraudConfirmationModal
                     isVisible={isConfirmationModalVisible}
                     title="Card fraud reported"
                     descriptionPrimary="Some description"
+                    onClose={() => {
+                        setIsValidateCodeActionModalVisible(false);
+                        setIsConfirmationModalVisible(false);
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+                    }}
                 />
             </View>
         </ScreenWrapper>
