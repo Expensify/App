@@ -4003,7 +4003,7 @@ const styles = (theme: ThemeColors) =>
         reportActionComposeTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         productTrainingTooltipWrapper: {
