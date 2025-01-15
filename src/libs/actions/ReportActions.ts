@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import * as Report from './Report';
+import {deleteReport} from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
 
@@ -40,8 +40,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         });
 
         // If there's a linked transaction, delete that too
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID || '-1');
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, null);
@@ -50,7 +49,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         // Delete the failed task report too
         const taskReportID = ReportActionUtils.getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && ReportActionUtils.isCreatedTaskReportAction(reportAction)) {
-            Report.deleteReport(taskReportID);
+            deleteReport(taskReportID);
         }
         return;
     }
@@ -101,7 +100,7 @@ function clearAllRelatedReportActionErrors(reportID: string | undefined, reportA
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
-            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '-1', action, 'parent', childErrorKeys);
+            clearAllRelatedReportActionErrors(reportAction.childReportID, action, 'parent', childErrorKeys);
         });
     }
 }
