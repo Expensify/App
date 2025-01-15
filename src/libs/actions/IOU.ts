@@ -102,6 +102,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
+    getParsedComment,
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
@@ -3664,9 +3665,9 @@ function updateMoneyRequestDescription(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const parsedComment = ReportUtils.getParsedComment(comment);
+    const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
-        comment: parsedComment,
+        comment,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;

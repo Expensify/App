@@ -11,6 +11,7 @@ import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
+import Parser from '@libs/Parser';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -181,8 +182,8 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.newComment ?? '',
-            reportActionOriginalMessage?.oldComment ?? '',
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
             Localize.translateLocal('common.description'),
             true,
             setFragments,
