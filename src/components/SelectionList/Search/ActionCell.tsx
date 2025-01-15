@@ -92,14 +92,12 @@ function ActionCell({
         ) : null;
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
     return (
         <Button
             text={text}
             onPress={goToItem}
             small
             style={[styles.w100]}
-            innerStyles={buttonInnerStyles}
             isLoading={isLoading}
             success
             isDisabled={isOffline}
