@@ -453,24 +453,24 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
-function getFeedType(cardFeed: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
-    if (CUSTOM_FEEDS.some((feed) => feed === cardFeed)) {
-        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(cardFeed));
+function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+    if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
+        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(feedKey));
 
-        const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(cardFeed, ''), 10)).filter(Boolean);
+        const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
         feedNumbers.sort((a, b) => a - b);
 
         let firstAvailableNumber = 1;
         for (const num of feedNumbers) {
             if (num && num !== firstAvailableNumber) {
-                return `${cardFeed}${firstAvailableNumber}`;
+                return `${feedKey}${firstAvailableNumber}`;
             }
             firstAvailableNumber++;
         }
 
-        return `${cardFeed}${firstAvailableNumber}`;
+        return `${feedKey}${firstAvailableNumber}`;
     }
-    return cardFeed;
+    return feedKey;
 }
 
 export {
