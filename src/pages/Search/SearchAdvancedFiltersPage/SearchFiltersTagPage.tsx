@@ -7,7 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ function SearchFiltersTagPage() {
         if (tag === CONST.SEARCH.EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
-        return {name: tag, value: tag};
+        return {name: getCleanedTagName(tag), value: tag};
     });
     const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -38,9 +38,9 @@ function SearchFiltersTagPage() {
                 .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
-            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
         } else {
-            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name, value: name})));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name: getCleanedTagName(name), value: name})));
         }
         return items;
     }, [allPolicyTagLists, singlePolicyTagLists, translate]);
