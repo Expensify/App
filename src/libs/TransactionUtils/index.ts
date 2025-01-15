@@ -901,14 +901,17 @@ function isDuplicate(transactionID: string | undefined, checkDismissed = false):
     if (!transactionID) {
         return false;
     }
-    const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
+    const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
+
+    const hasDuplicatedViolation = !!duplicateViolation;
     if (!checkDismissed) {
-        return hasDuplicatedViolation;
+        return !!duplicateViolation;
     }
-    const didDismissedViolation =
-        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
+
+    const didDismissedViolation = isViolationDismissed(transactionID, duplicateViolation);
+
     return hasDuplicatedViolation && !didDismissedViolation;
 }
 
@@ -937,8 +940,8 @@ function isOnHoldByTransactionID(transactionID: string | undefined | null): bool
 /**
  * Checks if a violation is dismissed for the given transaction
  */
-function isViolationDismissed(transactionID: string | undefined, violation: TransactionViolation): boolean {
-    if (!transactionID) {
+function isViolationDismissed(transactionID: string | undefined, violation: TransactionViolation | undefined): boolean {
+    if (!transactionID || !violation) {
         return false;
     }
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
