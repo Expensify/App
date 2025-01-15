@@ -15,10 +15,10 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import { OriginalMessageModifiedExpense } from '@src/types/onyx/OriginalMessage';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -462,16 +462,16 @@ function clearError(transactionID: string, oldTransactionValues: Partial<Transac
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...oldTransactionValues, errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
-function getLastModifiedExpense(reportID?: string) :OriginalMessageModifiedExpense | null {
+function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | null {
     const modifiedExpenseActions = Object.values(ReportActionsUtils.getAllReportActions(reportID)).filter(ReportActionsUtils.isModifiedExpenseAction);
     modifiedExpenseActions.sort((a, b) => Number(a.reportActionID) - Number(b.reportActionID));
-    return modifiedExpenseActions.length ? ReportActionsUtils.getOriginalMessage(modifiedExpenseActions.at(-1)) as OriginalMessageModifiedExpense : null
+    return modifiedExpenseActions.length ? (ReportActionsUtils.getOriginalMessage(modifiedExpenseActions.at(-1)) as OriginalMessageModifiedExpense) : null;
 }
 
-function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | null){
+function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | null) {
     const transaction = TransactionUtils.getTransaction(transactionID);
 
-    if (transaction && originalMessage && originalMessage.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage){
+    if (transaction && originalMessage && originalMessage.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
         clearError(transaction.transactionID, {
             modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
             modifiedCurrency: originalMessage.oldCurrency,

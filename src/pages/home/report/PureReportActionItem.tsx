@@ -46,21 +46,21 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Transaction from '@userActions/Transaction';
 import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
+import * as Transaction from '@userActions/Transaction';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -354,12 +354,12 @@ function PureReportActionItem({
             Transaction.revert(ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID, Transaction.getLastModifiedExpense(reportID));
         } else if (ReportActionsUtils.isModifiedExpenseAction(action)) {
             Transaction.revert(
-                ReportActionsUtils.getOriginalMessage(Object.values(ReportActionsUtils.getAllReportActions(reportID)).find(ReportActionsUtils.isMoneyRequestAction))?.IOUTransactionID, 
-                ReportActionsUtils.getOriginalMessage(action)
+                ReportActionsUtils.getOriginalMessage(Object.values(ReportActionsUtils.getAllReportActions(reportID)).find(ReportActionsUtils.isMoneyRequestAction))?.IOUTransactionID,
+                ReportActionsUtils.getOriginalMessage(action),
             );
         }
         clearAllRelatedReportActionErrors(reportID, action);
-    }
+    };
 
     useEffect(
         () => () => {
