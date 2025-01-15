@@ -16,8 +16,18 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as TransactionActions from '@userActions/Transaction';
+import {
+    approveMoneyRequest,
+    canApproveIOU,
+    canIOUBePaid as canIOUBePaidAction,
+    deleteMoneyRequest,
+    deleteTrackExpense,
+    dismissHoldUseExplanation,
+    payInvoice,
+    payMoneyRequest,
+    submitReport,
+} from '@userActions/IOU';
+import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,7 +132,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
         [moneyRequestReport, chatReport, policy, transaction],
     );
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -134,7 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
+    const shouldShowApproveButton = useMemo(() => canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -192,9 +202,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-                IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
-                IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
@@ -207,7 +217,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            IOU.approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, true);
         }
     };
 
@@ -217,9 +227,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
                 : undefined;
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
+                navigateBackToAfterDelete.current = deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
             } else {
-                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
+                navigateBackToAfterDelete.current = deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
         }
 
@@ -238,7 +248,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!iouTransactionID || !reportID) {
             return;
         }
-        TransactionActions.markAsCash(iouTransactionID, reportID);
+        markAsCashAction(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -324,7 +334,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.dismissHoldUseExplanation();
+        dismissHoldUseExplanation();
     };
 
     useEffect(() => {
@@ -398,7 +408,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => IOU.submitReport(moneyRequestReport)}
+                            onPress={() => submitReport(moneyRequestReport)}
                             isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
@@ -459,7 +469,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 success={isWaitingForSubmissionFromCurrentUser}
                                 text={translate('common.submit')}
                                 style={[styles.flex1, styles.pr0]}
-                                onPress={() => IOU.submitReport(moneyRequestReport)}
+                                onPress={() => submitReport(moneyRequestReport)}
                                 isDisabled={shouldDisableSubmitButton}
                             />
                         )}
