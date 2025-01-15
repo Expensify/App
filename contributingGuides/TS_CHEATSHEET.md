@@ -100,43 +100,47 @@
 <a name="animated-style"></a><a name="1.4"></a>
 
 - [1.4](#animated-style) **Animated styles**
-  
-The only recommended way to create animations is by using the 
-`react-native-reanimated` library because it is much more efficient and convenient 
-than using `Animated` directly from `React Native`.
+
+The recommended approach to creating animations is by using the `react-native-reanimated` library,
+as it offers greater efficiency and convenience compared to using the `Animated` API directly from
+React Native.
+
   ```ts
   import React from 'react';
   import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
   import Animated, { useAnimatedStyle, useSharedValue, withTiming, SharedValue, WithTimingConfig } from 'react-native-reanimated';
-
+  
   type MyComponentProps = {
-  style: {
-    opacity: SharedValue<number>;
-    };
+    opacity: Animated.SharedValue<number>;
   };
   
-  function MyComponent({ style }: MyComponentProps) {
-    const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: style.opacity.get(),
-      };
-    });
+  const MyComponent = ({ opacity }: MyComponentProps) => {
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: opacity.value,
+    }));
   
-    return <Animated.View style={animatedStyle}/>;
-  }
+    return (
+      <Animated.View style={[styles.box, animatedStyle]} />
+    );
+  };
   
-  function App() {
+  const App = () => {
     const opacity = useSharedValue(0);
-    
-    const animate = () => {
-      opacity.set(withTiming(1, {
-      duration: 1000,
-      easing: Easing.inOut(Easing.quad),
-      reduceMotion: ReduceMotion.System,
-    }))}
   
-    return <MyComponent style={{ opacity }} />;
-  }
+    const startAnimation = () => {
+      opacity.value = withTiming(1, {
+        duration: 1000,
+        easing: Easing.inOut(Easing.quad),
+      });
+    };
+  
+    return (
+      <View style={styles.container}>
+        <MyComponent opacity={opacity} />
+        <Button title="Animate" onPress={startAnimation} /> 
+      </View>
+    );
+  };
   ```
 
 <a name="render-prop"></a><a name="1.5"></a>
