@@ -1,24 +1,38 @@
-import React, {useMemo, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem, {DomainItem} from '@components/SelectionList/TravelDomainListItem';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import Button from '@components/Button';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function DomainSelectorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [selectedDomain, setSelectedDomain] = useState('');
 
-    const domains: string[] = ['domain.com', 'domain2.com', 'domain3.com'];
     const data: DomainItem[] = useMemo(
-        () =>
-            Object.values(domains).map((domain) => {
+        () =>{
+            return [
+                ...new Set(
+                    Object.entries(activePolicy?.employeeList ?? {})
+                        .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
+                        .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
+                ),
+            ].map((domain) => {
                 return {
                     value: domain,
                     isSelected: domain === selectedDomain,
@@ -26,8 +40,8 @@ function DomainSelectorPage() {
                     text: domain,
                     isRecommended: domain === 'domain.com',
                 };
-            }),
-        [domains, selectedDomain],
+            });},
+        [activePolicy, selectedDomain],
     );
 
     const footerContent = useMemo(
