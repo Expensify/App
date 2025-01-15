@@ -173,7 +173,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <MenuItem
                                 icon={Expensicons.MoneySearch}
                                 title={translate('workspace.common.viewTransactions')}
-                                style={styles.mv1}
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
@@ -193,7 +192,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     disabled={isOffline || card?.isLoadingLastUpdated}
                                     iconFill={theme.success}
                                     title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                    style={styles.mv1}
                                     brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={updateCard}
                                 />
@@ -202,7 +200,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 icon={Expensicons.RemoveMembers}
                                 iconFill={theme.success}
                                 title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                                style={styles.mv1}
+                                style={styles.mb1}
                                 onPress={() => setIsUnassignModalVisible(true)}
                             />
                             <ConfirmModal

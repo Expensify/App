@@ -162,7 +162,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <MenuItem
                                 icon={Expensicons.MoneySearch}
                                 title={translate('workspace.common.viewTransactions')}
-                                style={styles.mv1}
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
@@ -174,7 +173,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <MenuItem
                                 icon={Expensicons.Trashcan}
                                 title={translate('workspace.expensifyCard.deactivate')}
-                                style={styles.mv1}
+                                style={styles.mb1}
                                 onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
                             />
                             <ConfirmModal
