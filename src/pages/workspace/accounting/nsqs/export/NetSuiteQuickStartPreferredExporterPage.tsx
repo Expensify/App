@@ -2,12 +2,14 @@ import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteQuickStartExporter} from '@libs/actions/connections/NetSuiteQuickStart';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getAdminEmployees, settingsPendingAction} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -18,16 +20,35 @@ function NetSuiteQuickStartPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
+    const policyOwner = policy?.owner ?? '';
     const nsqsConfig = policy?.connections?.nsqs?.config;
-    const exporter = nsqsConfig?.exporter ?? '';
+    const exporter = nsqsConfig?.exporter ?? policyOwner;
+    const exporters = getAdminEmployees(policy);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    // s77rt: need list of exporters
-    const sectionData: SelectorType[] = ['s77rt@s77rt.com'].map((option) => ({
-        keyForList: option,
-        text: option,
-        isSelected: option === exporter,
-        value: option,
-    }));
+    const sectionData: SelectorType[] = useMemo(
+        () =>
+            exporters.reduce<SelectorType[]>((options, option) => {
+                if (!option.email) {
+                    return options;
+                }
+
+                // Don't show guides if the current user is not a guide themselves or an Expensify employee
+                if (PolicyUtils.isExpensifyTeam(option.email) && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                    return options;
+                }
+
+                options.push({
+                    keyForList: option.email,
+                    text: option.email,
+                    isSelected: option.email === exporter,
+                    value: option.email,
+                });
+
+                return options;
+            }, []),
+        [exporter, exporters, policyOwner, currentUserLogin],
+    );
 
     const updateExporter = useCallback(
         ({value: email}: SelectorType) => {
