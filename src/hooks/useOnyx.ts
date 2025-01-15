@@ -2,58 +2,63 @@ import {useMemo} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
 import type {DependencyList} from 'react';
-import { useRoute } from '@react-navigation/native';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import { AuthScreensParamList } from '@libs/Navigation/types';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import { useSearchState } from './useSearchState';
 
-import SCREENS from '@src/SCREENS';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
-
+// Base options for Onyx hook configuration
 type BaseUseOnyxOptions = {
     canEvict?: boolean;
     initWithStoredValues?: boolean;
     allowStaleData?: boolean;
     reuseConnection?: boolean;
-  };
+};
   
-  type UseOnyxInitialValueOption<TInitialValue> = {
+type UseOnyxInitialValueOption<TInitialValue> = {
     initialValue?: TInitialValue;
-  };
+};
   
-  type UseOnyxSelector<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>> = 
+type UseOnyxSelector<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>> = 
     (data: OnyxValue<TKey> | undefined) => TReturnValue;
   
-  type UseOnyxSelectorOption<TKey extends OnyxKey, TReturnValue> = {
+type UseOnyxSelectorOption<TKey extends OnyxKey, TReturnValue> = {
     selector?: UseOnyxSelector<TKey, TReturnValue>;
-  };
+};
+
+// Helper function to get key data from snapshot
+const getKeyData = (snapshotData: Record<string, any>, key: string) => {
+    if (key.endsWith('_')) {
+        // Create object to store matching entries
+        const result: Record<string, any> = {};
+        const prefix = key;
+
+        // Get all keys that start with the prefix
+        Object.entries(snapshotData?.data || {}).forEach(([dataKey, value]) => {
+            if (dataKey.startsWith(prefix)) {
+                result[dataKey] = value;
+            }
+        });
+        return result;
+    }
+    return snapshotData?.data?.[key];
+};
   
-  function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
+function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,
     options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<TReturnValue> & Required<UseOnyxSelectorOption<TKey, TReturnValue>>,
     dependencies?: DependencyList
-  ): UseOnyxResult<TReturnValue>;
+): UseOnyxResult<TReturnValue>;
   
-  function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
+function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,  
     options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<NoInfer<TReturnValue>>,
     dependencies?: DependencyList
-  ): UseOnyxResult<TReturnValue>;
-  
-  function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
+): UseOnyxResult<TReturnValue>;
+
+function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,
     options?: any,
     dependencies?: DependencyList
-  ): UseOnyxResult<TReturnValue> {
-
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>>();
-    const {q} = route?.params || {};
-    console.log("[wildebug] ~ file: useOnyx.ts:51 ~ q:", q)
-    const queryJSON = useMemo(() => q ? SearchQueryUtils.buildSearchQueryJSON(q) : {} as { hash?: string }, [q]);
-    const hashKey = queryJSON?.hash
-    const isOnSearch = !!hashKey;
-    console.log("[wildebug] ~ file: useOnyx.ts:55 ~ isSearchTopmostCentralPane():", isSearchTopmostCentralPane())
-    console.log("[wildebug] ~ file: useOnyx.ts:55 ~ isOnSearch:", isOnSearch)
+): UseOnyxResult<TReturnValue> {
+    const {isOnSearch, hashKey} = useSearchState();
 
     // In search mode, get the entire snapshot
     const [snapshotData, metadata] = originalUseOnyx(
@@ -61,7 +66,6 @@ type BaseUseOnyxOptions = {
         options,
         dependencies,
     );
-    console.log("[wildebug] ~ file: useOnyxWithSnapshot.ts:60 ~ hashKey:", hashKey)
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
@@ -69,10 +73,7 @@ type BaseUseOnyxOptions = {
             return [snapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
 
-        const keyData = (snapshotData as Record<string, any>)?.data[key as string];
-        console.log("[wildebug] ~ file: useOnyx.ts:73 ~ result ~ key:", key)
-        console.log("[wildebug] ~ file: useOnyx.ts:73 ~ result ~ keyData:", keyData)
-
+        const keyData = getKeyData(snapshotData as Record<string, any>, key as string);
         return [keyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
     }, [isOnSearch, key, snapshotData, metadata]);
 
