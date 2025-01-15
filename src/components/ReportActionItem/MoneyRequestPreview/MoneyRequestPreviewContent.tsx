@@ -24,17 +24,25 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as IOUUtils from '@libs/IOUUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {calculateAmount} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReceiptUtils from '@libs/ReceiptUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import {getCleanedTagName, getPolicy} from '@libs/PolicyUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionUtil} from '@libs/ReportActionsUtils';
+import {
+    getTransactionDetails,
+    getWorkspaceIcon,
+    isPaidGroupPolicy,
+    isPaidGroupPolicyExpenseReport,
+    isPolicyExpenseChat as isPolicyExpenseChatUtil,
+    isReportApproved,
+    isSettled as isSettledUtil,
+} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -78,9 +86,9 @@ function MoneyRequestPreviewContent({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || CONST.DEFAULT_NUMBER_ID}`);
 
-    const policy = PolicyUtils.getPolicy(iouReport?.policyID);
-    const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+    const policy = getPolicy(iouReport?.policyID);
+    const isMoneyRequestAction = isMoneyRequestActionUtil(action);
+    const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -89,14 +97,13 @@ function MoneyRequestPreviewContent({
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatUtil(chatReport);
 
-    const participantAccountIDs =
-        ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? ReportActionsUtils.getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
-    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
+    const participantAccountIDs = isMoneyRequestActionUtil(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
-        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(chatReport));
+        sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
@@ -109,7 +116,7 @@ function MoneyRequestPreviewContent({
         merchant,
         tag,
         category,
-    } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -119,14 +126,14 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, allViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
     const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, allViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
-    const isSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const isSettled = isSettledUtil(iouReport?.reportID);
+    const isApproved = isReportApproved(iouReport);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
@@ -153,8 +160,8 @@ function MoneyRequestPreviewContent({
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const reviewingTransactionID = isMoneyRequestActionUtil(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -174,7 +181,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}];
+    const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -232,9 +239,9 @@ function MoneyRequestPreviewContent({
                 }
                 return message;
             }
-        } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+        } else if (hasNoticeTypeViolations && transaction && !isReportApproved(iouReport) && !isSettledUtil(iouReport?.reportID)) {
             message += ` • ${translate('violations.reviewRequired')}`;
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
+        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved(iouReport) && !isSettledUtil(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -271,12 +278,12 @@ function MoneyRequestPreviewContent({
             return translate('iou.fieldPending');
         }
 
-        return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
+        return convertToDisplayString(requestAmount, requestCurrency);
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) ?? undefined : undefined;
-        return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
+        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = isMoneyRequestActionUtil(action) ? getOriginalMessage(action) ?? undefined : undefined;
+        return convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
@@ -288,7 +295,7 @@ function MoneyRequestPreviewContent({
         () =>
             shouldShowSplitShare
                 ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                  calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
                 : 0,
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
@@ -350,7 +357,7 @@ function MoneyRequestPreviewContent({
                             size={1}
                         />
                     )}
-                    {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                    {isEmptyObject(transaction) && !isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
@@ -384,7 +391,7 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
+                                                {isSettledUtil(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
@@ -415,7 +422,7 @@ function MoneyRequestPreviewContent({
                                             </View>
                                             {!!splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare, requestCurrency)})}
+                                                    {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
                                                 </Text>
                                             )}
                                         </View>
@@ -471,7 +478,7 @@ function MoneyRequestPreviewContent({
                                                         numberOfLines={1}
                                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {PolicyUtils.getCleanedTagName(tag)}
+                                                        {getCleanedTagName(tag)}
                                                     </Text>
                                                 </View>
                                             )}
@@ -493,17 +500,17 @@ function MoneyRequestPreviewContent({
     return (
         <PressableWithoutFeedback
             onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
-            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             shouldUseHapticsOnLongPress
             accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
-            accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
+            accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
                 containerStyles,
                 shouldDisableOnPress && styles.cursorDefault,
-                (isSettled || ReportUtils.isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
+                (isSettled || isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
             ]}
         >
             {childContainer}
