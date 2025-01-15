@@ -1,76 +1,65 @@
-import noop from 'lodash/noop';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
-import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import {updateNetSuiteQuickStartApprovalAccount, updateNetSuiteQuickStartExporter} from '@libs/actions/connections/NetSuiteQuickStart';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearQBOErrorField} from '@userActions/Policy/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-const Options = ['', CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] as const;
-type Option = (typeof Options)[number];
 
 function NetSuiteQuickStartApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const nsqsConfig = policy?.connections?.nsqs?.config; // s77rt
-    const s77rt1 = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG; // s77rt
+    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const approvalAccount = nsqsConfig?.approvalAccount ?? '';
 
-    const importValue = ''; // s77rt
-
-    const inputSectionData: SelectorType<Option>[] = Options.map((inputOption) => ({
-        text: inputOption ? translate(`workspace.nsqs.import.importTypes.${inputOption}.label`) : translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
-        keyForList: inputOption,
-        isSelected: importValue === inputOption,
-        value: inputOption,
+    // s77rt: need list of approval accounts
+    const sectionData: SelectorType[] = ['', 's77rt@s77rt.com'].map((option) => ({
+        keyForList: option,
+        text: option || translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
+        isSelected: option === approvalAccount,
+        value: option,
     }));
 
-    const updateImportMapping = useCallback(
+    const updateApprovalAccount = useCallback(
         ({value}: SelectorType) => {
-            if (value !== importValue) {
-                // updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);  // s77rt
+            if (value !== approvalAccount) {
+                updateNetSuiteQuickStartApprovalAccount(policyID, value, approvalAccount);
             }
-
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID));
         },
-        [importValue, policyID],
+        [policyID, approvalAccount],
     );
 
     const headerContent = useMemo(() => <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.nsqs.advanced.approvalAccountDescription')}</Text>, [translate, styles.pb5, styles.ph5]);
 
     return (
-        <SelectionScreen<Option>
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteQuickStartApprovalAccountPage.displayName}
             headerContent={headerContent}
-            sections={[{data: inputSectionData}]}
+            sections={[{data: sectionData}]}
             listItem={RadioListItem}
             listItemWrapperStyle={styles.mnh13}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
-            onSelectRow={(selection: SelectorType) => updateImportMapping(selection)}
-            initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
+            onSelectRow={updateApprovalAccount}
+            initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID))}
             title={`workspace.nsqs.advanced.approvalAccount`}
-            // pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)} s77rt
-            // errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)} s77rt
-            // errorRowStyles={[styles.ph5, styles.pv3]} s77rt
-            // onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)} s77rt
+            pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT)}
         />
     );
 }

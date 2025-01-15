@@ -2122,6 +2122,7 @@ const CONST = {
     },
 
     NSQS_CONFIG: {
+        AUTO_SYNC: 'autoSync',
         SYNC_OPTIONS: {
             MAPPING: {
                 CUSTOMERS: 'syncOptions.mapping.customers',
@@ -2130,6 +2131,7 @@ const CONST = {
         },
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
+        APPROVAL_ACCOUNT: 'approvalAccount',
     },
 
     QUICKBOOKS_EXPORT_DATE: {

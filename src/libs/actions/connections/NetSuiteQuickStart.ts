@@ -147,4 +147,33 @@ function updateNetSuiteQuickStartExportDate(policyID: string, value: ValueOf<typ
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORT_DATE, params, onyxData);
 }
 
-export {updateNetSuiteQuickStartCustomersMapping, updateNetSuiteQuickStartProjectsMapping, updateNetSuiteQuickStartExporter, updateNetSuiteQuickStartExportDate};
+function updateNetSuiteQuickStartAutoSync(policyID: string, enabled: boolean) {
+    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'autoSync', {enabled}, {enabled: !enabled}, CONST.NSQS_CONFIG.AUTO_SYNC);
+
+    const params = {
+        policyID,
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_AUTO_SYNC, params, onyxData);
+}
+
+function updateNetSuiteQuickStartApprovalAccount(policyID: string, value: string, oldValue: string) {
+    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'approvalAccount', value, oldValue, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT);
+
+    const params = {
+        policyID,
+        value,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_APPROVAL_ACCOUNT, params, onyxData);
+}
+
+export {
+    updateNetSuiteQuickStartCustomersMapping,
+    updateNetSuiteQuickStartProjectsMapping,
+    updateNetSuiteQuickStartExporter,
+    updateNetSuiteQuickStartExportDate,
+    updateNetSuiteQuickStartAutoSync,
+    updateNetSuiteQuickStartApprovalAccount,
+};
