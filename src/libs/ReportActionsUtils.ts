@@ -812,7 +812,7 @@ function getLastVisibleMessage(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? (reportID ? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge) : undefined);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
