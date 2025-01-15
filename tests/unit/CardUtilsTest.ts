@@ -23,6 +23,22 @@ const companyCardsCustomFeedSettings = {
         liabilityType: 'personal',
     },
 };
+const companyCardsCustomFeedSettingsWithNumbers = {
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`]: {
+        pending: true,
+    },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`]: {
+        liabilityType: 'personal',
+    },
+};
+const companyCardsCustomVisaFeedSettingsWithNumbers = {
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`]: {
+        pending: false,
+    },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}3`]: {
+        pending: false,
+    },
+};
 const companyCardsCustomFeedSettingsWithoutExpensifyBank = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
         pending: true,
@@ -156,6 +172,18 @@ const cardFeedsCollection: OnyxCollection<OnyxTypes.CardFeeds> = {
     FAKE_ID_3: {
         settings: {
             companyCards: companyCardsCustomFeedSettings,
+        },
+    },
+    // Policy with custom feeds only, feed names with numbers
+    FAKE_ID_4: {
+        settings: {
+            companyCards: companyCardsCustomFeedSettingsWithNumbers,
+        },
+    },
+    // Policy with several Visa feeds
+    FAKE_ID_5: {
+        settings: {
+            companyCards: companyCardsCustomVisaFeedSettingsWithNumbers,
         },
     },
 };
@@ -356,7 +384,10 @@ describe('CardUtils', () => {
         it('Should return filtered custom feed cards list', () => {
             const cardsList = CardUtils.getFilteredCardList(customFeedCardsList, undefined);
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            expect(cardsList).toStrictEqual({'480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER', '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER'});
+            expect(cardsList).toStrictEqual({
+                '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
+                '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
+            });
         });
 
         it('Should return filtered direct feed cards list with a single card', () => {
@@ -368,12 +399,33 @@ describe('CardUtils', () => {
         it('Should return filtered direct feed cards list with multiple cards', () => {
             const cardsList = CardUtils.getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            expect(cardsList).toStrictEqual({'CREDIT CARD...1233': 'CREDIT CARD...1233', 'CREDIT CARD...3333': 'CREDIT CARD...3333', 'CREDIT CARD...7788': 'CREDIT CARD...7788'});
+            expect(cardsList).toStrictEqual({
+                'CREDIT CARD...1233': 'CREDIT CARD...1233',
+                'CREDIT CARD...3333': 'CREDIT CARD...3333',
+                'CREDIT CARD...7788': 'CREDIT CARD...7788',
+            });
         });
 
         it('Should return empty object if no data was provided', () => {
             const cardsList = CardUtils.getFilteredCardList(undefined, undefined);
             expect(cardsList).toStrictEqual({});
+        });
+    });
+
+    describe('getFeedType', () => {
+        it('should return the feed name with a consecutive number, if there is already a feed with a number', () => {
+            const feedType = CardUtils.getFeedType('vcf', cardFeedsCollection.FAKE_ID_4);
+            expect(feedType).toBe('vcf2');
+        });
+
+        it('should return the feed name with 1, if there is already a feed without a number', () => {
+            const feedType = CardUtils.getFeedType('vcf', cardFeedsCollection.FAKE_ID_3);
+            expect(feedType).toBe('vcf1');
+        });
+
+        it('should return the feed name with with the first smallest available number', () => {
+            const feedType = CardUtils.getFeedType('vcf', cardFeedsCollection.FAKE_ID_5);
+            expect(feedType).toBe('vcf2');
         });
     });
 });
