@@ -10,7 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import * as IOU from '@userActions/IOU';
+import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +46,7 @@ function IOURequestStepUpgrade({
             {!!isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={() => {
-                        IOU.setMoneyRequestParticipants(transactionID, [
+                        setMoneyRequestParticipants(transactionID, [
                             {
                                 selected: true,
                                 accountID: 0,
