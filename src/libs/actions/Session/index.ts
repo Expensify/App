@@ -547,7 +547,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 // This section controls copilot changes
                 const currentUserEmail = getCurrentUserEmail();
 
-                // If ND and OD account are the same - do noting
+                // If ND and OD account are the same - do nothing
                 if (email === currentUserEmail) {
                     return;
                 }
