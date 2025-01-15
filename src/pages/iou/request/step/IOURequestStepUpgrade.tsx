@@ -51,13 +51,13 @@ function IOURequestStepUpgrade({
                                 selected: true,
                                 accountID: 0,
                                 isPolicyExpenseChat: true,
-                                reportID: policyDataRef.current?.expenseChatReportID ?? '-1',
+                                reportID: policyDataRef.current?.expenseChatReportID,
                                 policyID: policyDataRef.current?.policyID,
                                 searchText: policyDataRef.current?.policyName,
                             },
                         ]);
                         Navigation.goBack();
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID ?? '-1'));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
                     }}
                     policyName=""
                     isCategorizing

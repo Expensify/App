@@ -472,7 +472,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_ATTENDEE: {
