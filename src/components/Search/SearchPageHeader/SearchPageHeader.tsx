@@ -30,7 +30,7 @@ import {
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates, hasVBBA} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -366,8 +366,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
-
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>

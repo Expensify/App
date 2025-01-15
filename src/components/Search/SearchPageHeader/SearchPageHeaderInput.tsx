@@ -49,7 +49,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const {inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isCannedQuery ? '' : queryText);
