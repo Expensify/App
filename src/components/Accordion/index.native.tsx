@@ -56,9 +56,8 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 opacity: 0,
             };
         }
-
         return {
-            height: derivedHeight.get(),
+            height: !isToggleTriggered.get() ? height.get() : derivedHeight.get(),
             opacity: derivedOpacity.get(),
         };
     });
@@ -76,5 +75,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         </Animated.View>
     );
 }
+
+Accordion.displayName = 'Accordion';
 
 export default Accordion;

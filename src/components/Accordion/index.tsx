@@ -73,5 +73,6 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         </Animated.View>
     );
 }
+Accordion.displayName = 'Accordion';
 
 export default Accordion;
