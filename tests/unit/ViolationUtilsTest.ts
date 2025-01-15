@@ -1,6 +1,6 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +28,7 @@ const receiptRequiredViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: CurrencyUtils.convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT),
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT),
     },
 };
 
@@ -37,7 +37,7 @@ const overLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: CurrencyUtils.convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
     },
 };
 

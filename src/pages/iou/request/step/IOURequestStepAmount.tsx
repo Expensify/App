@@ -6,14 +6,13 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import * as TransactionEdit from '@libs/actions/TransactionEdit';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
+import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getBankAccountRoute, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import {getRequestType} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -70,9 +69,9 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
-    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
+    const {amount: transactionAmount} = getTransactionDetails(currentTransaction) ?? {amount: 0};
+    const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -81,7 +80,7 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(ReportUtils.isArchivedReport(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
+        return !(isArchivedReport(report, reportNameValuePairs) || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
@@ -103,13 +102,13 @@ function IOURequestStepAmount({
         // A temporary solution to not prevent users from editing the currency
         // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
         // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-        TransactionEdit.createDraftTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
+        createDraftTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID);
+            removeDraftTransaction(transaction?.transactionID);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -150,7 +149,7 @@ function IOURequestStepAmount({
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+        const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
@@ -170,13 +169,13 @@ function IOURequestStepAmount({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !ReportUtils.isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
             });
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+            const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
@@ -239,7 +238,7 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
-        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+        const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
         // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
@@ -252,18 +251,18 @@ function IOURequestStepAmount({
         }
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
-        if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
+        const transactionCurrency = getCurrency(currentTransaction);
+        if (newAmount === getAmount(currentTransaction) && currency === transactionCurrency) {
             navigateBack();
             return;
         }
 
         // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
-        const transactionTaxCode = ReportUtils.getTransactionDetails(currentTransaction)?.taxCode;
-        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
+        const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
+        const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
-        const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
+        const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
+        const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
@@ -290,7 +289,7 @@ function IOURequestStepAmount({
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}
-                bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
+                bankAccountRoute={getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}

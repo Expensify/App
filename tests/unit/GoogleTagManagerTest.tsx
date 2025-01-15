@@ -1,7 +1,7 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import * as IOU from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU';
 import * as PaymentMethods from '@libs/actions/PaymentMethods';
 import * as Policy from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -68,7 +68,7 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created - categorizeTrackedExpense', () => {
         // When we categorize a tracked expense with a draft policy
-        IOU.trackExpense(
+        trackExpense(
             {reportID: '123'},
             1000,
             'USD',
