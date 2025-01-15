@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import { ReportNameValuePairsCollectionDataSet } from '@src/types/onyx/ReportNameValuePairs';
-import DateUtils from '@libs/DateUtils';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
