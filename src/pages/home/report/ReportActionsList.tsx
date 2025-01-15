@@ -415,21 +415,16 @@ function ReportActionsList({
     }, []);
 
     useEffect(() => {
-        if (!Browser.isSafari() || lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER') {
+        if (!Browser.isSafari()) {
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
-        });
-
-        // // const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        // // if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER' && !prevSorted) {
-        // if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER') {
-        //     InteractionManager.runAfterInteractions(() => {
-        //         reportScrollManager.scrollToBottom();
-        //     });
-        // }
+        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER' && !prevSorted) {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+            });
+        }
     }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
