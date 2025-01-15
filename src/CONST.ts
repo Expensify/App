@@ -2128,6 +2128,8 @@ const CONST = {
                 PROJECTS: 'syncOptions.mapping.projects',
             },
         },
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
