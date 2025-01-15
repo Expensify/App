@@ -46,6 +46,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -55,6 +56,7 @@ import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Transaction from '@userActions/Transaction';
 import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
@@ -346,6 +348,18 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const onClose = () => {
+        if (ReportActionsUtils.isMoneyRequestAction(action)) {
+            Transaction.revert(ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID, Transaction.getLastModifiedExpense(reportID));
+        } else if (ReportActionsUtils.isModifiedExpenseAction(action)) {
+            Transaction.revert(
+                ReportActionsUtils.getOriginalMessage(Object.values(ReportActionsUtils.getAllReportActions(reportID)).find(ReportActionsUtils.isMoneyRequestAction))?.IOUTransactionID, 
+                ReportActionsUtils.getOriginalMessage(action)
+            );
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    }
 
     useEffect(
         () => () => {
@@ -1129,37 +1143,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    let transactionID;
-                                    let data = {};
-                                    if (ReportActionsUtils.isMoneyRequestAction(action)) {
-                                        transactionID = ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID;
-                                    } else if (ReportActionsUtils.isModifiedExpenseAction(action) && report?.reportID) {
-                                        const moneyRequestAction = Object.values(ReportActionsUtils.getAllReportActions(report?.reportID)).find(ReportActionsUtils.isMoneyRequestAction);
-                                        if (!moneyRequestAction) {
-                                            return;
-                                        }
-                                        transactionID = ReportActionsUtils.getOriginalMessage(moneyRequestAction)?.IOUTransactionID;
-                                        const moneyRequestActionOriginalMessage = ReportActionsUtils.getOriginalMessage(action);
-                                        if (
-                                            moneyRequestActionOriginalMessage &&
-                                            typeof moneyRequestActionOriginalMessage === 'object' &&
-                                            moneyRequestActionOriginalMessage.oldAmount &&
-                                            moneyRequestActionOriginalMessage.oldCurrency &&
-                                            'amount' in moneyRequestActionOriginalMessage &&
-                                            'currency' in moneyRequestActionOriginalMessage
-                                        ) {
-                                            data = {
-                                                modifiedAmount: moneyRequestActionOriginalMessage.oldAmount,
-                                                modifiedCurrency: moneyRequestActionOriginalMessage.oldCurrency,
-                                            };
-                                        }
-                                    }
-                                    if (transactionID) {
-                                        clearError(transactionID, data);
-                                    }
-                                    clearAllRelatedReportActionErrors(reportID, action);
-                                }}
+                                onClose={onClose}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
