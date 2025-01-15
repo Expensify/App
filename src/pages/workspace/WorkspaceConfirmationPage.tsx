@@ -15,15 +15,15 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getCurrency} from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy/Policy';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
@@ -45,12 +45,12 @@ function WorkspaceConfirmationPage() {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
             const name = values.name.trim();
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
+            if (!isRequiredFulfilled(name)) {
                 errors.name = translate('workspace.editor.nameIsRequiredError');
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -59,7 +59,7 @@ function WorkspaceConfirmationPage() {
     );
 
     const currentUrl = getCurrentUrl();
-    const policyID = useMemo(() => Policy.generatePolicyID(), []);
+    const policyID = useMemo(() => generatePolicyID(), []);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
@@ -67,7 +67,7 @@ function WorkspaceConfirmationPage() {
 
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const defaultWorkspaceName = Policy.generateDefaultWorkspaceName(policyOwnerEmail);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -89,7 +89,7 @@ function WorkspaceConfirmationPage() {
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || ReportUtils.getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
+                source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={workspaceNameFirstCharacter}
@@ -144,7 +144,7 @@ function WorkspaceConfirmationPage() {
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={(val) => {
-                        App.createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
+                        createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
                     }}
                     enabledWhenOffline
                 >

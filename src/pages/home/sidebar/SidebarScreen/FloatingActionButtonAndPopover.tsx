@@ -28,6 +28,7 @@ import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, completeTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
@@ -39,7 +40,6 @@ import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIco
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -506,7 +506,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
                                       openExternalLink(navatticURL);
-                                      Welcome.setSelfTourViewed(isAnonymousUser());
+                                      setSelfTourViewed(isAnonymousUser());
                                       if (viewTourTaskReport && canModifyTask && canActionTask) {
                                           completeTask(viewTourTaskReport);
                                       }
