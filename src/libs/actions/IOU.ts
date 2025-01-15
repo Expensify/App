@@ -1216,6 +1216,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyTagList ?? {},
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+        false,
     );
 
     if (violationsOnyxData) {
@@ -1981,6 +1982,7 @@ function buildOnyxDataForTrackExpense(
         policyTagList ?? {},
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+        false,
     );
 
     if (violationsOnyxData) {
@@ -3161,7 +3163,12 @@ function getUpdateMoneyRequestParams(
     }
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    if (policy && PolicyUtils.isControlPolicy(policy) && updatedTransaction && hasModifiedCreated && !ReportUtils.isInvoiceReport(parentReport)) {
+    if (
+        policy &&
+        PolicyUtils.isPaidGroupPolicy(policy) &&
+        updatedTransaction &&
+        (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
+    ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
@@ -3171,25 +3178,7 @@ function getUpdateMoneyRequestParams(
                 policyTagList ?? {},
                 policyCategories ?? {},
                 PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
-            ),
-        );
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
-
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount)) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                policy,
-                policyTagList ?? {},
-                policyCategories ?? {},
-                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+                ReportUtils.isInvoiceReport(parentReport),
             ),
         );
         failureData.push({
