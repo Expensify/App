@@ -57,7 +57,7 @@ import {
     hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedReport,
+    isArchivedReportWithID,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isOpenExpenseReport as isOpenExpenseReportUtils,
@@ -242,7 +242,7 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const isArchived = isArchivedReport(iouReport);
+    const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowSubmitButton =
