@@ -383,9 +383,10 @@ describe('CardUtils', () => {
     describe('getFilteredCardList', () => {
         it('Should return filtered custom feed cards list', () => {
             const cardsList = CardUtils.getFilteredCardList(customFeedCardsList, undefined);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
             });
         });
@@ -398,10 +399,12 @@ describe('CardUtils', () => {
 
         it('Should return filtered direct feed cards list with multiple cards', () => {
             const cardsList = CardUtils.getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'CREDIT CARD...1233': 'CREDIT CARD...1233',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'CREDIT CARD...3333': 'CREDIT CARD...3333',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'CREDIT CARD...7788': 'CREDIT CARD...7788',
             });
         });
