@@ -6632,8 +6632,13 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 /**
  * Checks to see if a report contains a violation
  */
-function hasViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = getReportTransactions(reportID);
+function hasViolations(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    shouldShowInReview?: boolean,
+    reportTransactions?: SearchTransaction[],
+): boolean {
+    const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
