@@ -11,10 +11,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    getAllReportTransactions,
+    isExpensifyCardTransaction,
+    isPending,
+    isReceiptBeingScanned,
+    isDuplicate as isTransactionDuplicate,
+    isOnHold as isTransactionOnHold,
+    isPayAtEndExpense as isTransactionPayAtEndExpense,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationForTransaction,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -91,11 +101,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const transaction =
-        transactions?.[
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-            }`
-        ] ?? undefined;
+        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`] ??
+        undefined;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -104,9 +111,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
+    const isOnHold = isTransactionOnHold(transaction);
+    const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
+    const isDuplicate = isTransactionDuplicate(transaction?.transactionID);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -115,19 +122,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID, transactions), [moneyRequestReport?.reportID, transactions]);
+    const allTransactions = useMemo(() => getAllReportTransactions(moneyRequestReport?.reportID, transactions), [moneyRequestReport?.reportID, transactions]);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
-    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
+    const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
-    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
+    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
+    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation([transaction?.transactionID]);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForTransaction(transaction?.transactionID, moneyRequestReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
-    const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
+    const isPayAtEndExpense = isTransactionPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: ReportUtils.getArchiveReason});
 
@@ -140,7 +147,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID)));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -223,10 +230,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-                ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-                : undefined;
-            if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
+            const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+            if (isTrackExpenseAction(requestParentReportAction)) {
                 navigateBackToAfterDelete.current = deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
             } else {
                 navigateBackToAfterDelete.current = deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
@@ -240,9 +245,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-            : undefined;
+        const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
         const reportID = transactionThreadReport?.reportID;
 
         if (!iouTransactionID || !reportID) {
