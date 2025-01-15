@@ -166,7 +166,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     },
                     tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
                     tooltipShiftVertical: variables.savedSearchShiftVertical,
-                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2, {borderRadius: variables.componentBorderRadiusNormal}],
+                    tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
@@ -177,7 +177,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             hash,
             getOverflowMenu,
             styles.alignItemsCenter,
-            styles.bgPaleGreen,
             styles.mh4,
             styles.pv2,
             personalDetails,
@@ -186,6 +185,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
+            styles.productTrainingTooltipWrapper,
         ],
     );
 

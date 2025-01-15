@@ -433,7 +433,7 @@ function ReportActionCompose({
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
-                        wrapperStyle={styles.reportActionComposeTooltipWrapper}
+                        wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pv2]}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
                         shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
                     >
