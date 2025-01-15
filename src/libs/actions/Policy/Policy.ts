@@ -38,6 +38,7 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
+    SetNameValuePairParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -73,7 +74,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getAllReportTransactions} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -342,7 +343,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 ...(!isInvoiceReceiverReport && {
-                    oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                    oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
                     policyName: '',
                 }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -824,8 +825,39 @@ function leaveWorkspace(policyID?: string) {
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
 
+function updateDefaultPolicy(newPolicyID?: string, oldPolicyID?: string) {
+    if (!newPolicyID) {
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: newPolicyID,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: oldPolicyID,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+        value: newPolicyID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 function addBillingCardAndRequestPolicyOwnerChange(
-    policyID: string,
+    policyID: string | undefined,
     cardData: {
         cardNumber: string;
         cardYear: string;
@@ -836,6 +868,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
         currency: string;
     },
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
     const optimisticData: OnyxUpdate[] = [
@@ -2514,7 +2550,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     });
 
     // The expense report transactions need to have the amount reversed to negative values
-    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const reportTransactions = getAllReportTransactions(iouReportID);
 
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
@@ -3434,10 +3470,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
-                ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
-                    autoReporting: true,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                }),
                 harvesting: {
                     enabled: false,
                 },
@@ -3466,8 +3498,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: policy?.maxExpenseAmount ?? null,
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
-                autoReporting: policy?.autoReporting ?? null,
-                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
                 harvesting: policy?.harvesting ?? null,
             },
         },
@@ -4797,6 +4827,7 @@ export {
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
+    updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
 };

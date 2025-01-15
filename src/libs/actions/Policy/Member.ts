@@ -22,6 +22,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
@@ -666,7 +667,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
  * Adds members to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[]) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
@@ -688,7 +689,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         optimisticMembersState[email] = {
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            role: CONST.POLICY.ROLE.USER,
+            role,
             submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
         };
         successMembersState[email] = {pendingAction: null};
@@ -736,7 +737,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...announceRoomMembers.onyxFailureData);
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login}))),
+        employees: JSON.stringify(logins.map((login) => ({email: login, role}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote, {
@@ -1002,6 +1003,11 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function clearInviteDraft(policyID: string) {
+    setWorkspaceInviteMembersDraft(policyID, {});
+    FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -1019,6 +1025,7 @@ export {
     isApprover,
     importPolicyMembers,
     downloadMembersCSV,
+    clearInviteDraft,
 };
 
 export type {NewCustomUnit};

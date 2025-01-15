@@ -32,7 +32,7 @@ type ConnectionLayoutProps = {
     title?: TranslationPaths;
 
     /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
