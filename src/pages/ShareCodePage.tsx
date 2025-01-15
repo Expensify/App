@@ -88,7 +88,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
-        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '-1')}`;
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID)}`;
 
     const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
@@ -100,7 +100,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     if (!logo && policy && !policy.avatarURL) {
         svgLogo = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
-        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id ?? '');
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
         svgLogoFillColor = defaultWorkspaceAvatarColors.fill;
     }

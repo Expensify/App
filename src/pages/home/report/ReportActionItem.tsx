@@ -8,16 +8,16 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Transaction from '@userActions/Transaction';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
 function ReportActionItem({action, report, ...props}: PureReportActionItemProps) {
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action) || '-1', [reportID, action]);
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action), [reportID, action]);
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         selector: (draftMessagesForReport) => {
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
@@ -28,21 +28,21 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [linkedTransactionRouteError] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID}`,
         {selector: (transaction) => transaction?.errorFields?.route ?? null},
     );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const personalDetails = usePersonalDetails();
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
+    const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID, action);
 
     return (
         <PureReportActionItem

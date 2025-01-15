@@ -1,3 +1,4 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -11,7 +12,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {
+    ListItemDataType,
+    ListItemType,
+    SearchDataTypes,
+    SearchPersonalDetails,
+    SearchPolicy,
+    SearchReport,
+    SearchTransaction,
+    SearchTransactionAction,
+} from '@src/types/onyx/SearchResults';
 import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -48,6 +58,8 @@ type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 /**
  * @private
@@ -89,6 +101,13 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
+
+/**
+ * @private
+ */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 /**
@@ -329,11 +348,24 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+    const transactions = Object.keys(data)
+        .filter((key) => isTransactionEntry(key)) // Filter keys starting with 'transactions_'
+        .map((key) => data[key] as SearchTransaction);
+    const reports = Object.keys(data)
+        .filter((key) => isReportEntry(key)) // Filter keys starting with 'report_'
+        .map((key) => data[key] as SearchReport);
+    const policies = Object.keys(data)
+        .filter((key) => isPolicyEntry(key)) // Filter keys starting with 'policy_'
+        .map((key) => data[key] as SearchPolicy);
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const invoiceReceiverPolicy =
+                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : {};
                 if (ReportActionsUtils.isDeletedAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
@@ -345,6 +377,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    reportName: ReportUtils.getReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

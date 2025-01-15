@@ -800,7 +800,7 @@ function clearAvatarErrors(reportID: string) {
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(
-    reportID: string,
+    reportID: string | undefined,
     reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject?: ReportUtils.OptimisticChatReport,
@@ -1363,8 +1363,8 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string, reportActionCreated: string) {
-    if (reportID === '-1') {
+function markCommentAsUnread(reportID: string | undefined, reportActionCreated: string) {
+    if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
     }
