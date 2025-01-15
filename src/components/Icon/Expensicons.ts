@@ -126,6 +126,7 @@ import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -418,4 +419,5 @@ export {
     GalleryNotFound,
     Train,
     boltSlash,
+    MagnifyingGlassSpyMouthClosed,
 };

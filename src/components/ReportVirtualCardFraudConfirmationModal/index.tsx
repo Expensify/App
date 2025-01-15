@@ -1,6 +1,9 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -41,7 +44,28 @@ function ReportVirtualCardFraudConfirmationModal({title, isVisible, onClose, onM
                 />
 
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                    <Text>Modal content here</Text>
+                    <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
+                        <ImageSVG
+                            contentFit="contain"
+                            src={Expensicons.MagnifyingGlassSpyMouthClosed}
+                            style={themeStyles.alignSelfCenter}
+                            width={184}
+                            height={290}
+                        />
+
+                        <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>Card fraud reported</Text>
+                        <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
+                            We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.
+                        </Text>
+                    </View>
+
+                    <Button
+                        text="Got it, thanks!"
+                        onPress={hide}
+                        style={themeStyles.justifyContentEnd}
+                        success
+                        large
+                    />
                 </View>
             </ScreenWrapper>
         </Modal>

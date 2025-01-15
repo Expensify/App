@@ -68,7 +68,6 @@ function ReportVirtualCardFraudPage({
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
-            console.log('handleValidateCodeEntered', validateCode, virtualCard);
             if (!virtualCard) {
                 return;
             }
