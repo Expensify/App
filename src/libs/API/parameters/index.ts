@@ -281,6 +281,8 @@ export type {default as UpdateNetSuiteQuickStartCustomersMapping} from './Update
 export type {default as UpdateNetSuiteQuickStartProjectsMapping} from './UpdateNetSuiteQuickStartProjectsMapping';
 export type {default as UpdateNetSuiteQuickStartExporter} from './UpdateNetSuiteQuickStartExporter';
 export type {default as UpdateNetSuiteQuickStartExportDate} from './UpdateNetSuiteQuickStartExportDate';
+export type {default as UpdateNetSuiteQuickStartAutoSync} from './UpdateNetSuiteQuickStartAutoSync';
+export type {default as UpdateNetSuiteQuickStartApprovalAccount} from './UpdateNetSuiteQuickStartApprovalAccount';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';

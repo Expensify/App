@@ -374,6 +374,8 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_QUICKSTART_PROJECTS_MAPPING: 'UpdateNetSuiteQuickStartProjectsMapping',
     UPDATE_NETSUITE_QUICKSTART_EXPORTER: 'UpdateNetSuiteQuickStartExporter',
     UPDATE_NETSUITE_QUICKSTART_EXPORT_DATE: 'UpdateNetSuiteQuickStartExportDate',
+    UPDATE_NETSUITE_QUICKSTART_AUTO_SYNC: 'UpdateNetSuiteQuickStartAutoSync',
+    UPDATE_NETSUITE_QUICKSTART_APPROVAL_ACCOUNT: 'UpdateNetSuiteQuickStartApprovalAccount',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
@@ -862,6 +864,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_PROJECTS_MAPPING]: Parameters.UpdateNetSuiteQuickStartProjectsMapping;
     [WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORTER]: Parameters.UpdateNetSuiteQuickStartExporter;
     [WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORT_DATE]: Parameters.UpdateNetSuiteQuickStartExportDate;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_AUTO_SYNC]: Parameters.UpdateNetSuiteQuickStartAutoSync;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteQuickStartApprovalAccount;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY]: Parameters.UpdateSageIntacctGenericTypeParams<'entity', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
