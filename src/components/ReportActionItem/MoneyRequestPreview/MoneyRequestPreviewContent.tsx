@@ -39,18 +39,18 @@ import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAct
 import {
     getTransactionDetails,
     getWorkspaceIcon,
-    hasMissingSmartscanFields,
     isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
     isSettled as isSettledReportUtils,
-    type TransactionDetails,
 } from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     compareDuplicateTransactionFields,
     getTransactionViolations,
+    hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
     hasReceipt as hasReceiptTransactionUtils,
