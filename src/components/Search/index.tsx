@@ -350,7 +350,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+    const shouldShowEmptyState = isSearchResultsEmpty || !isDataLoaded;
 
     if (shouldShowEmptyState) {
         return (
