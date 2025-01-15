@@ -105,14 +105,10 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;
     }
-    if (!travelSettings?.hasAcceptedTerms) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS);
-        return;
-    }
-    if (ctaErrorMessage) {
-        setCtaErrorMessage('');
-    }
-    Link.openTravelDotLink(activePolicyID)
+
+    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID || policy?.travelSettings?.associatedTravelDomainAccountID;
+    if (policy?.travelSettings?.hasAcceptedTerms || (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
+        Link.openTravelDotLink(activePolicyID)
         ?.then(() => {
             if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                 return;
@@ -124,6 +120,16 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         ?.catch(() => {
             setCtaErrorMessage(translate('travel.errorMessage'));
         });
+        if (ctaErrorMessage) {
+            setCtaErrorMessage('');
+        }
+    } else if (isPolicyProvisioned) {
+        Navigation.navigate(ROUTES.TRAVEL_TCS);
+    } else {
+        Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+    }
+    
+    
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
 export type {ReservationData};

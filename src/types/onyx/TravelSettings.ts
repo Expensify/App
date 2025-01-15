@@ -18,8 +18,11 @@ type WorkspaceTravelSettings = {
     /** The UUID that spotnana provides us when we create a “company” in their system */
     spotnanaCompanyID: string;
 
-    /** The UUID that spotnana provides us when we provision the workspace as an “entity” in their system */
-    spotnanaEntityID: boolean;
+    /** The UUID of the associated Spotnana Entity */
+    associatedTravelDomainAccountID: string;
+
+    /** Indicates whether an admin of the workspace accepted Spotnana Terms and Conditions */
+    hasAcceptedTerms: boolean;
 };
 
 export type {TravelSettings, WorkspaceTravelSettings};
