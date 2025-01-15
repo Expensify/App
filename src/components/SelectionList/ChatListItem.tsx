@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -23,7 +22,6 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const from = reportActionItem.from;
     const styles = useThemeStyles();
     const theme = useTheme();
 

@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {useMemo} from 'react';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SCREENS from '@src/SCREENS';
 
