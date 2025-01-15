@@ -469,7 +469,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     return;
                                 }
                             }
-                            Transaction.clearError(transaction?.transactionID ?? linkedTransactionID, {});
+                            Transaction.revert(transaction?.transactionID ?? linkedTransactionID, Transaction.getLastModifiedExpense(report?.reportID));
                             ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
                         }}
                     >
