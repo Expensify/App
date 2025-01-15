@@ -173,9 +173,10 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Track expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click *Track*.\n' +
+                '4. Click "Just track it (don\'t submit it)".\n' +
+                '5. Click *Track*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
