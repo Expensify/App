@@ -8,7 +8,7 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Gallery} from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -18,10 +18,10 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
+import {add} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,8 +140,8 @@ function AttachmentView({
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
-        FileUtils.getFileResolution(file).then((resolution) => {
-            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        getFileResolution(file).then((resolution) => {
+            setIsHighResolution(isHighResolutionImage(resolution));
         });
     }, [file]);
 
@@ -167,7 +167,7 @@ function AttachmentView({
         );
     }
 
-    if (transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction)) {
+    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
@@ -190,7 +190,7 @@ function AttachmentView({
         const onPDFLoadComplete = (path: string) => {
             const id = (transaction && transaction.transactionID) ?? reportActionID;
             if (path && id) {
-                CachedPDFPaths.add(id, path);
+                add(id, path);
             }
             if (!loadComplete) {
                 setLoadComplete(true);
@@ -222,7 +222,7 @@ function AttachmentView({
         );
     }
 
-    if (TransactionUtils.isDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -256,7 +256,7 @@ function AttachmentView({
                     <>
                         <View style={styles.imageModalImageCenterContainer}>
                             <DefaultAttachmentView
-                                icon={Expensicons.Gallery}
+                                icon={Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
