@@ -5082,7 +5082,7 @@ const CONST = {
                         '6. Navigate to *Tags* in the workspace editor.\n' +
                         '7. Click *+ Add tag* to make your own.\n' +
                         '\n' +
-                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -5102,7 +5102,7 @@ const CONST = {
                         '7. Enable *Add approvals*.\n' +
                         '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
                         '\n' +
-                        `[Take me to enable more features](${workspaceMoreFeaturesLink}).`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'inviteTeam',
@@ -5118,9 +5118,9 @@ const CONST = {
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
                         '5. Enter emails or phone numbers. \n' +
-                        '6. Add an invite message if you want.\n' +
+                        '6. Add a custom invite message if you'd like!\n' +
                         '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
+                        `[Take me to workspace members](${workspaceMembersLink}).`,
                 },
                 {
                     type: 'addAccountingIntegration',
@@ -5138,7 +5138,7 @@ const CONST = {
                         `5. Find ${integrationName}.\n` +
                         '6. Click *Connect*.\n' +
                         '\n' +
-                        `[Take me to Accounting!](${workspaceAccountingLink})`,
+                        `[Take me to accounting](${workspaceAccountingLink}).`,
                 },
             ],
         },
@@ -5217,7 +5217,7 @@ const CONST = {
                         "Here's how to review and update your workspace settings:" +
                         '\n' +
                         '1. Click *Settings*.' +
-                        '2. Click *Workspaces* > [Your workspace].' +
+                        '2. Go to *Workspaces* > [Your workspace].' +
                         '\n' +
                         "Make any changes there and we'll track them in the #admins room.",
                 },
