@@ -4,8 +4,10 @@ import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'rea
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {useInputBlurContext} from '@components/InputBlurContext';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
@@ -69,9 +71,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
-
-    /** Whether the form is loading */
-    isLoading?: boolean;
 };
 
 function FormProvider(
@@ -85,7 +84,6 @@ function FormProvider(
         onSubmit,
         shouldTrimValues = true,
         allowHTML = false,
-        isLoading = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -99,6 +97,7 @@ function FormProvider(
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const {setIsBlurred} = useInputBlurContext();
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -193,7 +192,7 @@ function FormProvider(
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading) {
+            if (formState?.isLoading) {
                 return;
             }
 
@@ -214,7 +213,7 @@ function FormProvider(
             }
 
             KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
         1000,
         {leading: true, trailing: false},
     );
@@ -375,6 +374,9 @@ function FormProvider(
                         }, VALIDATE_DELAY);
                     }
                     inputProps.onBlur?.(event);
+                    if (Browser.isSafari()) {
+                        setIsBlurred(true);
+                    }
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
@@ -397,7 +399,7 @@ function FormProvider(
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -410,7 +412,6 @@ function FormProvider(
                 onSubmit={submit}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}

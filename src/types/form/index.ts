@@ -89,5 +89,4 @@ export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName'
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
 export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
-export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';

@@ -34,10 +34,11 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import * as NetworkStore from './Network/NetworkStore';
+import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 
@@ -257,7 +258,7 @@ const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -400,7 +401,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
@@ -420,7 +421,7 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
-    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
 }
@@ -667,7 +668,7 @@ function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -685,11 +686,6 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
-}
-
-function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
-    const activePolicies = getActivePolicies(allPolicies, currentUserLogin);
-    return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -892,7 +888,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-        name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+        name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
@@ -1165,11 +1161,11 @@ function getActivePolicy(): OnyxEntry<Policy> {
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
-            return Localize.translateLocal('workspace.type.control');
+            return translateLocal('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
-            return Localize.translateLocal('workspace.type.collect');
+            return translateLocal('workspace.type.collect');
         default:
-            return Localize.translateLocal('workspace.type.free');
+            return translateLocal('workspace.type.free');
     }
 }
 
@@ -1188,6 +1184,25 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
 function hasOtherControlWorkspaces(currentPolicyID: string) {
     const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
     return otherControlWorkspaces.length > 0;
+}
+
+// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
+// is being accessed from the Subscriptions page without a specific policyID.
+// In this case, check if the user is an admin on more than one policy.
+// If the user is an admin for multiple policies, we can render the page as it contains a condition
+// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
+// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
+
+function canModifyPlan(policyID?: string) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
+
+    if (!policyID) {
+        return ownerPolicies.length > 1;
+    }
+    const policy = getPolicy(policyID);
+
+    return !!policy && isPolicyAdmin(policy);
 }
 
 export {
@@ -1249,7 +1264,6 @@ export {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
-    hasWorkspaceWithInvoices,
     hasDependentTags,
     hasVBBA,
     getXeroTenants,
@@ -1318,6 +1332,7 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
+    canModifyPlan,
 };
 
 export type {MemberEmailsToAccountIDs};

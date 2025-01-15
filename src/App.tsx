@@ -5,7 +5,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
-import * as ActionSheetAwareScrollView from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
@@ -15,6 +14,7 @@ import CustomStatusBarAndBackgroundContextProvider from './components/CustomStat
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
+import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
@@ -30,16 +30,17 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
-import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import Expensify from './Expensify';
+import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
+import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 type AppProps = {
@@ -90,7 +91,6 @@ function App({url}: AppProps) {
                                 CustomStatusBarAndBackgroundContextProvider,
                                 ActiveElementRoleProvider,
                                 ActiveWorkspaceContextProvider,
-                                ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
                                 ReportIDsContextProvider,
                                 PlaybackContextProvider,
                                 FullScreenContextProvider,
@@ -99,6 +99,7 @@ function App({url}: AppProps) {
                                 KeyboardProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
+                                InputBlurContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

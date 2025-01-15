@@ -115,6 +115,9 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
+    /** Whether the user is a member of a policy other than their personal */
+    HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -601,8 +604,6 @@ const ONYXKEYS = {
         HOME_ADDRESS_FORM_DRAFT: 'homeAddressFormDraft',
         PERSONAL_DETAILS_FORM: 'personalDetailsForm',
         PERSONAL_DETAILS_FORM_DRAFT: 'personalDetailsFormDraft',
-        INTERNATIONAL_BANK_ACCOUNT_FORM: 'internationalBankAccountForm',
-        INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
@@ -828,7 +829,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
-    [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
 };
 
@@ -947,6 +947,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
