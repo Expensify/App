@@ -6,9 +6,12 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type GenericFeaturesViewProps = {
@@ -16,12 +19,14 @@ type GenericFeaturesViewProps = {
     loading?: boolean;
     onUpgrade: () => void;
     formattedPrice: string;
+    policyID?: string;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
+    const preferredCurrency = usePreferredCurrency();
 
     const benefits = [
         translate('workspace.upgrade.commonFeatures.benefits.benefit1'),
@@ -29,6 +34,12 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
         translate('workspace.upgrade.commonFeatures.benefits.benefit3'),
         translate('workspace.upgrade.commonFeatures.benefits.benefit4'),
     ];
+
+    const formattedPrice = React.useMemo(() => {
+        const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+        const upgradePrice = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL];
+        return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
+    }, [preferredCurrency]);
 
     return (
         <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
@@ -52,7 +63,10 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     </View>
                 ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.upgrade.commonFeatures.benefits.note', {price: formattedPrice})}{' '}
+
+                    {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
+                    <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
+                    {translate('workspace.upgrade.commonFeatures.benefits.perMember')}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
@@ -62,14 +76,23 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
                 </Text>
             </View>
-            <Button
-                isLoading={loading}
-                text={translate('common.upgrade')}
-                success
-                onPress={onUpgrade}
-                isDisabled={buttonDisabled}
-                large
-            />
+            {policyID ? (
+                <Button
+                    isLoading={loading}
+                    text={translate('common.upgrade')}
+                    success
+                    onPress={onUpgrade}
+                    isDisabled={buttonDisabled}
+                    large
+                />
+            ) : (
+                <Button
+                    text={translate('workspace.common.goToWorkspaces')}
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.TYPE.UP)}
+                    large
+                />
+            )}
         </View>
     );
 }

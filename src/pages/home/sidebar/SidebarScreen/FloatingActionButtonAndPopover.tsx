@@ -12,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -200,7 +201,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
+    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedReport(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
@@ -447,6 +448,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const canModifyTask = Task.canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     return (
         <View style={styles.flexGrow1}>
@@ -506,7 +510,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   onSelected: () => {
                                       Link.openExternalLink(navatticURL);
                                       Welcome.setSelfTourViewed(Session.isAnonymousUser());
-                                      if (viewTourTaskReport) {
+                                      if (viewTourTaskReport && canModifyTask && canActionTask) {
                                           Task.completeTask(viewTourTaskReport);
                                       }
                                   },
