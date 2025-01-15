@@ -61,6 +61,9 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+const cardHiddenFromSearchStates: number[] = [2, 4];
+
 const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
@@ -2802,6 +2805,7 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        HIDDEN_FROM_SEARCH_STATES: cardHiddenFromSearchStates,
         LIMIT_TYPES: {
             SMART: 'smart',
             MONTHLY: 'monthly',
@@ -4955,45 +4959,6 @@ const CONST = {
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
-    ONBOARDING_CONCIERGE: {
-        [onboardingChoices.EMPLOYER]:
-            '# Expensify is the fastest way to get paid back!\n' +
-            '\n' +
-            'To submit expenses for reimbursement:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
-            '\n' +
-            "That'll send a request to get you paid back. Let me know if you have any questions!",
-        [onboardingChoices.MANAGE_TEAM]:
-            "# Let's start managing your team's expenses!\n" +
-            '\n' +
-            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
-            '\n' +
-            'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
-        [onboardingChoices.PERSONAL_SPEND]:
-            "# Let's start tracking your expenses! \n" +
-            '\n' +
-            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "My expenses").\n' +
-            '\n' +
-            'Then, add expenses to your workspace:\n' +
-            '1. Find your workspace using the search field.\n' +
-            '2. Click the gray + button next to the message field.\n' +
-            '3. Click Request money, then add your expense type.\n' +
-            '\n' +
-            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
-        [onboardingChoices.CHAT_SPLIT]:
-            '# Splitting the bill is as easy as a conversation!\n' +
-            '\n' +
-            'To split an expense:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
-            '\n' +
-            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
-    },
     ONBOARDING_ACCOUNTING_MAPPING: {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
@@ -5018,7 +4983,7 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    description:
+                    description: ({workspaceSettingsLink}) =>
                         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                         '\n' +
                         'Here’s how to create a workspace:\n' +
@@ -5026,7 +4991,7 @@ const CONST = {
                         '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
-                        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
+                        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
                 },
                 selfGuidedTourTask,
                 {
