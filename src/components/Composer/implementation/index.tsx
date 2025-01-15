@@ -241,6 +241,11 @@ function Composer(
                 e.preventDefault();
                 return;
             }
+
+            // Only prevent scrolling when composer is scrollable
+            if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
+                return;
+            }
             e.stopPropagation();
         };
         textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
