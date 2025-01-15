@@ -363,7 +363,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
@@ -399,7 +399,7 @@ const ROUTES = {
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
@@ -896,7 +896,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_DESCRIPTION: {
         route: 'settings/workspaces/:policyID/profile/description',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/description` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/profile/description` as const,
     },
     WORKSPACE_PROFILE_SHARE: {
         route: 'settings/workspaces/:policyID/profile/share',
@@ -1018,13 +1018,13 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
-        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
+        route: 'settings/workspaces/:policyID?/upgrade/:featureName?',
+        getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
+            policyID ? getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo) : (`settings/workspaces/upgrade` as const),
     },
     WORKSPACE_DOWNGRADE: {
-        route: 'settings/workspaces/:policyID/downgrade/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/downgrade/` as const,
+        route: 'settings/workspaces/:policyID?/downgrade/',
+        getRoute: (policyID?: string) => (policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : `settings/workspaces/downgrade`),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
@@ -1224,9 +1224,8 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route WORKSPACE_COMPANY_CARDS');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS route');
             }
-
             return `settings/workspaces/${policyID}/company-cards` as const;
         },
     },
@@ -1480,13 +1479,7 @@ const ROUTES = {
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string | undefined | null, backTo?: string) => {
-            if (!threadReportID) {
-                Log.warn('Invalid threadReportID while building route TRANSACTION_DUPLICATE_REVIEW_PAGE');
-            }
-
-            return getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo);
-        },
+        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
