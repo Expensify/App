@@ -119,6 +119,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldScrollToFocusedIndex = true,
         onContentSizeChange,
         listItemTitleStyles,
+        initialNumToRender = 12,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -320,7 +321,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: true,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -333,14 +334,18 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    const selectedItemIndex = useMemo(
+        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
+        [flattenedSections.allOptions, initiallyFocusedOptionKey],
+    );
+
     useEffect(() => {
-        const selectedItemIndex = flattenedSections.allOptions.findIndex((option) => option.isSelected);
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
             return;
         }
         setFocusedIndex(selectedItemIndex);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [flattenedSections]);
+    }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
@@ -405,10 +410,20 @@ function BaseSelectionList<TItem extends ListItem>(
         }
     };
 
-    const selectFocusedOption = () => {
+    const getFocusedOption = useCallback(() => {
         const focusedOption = focusedIndex !== -1 ? flattenedSections.allOptions.at(focusedIndex) : undefined;
 
         if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
+            return;
+        }
+
+        return focusedOption;
+    }, [flattenedSections.allOptions, focusedIndex]);
+
+    const selectFocusedOption = () => {
+        const focusedOption = getFocusedOption();
+
+        if (!focusedOption) {
             return;
         }
 
@@ -743,13 +758,11 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
-        scrollAndHighlightItem,
-        clearInputAfterSelect,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        scrollToIndex,
-    ]);
+    useImperativeHandle(
+        ref,
+        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+    );
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -819,7 +832,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        initialNumToRender={12}
+                        initialNumToRender={initialNumToRender}
                         maxToRenderPerBatch={maxToRenderPerBatch}
                         windowSize={windowSize}
                         updateCellsBatchingPeriod={updateCellsBatchingPeriod}
