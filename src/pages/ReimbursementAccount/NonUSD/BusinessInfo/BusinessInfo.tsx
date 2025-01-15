@@ -90,12 +90,14 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
         saveCorpayOnboardingCompanyDetails(
             {
                 ...params,
+                fundSourceCountries: country,
+                fundDestinationCountries: country,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
             },
             bankAccountID,
         );
-    }, [currency, bankAccountID, businessInfoStepValues]);
+    }, [country, currency, bankAccountID, businessInfoStepValues]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
