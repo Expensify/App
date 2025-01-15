@@ -19,6 +19,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
@@ -412,6 +413,24 @@ function ReportActionsList({
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!Browser.isSafari() || lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER') {
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
+
+        // // const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        // // if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER' && !prevSorted) {
+        // if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER') {
+        //     InteractionManager.runAfterInteractions(() => {
+        //         reportScrollManager.scrollToBottom();
+        //     });
+        // }
+    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
