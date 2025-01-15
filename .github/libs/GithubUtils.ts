@@ -463,6 +463,7 @@ class GithubUtils {
      */
     static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
+        // eslint-disable-next-line rulesdir/no-default-id-values
         return this.octokit.actions
             .listWorkflowRuns({
                 owner: CONST.GITHUB_OWNER,
