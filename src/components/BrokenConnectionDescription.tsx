@@ -14,7 +14,7 @@ import TextLink from './TextLink';
 
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
-    transactionID: string;
+    transactionID: string | undefined;
 
     /** Current report */
     report: OnyxEntry<Report>;
@@ -40,13 +40,13 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.brokenConnection530Error');
     }
 
-    if (isPolicyAdmin && !ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '')) {
+    if (isPolicyAdmin && !ReportUtils.isCurrentUserSubmitter(report?.reportID)) {
         return (
             <>
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id))}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
                 .
             </>
