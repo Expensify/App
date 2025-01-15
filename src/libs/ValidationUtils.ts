@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
-import * as CardUtils from './CardUtils';
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -138,7 +138,7 @@ function isValidExpirationDate(string: string): boolean {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
     return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
