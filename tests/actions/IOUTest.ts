@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
@@ -192,7 +192,7 @@ describe('actions/IOU', () => {
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
 
                         // Then the transaction must remain a distance request
-                        const isDistanceRequest = TransactionUtils.isDistanceRequest(trackedExpenseTransaction);
+                        const isDistanceRequest = isDistanceRequestTransactionUtils(trackedExpenseTransaction);
                         expect(isDistanceRequest).toBe(true);
                         resolve(trackedExpenseTransaction);
                     },
@@ -265,7 +265,7 @@ describe('actions/IOU', () => {
                 undefined,
                 fakeCategories,
                 undefined,
-                Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
+                Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
                 CONST.IOU.ACTION.CATEGORIZE,
                 transactionDraft?.actionableWhisperReportActionID,
                 transactionDraft?.linkedTrackedExpenseReportAction,
@@ -285,7 +285,7 @@ describe('actions/IOU', () => {
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
-                        const isDistanceRequest = TransactionUtils.isDistanceRequest(categorizedTransaction);
+                        const isDistanceRequest = isDistanceRequestTransactionUtils(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
 
                         // Then the transaction category must match the original category
@@ -3629,14 +3629,14 @@ describe('actions/IOU', () => {
         test('Merging duplicates of two transactions should display a system message', async () => {
             // Given two duplicate transactions
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction1 = TransactionUtils.buildOptimisticTransaction({
+            const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
                     reportID: iouReport.reportID,
                 },
             });
-            const transaction2 = TransactionUtils.buildOptimisticTransaction({
+            const transaction2 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
@@ -3709,14 +3709,14 @@ describe('actions/IOU', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction1 = TransactionUtils.buildOptimisticTransaction({
+            const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
                     reportID: iouReport.reportID,
                 },
             });
-            const transaction2 = TransactionUtils.buildOptimisticTransaction({
+            const transaction2 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
@@ -3770,7 +3770,7 @@ describe('actions/IOU', () => {
     describe('putOnHold', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction = TransactionUtils.buildOptimisticTransaction({
+            const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
@@ -3835,7 +3835,7 @@ describe('actions/IOU', () => {
     describe('unHoldRequest', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction = TransactionUtils.buildOptimisticTransaction({
+            const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
