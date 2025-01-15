@@ -352,6 +352,7 @@ const translations = {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
             email: 'Por favor, introduzca una dirección de correo electrónico válida.',
+            login: 'Se produjo un error al iniciar sesión. Por favor intente nuevamente.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',

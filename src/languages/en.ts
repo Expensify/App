@@ -361,6 +361,7 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
+            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
