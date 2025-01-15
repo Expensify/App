@@ -418,9 +418,8 @@ function ReportActionsList({
         if (!Browser.isSafari()) {
             return;
         }
-
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === 'ACTIONABLETRACKEXPENSEWHISPER' && !prevSorted) {
+        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
             });
