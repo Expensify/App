@@ -1,8 +1,9 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {SoftInputContext} from '@pages/home/ReportScreen';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import Button from './Button';
 import HoldMenuSectionList from './HoldMenuSectionList';
@@ -41,6 +42,9 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
         return unsub;
     }, [navigation, onClose]);
 
+    const {setShowSoftInputOnFocus, showSoftInputOnFocus} = useContext(SoftInputContext);
+    const prevShowSoftInputOnFocus = useRef(showSoftInputOnFocus);
+
     return (
         <Popover
             isVisible={isVisible}
@@ -51,6 +55,11 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             disableAnimation={false}
             withoutOverlay={false}
             shouldCloseWhenBrowserNavigationChanged={false}
+            onModalShow={() => {
+                prevShowSoftInputOnFocus.current = showSoftInputOnFocus;
+                setShowSoftInputOnFocus(false);
+            }}
+            onModalHide={() => setShowSoftInputOnFocus(prevShowSoftInputOnFocus.current ?? true)}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
