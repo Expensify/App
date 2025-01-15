@@ -162,6 +162,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <MenuItem
                                 icon={Expensicons.MoneySearch}
                                 title={translate('workspace.common.viewTransactions')}
+                                style={styles.mt3}
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
