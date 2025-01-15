@@ -23,6 +23,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {clearWalletTermsError} from '@libs/actions/PaymentMethods';
+import {clearIOUError} from '@libs/actions/Report';
+import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -45,12 +48,28 @@ import {
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {
+    compareDuplicateTransactionFields,
+    getTransactionViolations,
+    hasMissingSmartscanFields,
+    hasNoticeTypeViolation,
+    hasPendingUI,
+    hasReceipt as hasReceiptUtil,
+    hasViolation,
+    hasWarningTypeViolation,
+    isAmountMissing as isAmountMissingUtil,
+    isCardTransaction as isCardTransactionUtil,
+    isDistanceRequest as isDistanceRequestUtil,
+    isFetchingWaypointsFromServer as isFetchingWaypointsFromServerUtil,
+    isMerchantMissing as isMerchantMissingUtil,
+    isOnHold as isOnHoldUtil,
+    isPending,
+    isReceiptBeingScanned,
+    removeSettledAndApprovedTransactions,
+    shouldShowBrokenConnectionViolation,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as Report from '@userActions/Report';
-import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +111,7 @@ function MoneyRequestPreviewContent({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const transactionViolations = TransactionUtils.getTransactionViolations(transaction?.transactionID);
+    const transactionViolations = getTransactionViolations(transaction?.transactionID);
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
@@ -120,18 +139,18 @@ function MoneyRequestPreviewContent({
 
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const hasReceipt = hasReceiptUtil(transaction);
+    const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
+    const isOnHold = isOnHoldUtil(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, allViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, allViolations, true);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
-    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const hasViolations = hasViolation(transaction?.transactionID, allViolations, true);
+    const hasNoticeTypeViolations = hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = hasWarningTypeViolation(transaction?.transactionID, allViolations, true);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const isDistanceRequest = isDistanceRequestUtil(transaction);
+    const isFetchingWaypointsFromServer = isFetchingWaypointsFromServerUtil(transaction);
+    const isCardTransaction = isCardTransactionUtil(transaction);
     const isSettled = isSettledUtil(iouReport?.reportID);
     const isApproved = isReportApproved(iouReport);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -147,7 +166,7 @@ function MoneyRequestPreviewContent({
     );
 
     // Remove settled transactions from duplicates
-    const duplicates = useMemo(() => TransactionUtils.removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
+    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
@@ -214,7 +233,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID);
+            const violations = getTransactionViolations(transaction.transactionID);
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
@@ -228,8 +247,8 @@ function MoneyRequestPreviewContent({
                 return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
             if (hasFieldErrors) {
-                const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
-                const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+                const isMerchantMissing = isMerchantMissingUtil(transaction);
+                const isAmountMissing = isAmountMissingUtil(transaction);
                 if (isAmountMissing && isMerchantMissing) {
                     message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
                 } else if (isAmountMissing) {
@@ -255,13 +274,13 @@ function MoneyRequestPreviewContent({
         if (isScanning) {
             return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
-        if (TransactionUtils.isPending(transaction)) {
+        if (isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
+        if (shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID))) {
+        if (hasPendingUI(transaction, getTransactionViolations(transaction?.transactionID))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
@@ -305,9 +324,9 @@ function MoneyRequestPreviewContent({
 
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-        Transaction.abandonReviewDuplicateTransactions();
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
+        abandonReviewDuplicateTransactions();
+        const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+        setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
@@ -335,8 +354,8 @@ function MoneyRequestPreviewContent({
             <OfflineWithFeedback
                 errors={walletTerms?.errors}
                 onClose={() => {
-                    PaymentMethods.clearWalletTermsError();
-                    Report.clearIOUError(chatReportID);
+                    clearWalletTermsError();
+                    clearIOUError(chatReportID);
                 }}
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing

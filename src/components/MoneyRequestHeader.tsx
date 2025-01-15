@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissHoldUseExplanation} from '@libs/actions/IOU';
+import {markAsCash as markAsCashUtil} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -25,8 +27,6 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationUtil,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -88,7 +88,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldShowMarkAsCashButton = hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID, reportID);
+        markAsCashUtil(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
 
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
@@ -154,7 +154,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.dismissHoldUseExplanation();
+        dismissHoldUseExplanation();
     };
 
     return (
