@@ -52,7 +52,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -229,7 +228,7 @@ type PureReportActionItemProps = {
     isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
 
     /** Function to clear an error from a transaction */
-    clearError?: (transactionID: string, oldTransactionValues: Partial<OnyxTypes.Transaction>) => void;
+    clearError?: (transactionID: string) => void;
 
     /** Function to clear all errors from a report action */
     clearAllRelatedReportActionErrors?: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
@@ -350,13 +349,18 @@ function PureReportActionItem({
     );
 
     const onClose = () => {
+        let transactionID;
         if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            Transaction.revert(ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID, Transaction.getLastModifiedExpense(reportID));
+            transactionID = ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID;
+            Transaction.revert(transactionID, Transaction.getLastModifiedExpense(reportID));
         } else if (ReportActionsUtils.isModifiedExpenseAction(action)) {
-            Transaction.revert(
-                ReportActionsUtils.getOriginalMessage(Object.values(ReportActionsUtils.getAllReportActions(reportID)).find(ReportActionsUtils.isMoneyRequestAction))?.IOUTransactionID,
-                ReportActionsUtils.getOriginalMessage(action),
-            );
+            transactionID = ReportActionsUtils.getOriginalMessage(
+                Object.values(ReportActionsUtils.getAllReportActions(reportID)).find(ReportActionsUtils.isMoneyRequestAction),
+            )?.IOUTransactionID;
+            Transaction.revert(transactionID, ReportActionsUtils.getOriginalMessage(action));
+        }
+        if (transactionID) {
+            clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action);
     };
