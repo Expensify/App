@@ -545,6 +545,7 @@ type TransactionDetails = {
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    description?: string;
     cardID: number;
     originalAmount: number;
     originalCurrency: string;

@@ -102,6 +102,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
+    getParsedComment,
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
@@ -3451,13 +3452,16 @@ function updateMoneyRequestDate(
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
@@ -3664,6 +3668,7 @@ function updateMoneyRequestDescription(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
         comment,
     };
@@ -3676,6 +3681,7 @@ function updateMoneyRequestDescription(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     }
     const {params, onyxData} = data;
+    params.description = parsedComment;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
