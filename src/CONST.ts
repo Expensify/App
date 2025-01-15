@@ -103,7 +103,7 @@ const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
     title: 'Create a workspace',
-    description:
+    description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
         'Here’s how to create a workspace:\n' +
@@ -111,7 +111,7 @@ const createWorkspaceTask: OnboardingTask = {
         '1. Click the settings tab.\n' +
         '2. Click *Workspaces* > *New workspace*.\n' +
         '\n' +
-        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
+        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
 };
 
 const meetGuideTask: OnboardingTask = {
@@ -164,7 +164,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 'Here’s how to submit an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Submit expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
                 '\n' +
@@ -4551,6 +4551,7 @@ const CONST = {
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
     TRIP_ID_PATH: (tripID?: string) => (tripID ? `trips/${tripID}` : undefined),
+    TRIP_SUPPORT: '/support',
     SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
     STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
@@ -5264,7 +5265,7 @@ const CONST = {
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
-                        '2. Choose *Submit expense*.\n' +
+                        '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
                         '\n' +
