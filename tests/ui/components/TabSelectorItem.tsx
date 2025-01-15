@@ -1,86 +1,95 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+import Tooltip from '@components/Tooltip';
 import CONST from '@src/CONST';
 
-describe('TabSelectorItem Component', () => {
-    it('should show a tooltip when hovering over the icon if the tab is inactive and the title is hidden', async () => {
-        const tooltipText = 'Sample Tooltip';
+// Mock the Tooltip component since it uses portals which aren't supported in RNTL
+jest.mock('@components/Tooltip', () => {
+    return jest.fn(({children, shouldRender, text}: {children: React.ReactNode; shouldRender: boolean; text: string}) => {
+        return (
+            <>
+                {shouldRender && <div data-testid="tooltip">{text}</div>}
+                {children}
+            </>
+        );
+    });
+});
 
+describe('TabSelectorItem Component', () => {
+    const defaultProps = {
+        title: 'Test Tab',
+        icon: 'icon-home',
+        onPress: jest.fn(),
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should show tooltip for inactive tab with hidden label', () => {
+        // Given an inactive tab with a hidden label
         render(
             <TabSelectorItem
-                title={tooltipText}
+                title="Test Tab"
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
             />,
         );
 
-        const button = screen.getByRole(CONST.ROLE.BUTTON, {name: tooltipText});
-
-        // Hover over the button to trigger the tooltip
+        // When hovering over the tab button
+        const button = screen.getByRole(CONST.ROLE.BUTTON, {name: defaultProps.title});
         fireEvent(button, 'hoverIn');
 
-        // Wait and check if the tooltip is shown
-        screen.findByText(tooltipText).then((tooltip) => {
-            expect(tooltip).toBeTruthy();
-        });
-        // Move the mouse away (hover-out) to hide the tooltip
-        fireEvent(button, 'hoverOut');
-
-        // Verify the tooltip is no longer visible
-        await waitFor(() => expect(screen.queryByText(tooltipText)).toBeNull());
+        // Then the tooltip should be rendered with correct content because the label is hidden
+        expect(Tooltip).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldRender: true,
+                text: defaultProps.title,
+            }),
+            expect.any(Object),
+        );
     });
-    it('should not show the tooltip when the tab is active', async () => {
-        const tooltipText = 'Tooltip 2';
-        const title = 'Title 2';
 
-        // Given an active tab (isActive=true)
+    it('should not show tooltip for active tab', () => {
+        // Given an active tab
         render(
             <TabSelectorItem
-                title={title}
-                shouldShowLabelWhenInactive
+                title="Test Tab"
+                shouldShowLabelWhenInactive={false}
                 isActive
             />,
         );
 
-        const button = screen.getByRole(CONST.ROLE.BUTTON, {name: title});
-
-        // When the user hovers over the button (active tab)
-        fireEvent(button, 'hoverIn');
-
-        // Then the tooltip should not appear because the tab is active
-        await waitFor(() => {
-            expect(screen.queryByText(tooltipText)).toBeNull();
-        });
-
-        // Move the mouse away (hover-out), the tooltip should remain hidden
-        fireEvent(button, 'hoverOut');
+        // When hovering over the tab button
+        // Then the tooltip should not render because the tab is active
+        expect(Tooltip).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldRender: false,
+                text: defaultProps.title,
+            }),
+            expect.any(Object),
+        );
     });
 
-    it('should not show the tooltip when the title is visible', async () => {
-        const tooltipText = 'Tooltip 3';
-        const title = 'Title 3';
-
-        // Given a tab where the title is visible (shouldShowLabelWhenInactive=true)
+    it('should not show tooltip when label is visible', () => {
+        // Given an inactive tab with visible label
         render(
             <TabSelectorItem
-                title={title}
+                title="Test Tab"
                 shouldShowLabelWhenInactive
-                isActive
+                isActive={false}
             />,
         );
 
-        const button = screen.getByRole(CONST.ROLE.BUTTON, {name: title});
-
-        // When the user hovers over the button (title is visible, so no tooltip)
-        fireEvent(button, 'hoverIn');
-
-        // Then the tooltip should not appear because the title is visible
-        await waitFor(() => {
-            expect(screen.queryByText(tooltipText)).toBeNull();
-        });
-
-        // Move the mouse away (hover-out), the tooltip still shouldn't appear
-        fireEvent(button, 'hoverOut');
+        // When hovering over the tab button
+        // Then the tooltip should not render because the label is already visible
+        expect(Tooltip).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldRender: false,
+                text: defaultProps.title,
+            }),
+            expect.any(Object),
+        );
     });
 });
