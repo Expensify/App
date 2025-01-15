@@ -87,28 +87,35 @@ type Section = SectionBase & {
     data: Option[];
 };
 
-type GetOptionsConfig = {
-    betas?: OnyxEntry<Beta[]>;
+type GetValidOptionsSharedConfig = {
+    includeP2P?: boolean;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    action?: IOUAction;
+    shouldBoldTitleByDefault?: boolean;
     selectedOptions?: Option[];
-    excludeLogins?: string[];
+};
+
+type GetValidReportsConfig = {
+    betas?: OnyxEntry<Beta[]>;
     includeMultipleParticipantReports?: boolean;
-    includeRecentReports?: boolean;
-    includeSelfDM?: boolean;
     showChatPreviewLine?: boolean;
     forcePolicyNamePreview?: boolean;
+    includeSelfDM?: boolean;
     includeOwnedWorkspaceChats?: boolean;
     includeThreads?: boolean;
     includeTasks?: boolean;
     includeMoneyRequests?: boolean;
-    includeP2P?: boolean;
-    includeSelectedOptions?: boolean;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
-    action?: IOUAction;
+    optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
+} & GetValidOptionsSharedConfig;
+
+type GetOptionsConfig = {
+    excludeLogins?: string[];
+    includeRecentReports?: boolean;
+    includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    shouldBoldTitleByDefault?: boolean;
-};
+} & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
@@ -1134,42 +1141,38 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-/**
- * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
- */
-function getValidOptions(
-    options: OptionList,
+function getValidReports(
+    reports: OptionList['reports'],
     {
         betas = [],
-        selectedOptions = [],
-        excludeLogins = [],
         includeMultipleParticipantReports = false,
-        includeRecentReports = true,
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
-        includeP2P = true,
-        includeSelectedOptions = false,
         transactionViolations = {},
         includeSelfDM = false,
         includeInvoiceRooms = false,
-        includeDomainEmail = false,
         action,
-        recentAttendees,
+        selectedOptions = [],
+        includeP2P = true,
+        includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
-    }: GetOptionsConfig = {},
-): Options {
+        optionsToExclude = [],
+    }: GetValidReportsConfig,
+) {
     const topmostReportId = Navigation.getTopmostReportId();
 
-    // Filter out all the reports that shouldn't be displayed
-    const filteredReportOptions = options.reports.filter((option) => {
+    const validReportOptions: ReportUtils.OptionData[] = [];
+    const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
+
+    for (const option of reports) {
         const report = option.item;
         const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
-        return ReportUtils.shouldReportBeInOptionList({
+        const shouldBeInOptionList = ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: topmostReportId,
             betas,
@@ -1181,13 +1184,9 @@ function getValidOptions(
             login: option.login,
             includeDomainEmail,
         });
-    });
 
-    const allReportOptions = filteredReportOptions.filter((option) => {
-        const report = option.item;
-
-        if (!report) {
-            return false;
+        if (!shouldBeInOptionList) {
+            continue;
         }
 
         const isThread = option.isThread;
@@ -1199,46 +1198,123 @@ function getValidOptions(
         const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
-            return false;
+            continue;
         }
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
-            return false;
+            continue;
         }
 
         if (isSelfDM && !includeSelfDM) {
-            return false;
+            continue;
         }
 
         if (isThread && !includeThreads) {
-            return false;
+            continue;
         }
 
         if (isTaskReport && !includeTasks) {
-            return false;
+            continue;
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
-            return false;
+            continue;
         }
 
         // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
-            return false;
+            continue;
         }
 
         if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-            return false;
+            continue;
         }
 
-        return true;
-    });
+        // Skip notifications@expensify.com
+        if (option.login === CONST.EMAIL.NOTIFICATIONS) {
+            continue;
+        }
 
-    const allPersonalDetailsOptions = includeP2P
-        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
-        : [];
+        const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+            option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
+        const shouldShowInvoiceRoom =
+            includeInvoiceRooms &&
+            ReportUtils.isInvoiceRoom(option.item) &&
+            ReportUtils.isPolicyAdmin(option.policyID, policies) &&
+            !option.private_isArchived &&
+            PolicyUtils.canSendInvoiceFromWorkspace(option.policyID);
+
+        /**
+        Exclude the report option if it doesn't meet any of the following conditions:
+        - It is not an owned policy expense chat that could be shown
+        - Multiple participant reports are not included
+        - It doesn't have a login
+        - It is not an invoice room that should be shown
+    */
+        if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
+            continue;
+        }
+
+        // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+        if (!includeThreads && (!!option.login || option.reportID) && optionsToExclude.some((x) => x.login === option.login || x.reportID === option.reportID)) {
+            continue;
+        }
+
+        /**
+         * By default, generated options does not have the chat preview line enabled.
+         * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
+         */
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
+        const isSelected = isReportSelected(option, selectedOptions);
+        const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
+        let lastIOUCreationDate;
+
+        // Add a field to sort the recent reports by the time of last IOU request for create actions
+        if (preferRecentExpenseReports) {
+            const reportPreviewAction = allSortedReportActions[option.reportID]?.find((reportAction) =>
+                ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
+            );
+
+            if (reportPreviewAction) {
+                const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
+                const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
+                const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                if (lastIOUAction) {
+                    lastIOUCreationDate = lastIOUAction.lastModified;
+                }
+            }
+        }
+
+        const newReportOption = {
+            ...option,
+            alternateText,
+            isSelected,
+            isBold,
+            lastIOUCreationDate,
+        };
+
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newReportOption.policyID}`];
+            if (reportPolicy?.areCategoriesEnabled) {
+                validReportOptions.push(newReportOption);
+            }
+        } else {
+            validReportOptions.push(newReportOption);
+        }
+    }
+
+    return validReportOptions;
+}
+
+/**
+ * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
+ */
+function getValidOptions(
+    options: OptionList,
+    {excludeLogins = [], includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
+): Options {
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
@@ -1252,95 +1328,13 @@ function getValidOptions(
         optionsToExclude.push({login});
     });
 
-    let recentReportOptions: ReportUtils.OptionData[] = [];
+    const {includeP2P, shouldBoldTitleByDefault, includeDomainEmail, ...getValidReportsConfig} = config;
+
+    const allPersonalDetailsOptions = includeP2P
+        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail ?? !Str.isDomainEmail(detail.login)))
+        : [];
+
     const personalDetailsOptions: ReportUtils.OptionData[] = [];
-
-    const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
-
-    if (includeRecentReports) {
-        for (const reportOption of allReportOptions) {
-            // Skip notifications@expensify.com
-            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
-                continue;
-            }
-
-            const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.private_isArchived;
-
-            const shouldShowInvoiceRoom =
-                includeInvoiceRooms &&
-                ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID, policies) &&
-                !reportOption.private_isArchived &&
-                PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
-
-            /**
-                Exclude the report option if it doesn't meet any of the following conditions:
-                - It is not an owned policy expense chat that could be shown
-                - Multiple participant reports are not included
-                - It doesn't have a login
-                - It is not an invoice room that should be shown
-            */
-            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login && !shouldShowInvoiceRoom) {
-                continue;
-            }
-
-            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (
-                !includeThreads &&
-                (!!reportOption.login || reportOption.reportID) &&
-                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
-            ) {
-                continue;
-            }
-
-            /**
-             * By default, generated options does not have the chat preview line enabled.
-             * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
-             */
-            const alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
-            const isSelected = isReportSelected(reportOption, selectedOptions);
-            const isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
-            let lastIOUCreationDate;
-
-            // Add a field to sort the recent reports by the time of last IOU request for create actions
-            if (preferRecentExpenseReports) {
-                const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
-                    ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
-                );
-
-                if (reportPreviewAction) {
-                    const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                    const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
-                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                    if (lastIOUAction) {
-                        lastIOUCreationDate = lastIOUAction.lastModified;
-                    }
-                }
-            }
-
-            const newReportOption = {
-                ...reportOption,
-                alternateText,
-                isSelected,
-                isBold,
-                lastIOUCreationDate,
-            };
-
-            if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newReportOption.policyID}`];
-                if (reportPolicy?.areCategoriesEnabled) {
-                    recentReportOptions.push(newReportOption);
-                }
-            } else {
-                recentReportOptions.push(newReportOption);
-            }
-        }
-    } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
-        recentReportOptions = recentAttendees as ReportUtils.OptionData[];
-    }
-
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
     // Next loop over all personal details removing any that are selectedUsers or recentChats
     for (const personalDetailOption of allPersonalDetailsOptions) {
@@ -1350,6 +1344,21 @@ function getValidOptions(
         personalDetailOption.isBold = shouldBoldTitleByDefault;
 
         personalDetailsOptions.push(personalDetailOption);
+    }
+
+    let recentReportOptions: ReportUtils.OptionData[] = [];
+    if (includeRecentReports) {
+        recentReportOptions = getValidReports(options.reports, {
+            ...getValidReportsConfig,
+            includeP2P,
+            includeDomainEmail,
+            selectedOptions,
+            optionsToExclude,
+            shouldBoldTitleByDefault,
+        });
+    } else if (recentAttendees && recentAttendees?.length > 0) {
+        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentReportOptions = recentAttendees as ReportUtils.OptionData[];
     }
 
     const currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
