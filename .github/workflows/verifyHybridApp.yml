@@ -1,0 +1,114 @@
+name: Verify HybridApp builds on main
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-verify-main
+  cancel-in-progress: true
+
+jobs:
+  verify_android:
+    name: Verify Android HybridApp builds on main
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
+
+      - name: Update submodule to match main
+        env:
+          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
+        run: |
+          git submodule update --init --remote
+          if [[ -z "$OLD_DOT_COMMIT" ]]; then
+            git fetch
+            git checkout ${{ env.OLD_DOT_COMMIT }} 
+          fi 
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
+      - name: Run Android build
+        run: npx react-native build-android
+
+  verify_ios:
+    name: Verify iOS HybridApp builds on main
+    runs-on: macos-15-xlarge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
+
+      - name: Update submodule to match main
+        env:
+          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
+        run: |
+          git submodule update --init --remote
+          if [[ -z "$OLD_DOT_COMMIT" ]]; then
+            git fetch
+            git checkout ${{ env.OLD_DOT_COMMIT }} 
+          fi 
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.204.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Cache Pod dependencies
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: Mobile-Expensify/iOS/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install cocoapods
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm run pod-install
+
+      - name: Build iOS App
+        run: npx react-native build-ios
