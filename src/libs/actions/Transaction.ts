@@ -363,13 +363,18 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? CONST.DEFAULT_NUMBER_ID}`,
-        value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
-        },
-    }));
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: optimisticDissmidedViolationReportAction as ReportAction,
+                  }
+                : undefined,
+        };
+    });
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
@@ -411,13 +416,18 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
-    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? CONST.DEFAULT_NUMBER_ID}`,
-        value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: null,
-        },
-    }));
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                  }
+                : undefined,
+        };
+    });
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);
@@ -430,6 +440,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
             [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: null,
         },
     }));
+
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
     // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE

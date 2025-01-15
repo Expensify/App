@@ -5018,7 +5018,7 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    description:
+                    description: ({workspaceSettingsLink}) =>
                         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                         '\n' +
                         'Here’s how to create a workspace:\n' +
@@ -5026,7 +5026,7 @@ const CONST = {
                         '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
-                        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
+                        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
                 },
                 selfGuidedTourTask,
                 {
