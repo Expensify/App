@@ -23,6 +23,7 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -39,7 +40,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -63,19 +64,23 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             return;
         }
 
+        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const data: Partial<AssignCardData> = {
+            email: selectedMember,
+            cardName: CardUtils.getDefaultCardName(memberName),
+        };
 
-        const nextStep = CardUtils.hasOnlyOneCardToAssign(filteredCardList) ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
+        if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+            nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+            data.cardNumber = Object.keys(filteredCardList).at(0);
+            data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+        }
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-            data: {
-                email: selectedMember,
-                cardName: CardUtils.getDefaultCardName(memberName),
-                cardNumber: Object.keys(filteredCardList).at(0),
-                encryptedCardNumber: Object.values(filteredCardList).at(0),
-            },
+            data,
             isEditing: false,
         });
     };
