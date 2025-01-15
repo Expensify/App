@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import {
     cancelPayment,
     deleteMoneyRequest,
+    mergeDuplicates,
     payMoneyRequest,
     putOnHold,
     requestMoney,
@@ -29,6 +30,7 @@ import {translateLocal} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
+    getDismissedViolationMessageText,
     getOriginalMessage,
     getReportActionHtml,
     getReportActionMessage,
@@ -3720,9 +3722,9 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
             };
 
-            const iouActions: OnyxTypes.ReportAction[] = [];
+            const iouActions: ReportAction[] = [];
             [transaction1, transaction2].forEach((transaction) => {
-                const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+                const optimisticReportAction = buildOptimisticIOUReportAction(
                     CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transaction.amount,
                     transaction.currency,
@@ -3732,10 +3734,10 @@ describe('actions/IOU', () => {
                 );
                 iouActions.push({
                     ...optimisticReportAction,
-                    childReportID: NumberUtils.rand64(),
+                    childReportID: rand64(),
                 });
             });
-            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {};
+            const actions: OnyxInputValue<ReportActions> = {};
             iouActions.forEach(
                 (iouAction) =>
                     (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = {
@@ -3747,7 +3749,7 @@ describe('actions/IOU', () => {
             await Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet});
 
             // When merge duplicates transaction
-            IOU.mergeDuplicates({
+            mergeDuplicates({
                 ...transaction1,
                 receiptID: 1,
                 category: '',
@@ -3765,8 +3767,8 @@ describe('actions/IOU', () => {
                         Onyx.disconnect(connection);
                         // Then the system message 'resolved the duplicate' should be displayed
                         const dismissedViolationReportAction = Object.values(reportActions ?? {}).at(0);
-                        if (ReportActionsUtils.isActionOfType(dismissedViolationReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
-                            const dismissedViolationMessageText = ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(dismissedViolationReportAction));
+                        if (isActionOfType(dismissedViolationReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
+                            const dismissedViolationMessageText = getDismissedViolationMessageText(getOriginalMessage(dismissedViolationReportAction));
                             const systemMessage = 'resolved the duplicate';
                             expect(dismissedViolationMessageText).toBe(systemMessage);
                         }
@@ -3780,7 +3782,7 @@ describe('actions/IOU', () => {
     describe('resolveDuplicate', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
-            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
