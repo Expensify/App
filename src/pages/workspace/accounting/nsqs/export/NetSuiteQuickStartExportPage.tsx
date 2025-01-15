@@ -16,8 +16,9 @@ function NetSuiteQuickStartExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
+    const policyOwner = policy?.owner ?? '';
     const nsqsConfig = policy?.connections?.nsqs?.config;
-    const exporter = nsqsConfig?.exporter ?? '';
+    const exporter = nsqsConfig?.exporter ?? policyOwner;
     const exportDate = nsqsConfig?.exportDate ?? CONST.NSQS_EXPORT_DATE.LAST_EXPENSE;
 
     return (
