@@ -13,14 +13,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
-import * as Localize from '@libs/Localize';
+import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
+import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
-import * as App from '@userActions/App';
-import * as Session from '@userActions/Session';
+import {setLocale} from '@userActions/App';
+import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -104,7 +104,7 @@ function getRenderOptions({
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
     if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
-        Session.clearSignInData();
+        clearSignInData();
     }
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
@@ -176,7 +176,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 
     const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
-    const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
+    const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
@@ -186,7 +186,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         if (preferredLocale) {
             return;
         }
-        App.setLocale(Localize.getDevicePreferredLocale());
+        setLocale(getDevicePreferredLocale());
     }, [preferredLocale]);
     useEffect(() => {
         if (credentials?.login) {
@@ -282,7 +282,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
             (!shouldShowAnotherLoginPageOpenedMessage &&
                 (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
-            Session.clearSignInData();
+            clearSignInData();
             return;
         }
 

@@ -8,8 +8,8 @@ import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Session from '@userActions/Session';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {beginSignIn, clearSignInData, resetSMSDeliveryFailure} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -32,7 +32,7 @@ function SMSDeliveryFailurePage() {
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
     const isReset = account?.smsDeliveryFailureStatus?.isReset;
 
-    const errorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
+    const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowError = !!errorText;
 
     useEffect(() => {
@@ -57,13 +57,13 @@ function SMSDeliveryFailurePage() {
                         success
                         large
                         text={translate('common.buttonConfirm')}
-                        onPress={() => Session.clearSignInData()}
+                        onPress={() => clearSignInData()}
                         pressOnEnter
                         style={styles.w100}
                     />
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
-                    <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                    <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
                 </View>
                 <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                     <Terms />
@@ -84,14 +84,14 @@ function SMSDeliveryFailurePage() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.send')}
                         isLoading={account?.isLoading}
-                        onSubmit={() => Session.beginSignIn(login)}
+                        onSubmit={() => beginSignIn(login)}
                         message={errorText}
                         isAlertVisible={shouldShowError}
                         containerStyles={[styles.w100, styles.mh0]}
                     />
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
-                    <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                    <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
                 </View>
                 <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                     <Terms />
@@ -111,14 +111,14 @@ function SMSDeliveryFailurePage() {
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.validate')}
                     isLoading={account?.smsDeliveryFailureStatus?.isLoading}
-                    onSubmit={() => Session.resetSMSDeliveryFailure(login)}
+                    onSubmit={() => resetSMSDeliveryFailure(login)}
                     message={errorText}
                     isAlertVisible={shouldShowError}
                     containerStyles={[styles.w100, styles.mh0]}
                 />
             </View>
             <View style={[styles.mt3, styles.mb2]}>
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
