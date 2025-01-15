@@ -10,10 +10,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import getPlatform from './getPlatform';
-
-const platform = getPlatform();
-const isNativePlatform = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+import validateFormDataParameter from './validateFormDataParameter';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -176,35 +173,6 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 
     const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
     return processHTTPRequest(url, type, formData, abortSignalController?.signal);
-}
-
-/**
- * Ensures no value of type `object` other than null, Blob, its subclasses, or {uri: string} (native platforms only) is passed to XMLHttpRequest.
- * Otherwise, it will be incorrectly serialized as `[object Object]` and cause an error on Android.
- * See https://github.com/Expensify/App/issues/45086
- */
-function validateFormDataParameter(command: string, key: string, value: unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    const isValid = (value: unknown, isTopLevel: boolean): boolean => {
-        if (value === null || typeof value !== 'object') {
-            return true;
-        }
-        if (Array.isArray(value)) {
-            return value.every((element) => isValid(element, false));
-        }
-        if (isTopLevel) {
-            // Native platforms only require the value to include the `uri` property.
-            // Optionally, it can also have a `name` and `type` props.
-            // On other platforms, the value must be an instance of `Blob`.
-            return isNativePlatform ? 'uri' in value && !!value.uri : value instanceof Blob;
-        }
-        return false;
-    };
-
-    if (!isValid(value, true)) {
-        // eslint-disable-next-line no-console
-        console.warn(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`);
-    }
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
