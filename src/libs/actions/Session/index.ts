@@ -36,13 +36,12 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
-import * as App from '@userActions/App';
+import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
@@ -284,7 +283,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         }
         Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
-            const reportID = ReportUtils.getReportIDFromLink(url);
+            const reportID = getReportIDFromLink(url);
             if (reportID) {
                 Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
             }
@@ -564,10 +563,10 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
             )
             .then(() => {
                 if (clearOnyxOnStart === 'true') {
-                    return App.openApp();
+                    return openApp();
                 }
                 return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
-                    return App.reconnectApp(lastUpdateId);
+                    return reconnectApp(lastUpdateId);
                 });
             })
             .catch((error) => {
@@ -1170,11 +1169,11 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
  */
 
 const canAnonymousUserAccessRoute = (route: string) => {
-    const reportID = ReportUtils.getReportIDFromLink(route);
+    const reportID = getReportIDFromLink(route);
     if (reportID) {
         return true;
     }
-    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    const parsedReportRouteParams = parseReportRouteParamsReportUtils(route);
     let routeRemovedReportId = route;
     if ((parsedReportRouteParams as {reportID: string})?.reportID) {
         routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
