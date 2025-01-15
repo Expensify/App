@@ -17,7 +17,7 @@ function toLocaleDigitMock(dot: string): string {
 
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
-        email: 'admin@test.com',
+        email: 'owner@test.com',
         role: 'admin',
         submitsTo: '',
     },
