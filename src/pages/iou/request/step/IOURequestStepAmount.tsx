@@ -6,6 +6,19 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import {
+    requestMoney,
+    resetSplitShares,
+    sendMoneyElsewhere,
+    sendMoneyWithWallet,
+    setDraftSplitTransaction,
+    setMoneyRequestAmount,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setSplitShares,
+    trackExpense,
+    updateMoneyRequestAmountAndCurrency,
+} from '@libs/actions/IOU';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,7 +27,6 @@ import {getBankAccountRoute, getTransactionDetails, isArchivedReport, isPolicyEx
 import playSound, {SOUNDS} from '@libs/Sound';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -152,11 +164,11 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
+        setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
         // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
         // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
-        IOU.setMoneyRequestTaxAmount(transactionID, null);
+        setMoneyRequestTaxAmount(transactionID, null);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -170,7 +182,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
@@ -180,16 +192,16 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
+                        sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
+                    sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     playSound(SOUNDS.DONE);
-                    IOU.requestMoney({
+                    requestMoney({
                         report,
                         participantParams: {
                             participant: participants.at(0) ?? {},
@@ -208,7 +220,7 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
                     playSound(SOUNDS.DONE);
-                    IOU.trackExpense(
+                    trackExpense(
                         report,
                         backendAmount,
                         currency ?? 'USD',
@@ -223,10 +235,10 @@ function IOURequestStepAmount({
                     return;
                 }
             }
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
+                setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             navigateToConfirmationPage();
             return;
@@ -242,7 +254,7 @@ function IOURequestStepAmount({
 
         // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
-            IOU.resetSplitShares(transaction, newAmount, currency);
+            resetSplitShares(transaction, newAmount, currency);
         }
 
         if (!isEditing) {
@@ -265,12 +277,12 @@ function IOURequestStepAmount({
         const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
+            setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
             navigateBack();
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode, policyCategories});
+        updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode, policyCategories});
         navigateBack();
     };
 
