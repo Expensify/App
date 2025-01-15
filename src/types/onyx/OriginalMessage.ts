@@ -406,7 +406,7 @@ type OriginalMessageReimbursementDequeued = {
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
     /** ID of the old policy */
-    fromPolicyID: string;
+    fromPolicyID: string | undefined;
 
     /** ID of the new policy */
     toPolicyID: string;
@@ -598,6 +598,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;

@@ -12,7 +12,6 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,8 +65,6 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    useHtmlPaste(privateNotesInput);
-
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -99,7 +96,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report, backTo);
         } else {
-            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
     };
 
