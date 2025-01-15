@@ -409,7 +409,7 @@ function ReportPreview({
     const bankAccountRoute = getBankAccountRoute(chatReport);
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
-
+    console.log('shouldShowSettelmentButton', shouldShowSettlementButton);
     const shouldPromptUserToAddBankAccount = (hasMissingPaymentMethod(userWallet, iouReportID) || hasMissingInvoiceBankAccount(iouReportID)) && !isSettled(iouReportID);
     const shouldShowRBR = hasErrors && !iouSettled;
 

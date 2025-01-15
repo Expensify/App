@@ -127,11 +127,7 @@ function AvatarWithDisplayName({
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <PressableWithoutFeedback
-                        onPress={showActorDetails}
-                        accessibilityLabel={title}
-                        role={CONST.ROLE.BUTTON}
-                    >
+                    <View accessibilityLabel={title}>
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
@@ -146,7 +142,7 @@ function AvatarWithDisplayName({
                                 secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
                             />
                         )}
-                    </PressableWithoutFeedback>
+                    </View>
                     <View style={[styles.flex1, styles.flexColumn]}>
                         <CaretWrapper>
                             <DisplayNames
@@ -186,7 +182,7 @@ function AvatarWithDisplayName({
 
     return (
         <PressableWithoutFeedback
-            onPress={goToDetailsPage}
+            onPress={showActorDetails}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}
