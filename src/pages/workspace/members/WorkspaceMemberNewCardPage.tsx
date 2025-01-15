@@ -50,6 +50,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const isFeedExpired = CardUtils.isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
     const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
@@ -80,6 +81,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
                 data.cardNumber = Object.keys(filteredCardList).at(0);
                 data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            }
+            if (isFeedExpired) {
+                currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
             }
             CompanyCards.setAssignCardStepAndData({
                 currentStep,
