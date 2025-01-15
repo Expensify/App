@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -11,7 +12,6 @@ import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
-import Parser from '@libs/Parser';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
