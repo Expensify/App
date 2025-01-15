@@ -61,6 +61,9 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+const cardHiddenFromSearchStates: number[] = [2, 4];
+
 const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
@@ -2802,6 +2805,7 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        HIDDEN_FROM_SEARCH_STATES: cardHiddenFromSearchStates,
         LIMIT_TYPES: {
             SMART: 'smart',
             MONTHLY: 'monthly',
