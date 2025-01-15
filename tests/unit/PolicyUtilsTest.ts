@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,6 +16,7 @@ function toLocaleDigitMock(dot: string): string {
     return dot;
 }
 
+const testDate = DateUtils.getDBTime();
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
         email: 'owner@test.com',
@@ -53,33 +55,41 @@ const employeeList: PolicyEmployeeList = {
     },
 };
 
+const adminAccountID = 1;
+const employeeAccountID = 2;
+const categoryapprover1AccountID = 3;
+const categoryapprover2AccountID = 4;
+const tagapprover1AccountID = 5;
+const tagapprover2AccountID = 6;
+const ownerAccountID = 7;
+
 const personalDetails: PersonalDetailsList = {
     '1': {
-        accountID: 1,
+        accountID: adminAccountID,
         login: 'admin@test.com',
     },
     '2': {
-        accountID: 2,
+        accountID: employeeAccountID,
         login: 'employee@test.com',
     },
     '3': {
-        accountID: 3,
+        accountID: categoryapprover1AccountID,
         login: 'categoryapprover1@test.com',
     },
     '4': {
-        accountID: 4,
+        accountID: categoryapprover2AccountID,
         login: 'categoryapprover2@test.com',
     },
     '5': {
-        accountID: 5,
+        accountID: tagapprover1AccountID,
         login: 'tagapprover1@test.com',
     },
     '6': {
-        accountID: 6,
+        accountID: tagapprover2AccountID,
         login: 'tagapprover2@test.com',
     },
     '7': {
-        accountID: 7,
+        accountID: ownerAccountID,
         login: 'owner@test.com',
     },
 };
@@ -132,14 +142,6 @@ const rules = {
         },
     ],
 };
-
-const ownerAccountID = 7;
-const adminAccountID = 1;
-const employeeAccountID = 2;
-const categoryapprover1AccountID = 3;
-const categoryapprover2AccountID = 4;
-const tagapprover1AccountID = 5;
-const tagapprover2AccountID = 6;
 
 describe('PolicyUtils', () => {
     describe('getActivePolicies', () => {
@@ -239,13 +241,28 @@ describe('PolicyUtils', () => {
             await waitForBatchedUpdatesWithAct();
         });
         describe('Has no rule approver', () => {
-            it('should return the policy approver/owner if the policy use the optional or basic workflow', () => {
+            it('should return the policy approver/owner if the policy use the basic workflow', () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
                     owner: 'owner@test.com',
-                    type: 'team',
+                    type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+            });
+            it('should return the policy approver/owner if the policy use the basic workflow', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
                     ...createRandomReport(0),
@@ -260,7 +277,7 @@ describe('PolicyUtils', () => {
                     approver: 'owner@test.com',
                     owner: 'owner@test.com',
                     employeeList,
-                    type: 'team',
+                    type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
@@ -277,7 +294,7 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
                     owner: 'owner@test.com',
-                    type: 'team',
+                    type: CONST.POLICY.TYPE.TEAM,
                     employeeList,
                     rules,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -308,7 +325,7 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
                     owner: 'owner@test.com',
-                    type: 'team',
+                    type: CONST.POLICY.TYPE.TEAM,
                     employeeList,
                     rules,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -321,13 +338,13 @@ describe('PolicyUtils', () => {
                 const transaction1: Transaction = {
                     ...createRandomTransaction(0),
                     category: 'cat1',
-                    created: '3',
+                    created: testDate,
                     reportID: expenseReport.reportID,
                 };
                 const transaction2: Transaction = {
                     ...createRandomTransaction(1),
                     category: 'cat2',
-                    created: '2',
+                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
                 await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -342,7 +359,7 @@ describe('PolicyUtils', () => {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
                         owner: 'owner@test.com',
-                        type: 'team',
+                        type: CONST.POLICY.TYPE.TEAM,
                         employeeList,
                         rules,
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -356,14 +373,14 @@ describe('PolicyUtils', () => {
                         ...createRandomTransaction(0),
                         category: '',
                         tag: 'tag1',
-                        created: '3',
+                        created: testDate,
                         reportID: expenseReport.reportID,
                     };
                     const transaction2: Transaction = {
                         ...createRandomTransaction(1),
                         category: '',
                         tag: '',
-                        created: '2',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
                     await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -377,7 +394,7 @@ describe('PolicyUtils', () => {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
                         owner: 'owner@test.com',
-                        type: 'team',
+                        type: CONST.POLICY.TYPE.TEAM,
                         employeeList,
                         rules,
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -391,14 +408,14 @@ describe('PolicyUtils', () => {
                         ...createRandomTransaction(0),
                         category: '',
                         tag: 'tag1',
-                        created: '3',
+                        created: testDate,
                         reportID: expenseReport.reportID,
                     };
                     const transaction2: Transaction = {
                         ...createRandomTransaction(1),
                         category: '',
                         tag: 'tag2',
-                        created: '2',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
                     await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {

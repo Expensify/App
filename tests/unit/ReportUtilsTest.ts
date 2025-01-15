@@ -46,6 +46,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
 
+const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
 const participantsPersonalDetails: PersonalDetailsList = {
@@ -1766,7 +1767,7 @@ describe('ReportUtils', () => {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
                     owner: 'owner@test.com',
-                    type: 'team',
+                    type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
@@ -1785,7 +1786,7 @@ describe('ReportUtils', () => {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
                         owner: 'owner@test.com',
-                        type: 'team',
+                        type: CONST.POLICY.TYPE.TEAM,
                         employeeList,
                         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     };
@@ -1804,7 +1805,7 @@ describe('ReportUtils', () => {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
                         owner: 'owner@test.com',
-                        type: 'team',
+                        type: CONST.POLICY.TYPE.TEAM,
                         employeeList,
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
@@ -1826,7 +1827,7 @@ describe('ReportUtils', () => {
                             ...createRandomPolicy(0),
                             approver: 'owner@test.com',
                             owner: 'owner@test.com',
-                            type: 'team',
+                            type: CONST.POLICY.TYPE.TEAM,
                             employeeList,
                             rules,
                             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
@@ -1840,14 +1841,14 @@ describe('ReportUtils', () => {
                             ...createRandomTransaction(0),
                             category: '',
                             tag: '',
-                            created: '3',
+                            created: testDate,
                             reportID: expenseReport.reportID,
                         };
                         const transaction2: Transaction = {
                             ...createRandomTransaction(1),
                             category: '',
                             tag: '',
-                            created: '2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
                         };
                         Onyx.multiSet({
@@ -1868,7 +1869,7 @@ describe('ReportUtils', () => {
                             ...createRandomPolicy(1),
                             approver: 'owner@test.com',
                             owner: 'owner@test.com',
-                            type: 'team',
+                            type: CONST.POLICY.TYPE.TEAM,
                             employeeList,
                             rules,
                             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -1882,33 +1883,33 @@ describe('ReportUtils', () => {
                             ...createRandomTransaction(2),
                             category: 'cat1',
                             tag: '',
-                            created: '3',
+                            created: testDate,
                             reportID: expenseReport.reportID,
-                            inserted: '2',
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction2: Transaction = {
                             ...createRandomTransaction(3),
                             category: '',
                             tag: 'tag1',
-                            created: '2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
-                            inserted: '2',
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction3: Transaction = {
                             ...createRandomTransaction(4),
                             category: 'cat2',
                             tag: '',
-                            created: '3',
+                            created: testDate,
                             reportID: expenseReport.reportID,
-                            inserted: '1',
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
                         const transaction4: Transaction = {
                             ...createRandomTransaction(5),
                             category: '',
                             tag: 'tag2',
-                            created: '2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
-                            inserted: '1',
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
                         Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
                             [transaction1.transactionID]: transaction1,
