@@ -6,13 +6,14 @@ import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ApiUtils from '@libs/ApiUtils';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getSubmitToAccountID} from '@libs/PolicyUtils';
+import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -20,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import * as Report from './Report';
+import {openReport} from './Report';
 
 let currentUserEmail: string;
 Onyx.connect({
@@ -52,7 +53,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
-    const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
+    const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
     if (hasHeldExpense) {
         goToItem();
@@ -222,6 +223,15 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
+function openSearchFiltersCardPage() {
+    const optimisticData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
+
+    const successData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
+
+    const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
+    API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -239,7 +249,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
 function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    Report.openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+    openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
 
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
@@ -277,7 +287,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
     const report = (reportList.at(0) ?? {}) as SearchReport;
     const parameters: SubmitReportParams = {
         reportID: report.reportID,
-        managerAccountID: PolicyUtils.getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
         reportActionID: rand64(),
     };
 
@@ -299,7 +309,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
         },
     ];
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
@@ -319,7 +329,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     ];
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -366,7 +376,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         }
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 /**
@@ -410,4 +420,5 @@ export {
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
+    openSearchFiltersCardPage,
 };

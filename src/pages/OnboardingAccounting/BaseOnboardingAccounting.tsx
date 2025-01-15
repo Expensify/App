@@ -36,7 +36,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -44,7 +44,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
@@ -182,7 +182,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         Welcome.setOnboardingAdminsChatReportID();
                         Welcome.setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
+                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
                 }}
                 pressOnEnter
             />
