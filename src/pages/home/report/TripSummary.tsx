@@ -11,9 +11,12 @@ import RepliesDivider from './RepliesDivider';
 type TripSummaryProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Trip transactions associated with the report */
+    tripTransactions: OnyxTypes.Transaction[];
 };
 
-function TripSummary({report}: TripSummaryProps) {
+function TripSummary({report, tripTransactions}: TripSummaryProps) {
     const styles = useThemeStyles();
 
     if (!report?.reportID) {
@@ -26,6 +29,7 @@ function TripSummary({report}: TripSummaryProps) {
             <OfflineWithFeedback pendingAction={report.pendingAction}>
                 <TripDetailsView
                     tripRoomReportID={report.reportID}
+                    tripTransactions={tripTransactions}
                     shouldShowHorizontalRule={false}
                 />
             </OfflineWithFeedback>

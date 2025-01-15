@@ -117,7 +117,10 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
 
-    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.reportID);
+    const [tripTransactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: ReportUtils.tripTransactionsSelector(chatReportID),
+    });
+
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
     const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
@@ -129,7 +132,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         }
 
         return CurrencyUtils.convertToDisplayString(
-            tripTransactions.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
             currency,
         );
     }, [currency, totalDisplaySpend, tripTransactions]);

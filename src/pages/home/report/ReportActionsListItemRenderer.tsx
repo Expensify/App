@@ -1,8 +1,10 @@
 import React, {memo, useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {getTripTransactions, isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
+import {isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom, tripTransactionsSelector} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -145,11 +147,18 @@ function ReportActionsListItemRenderer({
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
 
-    const tripTransactions = getTripTransactions(report?.reportID);
-    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report) && tripTransactions.length > 0;
+    const [tripTransactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: tripTransactionsSelector(report?.reportID),
+    });
+    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report) && tripTransactions && tripTransactions.length > 0;
 
     if (shouldDisplayTripSummary) {
-        return <TripSummary report={report} />;
+        return (
+            <TripSummary
+                report={report}
+                tripTransactions={tripTransactions}
+            />
+        );
     }
 
     if (shouldDisplayParentAction && isChatThread(report)) {
