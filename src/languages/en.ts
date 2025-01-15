@@ -2538,7 +2538,7 @@ const translations = {
         domainPermissionInfo: {
             title: 'Domain',
             restriction: ({domain}: DomainPermissionInfoParams) => `You don't have permission to enable Expensify Travel for the domain <strong>${domain}</strong>. You'll need to ask someone from that domain to enable travel instead.`,
-            accountantInvitation: `If you're a accountant, consider joining the ExpensifyApproved! accountants program to enable travel for this domain.`,
+            accountantInvitation: `If you're a accountant, consider joining the <a href="https://use.expensify.com/accountants-program">ExpensifyApproved! accountants program</a> to enable travel for this domain.`,
         }
     },
     workspace: {
