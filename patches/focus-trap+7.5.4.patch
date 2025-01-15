@@ -1,22 +1,7 @@
 diff --git a/node_modules/focus-trap/dist/focus-trap.esm.js b/node_modules/focus-trap/dist/focus-trap.esm.js
-index 10d56db..975151c 100644
+index 10d56db..a6d76d8 100644
 --- a/node_modules/focus-trap/dist/focus-trap.esm.js
 +++ b/node_modules/focus-trap/dist/focus-trap.esm.js
-@@ -71,12 +71,12 @@ var activeFocusTraps = {
-       trapStack.push(trap);
-     }
-   },
--  deactivateTrap: function deactivateTrap(trapStack, trap) {
-+  deactivateTrap: function deactivateTrap(trapStack, trap, unpauseOnDeactivate) {
-     var trapIndex = trapStack.indexOf(trap);
-     if (trapIndex !== -1) {
-       trapStack.splice(trapIndex, 1);
-     }
--    if (trapStack.length > 0) {
-+    if (trapStack.length > 0 && unpauseOnDeactivate) {
-       trapStack[trapStack.length - 1].unpause();
-     }
-   }
 @@ -100,8 +100,8 @@ var isKeyForward = function isKeyForward(e) {
  var isKeyBackward = function isKeyBackward(e) {
    return isTabEvent(e) && e.shiftKey;
@@ -28,15 +13,7 @@ index 10d56db..975151c 100644
  };
  
  // Array.find/findIndex() are not supported on IE; this replicates enough
-@@ -153,6 +153,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
-   var doc = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.document) || document;
-   var trapStack = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.trapStack) || internalTrapStack;
-   var config = _objectSpread2({
-+    unpauseOnDeactivate: true,
-     returnFocusOnDeactivate: true,
-     escapeDeactivates: true,
-     delayInitialFocus: true,
-@@ -283,7 +284,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+@@ -283,7 +283,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
      return node;
    };
    var getInitialFocusNode = function getInitialFocusNode() {
@@ -45,7 +22,7 @@ index 10d56db..975151c 100644
  
      // false explicitly indicates we want no initialFocus at all
      if (node === false) {
-@@ -744,7 +745,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+@@ -744,7 +744,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
      // that caused the focus trap activation.
      state.delayInitialFocusTimer = config.delayInitialFocus ? delay(function () {
        tryFocus(getInitialFocusNode());
@@ -54,16 +31,7 @@ index 10d56db..975151c 100644
      doc.addEventListener('focusin', checkFocusIn, true);
      doc.addEventListener('mousedown', checkPointerDown, {
        capture: true,
-@@ -868,7 +869,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
-       state.active = false;
-       state.paused = false;
-       updateObservedNodes();
--      activeFocusTraps.deactivateTrap(trapStack, trap);
-+      activeFocusTraps.deactivateTrap(trapStack, trap, config.unpauseOnDeactivate);
-       var onDeactivate = getOption(options, 'onDeactivate');
-       var onPostDeactivate = getOption(options, 'onPostDeactivate');
-       var checkCanReturnFocus = getOption(options, 'checkCanReturnFocus');
-@@ -880,7 +881,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+@@ -880,7 +880,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
              tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
            }
            onPostDeactivate === null || onPostDeactivate === void 0 || onPostDeactivate();
@@ -73,7 +41,7 @@ index 10d56db..975151c 100644
        if (returnFocus && checkCanReturnFocus) {
          checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
 diff --git a/node_modules/focus-trap/index.d.ts b/node_modules/focus-trap/index.d.ts
-index 400db1b..78b38d9 100644
+index 400db1b..69f4b94 100644
 --- a/node_modules/focus-trap/index.d.ts
 +++ b/node_modules/focus-trap/index.d.ts
 @@ -16,7 +16,7 @@ declare module 'focus-trap' {
@@ -85,19 +53,7 @@ index 400db1b..78b38d9 100644
  
    type MouseEventToBoolean = (event: MouseEvent | TouchEvent) => boolean;
    type KeyboardEventToBoolean = (event: KeyboardEvent) => boolean;
-@@ -135,6 +135,11 @@ declare module 'focus-trap' {
-      * in the trap.
-      */
-     fallbackFocus?: FocusTarget;
-+    /**
-+     * By default, the previous focus trap on the stack will be unpaused 
-+     * when the current active trap is deactivated.
-+     */
-+    unpauseOnDeactivate?: boolean;
-     /**
-      * Default: `true`. If `false`, when the trap is deactivated,
-      * focus will *not* return to the element that had focus before activation.
-@@ -185,7 +190,7 @@ declare module 'focus-trap' {
+@@ -185,7 +185,7 @@ declare module 'focus-trap' {
       * This prevents elements within the focusable element from capturing
       * the event that triggered the focus trap activation.
       */
