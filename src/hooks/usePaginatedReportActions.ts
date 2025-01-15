@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
-function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
+function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string) {
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
@@ -32,7 +32,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     }, [reportActionID, reportActionPages, sortedAllReportActions]);
 
     const linkedAction = useMemo(
-        () => sortedAllReportActions?.find((reportAction) => reportActionID && String(reportAction.reportActionID) === String(reportActionID)),
+        () => (reportActionID ? sortedAllReportActions?.find((reportAction) => String(reportAction.reportActionID) === String(reportActionID)) : undefined),
         [reportActionID, sortedAllReportActions],
     );
 

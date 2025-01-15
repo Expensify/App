@@ -16,6 +16,10 @@ const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
 const clearReportNotifications: ClearReportNotifications = (reportID: string | undefined) => {
     Log.info('[PushNotification] clearing report notifications', false, {reportID});
 
+    if (!reportID) {
+        return;
+    }
+
     Airship.push
         .getActiveNotifications()
         .then((pushPayloads) => {
