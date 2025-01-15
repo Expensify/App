@@ -10,6 +10,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     getAllAncestorReportActions,
+    getApprovalChain,
     getChatByParticipants,
     getDefaultWorkspaceAvatar,
     getDisplayNamesWithTooltips,
@@ -31,10 +32,13 @@ import {
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -42,6 +46,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
 
+const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
 const participantsPersonalDetails: PersonalDetailsList = {
@@ -76,6 +81,130 @@ const participantsPersonalDetails: PersonalDetailsList = {
         pronouns: 'She/her',
     },
 };
+
+const employeeList: PolicyEmployeeList = {
+    'owner@test.com': {
+        email: 'owner@test.com',
+        role: 'admin',
+        submitsTo: '',
+    },
+    'admin@test.com': {
+        email: 'admin@test.com',
+        role: 'admin',
+        submitsTo: '',
+    },
+    'employee@test.com': {
+        email: 'employee@test.com',
+        role: 'user',
+        submitsTo: 'admin@test.com',
+    },
+    'categoryapprover1@test.com': {
+        email: 'categoryapprover1@test.com',
+        role: 'user',
+        submitsTo: 'admin@test.com',
+    },
+    'categoryapprover2@test.com': {
+        email: 'categoryapprover2@test.com',
+        role: 'user',
+        submitsTo: 'admin@test.com',
+    },
+    'tagapprover1@test.com': {
+        email: 'tagapprover1@test.com',
+        role: 'user',
+        submitsTo: 'admin@test.com',
+    },
+    'tagapprover2@test.com': {
+        email: 'tagapprover2@test.com',
+        role: 'user',
+        submitsTo: 'admin@test.com',
+    },
+};
+
+const personalDetails: PersonalDetailsList = {
+    '1': {
+        accountID: 1,
+        login: 'admin@test.com',
+    },
+    '2': {
+        accountID: 2,
+        login: 'employee@test.com',
+    },
+    '3': {
+        accountID: 3,
+        login: 'categoryapprover1@test.com',
+    },
+    '4': {
+        accountID: 4,
+        login: 'categoryapprover2@test.com',
+    },
+    '5': {
+        accountID: 5,
+        login: 'tagapprover1@test.com',
+    },
+    '6': {
+        accountID: 6,
+        login: 'tagapprover2@test.com',
+    },
+    '7': {
+        accountID: 7,
+        login: 'owner@test.com',
+    },
+};
+
+const rules = {
+    approvalRules: [
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat1',
+                },
+            ],
+            approver: 'categoryapprover1@test.com',
+            id: '1',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'tag',
+                    value: 'tag1',
+                },
+            ],
+            approver: 'tagapprover1@test.com',
+            id: '2',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat2',
+                },
+            ],
+            approver: 'categoryapprover2@test.com',
+            id: '3',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'tag',
+                    value: 'tag2',
+                },
+            ],
+            approver: 'tagapprover2@test.com',
+            id: '4',
+        },
+    ],
+};
+
+const employeeAccountID = 2;
+const categoryapprover1Email = 'categoryapprover1@test.com';
+const categoryapprover2Email = 'categoryapprover2@test.com';
+const tagapprover1Email = 'tagapprover1@test.com';
+const tagapprover2Email = 'tagapprover2@test.com';
 
 const policy: Policy = {
     id: '1',
@@ -1628,6 +1757,172 @@ describe('ReportUtils', () => {
             expect(getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
+        });
+    });
+
+    describe('getApprovalChain', () => {
+        describe('submit and close policy', () => {
+            it('should return empty array', () => {
+                const policyTest: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual([]);
+            });
+        });
+        describe('basic/advance workflow', () => {
+            describe('has no approver rule', () => {
+                it('should return list contain policy approver/owner and the forwardsTo of them if the policy use basic workflow', () => {
+                    const policyTest: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        employeeList,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                        const result = ['owner@test.com'];
+                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                    });
+                });
+                it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them if the policy use advance workflow', () => {
+                    const policyTest: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                        const result = ['admin@test.com'];
+                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                    });
+                });
+            });
+            describe('has approver rule', () => {
+                describe('has no transaction match with approver rule', () => {
+                    it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
+                        const policyTest: Policy = {
+                            ...createRandomPolicy(0),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(0),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(0),
+                            category: '',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(1),
+                            category: '',
+                            tag: '',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                        };
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+                            [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                                [transaction1.transactionID]: transaction1,
+                                [transaction2.transactionID]: transaction2,
+                            },
+                        }).then(() => {
+                            const result = ['owner@test.com'];
+                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        });
+                    });
+                });
+                describe('has transaction match with approver rule', () => {
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
+                        const policyTest: Policy = {
+                            ...createRandomPolicy(1),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(1),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(2),
+                            category: 'cat1',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(3),
+                            category: '',
+                            tag: 'tag1',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        };
+                        const transaction3: Transaction = {
+                            ...createRandomTransaction(4),
+                            category: 'cat2',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                        };
+                        const transaction4: Transaction = {
+                            ...createRandomTransaction(5),
+                            category: '',
+                            tag: 'tag2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                        };
+                        Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
+                            [transaction1.transactionID]: transaction1,
+                            [transaction2.transactionID]: transaction2,
+                            [transaction3.transactionID]: transaction3,
+                            [transaction4.transactionID]: transaction4,
+                        }).then(() => {
+                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        });
+                    });
+                });
+            });
         });
     });
 });
