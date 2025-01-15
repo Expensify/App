@@ -7,7 +7,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -78,7 +78,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     useEffect(() => {
-        BankAccounts.getCorpayOnboardingFields(country);
+        getCorpayOnboardingFields(country);
     }, [country]);
 
     const submit = useCallback(() => {
@@ -87,7 +87,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
             params[currentKey] = businessInfoStepValues[currentKey];
         });
 
-        BankAccounts.saveCorpayOnboardingCompanyDetails(
+        saveCorpayOnboardingCompanyDetails(
             {
                 ...params,
                 currencyNeeded: currency,
@@ -105,11 +105,11 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
 
         if (reimbursementAccount?.isSuccess) {
             onSubmit();
-            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+            clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         }
 
         return () => {
-            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+            clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         };
     }, [reimbursementAccount, onSubmit]);
 

@@ -14,7 +14,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidRegistrationNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -37,12 +37,9 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (
-                values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] &&
-                !ValidationUtils.isValidRegistrationNumber(values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER], businessStepCountryDraftValue)
-            ) {
+            if (values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] && !isValidRegistrationNumber(values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER], businessStepCountryDraftValue)) {
                 errors[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] = translate('businessInfoStep.error.registrationNumber');
             }
 
