@@ -2,8 +2,8 @@ import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
-import * as Browser from '@libs/Browser';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isMobileChrome} from '@libs/Browser';
+import {isReportListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ExtendedTargetedEvent, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -44,7 +44,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (SearchUIUtils.isReportListItemType(item)) {
+        if (isReportListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
@@ -82,7 +82,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                         return;
                     }
                     // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                    if (Browser.isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
+                    if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex);

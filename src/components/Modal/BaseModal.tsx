@@ -16,7 +16,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
@@ -86,16 +86,16 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            if (Modal.areAllModalsHidden()) {
-                Modal.willAlertModalBecomeVisible(false);
+            if (areAllModalsHidden()) {
+                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility) {
-                    Modal.setModalVisibility(false);
+                    setModalVisibility(false);
                 }
             }
             if (callHideCallback) {
                 onModalHide();
             }
-            Modal.onModalDidClose();
+            onModalDidClose();
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
@@ -105,9 +105,9 @@ function BaseModal(
         isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
-            Modal.willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+            willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            removeOnCloseListener = Modal.setCloseModal(onClose);
+            removeOnCloseListener = setCloseModal(onClose);
         }
 
         return () => {
@@ -132,7 +132,7 @@ function BaseModal(
 
     const handleShowModal = () => {
         if (shouldSetModalVisibility) {
-            Modal.setModalVisibility(true);
+            setModalVisibility(true);
         }
         onModalShow();
     };
@@ -232,7 +232,7 @@ function BaseModal(
                     onBackdropPress={handleBackdropPress}
                     // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onBackButtonPress={Modal.closeTop}
+                    onBackButtonPress={closeTop}
                     onModalShow={handleShowModal}
                     propagateSwipe={propagateSwipe}
                     onModalHide={hideModal}
