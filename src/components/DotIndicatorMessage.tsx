@@ -14,9 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
+import handleRetryPress from '@libs/ReceiptUploadRetryHandler/index';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import handleRetryPress from './index';
 
 type DotIndicatorMessageProps = {
     /**

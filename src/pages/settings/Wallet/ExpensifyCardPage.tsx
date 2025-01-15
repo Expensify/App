@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
-import DotIndicatorMessage from '@components/DotIndicatorMessage/DotIndicatorMessage';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';

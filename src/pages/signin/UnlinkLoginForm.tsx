@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage/DotIndicatorMessage';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';

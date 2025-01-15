@@ -20,7 +20,7 @@ import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import DotIndicatorMessage from './DotIndicatorMessage/DotIndicatorMessage';
+import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
