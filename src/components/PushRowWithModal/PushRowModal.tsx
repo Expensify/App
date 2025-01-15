@@ -65,7 +65,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const handleClose = () => {
         onClose();
         setSearchValue('');
-    }
+    };
 
     const searchResults = searchOptions(debouncedSearchValue, options);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
