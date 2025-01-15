@@ -7451,6 +7451,7 @@ function canSubmitReport(
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const isArchived = isArchivedReport(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
@@ -7458,6 +7459,7 @@ function canSubmitReport(
 
     return (
         isOpenExpenseReport &&
+        !isArchived &&
         reimbursableSpend !== 0 &&
         !hasAllPendingRTERViolations &&
         !hasBrokenConnectionViolation &&
