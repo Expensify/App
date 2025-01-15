@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
