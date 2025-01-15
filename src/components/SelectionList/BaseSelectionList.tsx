@@ -119,6 +119,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldScrollToFocusedIndex = true,
         onContentSizeChange,
         listItemTitleStyles,
+        initialNumToRender = 12,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -333,7 +334,10 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
-    const selectedItemIndex = useMemo(() => flattenedSections.allOptions.findIndex((option) => option.isSelected), [flattenedSections.allOptions]);
+    const selectedItemIndex = useMemo(
+        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
+        [flattenedSections.allOptions, initiallyFocusedOptionKey],
+    );
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
@@ -758,14 +762,11 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption}), [
-        scrollAndHighlightItem,
-        clearInputAfterSelect,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        scrollToIndex,
-        getFocusedOption,
-    ]);
+    useImperativeHandle(
+        ref,
+        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+    );
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -835,7 +836,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        initialNumToRender={12}
+                        initialNumToRender={initialNumToRender}
                         maxToRenderPerBatch={maxToRenderPerBatch}
                         windowSize={windowSize}
                         updateCellsBatchingPeriod={updateCellsBatchingPeriod}
