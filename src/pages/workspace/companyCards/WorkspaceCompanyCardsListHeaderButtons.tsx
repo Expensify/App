@@ -16,6 +16,8 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -41,15 +43,17 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const isCustomFeed = CardUtils.isCustomFeed(selectedFeed);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
 
     return (
         <OfflineWithFeedback
-            errors={currentFeedData?.errors}
+            errors={isSelectedFeedConnectionBroken ? {error: CONST.COMPANY_CARDS.CONNECTION_ERROR} : undefined}
             canDismissError={false}
             errorRowStyles={styles.ph5}
         >
@@ -70,7 +74,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                             <CaretWrapper>
                                 <Text style={styles.textStrong}>{formattedFeedName}</Text>
                             </CaretWrapper>
-                            {PolicyUtils.hasPolicyFeedsError(companyFeeds, selectedFeed) && (
+                            {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards), selectedFeed) && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}
@@ -85,7 +89,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     {!!shouldShowAssignCardButton && (
                         <Button
                             success
-                            isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
+                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken}
                             onPress={handleAssignCard}
                             icon={Expensicons.Plus}
                             text={translate('workspace.companyCards.assignCard')}

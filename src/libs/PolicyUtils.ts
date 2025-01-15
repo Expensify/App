@@ -1146,10 +1146,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
-    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
-}
-
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1233,7 +1229,6 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     shouldShowSyncError,
-    hasPolicyFeedsError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,

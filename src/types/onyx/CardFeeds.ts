@@ -34,9 +34,6 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay?: string;
-
-    /** Broken connection errors */
-    errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
@@ -55,9 +52,6 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether any actions are pending */
     pending?: boolean;
-
-    /** Broken connection errors */
-    errors?: OnyxCommon.Errors;
 }>;
 
 /** Card feed data */

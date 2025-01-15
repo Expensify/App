@@ -17,6 +17,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as CompanyCards from '@userActions/CompanyCards';
+import {checkIfFeedConnectionIsBroken} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +56,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
     const isFeedExpired = CardUtils.isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
+    const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
 
     const fetchCompanyCards = useCallback(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -149,7 +151,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                             cardsList={cardsList}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
-                            isDisabledAssignCardButton={!selectedFeedData || !!selectedFeedData?.errors}
+                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
                     )}
                 </WorkspacePageWithSections>

@@ -19,6 +19,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
+import {checkIfFeedConnectionIsBroken} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,28 +40,32 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
 
-    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => ({
-        value: feed,
-        text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
-        keyForList: feed,
-        isSelected: feed === selectedFeed,
-        isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        pendingAction: companyFeeds[feed]?.pendingAction,
-        brickRoadIndicator: companyFeeds[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        canShowSeveralIndicators: !!companyFeeds[feed]?.errors,
-        leftElement: (
-            <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
+    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => {
+        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`]);
+        return {
+            value: feed,
+            text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
+            keyForList: feed,
+            isSelected: feed === selectedFeed,
+            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: companyFeeds[feed]?.pendingAction,
+            brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            canShowSeveralIndicators: isFeedConnectionBroken,
+            leftElement: (
+                <Icon
+                    src={CardUtils.getCardFeedIcon(feed)}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={[styles.mr3, styles.cardIcon]}
+                />
+            ),
+        };
+    });
 
     const goBack = () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
