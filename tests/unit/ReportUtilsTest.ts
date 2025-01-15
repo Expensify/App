@@ -83,7 +83,7 @@ const participantsPersonalDetails: PersonalDetailsList = {
 
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
-        email: 'admin@test.com',
+        email: 'owner@test.com',
         role: 'admin',
         submitsTo: '',
     },
