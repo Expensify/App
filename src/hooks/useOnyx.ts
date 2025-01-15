@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
-import {useSearchState} from './useSearchState';
+import useSearchState from './useSearchState';
 
 // Base options for Onyx hook configuration
 type BaseUseOnyxOptions = {

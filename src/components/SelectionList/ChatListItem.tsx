@@ -3,11 +3,8 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
@@ -48,13 +45,7 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const personalDetails: Record<string, SearchPersonalDetails | null> = {
-        [from.accountID]: from,
-    };
-
-    // const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportActionItem)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
-
     return (
         <BaseListItem
             item={item}
@@ -85,27 +76,10 @@ function ChatListItem<TItem extends ListItem>({
                 displayAsGroup={false}
                 isMostRecentIOUReportAction={false}
                 shouldDisplayNewMarker={false}
-                index={0}
+                index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
             />
-
-            {/* <PureReportActionItem
-                action={reportActionItem}
-                onPress={() => onSelectRow(item)}
-                report={undefined}
-                reportActions={[]}
-                parentReportAction={undefined}
-                displayAsGroup={false}
-                isMostRecentIOUReportAction={false}
-                shouldDisplayNewMarker={false}
-                index={item.index ?? 0}
-                isFirstVisibleReportAction={false}
-                personalDetails={personalDetails}
-                shouldDisplayContextMenu={false}
-                attachmentContextValueType={CONST.ATTACHMENT_TYPE.SEARCH}
-                iouReport={iouReport}
-            /> */}
         </BaseListItem>
     );
 }

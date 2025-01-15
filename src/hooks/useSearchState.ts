@@ -14,7 +14,7 @@ type SearchResult = {
  * Hook to manage search state based on route parameters
  * Returns search status and hash for query tracking
  */
-export const useSearchState = (): SearchResult => {
+const useSearchState = (): SearchResult => {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>>();
     const {q} = route?.params || {};
 
@@ -26,3 +26,5 @@ export const useSearchState = (): SearchResult => {
         return {hashKey, isOnSearch};
     }, [q, route?.name]);
 };
+
+export default useSearchState;
