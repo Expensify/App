@@ -9,7 +9,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import usePrevious from '@hooks/usePrevious';

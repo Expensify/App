@@ -2,7 +2,7 @@ import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useLocalize from '@hooks/useLocalize';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';

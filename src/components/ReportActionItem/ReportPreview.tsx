@@ -93,6 +93,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
+import { useSearchState } from '@hooks/useSearchState';
 
 type ReportPreviewProps = {
     /** All the data of the action */

@@ -2,7 +2,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding} from '@libs/actions/IOU';

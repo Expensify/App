@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,15 +23,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
-type AvatarWithDisplayNamePropsWithOnyx = {
-    /** All of the actions of the report */
-    parentReportActions: OnyxEntry<ReportActions>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
+type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
@@ -58,11 +50,9 @@ const fallbackIcon: Icon = {
 function AvatarWithDisplayName({
     policy,
     report,
-    parentReportActions,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
-    personalDetails = CONST.EMPTY_OBJECT,
 }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,6 +61,8 @@ function AvatarWithDisplayName({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
     );
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`, {canEvict: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -198,12 +190,4 @@ function AvatarWithDisplayName({
 
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
-export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
-        canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(AvatarWithDisplayName);
+export default AvatarWithDisplayName;

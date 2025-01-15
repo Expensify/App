@@ -8,6 +8,10 @@ import CONST from '@src/CONST';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import ReportActionItem from '@pages/home/report/ReportActionItem';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -48,6 +52,9 @@ function ChatListItem<TItem extends ListItem>({
         [from.accountID]: from,
     };
 
+    // const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportActionItem)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+
     return (
         <BaseListItem
             item={item}
@@ -69,7 +76,21 @@ function ChatListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            <PureReportActionItem
+            <ReportActionItem
+                action={reportActionItem}
+                report={report}
+                onPress={() => onSelectRow(item)}
+                reportActions={[]}
+                parentReportAction={undefined}
+                displayAsGroup={false}
+                isMostRecentIOUReportAction={false}
+                shouldDisplayNewMarker={false}
+                index={0}
+                isFirstVisibleReportAction={false}
+                shouldDisplayContextMenu={false}
+            />
+
+            {/* <PureReportActionItem
                 action={reportActionItem}
                 onPress={() => onSelectRow(item)}
                 report={undefined}
@@ -83,10 +104,8 @@ function ChatListItem<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 shouldDisplayContextMenu={false}
                 attachmentContextValueType={CONST.ATTACHMENT_TYPE.SEARCH}
-                policy={undefined}
-                invoiceReceiverPolicy={undefined}
-                IOUTransaction={undefined}
-            />
+                iouReport={iouReport}
+            /> */}
         </BaseListItem>
     );
 }

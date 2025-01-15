@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';

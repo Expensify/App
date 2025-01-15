@@ -3,7 +3,7 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';

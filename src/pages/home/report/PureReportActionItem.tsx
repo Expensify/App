@@ -81,6 +81,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import { useSearchState } from '@hooks/useSearchState';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -240,9 +241,6 @@ type PureReportActionItemProps = {
 
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
-    /** Type of attachment context value */
-    attachmentContextValueType?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-
 };
 
 /**
@@ -296,7 +294,6 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
-    attachmentContextValueType = CONST.ATTACHMENT_TYPE.REPORT,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -350,6 +347,8 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const { isOnSearch } = useSearchState();
 
     useEffect(
         () => () => {
@@ -522,11 +521,11 @@ function PureReportActionItem({
     );
 
     const attachmentContextValue = useMemo(() => {
-        if (attachmentContextValueType === CONST.ATTACHMENT_TYPE.SEARCH) {
-            return {type: attachmentContextValueType};
+        if (isOnSearch) {
+            return { type: CONST.ATTACHMENT_TYPE.SEARCH };
         }
-        return {reportID, type: attachmentContextValueType};
-    }, [reportID, attachmentContextValueType]);
+        return { reportID, type: CONST.ATTACHMENT_TYPE.REPORT };
+    }, [reportID, isOnSearch]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID ?? '-1'}), [reportID]);
 
