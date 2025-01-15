@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,7 +16,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestPreview from './MoneyRequestPreview';
-import useOnyx from '@hooks/useOnyx';
 
 type MoneyRequestActionProps = {
     /** All the data of the action */
@@ -70,9 +70,9 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`)
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`)
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`)
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {

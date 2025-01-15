@@ -1,17 +1,17 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
+import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
 
 function ChatListItem<TItem extends ListItem>({
     item,

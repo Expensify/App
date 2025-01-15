@@ -1,6 +1,6 @@
-import useOnyx from './useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 function getPolicyIDOrDefault(policyID?: string) {
     if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {

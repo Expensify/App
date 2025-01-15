@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
+import useOnyx from '@hooks/useOnyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';

@@ -1,8 +1,8 @@
 import {useMemo} from 'react';
+import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
-import type {DependencyList} from 'react';
-import { useSearchState } from './useSearchState';
+import {useSearchState} from './useSearchState';
 
 // Base options for Onyx hook configuration
 type BaseUseOnyxOptions = {
@@ -11,14 +11,13 @@ type BaseUseOnyxOptions = {
     allowStaleData?: boolean;
     reuseConnection?: boolean;
 };
-  
+
 type UseOnyxInitialValueOption<TInitialValue> = {
     initialValue?: TInitialValue;
 };
-  
-type UseOnyxSelector<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>> = 
-    (data: OnyxValue<TKey> | undefined) => TReturnValue;
-  
+
+type UseOnyxSelector<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>> = (data: OnyxValue<TKey> | undefined) => TReturnValue;
+
 type UseOnyxSelectorOption<TKey extends OnyxKey, TReturnValue> = {
     selector?: UseOnyxSelector<TKey, TReturnValue>;
 };
@@ -40,32 +39,24 @@ const getKeyData = (snapshotData: Record<string, any>, key: string) => {
     }
     return snapshotData?.data?.[key];
 };
-  
+
 function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,
     options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<TReturnValue> & Required<UseOnyxSelectorOption<TKey, TReturnValue>>,
-    dependencies?: DependencyList
-): UseOnyxResult<TReturnValue>;
-  
-function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
-    key: TKey,  
-    options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<NoInfer<TReturnValue>>,
-    dependencies?: DependencyList
+    dependencies?: DependencyList,
 ): UseOnyxResult<TReturnValue>;
 
 function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,
-    options?: any,
-    dependencies?: DependencyList
-): UseOnyxResult<TReturnValue> {
+    options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<NoInfer<TReturnValue>>,
+    dependencies?: DependencyList,
+): UseOnyxResult<TReturnValue>;
+
+function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: any, dependencies?: DependencyList): UseOnyxResult<TReturnValue> {
     const {isOnSearch, hashKey} = useSearchState();
 
     // In search mode, get the entire snapshot
-    const [snapshotData, metadata] = originalUseOnyx(
-        isOnSearch ? `snapshot_${hashKey}` as TKey : key,
-        options,
-        dependencies,
-    );
+    const [snapshotData, metadata] = originalUseOnyx(isOnSearch ? (`snapshot_${hashKey}` as TKey) : key, options, dependencies);
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {

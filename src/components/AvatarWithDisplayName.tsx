@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
 import type {ValueOf} from 'type-fest';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,13 +47,7 @@ const fallbackIcon: Icon = {
     id: -1,
 };
 
-function AvatarWithDisplayName({
-    policy,
-    report,
-    isAnonymous = false,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldEnableDetailPageNavigation = false,
-}: AvatarWithDisplayNameProps) {
+function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

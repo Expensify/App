@@ -35,6 +35,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSearchState} from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,7 +82,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import { useSearchState } from '@hooks/useSearchState';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -348,7 +348,7 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
-    const { isOnSearch } = useSearchState();
+    const {isOnSearch} = useSearchState();
 
     useEffect(
         () => () => {
@@ -522,9 +522,9 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => {
         if (isOnSearch) {
-            return { type: CONST.ATTACHMENT_TYPE.SEARCH };
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH};
         }
-        return { reportID, type: CONST.ATTACHMENT_TYPE.REPORT };
+        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
     }, [reportID, isOnSearch]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID ?? '-1'}), [reportID]);

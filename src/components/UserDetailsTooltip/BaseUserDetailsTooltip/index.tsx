@@ -1,13 +1,13 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
