@@ -256,7 +256,7 @@ describe('PolicyUtils', () => {
                 };
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
             });
-            it('should return the policy approver/owner if the policy use the basic workflow', () => {
+            it('should return the policy approver/owner if the policy use the optional workflow', () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     approver: 'owner@test.com',
