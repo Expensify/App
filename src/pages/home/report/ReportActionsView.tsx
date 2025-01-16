@@ -299,8 +299,8 @@ function ReportActionsView({
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasNewestReportAction =
-        visibleReportActions.at(0)?.created === report.lastVisibleActionCreated || visibleReportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
+    const lastActionCreated = visibleReportActions.at(0)?.created ?? '';
+    const hasNewestReportAction = lastActionCreated >= (report.lastVisibleActionCreated ?? '') || lastActionCreated >= (transactionThreadReport?.lastVisibleActionCreated ?? '');
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {
