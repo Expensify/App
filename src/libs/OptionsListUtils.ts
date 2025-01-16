@@ -1705,6 +1705,7 @@ function filterReports(reports: ReportUtils.OptionData[], searchTerms: string[])
                 const values: string[] = [];
                 if (item.text) {
                     values.push(StringUtils.normalizeAccents(item.text));
+                    values.push(StringUtils.normalizeAccents(item.text).replace(/['-]/g, ''));
                 }
 
                 if (item.login) {
