@@ -5,6 +5,9 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
+/** Custom card feed with a number */
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
@@ -133,4 +136,5 @@ export type {
     CompanyFeeds,
     CompanyCardNicknames,
     CompanyCardFeedConnection,
+    CompanyCardFeedWithNumber,
 };
