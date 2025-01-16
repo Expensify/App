@@ -140,11 +140,15 @@ import {
     getTransaction,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
+    isAmountMissing,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPending,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
+    isUnknowOrPartialMerchant,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -7359,6 +7363,12 @@ function canApproveIOU(
     const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = getAllReportTransactions(iouReport?.reportID);
+    const hasOnlyPendingCardOrScanFailTransactions = reportTransactions.every(
+        (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isUnknowOrPartialMerchant(getMerchant(t)) && isAmountMissing(t)),
+    );
+    if (hasOnlyPendingCardOrScanFailTransactions) {
+        return false;
+    }
     for (const transaction of reportTransactions) {
         const hasReceipt = hasReceiptTransactionUtils(transaction);
         const isReceiptBeingScanned = isReceiptBeingScannedTransactionUtils(transaction);

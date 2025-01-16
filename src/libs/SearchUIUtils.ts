@@ -28,7 +28,16 @@ import {
     isMoneyRequestReport,
     isSettled,
 } from './ReportUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
+import {
+    getMerchant,
+    getAmount as getTransactionAmount,
+    getCreated as getTransactionCreatedDate,
+    getMerchant as getTransactionMerchant,
+    isAmountMissing,
+    isExpensifyCardTransaction,
+    isPending,
+    isUnknowOrPartialMerchant,
+} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -332,10 +341,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingCardOrScanFailTransactions =
+        allReportTransactions.length > 0 &&
+        allReportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isUnknowOrPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanFailTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 

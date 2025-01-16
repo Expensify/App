@@ -281,6 +281,10 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
+function isUnknowOrPartialMerchant(merchant: string): boolean {
+    return merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+}
+
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
@@ -1427,6 +1431,7 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
+    isUnknowOrPartialMerchant,
 };
 
 export type {TransactionChanges};
