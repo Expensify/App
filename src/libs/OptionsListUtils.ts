@@ -1246,13 +1246,13 @@ function getValidReports(
             !option.private_isArchived &&
             PolicyUtils.canSendInvoiceFromWorkspace(option.policyID);
 
-        /**
+        /*
         Exclude the report option if it doesn't meet any of the following conditions:
         - It is not an owned policy expense chat that could be shown
         - Multiple participant reports are not included
         - It doesn't have a login
         - It is not an invoice room that should be shown
-    */
+        */
         if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
             continue;
         }
