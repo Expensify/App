@@ -124,10 +124,16 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
             setCtaErrorMessage('');
         }
     } else if (isPolicyProvisioned) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS);
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute());
     } else {
-        if (admins)
-        Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+        const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(activePolicyID);
+        if (adminDomains.length === 0) {
+
+        } else if (adminDomains.length === 1) {
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(adminDomains[0]));
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+        }
     }
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};

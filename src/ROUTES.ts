@@ -1428,7 +1428,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
-    TRAVEL_TCS: 'travel/terms',
+    TRAVEL_TCS: {
+        route: 'travel/terms/:domain',
+        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(domain ? `travel/terms/${domain}` : 'travel/terms', backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
