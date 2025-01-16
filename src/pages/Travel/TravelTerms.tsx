@@ -31,6 +31,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const isLoading = travelSettings?.isLoading;
+    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -100,7 +101,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                         setErrorMessage('');
                                     }
 
-                                    Travel.acceptSpotnanaTerms(route.params.domain)
+                                    Travel.acceptSpotnanaTerms(domain)
                                         .then(() => Navigation.goBack())
                                         .catch(() => setErrorMessage(translate('travel.errorMessage')));
                                 }}
