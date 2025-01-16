@@ -16,13 +16,13 @@ import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createS
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import navigationRef from '@libs/Navigation/navigationRef';
 import Performance from '@libs/Performance';
-import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import SidebarLinksData from './SidebarLinksData';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();

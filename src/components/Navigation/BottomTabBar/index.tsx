@@ -37,10 +37,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import BOTTOM_TABS from './BOTTOM_TABS';
 
-type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
-
 type BottomTabBarProps = {
-    selectedTab: BottomTabName;
+    selectedTab: ValueOf<typeof BOTTOM_TABS>;
     isTooltipAllowed?: boolean;
 };
 
@@ -117,7 +115,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.ROOT).at(-1);
+            const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
@@ -300,5 +298,3 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 BottomTabBar.displayName = 'BottomTabBar';
 
 export default memo(BottomTabBar);
-export {BOTTOM_TABS};
-export type {BottomTabName};

@@ -51,15 +51,13 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line
 
-        // This is necessary for typescript to narrow type down to PartialState.
-        if (state.stale === true) {
-            // Unshift the root screen to fill left pane.
-            state.routes.unshift({
-                name: sidebarScreen,
-                // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
-                params,
-            });
-        }
+        // @ts-expect-error Updating read only property
+        // Unshift the root screen to fill left pane.
+        state.routes.unshift({
+            name: sidebarScreen,
+            // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
+            params,
+        });
     }
 
     // If the screen is wide, there should be at least two screens inside:
@@ -79,13 +77,13 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment
             state.stale = true; // eslint-disable-line
+
+            // @ts-expect-error Updating read only property
             // Push the default settings central pane screen.
-            if (state.stale === true) {
-                state.routes.push({
-                    name: previousSelectedCentralScreen ?? defaultCentralScreen,
-                    params: state.routes.at(0)?.params,
-                });
-            }
+            state.routes.push({
+                name: previousSelectedCentralScreen ?? defaultCentralScreen,
+                params: state.routes.at(0)?.params,
+            });
         }
     }
     // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
@@ -93,10 +91,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1) {
-        return true;
-    }
-    return false;
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1;
 }
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {

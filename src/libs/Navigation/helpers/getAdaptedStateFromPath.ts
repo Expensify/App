@@ -240,7 +240,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     }
 
     if (state === undefined) {
-        throw new Error('Unable to parse path');
+        throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${path}`);
     }
 
     // On SCREENS.SEARCH.ROOT policyID is stored differently inside search query ("q" param), so we're handling this case

@@ -28,7 +28,7 @@ const workspaceSplitsWithoutEnteringAnimation = new Set();
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
- * If the user is on other tab than settings and the workspace split is "remembered", this action will called after pressing the settings tab.
+ * If the user is on other tab than settings and the workspace split is "remembered", this action will be called after pressing the settings tab.
  * It will push the settings split navigator first and then push the workspace split navigator.
  * This allows the user to swipe back on the iOS to the settings split navigator underneath.
  */

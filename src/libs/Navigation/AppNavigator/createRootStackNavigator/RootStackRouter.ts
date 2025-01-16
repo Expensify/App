@@ -54,10 +54,7 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
     // If the last route is a side modal navigator and the generated minimal action want's to push a new side modal navigator that means they are different ones.
     // We want to dismiss the one that is currently on the top.
-    if (isSideModalNavigator(lastRoute?.name) && isSideModalNavigator(action.payload.name)) {
-        return true;
-    }
-    return false;
+    return isSideModalNavigator(lastRoute?.name) && isSideModalNavigator(action.payload.name);
 }
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
