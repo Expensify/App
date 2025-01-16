@@ -1230,12 +1230,11 @@ function getMostFrequentEmailDomain(policyID: string, acceptedDomains: string[])
         return undefined;
     }
     let domainOccurrences = {} as Record<string, number>;
-    [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()]
-        .forEach(memberDomain => {
-            if (acceptedDomains.includes(memberDomain)) {
-                domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
-            }
-        });
+    [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()].forEach((memberDomain) => {
+        if (acceptedDomains.includes(memberDomain)) {
+            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        }
+    });
     let mostRequent = {domain: '', count: 0};
     Object.entries(domainOccurrences).forEach(([domain, count]) => {
         if (count > mostRequent.count) {

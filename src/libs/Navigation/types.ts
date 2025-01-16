@@ -1494,6 +1494,9 @@ type TravelNavigatorParamList = {
         reservationIndex: number;
         backTo?: string;
     };
+    [SCREENS.TRAVEL.TCS]: {
+        domain?: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {

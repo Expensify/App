@@ -1,3 +1,4 @@
+import {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -14,11 +15,15 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as Travel from '@userActions/Travel';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
-function TravelTerms() {
+type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
+
+function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
@@ -95,7 +100,7 @@ function TravelTerms() {
                                         setErrorMessage('');
                                     }
 
-                                    Travel.acceptSpotnanaTerms()
+                                    Travel.acceptSpotnanaTerms(route.params.domain)
                                         .then(() => Navigation.goBack())
                                         .catch(() => setErrorMessage(translate('travel.errorMessage')));
                                 }}

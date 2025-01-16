@@ -19,7 +19,7 @@ function DomainSelectorPage() {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [selectedDomain, setSelectedDomain] = useState('');
-    
+
     const domains = useMemo(() => getAdminsPrivateEmailDomains(activePolicyID), [activePolicyID]);
     const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(activePolicyID ?? '', domains), [activePolicyID, domains]);
 
