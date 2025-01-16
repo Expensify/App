@@ -2,12 +2,19 @@ import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {LoginList} from '@src/types/onyx';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIP = val ?? 1),
+});
+
+let currentUserLogins: LoginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (currentUserLogins = val ?? {}),
 });
 
 /**
@@ -75,4 +82,12 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};
+/**
+ * Check whether the current user has a login for a specific domain.
+ */
+function userHasLoginInDomain(domain: string): boolean {
+    return Object.keys(currentUserLogins)
+        .map((login) => Str.extractEmailDomain(login))
+        .includes(domain);
+}
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, userHasLoginInDomain};

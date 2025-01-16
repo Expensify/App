@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +8,7 @@ import TravelDomainListItem, {DomainItem} from '@components/SelectionList/Travel
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {userHasLoginInDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +36,14 @@ function DomainSelectorPage() {
         });
     }, [domains, recommendedDomain, selectedDomain]);
 
+    const onDomainSelected = useCallback(() => {
+        if (userHasLoginInDomain(selectedDomain)) {
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain));
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(selectedDomain));
+        }
+    }, [selectedDomain]);
+
     const footerContent = useMemo(
         () => (
             <Button
@@ -42,7 +51,7 @@ function DomainSelectorPage() {
                 success
                 large
                 style={[styles.w100]}
-                onPress={() => Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(selectedDomain))}
+                onPress={onDomainSelected}
                 text={translate('common.continue')}
             />
         ),
