@@ -2,7 +2,7 @@ import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import type {CompanyCardFeedConnection} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardBankName} from '@src/types/onyx/CardFeeds';
 
 type CompanyCardBankConnection = {
     authToken: string;
@@ -12,14 +12,12 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID?: string, bankName?: string, bankConnectionFromRoute?: CompanyCardFeedConnection) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: CompanyCardBankName) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
-    const bank = bankConnectionFromRoute ?? CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
 
     if (!bankName || !bankConnection || !policyID) {
         return null;
     }
-
     const authToken = NetworkStore.getAuthToken();
     const params: CompanyCardBankConnection = {
         authToken: authToken ?? '',
@@ -32,6 +30,6 @@ export default function getCompanyCardBankConnection(policyID?: string, bankName
         shouldSkipWebProxy: true,
         command: '',
     });
-
+    const bank = CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }

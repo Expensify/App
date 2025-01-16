@@ -21,7 +21,7 @@ import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@sr
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import type {CompanyCardFeedConnection} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardBankName} from '@src/types/onyx/CardFeeds';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -824,7 +824,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
         policyID: string;
-        bankConnection: CompanyCardFeedConnection;
+        bankName: CompanyCardBankName;
         backTo: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {

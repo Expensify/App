@@ -39,10 +39,10 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const {bankConnection, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
+    const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
-    const url = getCompanyCardBankConnection(policyID, bankName, bankConnection);
+    const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
+    const url = getCompanyCardBankConnection(policyID, bankName);
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);

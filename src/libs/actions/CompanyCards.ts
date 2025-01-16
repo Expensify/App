@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CompanyCardFeed, CompanyCardFeedConnection} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CompanyCardBankName, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -754,8 +754,10 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     });
 }
 
-function getBankConnectionFromFeed(feed: CompanyCardFeed): CompanyCardFeedConnection | undefined {
-    return Object.values(CONST.COMPANY_CARDS.BANK_CONNECTIONS).find((connection) => feed.includes(connection));
+function getBankNameByFeed(feed: CompanyCardFeed): CompanyCardBankName | undefined {
+    const bankConnectionEntry = Object.entries(CONST.COMPANY_CARDS.BANK_CONNECTIONS).find(([, connection]) => feed.includes(connection));
+    const bankNameKey = bankConnectionEntry?.at(0);
+    return bankNameKey ? CONST.COMPANY_CARDS.BANKS[bankNameKey as keyof typeof CONST.COMPANY_CARDS.BANKS] : undefined;
 }
 
 export {
@@ -776,6 +778,6 @@ export {
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     checkIfFeedConnectionIsBroken,
-    getBankConnectionFromFeed,
+    getBankNameByFeed,
     flatAllCardsList,
 };

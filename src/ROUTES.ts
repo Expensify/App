@@ -5,7 +5,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
-import type {CompanyCardFeedConnection} from './types/onyx/CardFeeds';
+import type {CompanyCardBankName} from './types/onyx/CardFeeds';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -1249,12 +1249,12 @@ const ROUTES = {
         },
     },
     WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
-        route: 'settings/workspaces/:policyID/company-cards/:bankConnection/bank-connection',
-        getRoute: (policyID: string | undefined, bankConnection: CompanyCardFeedConnection, backTo: string) => {
+        route: 'settings/workspaces/:policyID/company-cards/:bankName/bank-connection',
+        getRoute: (policyID: string | undefined, bankName: CompanyCardBankName, backTo: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bankConnection as string}/bank-connection`, backTo);
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bankName as string}/bank-connection`, backTo);
         },
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {

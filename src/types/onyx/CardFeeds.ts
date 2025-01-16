@@ -120,8 +120,8 @@ type AddNewCompanyCardFeed = {
     isEditing: boolean;
 };
 
-/** Card feed connection */
-type CompanyCardFeedConnection = ValueOf<typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS>;
+/** Card feed name */
+type CompanyCardBankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
 export default CardFeeds;
 export type {
@@ -135,6 +135,6 @@ export type {
     CardFeedProvider,
     CompanyFeeds,
     CompanyCardNicknames,
-    CompanyCardFeedConnection,
+    CompanyCardBankName,
     CompanyCardFeedWithNumber,
 };
