@@ -38,11 +38,10 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         if (initialScrollKey) {
             return initialScrollKey;
         }
-        const initialItem = data.at(0);
-        return initialItem ? keyExtractor(initialItem, 0) : null;
+        return null;
     });
     const [isInitialData, setIsInitialData] = useState(true);
-    const currentDataIndex = useMemo(() => data.findIndex((item, index) => keyExtractor(item, index) === currentDataId), [currentDataId, data, keyExtractor]);
+    const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
             return data;
