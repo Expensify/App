@@ -3,7 +3,7 @@ import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SearchResults} from '@src/types/onyx';
+import type {SearchResults} from '@src/types/onyx';
 import useSearchState from './useSearchState';
 
 type BaseUseOnyxOptions = {
@@ -66,14 +66,16 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 const getKeyData = <TKey extends OnyxKey>(snapshotData: SearchResults, key: TKey) => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Record<string, any> = {};
         const prefix = key;
 
         // Get all keys that start with the prefix
         Object.entries(snapshotData?.data || {}).forEach(([dataKey, value]) => {
-            if (dataKey.startsWith(prefix)) {
-                result[dataKey] = value;
+            if (!dataKey.startsWith(prefix)) {
+                return;
             }
+            result[dataKey] = value;
         });
         return result;
     }
@@ -98,14 +100,18 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     const {isOnSearch, hashKey} = useSearchState();
 
     // In search mode, get the entire snapshot
-    const [snapshotData, metadata] = originalUseOnyx(isOnSearch ? (`snapshot_${hashKey}` as TKey) : key, options as any, dependencies);
+    const [snapshotData, metadata] = originalUseOnyx(
+        isOnSearch ? (`snapshot_${hashKey}` as TKey) : key,
+        options as (BaseUseOnyxOptions & UseOnyxInitialValueOption<OnyxValue<TKey>> & Required<UseOnyxSelectorOption<TKey, OnyxValue<TKey>>>) | undefined,
+        dependencies,
+    );
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
         if (!isOnSearch || !snapshotData || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
             return [snapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
-        const keyData = getKeyData(snapshotData as unknown as SearchResults, key as TKey);
+        const keyData = getKeyData(snapshotData as unknown as SearchResults, key);
         return [keyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
     }, [isOnSearch, key, snapshotData, metadata]);
 
