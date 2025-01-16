@@ -29,15 +29,6 @@ function AddPersonalBankAccountPage() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
 
-    const submitBankAccountForm = useCallback(() => {
-        const bankAccounts = plaidData?.bankAccounts ?? [];
-        const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
-
-        if (selectedPlaidBankAccount) {
-            addPersonalBankAccount(selectedPlaidBankAccount);
-        }
-    }, [plaidData, selectedPlaidAccountId]);
-
     const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
 
     const goBack = useCallback(() => {
@@ -53,6 +44,18 @@ function AddPersonalBankAccountPage() {
                 break;
         }
     }, [topMostCentralPane]);
+
+    const submitBankAccountForm = useCallback(() => {
+        const bankAccounts = plaidData?.bankAccounts ?? [];
+        const policyID = personalBankAccount?.policyID;
+        const source = personalBankAccount?.source;
+
+        const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
+
+        if (selectedPlaidBankAccount) {
+            addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
+        }
+    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
