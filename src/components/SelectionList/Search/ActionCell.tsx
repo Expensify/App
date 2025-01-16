@@ -75,7 +75,8 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction) {
-        const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
+        const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+
         return isLargeScreenWidth ? (
             <Button
                 text={text}
