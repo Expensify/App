@@ -20,17 +20,16 @@ type WorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const styles = useThemeStyles();
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
     const {isOffline} = useNetwork();
 
-    const canPerformDowngrade = !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const canPerformDowngrade = useMemo(() => PolicyUtils.canModifyPlan(policyID), [policyID]);
     const isDowngraded = useMemo(() => PolicyUtils.isCollectPolicy(policy), [policy]);
 
     const downgradeToTeam = () => {
-        if (!canPerformDowngrade) {
+        if (!canPerformDowngrade || !policy) {
             return;
         }
         Policy.downgradeToTeam(policy.id);
@@ -56,7 +55,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     }
                 }}
             />
-            {isDowngraded && (
+            {isDowngraded && !!policyID && (
                 <DowngradeConfirmation
                     onConfirmDowngrade={() => {
                         Navigation.dismissModal();
@@ -66,6 +65,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             )}
             {!isDowngraded && (
                 <DowngradeIntro
+                    policyID={policyID}
                     onDowngrade={downgradeToTeam}
                     buttonDisabled={isOffline}
                     loading={policy?.isPendingDowngrade}

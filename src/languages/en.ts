@@ -361,6 +361,7 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
+            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -523,6 +524,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -883,7 +885,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
-        receiptScanning: 'Receipt scanning...',
+        receiptScanning: () => ({
+            one: 'Receipt scanning...',
+            other: 'Receipts scanning...',
+        }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({
@@ -1052,13 +1057,11 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This expense is on',
-        whatIsHoldTitle: 'What is hold?',
-        whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
-        holdIsTemporaryTitle: 'Hold is usually temporary',
-        holdIsTemporaryExplain: "Hold is used to clear up confusion or clarify an important detail before payment. Don't worry, it's not permanent!",
-        deleteHoldTitle: "Delete whatever won't be paid",
-        deleteHoldExplain: "In the rare case where something's put on hold and won't be paid, it's on the person requesting payment to delete it.",
+        holdEducationalTitle: 'This request is on',
+        holdEducationalText: 'hold',
+        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
+        holdIsLeftBehind: 'Held expenses are left behind even if you approve an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to approve or pay.",
         set: 'set',
         changed: 'changed',
         removed: 'removed',
@@ -1272,6 +1275,7 @@ const translations = {
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
+            invalidateWithDelay: 'Invalidate with delay',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2008,15 +2012,6 @@ const translations = {
             ownershipPercentage: 'Please enter a valid percentage number.',
         },
     },
-    addPersonalBankAccount: {
-        countrySelectionStepHeader: "Where's your bank account located?",
-        accountDetailsStepHeader: 'What are your account details?',
-        accountTypeStepHeader: 'What type of account is this?',
-        bankInformationStepHeader: 'What are your bank details?',
-        accountHolderInformationStepHeader: 'What are the account holder details?',
-        howDoWeProtectYourData: 'How do we protect your data?',
-        currencyHeader: "What's your bank account's currency?",
-    },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
@@ -2571,6 +2566,8 @@ const translations = {
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
+            setAsDefault: 'Set as default workspace',
+            defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
@@ -2578,6 +2575,7 @@ const translations = {
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             goToWorkspace: 'Go to workspace',
+            goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
@@ -3575,7 +3573,7 @@ const translations = {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
-                    subTitle: 'Streamline your business with the Expensify Card.',
+                    subTitle: 'Streamline your business expenses and save up to 50% on your Expensify bill, plus:',
                     features: {
                         cashBack: 'Cash back on every US purchase',
                         unlimited: 'Unlimited virtual cards',
@@ -4178,7 +4176,7 @@ const translations = {
             from: 'from',
         },
         inviteMessage: {
-            inviteMessageTitle: 'Add message',
+            confirmDetails: 'Confirm details',
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
@@ -4366,8 +4364,6 @@ const translations = {
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
-                collect: '$5 ',
-                amount: '$9 ',
                 perActiveMember: 'per active member per month.',
             },
             note: {
@@ -4388,7 +4384,8 @@ const translations = {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
+                    startsAt: 'The Control plan starts at ',
+                    perMember: 'per active member per month.',
                     learnMore: 'Learn more',
                     pricing: 'about our plans and pricing.',
                     benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
@@ -4415,7 +4412,7 @@ const translations = {
             },
             completed: {
                 headline: 'Your workspace has been downgraded',
-                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                description: 'You have other workspaces on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
                 gotIt: 'Got it, thanks',
             },
         },
@@ -4609,6 +4606,8 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        downgradedWorkspace: 'downgraded this workspace to the Collect plan',
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -4724,6 +4723,13 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
+            },
+            card: {
+                expensify: 'Expensify',
+                individualCards: 'Individual cards',
+                cardFeeds: 'Card feeds',
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             current: 'Current',
             past: 'Past',
@@ -5632,6 +5638,11 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more!',
         },
+    },
+    discardChangesConfirmation: {
+        title: 'Discard changes?',
+        body: 'Are you sure you want to discard the changes you made?',
+        confirmText: 'Discard changes',
     },
 };
 

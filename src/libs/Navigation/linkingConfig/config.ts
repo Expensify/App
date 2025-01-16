@@ -87,6 +87,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.TRACK_TRAINING_MODAL,
                     exact: true,
                 },
+                [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
@@ -240,10 +241,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -1369,11 +1366,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
-                    screens: {
-                        [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
@@ -1600,5 +1592,4 @@ const normalizedConfigs = Object.keys(config.screens)
         return acc;
     }, {} as Record<Screen, RouteConfig>);
 
-export {normalizedConfigs};
-export default config;
+export {normalizedConfigs, config};

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -29,6 +29,7 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
+    hideProductTrainingTooltip,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -43,27 +44,32 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = useCallback(() => {
+    const hidePopoverMenu = () => {
         setPopupMenuVisible(false);
-    }, []);
+    };
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {
             return;
         }
         hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
+    }, [isBehindModal, isPopupMenuVisible]);
 
     return (
         <>
             <View>
-                <Tooltip text={translate(iconTooltip)}>
+                <Tooltip
+                    text={translate(iconTooltip)}
+                    // We need to hide the extra "More" tooltip when we have an educational tooltip
+                    shouldRender={!hideProductTrainingTooltip}
+                >
                     <PressableWithoutFeedback
                         onPress={() => {
                             if (isPopupMenuVisible) {
                                 hidePopoverMenu();
                                 return;
                             }
+                            hideProductTrainingTooltip?.();
                             buttonRef.current?.blur();
                             showPopoverMenu();
                             if (onIconPress) {
