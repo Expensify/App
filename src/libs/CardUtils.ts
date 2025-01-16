@@ -95,6 +95,10 @@ function isCardIssued(card: Card) {
     return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
 
+function isCardHiddenFromSearch(card: Card) {
+    return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
+}
+
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
     const feedCards: CardList = {...cardList};
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
@@ -507,5 +511,6 @@ export {
     getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
     isCardIssued,
+    isCardHiddenFromSearch,
     getFeedType,
 };
