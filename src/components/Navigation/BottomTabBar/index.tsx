@@ -41,7 +41,7 @@ type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
 
 type BottomTabBarProps = {
     selectedTab: BottomTabName;
-    shouldShowTooltip: boolean | undefined;
+    tooltipAllowed: boolean | undefined;
 };
 
 /**
@@ -72,7 +72,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
     return SearchQueryUtils.buildSearchQueryString(queryJSON);
 }
 
-function BottomTabBar({selectedTab, shouldShowTooltip = false}: BottomTabBarProps) {
+function BottomTabBar({selectedTab, tooltipAllowed = false}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -94,7 +94,7 @@ function BottomTabBar({selectedTab, shouldShowTooltip = false}: BottomTabBarProp
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        shouldShowTooltip,
+        tooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
@@ -290,7 +290,7 @@ function BottomTabBar({selectedTab, shouldShowTooltip = false}: BottomTabBarProp
                     onPress={showSettingsPage}
                 />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton />
+                    <BottomTabBarFloatingActionButton tooltipAllowed={tooltipAllowed} />
                 </View>
             </View>
         </>

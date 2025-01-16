@@ -9,7 +9,7 @@ import {FULLSCREEN_TO_TAB, SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfi
 import type {FullScreenName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import BottomTabBar, {BOTTOM_TABS} from './BottomTabBar';
+import BottomTabBar from './BottomTabBar';
 
 const SCREENS_WITH_BOTTOM_TAB_BAR = [...Object.keys(SIDEBAR_TO_SPLIT), SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.WORKSPACES];
 
@@ -46,7 +46,7 @@ function TopLevelBottomTabBar() {
     // Visible directly means not through the overlay.
     const isScreenWithBottomTabVisibleDirectly = useNavigationState((state) => isFullScreenName(state.routes.at(-1)?.name));
 
-    const shouldDisplayTopLevelBottomTabBar = (shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isScreenWithBottomTabVisibleDirectly) && selectedTab !== BOTTOM_TABS.HOME;
+    const shouldDisplayTopLevelBottomTabBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isScreenWithBottomTabVisibleDirectly;
 
     useEffect(() => {
         cancelAfterInteractions.current?.cancel();
@@ -65,9 +65,12 @@ function TopLevelBottomTabBar() {
 
     return (
         <View style={styles.topLevelBottomTabBar(shouldDisplayTopLevelBottomTabBar && isAfterClosingTransition, shouldUseNarrowLayout, paddingBottom)}>
+            {/* We are not rendering BottomTabBar conditionally for two reasons
+                1. It's faster to hide/show it than mount a new when needed.
+                2. We need to hide tooltips as well if they were displayed. */}
             <BottomTabBar
                 selectedTab={selectedTab}
-                shouldShowTooltip={shouldDisplayTopLevelBottomTabBar}
+                tooltipAllowed={shouldDisplayTopLevelBottomTabBar}
             />
         </View>
     );
