@@ -127,7 +127,7 @@ const searchResults: OnyxTypes.SearchResults = {
             isFromOneTransactionReport: true,
             managerID: accountID,
             description: '',
-            hasViolation: false,
+            hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
