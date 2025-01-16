@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-for-of */
+
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 import lodashOrderBy from 'lodash/orderBy';
@@ -1168,7 +1170,9 @@ function getValidReports(
     const validReportOptions: ReportUtils.OptionData[] = [];
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
-    for (const option of reports) {
+    for (let i = 0; i < reports.length; i++) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        const option = reports[i];
         const report = option.item;
         const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
@@ -1333,7 +1337,9 @@ function getValidOptions(
     let currentUserOption: ReportUtils.OptionData | undefined;
     if (includeP2P) {
         const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
-        for (const detail of options.personalDetails) {
+        for (let i = 0; i < options.personalDetails.length; i++) {
+            // eslint-disable-next-line rulesdir/prefer-at
+            const detail = options.personalDetails[i];
             if (!detail?.login || !detail.accountID || !!detail?.isOptimisticPersonalDetail || (!includeDomainEmail && Str.isDomainEmail(detail.login))) {
                 continue;
             }
