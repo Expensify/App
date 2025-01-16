@@ -2917,8 +2917,8 @@ function calculateDiffAmount(
  * @param policyCategories
  */
 function getUpdateMoneyRequestParams(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
@@ -3254,8 +3254,8 @@ function getUpdateMoneyRequestParams(
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  */
 function getUpdateTrackExpenseParams(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData {
@@ -3560,8 +3560,8 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
 }
 
 type UpdateMoneyRequestDistanceParams = {
-    transactionID: string;
-    transactionThreadReportID: string;
+    transactionID: string | undefined;
+    transactionThreadReportID: string | undefined;
     waypoints: WaypointCollection;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
