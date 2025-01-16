@@ -15,18 +15,34 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {
+    createDistanceRequest as createDistanceRequestFunc,
+    getIOURequestPolicyID,
+    navigateToStartStepIfScanFileCannotBeRead,
+    requestMoney as requestMoneyFunc,
+    sendInvoice,
+    sendMoneyElsewhere,
+    sendMoneyWithWallet,
+    setMoneyRequestBillable,
+    setMoneyRequestCategory,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+    trackExpense as trackExpenseFunc,
+    updateLastLocationPermissionPrompt,
+} from '@libs/actions/IOU';
+import type {GpsPoint} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getBankAccountRoute} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
+import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,11 +71,11 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
@@ -74,7 +90,7 @@ function IOURequestStepConfirmation({
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
 
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
-    const requestType = TransactionUtils.getRequestType(transaction);
+    const requestType = getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
@@ -82,13 +98,13 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const customUnitRateID = getRateID(transaction) ?? '';
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
@@ -127,14 +143,14 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -149,7 +165,7 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        IOU.setMoneyRequestBillable(transactionID, defaultBillable);
+        setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
@@ -157,7 +173,7 @@ function IOURequestStepConfirmation({
             return;
         }
         if (policyCategories?.[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.setMoneyRequestCategory(transactionID, '', policy?.id);
+            setMoneyRequestCategory(transactionID, '', policy?.id);
         }
     }, [policy?.id, policyCategories, transaction?.category, transactionID]);
 
@@ -168,7 +184,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!transaction?.category) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, defaultCategory, policy?.id);
+        setMoneyRequestCategory(transactionID, defaultCategory, policy?.id);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory, policy?.id]);
@@ -191,7 +207,7 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
     }, [action, isPerDiemRequest, transaction?.participantsAutoAssigned, transaction?.reportID, participantsAutoAssignedFromRoute, requestType, iouType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -204,7 +220,7 @@ function IOURequestStepConfirmation({
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isLocalFile = FileUtils.isLocalFile(receiptPath);
+        const isLocalFile = isLocalFileUtil(receiptPath);
 
         if (!isLocalFile) {
             setReceiptFile(transaction?.receipt);
@@ -217,11 +233,11 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+        navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
 
     const requestMoney = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: GpsPoint) => {
             if (!transaction) {
                 return;
             }
@@ -230,7 +246,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            IOU.requestMoney({
+            requestMoneyFunc({
                 report,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
@@ -267,7 +283,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: GpsPoint) => {
             if (!report || !transaction) {
                 return;
             }
@@ -275,7 +291,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            IOU.trackExpense({
+            trackExpenseFunc({
                 report,
                 isDraftPolicy,
                 action,
@@ -302,7 +318,7 @@ function IOURequestStepConfirmation({
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
                     gpsPoints,
-                    validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
@@ -331,7 +347,7 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            IOU.createDistanceRequest({
+            createDistanceRequestFunc({
                 report,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
@@ -355,7 +371,7 @@ function IOURequestStepConfirmation({
                     taxAmount: transactionTaxAmount,
                     customUnitRateID,
                     splitShares: transaction.splitShares,
-                    validWaypoints: TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
+                    validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
                 },
             });
@@ -400,7 +416,7 @@ function IOURequestStepConfirmation({
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    IOU.startSplitBill({
+                    startSplitBill({
                         participants: selectedParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -422,7 +438,7 @@ function IOURequestStepConfirmation({
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    IOU.splitBill({
+                    splitBill({
                         participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -448,7 +464,7 @@ function IOURequestStepConfirmation({
             // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    IOU.splitBillAndOpenReport({
+                    splitBillAndOpenReport({
                         participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -471,7 +487,7 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile, policy, policyTags, policyCategories);
+                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -575,13 +591,13 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
         [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
@@ -589,7 +605,7 @@ function IOURequestStepConfirmation({
 
     const setBillable = useCallback(
         (billable: boolean) => {
-            IOU.setMoneyRequestBillable(transactionID, billable);
+            setMoneyRequestBillable(transactionID, billable);
         },
         [transactionID],
     );
@@ -622,7 +638,7 @@ function IOURequestStepConfirmation({
 
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
             <View style={styles.flex1}>
@@ -648,7 +664,7 @@ function IOURequestStepConfirmation({
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                         onGrant={() => createTransaction(selectedParticipantList, true)}
                         onDeny={() => {
-                            IOU.updateLastLocationPermissionPrompt();
+                            updateLastLocationPermissionPrompt();
                             createTransaction(selectedParticipantList, false);
                         }}
                     />
@@ -670,8 +686,8 @@ function IOURequestStepConfirmation({
                     iouType={iouType}
                     reportID={reportID}
                     isPolicyExpenseChat={isPolicyExpenseChat}
-                    policyID={IOU.getIOURequestPolicyID(transaction, report)}
-                    bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
+                    policyID={getIOURequestPolicyID(transaction, report)}
+                    bankAccountRoute={getBankAccountRoute(report)}
                     iouMerchant={transaction?.merchant}
                     iouCreated={transaction?.created}
                     isDistanceRequest={isDistanceRequest}
