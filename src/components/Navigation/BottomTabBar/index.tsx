@@ -41,7 +41,7 @@ type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
 
 type BottomTabBarProps = {
     selectedTab: BottomTabName;
-    tooltipAllowed: boolean | undefined;
+    tooltipAllowed?: boolean;
 };
 
 /**
