@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,7 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains, getMostUsedPrivateEmailDomain} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -20,11 +19,12 @@ function DomainSelectorPage() {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [selectedDomain, setSelectedDomain] = useState('');
-
-    const recommendedDomain = useMemo(() => getMostUsedPrivateEmailDomain(activePolicyID), [activePolicyID]);
+    
+    const domains = useMemo(() => getAdminsPrivateEmailDomains(activePolicyID), [activePolicyID]);
+    const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(activePolicyID ?? '', domains), [activePolicyID, domains]);
 
     const data: DomainItem[] = useMemo(() => {
-        return getAdminsPrivateEmailDomains(activePolicyID).map((domain) => {
+        return domains.map((domain) => {
             return {
                 value: domain,
                 isSelected: domain === selectedDomain,
@@ -33,7 +33,7 @@ function DomainSelectorPage() {
                 isRecommended: domain === recommendedDomain,
             };
         });
-    }, [activePolicyID, recommendedDomain, selectedDomain]);
+    }, [domains, recommendedDomain, selectedDomain]);
 
     const footerContent = useMemo(
         () => (
