@@ -14,7 +14,6 @@ import CustomStatusBarAndBackgroundContextProvider from './components/CustomStat
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
-import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
@@ -99,7 +98,6 @@ function App({url}: AppProps) {
                                 KeyboardProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
-                                InputBlurContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />
