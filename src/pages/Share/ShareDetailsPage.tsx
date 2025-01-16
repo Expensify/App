@@ -7,21 +7,21 @@ import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {addAttachment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Report from '@userActions/Report';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,13 +44,13 @@ function ShareDetailsPage({
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => OptionsListUtils.getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
     if (!report) {
         return <NotFoundPage />;
     }
 
     const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = Report.getCurrentUserAccountID();
+    const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
 
     const fileName = currentAttachment?.content.split('/').pop();
@@ -59,12 +59,12 @@ function ShareDetailsPage({
         if (!currentAttachment) {
             return;
         }
-        FileUtils.readFileAsync(
+        readFileAsync(
             currentAttachment.content,
-            FileUtils.getFileName(currentAttachment.content),
+            getFileName(currentAttachment.content),
             (file) => {
                 if (isDraft) {
-                    Report.openReport(
+                    openReport(
                         report.reportID,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
@@ -77,9 +77,9 @@ function ShareDetailsPage({
                 }
                 if (report.reportID) {
                     if (isTextShared) {
-                        Report.addComment(report.reportID, message);
+                        addComment(report.reportID, message);
                     } else {
-                        Report.addAttachment(report.reportID, file, message);
+                        addAttachment(report.reportID, file, message);
                     }
                 }
 
@@ -94,7 +94,7 @@ function ShareDetailsPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={ShareDetailsPage.displayName}
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100]}>
@@ -141,7 +141,7 @@ function ShareDetailsPage({
                                     headerTitle={fileName}
                                     source={currentAttachment?.content}
                                     originalFileName={fileName}
-                                    fallbackSource={Expensicons.FallbackAvatar}
+                                    fallbackSource={FallbackAvatar}
                                 >
                                     {({show}) => (
                                         <AttachmentPreview

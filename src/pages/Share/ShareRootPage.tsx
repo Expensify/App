@@ -5,11 +5,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {addTempShareFile, clearShareData} from '@libs/actions/Share';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
-import * as ShareActions from '@userActions/Share';
 import CONST from '@src/CONST';
 import type {ShareTempFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
@@ -45,7 +45,7 @@ function ShareRootPage() {
                     }
                 }
 
-                ShareActions.addTempShareFile(tempFile);
+                addTempShareFile(tempFile);
             }
         });
     }, [imageFileFormats, shareFileMimetypes, translate]);
@@ -65,7 +65,7 @@ function ShareRootPage() {
     }, [handleProcessFiles]);
 
     useEffect(() => {
-        ShareActions.clearShareData();
+        clearShareData();
         handleProcessFiles();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -74,7 +74,7 @@ function ShareRootPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={ShareRootPage.displayName}
         >
             <View style={[styles.flex1]}>

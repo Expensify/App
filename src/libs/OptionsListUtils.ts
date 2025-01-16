@@ -124,8 +124,8 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import * as TaskUtils from './TaskUtils';
-import * as UserUtils from './UserUtils';
+import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
+import {generateAccountID} from './UserUtils';
 
 type SearchOption<T> = OptionData & {
     item: T;
@@ -658,9 +658,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isTaskAction(lastReportAction)) {
-        lastMessageTextFromReport = formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
+        lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
         const wasSubmittedViaHarvesting = getOriginalMessage(lastReportAction)?.harvesting ?? false;
         if (wasSubmittedViaHarvesting) {
@@ -1228,7 +1228,7 @@ function getUserToInviteOption({
     }
 
     // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+    const optimisticAccountID = generateAccountID(searchValue);
     const personalDetailsExtended = {
         ...allPersonalDetails,
         [optimisticAccountID]: {

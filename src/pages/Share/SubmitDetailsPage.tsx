@@ -11,16 +11,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {GpsPoint} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, initMoneyRequest, requestMoney, setMoneyRequestParticipantsFromReport, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
+import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -42,32 +43,30 @@ function SubmitDetailsPage({
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
     useEffect(() => {
-        IOU.initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+        initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportOrAccountID, policy]);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, report);
-    const participants = selectedParticipants.map((participant) =>
-        participant?.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant),
-    );
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, report);
+    const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: IOU.GpsPoint) => {
+    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: GpsPoint) => {
         if (!transaction) {
             return;
         }
-        IOU.requestMoney({
+        requestMoney({
             report,
             participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
             policyParams: {policy, policyTagList: policyTags, policyCategories},
@@ -135,9 +134,9 @@ function SubmitDetailsPage({
             return;
         }
 
-        FileUtils.readFileAsync(
+        readFileAsync(
             currentAttachment?.content ?? '',
-            FileUtils.getFileName(currentAttachment?.content ?? 'shared_image.png'),
+            getFileName(currentAttachment?.content ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
             currentAttachment?.mimeType ?? 'image/jpeg',
@@ -156,7 +155,7 @@ function SubmitDetailsPage({
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                     onGrant={onConfirm}
                     onDeny={() => {
-                        IOU.updateLastLocationPermissionPrompt();
+                        updateLastLocationPermissionPrompt();
                         setStartLocationPermissionFlow(false);
                         onConfirm(false);
                     }}
@@ -170,7 +169,7 @@ function SubmitDetailsPage({
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
                         receiptPath={currentAttachment?.content}
-                        receiptFilename={FileUtils.getFileName(currentAttachment?.content ?? '')}
+                        receiptFilename={getFileName(currentAttachment?.content ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                     />
