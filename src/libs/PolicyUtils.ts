@@ -41,6 +41,7 @@ import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -1205,6 +1206,24 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
+function getAdminsEmailPrivateDomains(policyID?: string) {
+    if (!policyID) {
+        return [];
+    }
+    const policy = getPolicy(policyID);
+    if (!policy) {
+        return [];
+    }
+    return [
+        ...new Set(
+            Object.entries(policy.employeeList ?? {})
+                .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
+                .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
+        ),
+        Str.extractEmailDomain(policy.owner).toLowerCase(),
+    ].filter((domain) => !isPublicDomain(domain));
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1333,6 +1352,7 @@ export {
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
+    getAdminsEmailPrivateDomains,
 };
 
 export type {MemberEmailsToAccountIDs};

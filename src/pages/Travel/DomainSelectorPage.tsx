@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+import {getAdminsEmailPrivateDomains} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -19,17 +19,10 @@ function DomainSelectorPage() {
     const {translate} = useLocalize();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [selectedDomain, setSelectedDomain] = useState('');
 
     const data: DomainItem[] = useMemo(() => {
-        return [
-            ...new Set(
-                Object.entries(activePolicy?.employeeList ?? {})
-                    .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
-                    .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
-            ),
-        ].map((domain) => {
+        return getAdminsEmailPrivateDomains(activePolicyID).map((domain) => {
             return {
                 value: domain,
                 isSelected: domain === selectedDomain,
@@ -38,7 +31,7 @@ function DomainSelectorPage() {
                 isRecommended: domain === 'domain.com',
             };
         });
-    }, [activePolicy, selectedDomain]);
+    }, [activePolicyID, selectedDomain]);
 
     const footerContent = useMemo(
         () => (
