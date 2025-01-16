@@ -1503,6 +1503,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;

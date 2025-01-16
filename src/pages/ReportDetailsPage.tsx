@@ -507,11 +507,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     if (!report?.policyID) {
                         return;
                     }
+                    const activeRoute = Navigation.getActiveRoute();
                     if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, activeRoute));
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID, activeRoute));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,

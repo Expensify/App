@@ -744,7 +744,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile` as const, backTo),
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
