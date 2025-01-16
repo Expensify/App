@@ -2,19 +2,19 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {MagicCode} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {signInWithValidateCode} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ValidateCodeModalProps = {
@@ -28,14 +28,14 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
+    const signInHere = useCallback(() => signInWithValidateCode(accountID, code), [accountID, code]);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <FullPageNotFoundView
             testID="validate-code-not-found"
-            shouldShow={!ValidationUtils.isValidValidateCode(code)}
+            shouldShow={!isValidValidateCode(code)}
             shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();
@@ -50,7 +50,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopIconHeight}
-                            src={Illustrations.MagicCode}
+                            src={MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
@@ -70,9 +70,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         <Text style={styles.validateCodeDigits}>{code}</Text>
                     </View>
                     <View style={[styles.mt6]}>
-                        <Text style={styles.textAlignCenter}>
-                            {translate('validateCodeModal.doNotShare')}
-                        </Text>
+                        <Text style={styles.textAlignCenter}>{translate('validateCodeModal.doNotShare')}</Text>
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
@@ -80,7 +78,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         width={variables.modalWordmarkWidth}
                         height={variables.modalWordmarkHeight}
                         fill={theme.success}
-                        src={Expensicons.ExpensifyWordmark}
+                        src={ExpensifyWordmark}
                     />
                 </View>
             </View>
