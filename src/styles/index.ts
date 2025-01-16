@@ -570,7 +570,6 @@ const styles = (theme: ThemeColors) =>
             bottom: shouldDisplayTopLevelBottomTabBar ? 0 : -(bottomSafeAreaOffset + variables.bottomTabHeight),
             borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
             borderColor: theme.border,
-            backgroundColor: 'red',
         }),
 
         bottomTabBarContainer: {
