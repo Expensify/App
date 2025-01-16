@@ -1014,20 +1014,19 @@ function orderReportOptionsWithSearch(
 }
 
 function orderWorkspaceOptions(options: ReportUtils.OptionData[]): ReportUtils.OptionData[] {
-    return lodashOrderBy(
-        options,
-        [
-            (option) => {
-                // Put default workspace on top
-                if (option.isPolicyExpenseChat && option.policyID === activePolicyID) {
-                    return 0;
-                }
+    return options.sort((a, b) => {
+        // Check if `a` is the default workspace
+        if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
+            return -1;
+        }
 
-                return 1;
-            },
-        ],
-        ['asc'],
-    );
+        // Check if `b` is the default workspace
+        if (b.isPolicyExpenseChat && b.policyID === activePolicyID) {
+            return 1;
+        }
+
+        return 0;
+    });
 }
 
 function sortComparatorReportOptionByArchivedStatus(option: ReportUtils.OptionData) {
