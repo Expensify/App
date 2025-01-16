@@ -370,15 +370,19 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+
     const transactions = Object.keys(data)
-        .filter((key) => isTransactionEntry(key)) // Filter keys starting with 'transactions_'
-        .map((key) => data[key] as SearchTransaction);
+        .filter((key): key is TransactionKey => isTransactionEntry(key))
+        .map((key) => data[key]);
+
     const reports = Object.keys(data)
-        .filter((key) => isReportEntry(key)) // Filter keys starting with 'report_'
-        .map((key) => data[key] as SearchReport);
+        .filter((key): key is ReportKey => isReportEntry(key))
+        .map((key) => data[key]);
+
     const policies = Object.keys(data)
-        .filter((key) => isPolicyEntry(key)) // Filter keys starting with 'policy_'
-        .map((key) => data[key] as SearchPolicy);
+        .filter((key): key is PolicyKey => isPolicyEntry(key))
+        .map((key) => data[key]);
+
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
