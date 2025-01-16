@@ -7363,9 +7363,9 @@ function canApproveIOU(
     const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = getAllReportTransactions(iouReport?.reportID);
-    const hasOnlyPendingCardOrScanFailTransactions = reportTransactions.every(
-        (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isUnknowOrPartialMerchant(getMerchant(t)) && isAmountMissing(t)),
-    );
+    const hasOnlyPendingCardOrScanFailTransactions =
+        reportTransactions.length > 0 &&
+        reportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isUnknowOrPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
     if (hasOnlyPendingCardOrScanFailTransactions) {
         return false;
     }
