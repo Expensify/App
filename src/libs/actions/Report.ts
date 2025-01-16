@@ -933,23 +933,22 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
-            if (!onboardingData) {
-                return;
+
+            if (onboardingData) {
+                optimisticData.push(...onboardingData.optimisticData, {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_INTRO_SELECTED,
+                    value: {
+                        isInviteOnboardingComplete: true,
+                    },
+                });
+
+                successData.push(...onboardingData.successData);
+
+                failureData.push(...onboardingData.failureData);
+
+                parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
             }
-
-            optimisticData.push(...onboardingData.optimisticData, {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_INTRO_SELECTED,
-                value: {
-                    isInviteOnboardingComplete: true,
-                },
-            });
-
-            successData.push(...onboardingData.successData);
-
-            failureData.push(...onboardingData.failureData);
-
-            parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
         }
     }
 
@@ -3628,7 +3627,7 @@ function prepareOnboardingOptimisticData(
     const {reportID: targetChatReportID, policyID: targetChatPolicyID} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
-        return null;
+        return;
     }
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
