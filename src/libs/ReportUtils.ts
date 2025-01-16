@@ -907,7 +907,7 @@ function getReportOrDraftReport(reportID: string | undefined, reports?: SearchRe
     }
 
     if (allReports) {
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     }
 
     return allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
