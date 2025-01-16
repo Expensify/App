@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useCallback, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -8,7 +8,7 @@ import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
+import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,32 +65,44 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
-    const submit = useCallback(
-        () => () => {
-            const ownerFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
-            const owners = ownerKeys.map((ownerKey) =>
-                ownerFields.reduce((acc, fieldName) => {
-                    acc[`${PREFIX}_${ownerKey}_${fieldName}`] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
-                    return acc;
-                }, {} as Record<string, string | FileObject[] | undefined>),
-            );
+    const submit = () => {
+        const ownerFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
+        const owners = ownerKeys.map((ownerKey) =>
+            ownerFields.reduce((acc, fieldName) => {
+                acc[`${PREFIX}_${ownerKey}_${fieldName}`] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
+                return acc;
+            }, {} as Record<string, string | FileObject[] | undefined>),
+        );
 
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
-                [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
-                [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
-                [BENEFICIAL_OWNERS]: JSON.stringify(owners),
-            });
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
+            [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
+            [BENEFICIAL_OWNERS]: JSON.stringify(owners),
+        });
 
-            saveCorpayOnboardingBeneficialOwners({
-                inputs: JSON.stringify(owners),
-                isUserBeneficialOwner: isUserOwner,
-                beneficialOwners: ownerKeys,
-                bankAccountID,
-            });
+        saveCorpayOnboardingBeneficialOwners({
+            inputs: JSON.stringify(owners),
+            isUserBeneficialOwner: isUserOwner,
+            beneficialOwners: ownerKeys,
+            bankAccountID,
+        });
+    };
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
             onSubmit();
-        },
-        [bankAccountID, isAnyoneElseOwner, isUserOwner, onSubmit, ownerKeys, reimbursementAccountDraft],
-    );
+            clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
+        }
+
+        return () => {
+            clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
+        };
+    }, [reimbursementAccount, onSubmit]);
 
     const addOwner = (ownerID: string) => {
         const newOwners = [...ownerKeys, ownerID];
