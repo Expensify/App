@@ -16,6 +16,11 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-data class StringHolder(
-  val value: String
-)
+data class StringHolder
+  @DoNotStrip
+  @Keep
+  constructor(
+    val value: String
+  ) {
+  /* main constructor */
+}

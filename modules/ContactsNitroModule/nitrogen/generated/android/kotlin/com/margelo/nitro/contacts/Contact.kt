@@ -16,12 +16,17 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-data class Contact(
-  val firstName: String?,
-  val lastName: String?,
-  val middleName: String?,
-  val phoneNumbers: Array<StringHolder>?,
-  val emailAddresses: Array<StringHolder>?,
-  val imageData: String?,
-  val thumbnailImageData: String?
-)
+data class Contact
+  @DoNotStrip
+  @Keep
+  constructor(
+    val firstName: String?,
+    val lastName: String?,
+    val middleName: String?,
+    val phoneNumbers: Array<StringHolder>?,
+    val emailAddresses: Array<StringHolder>?,
+    val imageData: String?,
+    val thumbnailImageData: String?
+  ) {
+  /* main constructor */
+}

@@ -331,7 +331,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - NitroModules (0.20.1):
+  - NitroModules (0.21.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3342,7 +3342,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: ff8680342cb7008646d8160ff9b30ba74c681c11
+  NitroModules: bbe10b61d6fefce0176ba06e6a34eea92efb7704
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89

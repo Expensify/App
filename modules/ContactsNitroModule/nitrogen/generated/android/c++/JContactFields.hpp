@@ -26,6 +26,7 @@ namespace margelo::nitro::contacts {
      * Convert this Java/Kotlin-based enum to the C++ enum ContactFields.
      */
     [[maybe_unused]]
+    [[nodiscard]]
     ContactFields toCpp() const {
       static const auto clazz = javaClassStatic();
       static const auto fieldOrdinal = clazz->getField<int>("_ordinal");

@@ -28,6 +28,7 @@ namespace margelo::nitro::contacts {
      * Convert this Java/Kotlin-based struct to the C++ struct StringHolder by copying all values to C++.
      */
     [[maybe_unused]]
+    [[nodiscard]]
     StringHolder toCpp() const {
       static const auto clazz = javaClassStatic();
       static const auto fieldValue = clazz->getField<jni::JString>("value");

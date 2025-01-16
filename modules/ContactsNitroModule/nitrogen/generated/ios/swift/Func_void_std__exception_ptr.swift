@@ -8,15 +8,15 @@
 import NitroModules
 
 /**
- * Wraps a Swift `((_ error: Error) -> Void)` as a class.
+ * Wraps a Swift `(_ error: Error) -> Void` as a class.
  * This class can be used from C++, e.g. to wrap the Swift closure as a `std::function`.
  */
 public final class Func_void_std__exception_ptr {
   public typealias bridge = margelo.nitro.contacts.bridge.swift
 
-  private let closure: ((_ error: Error) -> Void)
+  private let closure: (_ error: Error) -> Void
 
-  public init(_ closure: @escaping ((_ error: Error) -> Void)) {
+  public init(_ closure: @escaping (_ error: Error) -> Void) {
     self.closure = closure
   }
 

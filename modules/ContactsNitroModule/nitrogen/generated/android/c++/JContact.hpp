@@ -32,6 +32,7 @@ namespace margelo::nitro::contacts {
      * Convert this Java/Kotlin-based struct to the C++ struct Contact by copying all values to C++.
      */
     [[maybe_unused]]
+    [[nodiscard]]
     Contact toCpp() const {
       static const auto clazz = javaClassStatic();
       static const auto fieldFirstName = clazz->getField<jni::JString>("firstName");

@@ -19,7 +19,11 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-@Suppress("RedundantSuppression", "KotlinJniMissingFunction", "PropertyName", "RedundantUnitReturnType", "unused")
+@Suppress(
+  "KotlinJniMissingFunction", "unused",
+  "RedundantSuppression", "RedundantUnitReturnType", "SimpleRedundantLet",
+  "LocalVariableName", "PropertyName", "PrivatePropertyName", "FunctionName"
+)
 abstract class HybridContactsModuleSpec: HybridObject() {
   @DoNotStrip
   private var mHybridData: HybridData = initHybrid()
