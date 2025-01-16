@@ -80,7 +80,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const transactionIDList = transaction ? [transaction.transactionID] : [];
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction?.transactionID, parentReport, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, parentReport, policy);
 
     const shouldShowMarkAsCashButton = hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
 

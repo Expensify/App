@@ -21,7 +21,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrentUserAccountID} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -60,7 +59,6 @@ import {
     isArchivedReport,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
-    isOpenExpenseReport as isOpenExpenseReportUtils,
     isPayAtEndExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
@@ -82,7 +80,7 @@ import {
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -151,10 +149,6 @@ function ReportPreview({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-    });
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -217,7 +211,6 @@ function ReportPreview({
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
-    const isOpenExpenseReport = isPolicyExpenseChat && isOpenExpenseReportUtils(iouReport);
 
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
@@ -248,15 +241,8 @@ function ReportPreview({
     }
 
     const isArchived = isArchivedReport(iouReport);
-    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowSubmitButton =
-        isOpenExpenseReport &&
-        !isArchived &&
-        reimbursableSpend !== 0 &&
-        !showRTERViolationMessage &&
-        !shouldShowBrokenConnectionViolation &&
-        (iouReport?.ownerAccountID === currentUserAccountID || isAdmin || iouReport?.managerID === currentUserAccountID);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
@@ -380,7 +366,7 @@ function ReportPreview({
         if (isPolicyExpenseChat) {
             payerOrApproverName = getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
             payerOrApproverName = getDisplayNameForParticipant(managerID, true);
         }
@@ -403,7 +389,6 @@ function ReportPreview({
         chatReport,
         isInvoiceRoom,
         invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
         managerID,
         isApproved,
         iouSettled,
@@ -564,12 +549,7 @@ function ReportPreview({
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting, styles.lh20]}
-                                                testID="reportPreview-previewMessage"
-                                            >
-                                                {previewMessage}
-                                            </Text>
+                                            <Text style={[styles.textLabelSupporting, styles.lh20]}>{previewMessage}</Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon

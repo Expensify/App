@@ -13,7 +13,7 @@ import TextLink from './TextLink';
 
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
-    transactionID: string | undefined;
+    transactionID: string | undefined;https://github.com/Expensify/App/pull/54455/conflicts
 
     /** Current report */
     report: OnyxEntry<Report>;

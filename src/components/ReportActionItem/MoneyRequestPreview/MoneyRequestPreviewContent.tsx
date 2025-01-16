@@ -70,6 +70,9 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
+import {clearWalletTermsError} from '@userActions/PaymentMethods';
+import {clearIOUError} from '@userActions/Report';
+import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -277,7 +280,7 @@ function MoneyRequestPreviewContent({
         if (isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
+        if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         if (hasPendingUI(transaction, getTransactionViolations(transaction?.transactionID))) {
