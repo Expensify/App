@@ -3,7 +3,6 @@ import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
-import type {ValueOf} from 'type-fest';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
