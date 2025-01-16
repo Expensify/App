@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildIndividualCardsData} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import type {CardList, WorkspaceCardsList} from '@src/types/onyx';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/PolicyUtils', () => {
     return {
         getPolicy(policyID: string) {
