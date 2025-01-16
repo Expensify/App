@@ -7,7 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -60,17 +60,17 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                     key={index}
                     style={styles.offlineFeedback.text}
                 >
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.receiptFailureMessage')}</Text>
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                         onPress={() => {
                             fileDownload(message.source, message.filename);
                         }}
                     >
-                        {Localize.translateLocal('iou.error.saveFileMessage')}
+                        {translateLocal('iou.error.saveFileMessage')}
                     </TextLink>
 
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.loseFileMessage')}</Text>
                 </Text>
             );
         }
