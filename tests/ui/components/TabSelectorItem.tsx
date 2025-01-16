@@ -1,27 +1,13 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 import React from 'react';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
-import CONST from '@src/CONST';
 
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
-jest.mock('@components/Tooltip', () => {
-    return jest.fn(({children, shouldRender, text}: {children: React.ReactNode; shouldRender: boolean; text: string}) => {
-        return (
-            <>
-                {shouldRender && <div data-testid="tooltip">{text}</div>}
-                {children}
-            </>
-        );
-    });
-});
+jest.mock('@components/Tooltip');
 
 describe('TabSelectorItem Component', () => {
-    const defaultProps = {
-        title: 'Test Tab',
-        icon: 'icon-home',
-        onPress: jest.fn(),
-    };
+    const title = 'Test Tab';
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -31,21 +17,17 @@ describe('TabSelectorItem Component', () => {
         // Given an inactive tab with a hidden label
         render(
             <TabSelectorItem
-                title="Test Tab"
+                title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
             />,
         );
 
-        // When hovering over the tab button
-        const button = screen.getByRole(CONST.ROLE.BUTTON, {name: defaultProps.title});
-        fireEvent(button, 'hoverIn');
-
         // Then the tooltip should be rendered with correct content because the label is hidden
         expect(Tooltip).toHaveBeenCalledWith(
             expect.objectContaining({
                 shouldRender: true,
-                text: defaultProps.title,
+                text: title,
             }),
             expect.any(Object),
         );
@@ -55,7 +37,7 @@ describe('TabSelectorItem Component', () => {
         // Given an active tab
         render(
             <TabSelectorItem
-                title="Test Tab"
+                title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive
             />,
@@ -66,7 +48,7 @@ describe('TabSelectorItem Component', () => {
         expect(Tooltip).toHaveBeenCalledWith(
             expect.objectContaining({
                 shouldRender: false,
-                text: defaultProps.title,
+                text: title,
             }),
             expect.any(Object),
         );
@@ -76,7 +58,7 @@ describe('TabSelectorItem Component', () => {
         // Given an inactive tab with visible label
         render(
             <TabSelectorItem
-                title="Test Tab"
+                title={title}
                 shouldShowLabelWhenInactive
                 isActive={false}
             />,
@@ -87,7 +69,7 @@ describe('TabSelectorItem Component', () => {
         expect(Tooltip).toHaveBeenCalledWith(
             expect.objectContaining({
                 shouldRender: false,
-                text: defaultProps.title,
+                text: title,
             }),
             expect.any(Object),
         );
