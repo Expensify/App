@@ -1315,39 +1315,44 @@ function getValidOptions(
     options: OptionList,
     {excludeLogins = [], includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
 ): Options {
+    // Gather shared configs:
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
         optionsToExclude.push(...selectedOptions);
     }
-
     excludeLogins.forEach((login) => {
         optionsToExclude.push({login});
     });
-
-    // Shared configs
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
-    const allPersonalDetailsOptions = includeP2P
-        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
-        : [];
-
-    // TODO: optimize
+    // Get valid personal details and check if we can find the current user:
     const personalDetailsOptions: ReportUtils.OptionData[] = [];
-    const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
-    // Next loop over all personal details removing any that are selectedUsers or recentChats
-    for (const personalDetailOption of allPersonalDetailsOptions) {
-        if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
-            continue;
-        }
-        personalDetailOption.isBold = shouldBoldTitleByDefault;
+    let currentUserOption: ReportUtils.OptionData | undefined;
+    if (includeP2P) {
+        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+        for (const detail of options.personalDetails) {
+            if (!detail?.login || !detail.accountID || !!detail?.isOptimisticPersonalDetail || (!includeDomainEmail && Str.isDomainEmail(detail.login))) {
+                continue;
+            }
 
-        personalDetailsOptions.push(personalDetailOption);
+            if (!!currentUserLogin && detail.login === currentUserLogin) {
+                currentUserOption = detail;
+            }
+
+            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === detail.login)) {
+                continue;
+            }
+
+            detail.isBold = shouldBoldTitleByDefault;
+
+            personalDetailsOptions.push(detail);
+        }
     }
 
+    // Get valid recent reports:
     let recentReportOptions: ReportUtils.OptionData[] = [];
     if (includeRecentReports) {
         recentReportOptions = getValidReports(options.reports, {
@@ -1362,8 +1367,6 @@ function getValidOptions(
         recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
         recentReportOptions = recentAttendees as ReportUtils.OptionData[];
     }
-
-    const currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
 
     return {
         personalDetails: personalDetailsOptions,
