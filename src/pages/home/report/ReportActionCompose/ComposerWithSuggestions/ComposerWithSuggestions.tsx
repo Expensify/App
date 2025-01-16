@@ -11,7 +11,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {AppState, DeviceEventEmitter, findNodeHandle, InteractionManager, Keyboard, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -438,7 +438,7 @@ function ComposerWithSuggestions(
         [selection, updateComment],
     );
 
-    const triggerHotkeyActions = useCallback(
+    const handleKeyPress = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
@@ -464,8 +464,38 @@ function ComposerWithSuggestions(
                     Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
+            // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
+            // so we need to handle backspace key action differently with grapheme segmentation.
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey) {
+                if (selection.start === 0) {
+                    return;
+                }
+                if (selection.start !== selection.end) {
+                    return;
+                }
+
+                // Grapheme segmentation is same for English and Spanish.
+                const splitter = new Intl.Segmenter(CONST.LOCALES.EN, {granularity: 'grapheme'});
+
+                // Wales flag has 14 UTF-16 code units. This is the emoji with the largest number of UTF-16 code units we use.
+                const start = Math.max(0, selection.start - 14);
+                const graphemes = Array.from(splitter.segment(lastTextRef.current.substring(start, selection.start)));
+                const lastGrapheme = graphemes.at(graphemes.length - 1);
+                const lastGraphemeLength = lastGrapheme?.segment.length ?? 0;
+                if (lastGraphemeLength > 1) {
+                    event.preventDefault();
+                    const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    setSelection((prevSelection) => ({
+                        start: selection.start - lastGraphemeLength,
+                        end: selection.start - lastGraphemeLength,
+                        positionX: prevSelection.positionX,
+                        positionY: prevSelection.positionY,
+                    }));
+                    updateComment(newText, true);
+                }
+            }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
@@ -705,6 +735,21 @@ function ComposerWithSuggestions(
         tag.set(findNodeHandle(textInputRef.current) ?? -1);
     }, [tag]);
 
+    useEffect(() => {
+        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+            if (!nextAppState.match(/inactive|background/)) {
+                focus(true);
+                return;
+            }
+
+            Keyboard.dismiss();
+        });
+
+        return () => {
+            appStateSubscription.remove();
+        };
+    }, [focus]);
+
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
@@ -749,7 +794,7 @@ function ComposerWithSuggestions(
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
-                    onKeyPress={triggerHotkeyActions}
+                    onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
