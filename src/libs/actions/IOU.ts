@@ -3076,7 +3076,15 @@ function getUpdateMoneyRequestParams(
             }
         }
     } else {
-        updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);
+        updatedMoneyRequestReport = updateIOUOwnerAndTotal(
+            iouReport,
+            updatedReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            diff,
+            getCurrency(transaction),
+            false,
+            true,
+            isTransactionOnHold,
+        );
     }
 
     optimisticData.push(
@@ -5871,7 +5879,15 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             }
         }
     } else {
-        updatedIOUReport = updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, getAmount(transaction, false), currency, true, false, isTransactionOnHold);
+        updatedIOUReport = updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            getAmount(transaction, false),
+            currency,
+            true,
+            false,
+            isTransactionOnHold,
+        );
     }
 
     if (updatedIOUReport) {
@@ -6842,7 +6858,15 @@ function getReportFromHoldRequestsOnyxData(
               holdNonReimbursableAmount,
               newParentReportActionID,
           )
-        : buildOptimisticIOUReport(iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID, holdAmount, chatReport.reportID, iouReport?.currency ?? '', false, newParentReportActionID);
+        : buildOptimisticIOUReport(
+              iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+              iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
+              holdAmount,
+              chatReport.reportID,
+              iouReport?.currency ?? '',
+              false,
+              newParentReportActionID,
+          );
 
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,

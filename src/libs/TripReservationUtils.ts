@@ -13,10 +13,10 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as Link from './actions/Link';
+import {openTravelDotLink} from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import * as PolicyUtils from './PolicyUtils';
+import {getPolicy} from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -100,7 +100,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    const policy = PolicyUtils.getPolicy(activePolicyID);
+    const policy = getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         return;
@@ -112,7 +112,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     if (ctaErrorMessage) {
         setCtaErrorMessage('');
     }
-    Link.openTravelDotLink(activePolicyID)
+    openTravelDotLink(activePolicyID)
         ?.then(() => {
             if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                 return;
