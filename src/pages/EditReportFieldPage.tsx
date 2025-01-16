@@ -68,7 +68,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
             goBack();
         } else {
-            ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            if (value !== '') {
+                ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
+            }
             Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
         }
     };
@@ -139,7 +141,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions.at(index))}

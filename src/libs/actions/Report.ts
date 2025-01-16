@@ -452,7 +452,7 @@ function subscribeToReportTypingEvents(reportID: string) {
 }
 
 /** Initialize our pusher subscriptions to listen for someone leaving a room. */
-function subscribeToReportLeavingEvents(reportID: string) {
+function subscribeToReportLeavingEvents(reportID: string | undefined) {
     if (!reportID) {
         return;
     }
