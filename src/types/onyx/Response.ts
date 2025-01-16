@@ -83,12 +83,6 @@ type Response = {
 
     /** If there is newer data to load for pagination commands */
     hasNewerActions?: boolean;
-
-    /** The email of the original user (returned when in delegate mode) */
-    requesterEmail?: string;
-
-    /** The ID of the original user (returned when in delegate mode) */
-    requesterID?: number;
 };
 
 export default Response;
