@@ -10,11 +10,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {openExternalLink} from '@libs/actions/Link';
+import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
-import * as Link from '@userActions/Link';
-import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +92,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
+        return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
@@ -100,7 +100,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
+        return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
     }, [policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
@@ -180,7 +180,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             <Switch
                                 isOn={areEReceiptsEnabled}
                                 accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                                onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                                onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
                                 disabled={policyCurrency !== CONST.CURRENCY.USD}
                             />
                         </View>
@@ -189,7 +189,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
                         <TextLink
                             style={[styles.textLabel, styles.link]}
-                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
+                            onPress={() => openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
                         >
                             {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
                         </TextLink>
