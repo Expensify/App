@@ -37,7 +37,7 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
+    const bankName = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);

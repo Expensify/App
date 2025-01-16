@@ -2,7 +2,6 @@ import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import type {CompanyCardBankName} from '@src/types/onyx/CardFeeds';
 
 type CompanyCardBankConnection = {
     authToken: string;
@@ -12,7 +11,7 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID?: string, bankName?: CompanyCardBankName) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
