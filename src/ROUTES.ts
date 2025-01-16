@@ -1011,7 +1011,12 @@ const ROUTES = {
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_CATEGORIES');
+            }
+            return `settings/workspaces/${policyID}/categories` as const;
+        },
     },
     WORKSPACE_CATEGORY_SETTINGS: {
         route: 'settings/workspaces/:policyID/category/:categoryName',
@@ -1076,11 +1081,21 @@ const ROUTES = {
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_MORE_FEATURES');
+            }
+            return `settings/workspaces/${policyID}/more-features` as const;
+        },
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_TAGS');
+            }
+            return `settings/workspaces/${policyID}/tags` as const;
+        },
     },
     WORKSPACE_TAG_CREATE: {
         route: 'settings/workspaces/:policyID/tags/new',

@@ -39,7 +39,7 @@ type IndividualExpenseRulesMenuItem = {
 };
 
 function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
-    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const handleOnPressCategoriesLink = () => {
         if (policy?.areCategoriesEnabled) {
