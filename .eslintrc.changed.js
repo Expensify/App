@@ -21,12 +21,7 @@ module.exports = {
     },
     overrides: [
         {
-            files: [
-                'src/libs/actions/Report.ts',
-                'src/pages/workspace/WorkspaceInitialPage.tsx',
-                'src/pages/home/report/PureReportActionItem.tsx',
-                'src/libs/SidebarUtils.ts',
-            ],
+            files: ['src/libs/actions/Report.ts', 'src/pages/workspace/WorkspaceInitialPage.tsx', 'src/pages/home/report/PureReportActionItem.tsx', 'src/libs/SidebarUtils.ts'],
             rules: {
                 'rulesdir/no-default-id-values': 'off',
             },
