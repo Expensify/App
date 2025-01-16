@@ -3240,7 +3240,6 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
@@ -3251,7 +3250,7 @@ function getUpdateMoneyRequestParams(
                 policyTagList ?? {},
                 policyCategories ?? {},
                 hasDependentTags(policy, policyTagList ?? {}),
-                isInvoiceReportReportUtils(parentReport),
+                isInvoiceReportReportUtils(iouReport),
             ),
         );
         failureData.push({
