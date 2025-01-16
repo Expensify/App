@@ -1,9 +1,10 @@
-import type {ForwardedRef, MutableRefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
+import RenderTaskQueue from './RenderTaskQueue';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -26,7 +27,6 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
-const RENDER_DELAY = 500;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
@@ -55,45 +55,28 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const dataIndexDifference = data.length - displayedData.length;
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const queuedRenders = useRef<Array<{distanceFromStart: number}>>([]);
-    const isRendering = useRef(false);
-
-    const renderTimeout = useRef<NodeJS.Timeout>();
+    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
     useEffect(() => {
         return () => {
-            clearTimeout(renderTimeout.current);
+            renderQueue.cancel();
         };
-    }, []);
+    }, [renderQueue]);
 
-    // Use a ref here to make sure we always operate on the latest state.
-    const updateDisplayedDataRef = useRef() as MutableRefObject<() => void>;
-    // eslint-disable-next-line react-compiler/react-compiler
-    updateDisplayedDataRef.current = () => {
-        const info = queuedRenders.current.shift();
-        if (!info) {
-            isRendering.current = false;
-            return;
-        }
-        isRendering.current = true;
-
+    renderQueue.setHandler((info) => {
         if (!isLoadingData) {
             onStartReached?.(info);
         }
         setIsInitialData(false);
         const firstDisplayedItem = displayedData.at(0);
         setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
+    });
 
-        renderTimeout.current = setTimeout(() => {
-            updateDisplayedDataRef.current();
-        }, RENDER_DELAY);
-    };
-
-    const handleStartReached = useCallback((info: {distanceFromStart: number}) => {
-        queuedRenders.current.push(info);
-        if (!isRendering.current) {
-            updateDisplayedDataRef.current();
-        }
-    }, []);
+    const handleStartReached = useCallback(
+        (info: {distanceFromStart: number}) => {
+            renderQueue.add(info);
+        },
+        [renderQueue],
+    );
 
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {

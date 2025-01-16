@@ -101,3 +101,21 @@ jest.mock(
             dispose() {}
         },
 );
+
+jest.mock(
+    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    () =>
+        class SyncRenderTaskQueue {
+            private handler: (info: unknown) => void = () => {};
+
+            add(info: unknown) {
+                this.handler(info);
+            }
+
+            setHandler(handler: () => void) {
+                this.handler = handler;
+            }
+
+            cancel() {}
+        },
+);
