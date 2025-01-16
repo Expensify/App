@@ -1497,6 +1497,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TCS]: {
         domain?: string;
     };
+    [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
+        domain: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {

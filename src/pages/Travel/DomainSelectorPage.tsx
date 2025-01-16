@@ -42,7 +42,7 @@ function DomainSelectorPage() {
                 success
                 large
                 style={[styles.w100]}
-                onPress={() => Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO)}
+                onPress={() => Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(selectedDomain))}
                 text={translate('common.continue')}
             />
         ),

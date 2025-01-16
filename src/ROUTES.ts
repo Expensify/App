@@ -1430,7 +1430,7 @@ const ROUTES = {
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
         route: 'travel/terms/:domain',
-        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(domain ? `travel/terms/${domain}` : 'travel/terms', backTo),
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}`, backTo),
     },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
@@ -1443,7 +1443,10 @@ const ROUTES = {
             getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
     },
     TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
-    TRAVEL_DOMAIN_PERMISSION_INFO: 'travel/domain-permission-info',
+    TRAVEL_DOMAIN_PERMISSION_INFO: {
+        route: 'travel/domain-permission-info/:domain',
+        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission-info/${domain}`, backTo),
+    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),

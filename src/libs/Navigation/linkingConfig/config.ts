@@ -1382,7 +1382,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             },
                         },
                         [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
-                        [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO,
+                        [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

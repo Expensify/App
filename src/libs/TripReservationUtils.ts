@@ -124,7 +124,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
             setCtaErrorMessage('');
         }
     } else if (isPolicyProvisioned) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute());
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
     } else {
         const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(activePolicyID);
         if (adminDomains.length === 0) {

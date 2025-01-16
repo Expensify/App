@@ -1,3 +1,4 @@
+import {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native-web';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,8 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {TravelNavigatorParamList} from '@libs/Navigation/types';
+import SCREENS from '@src/SCREENS';
 
-function DomainPermissionInfoPage() {
+type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO>;
+
+function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -22,7 +27,7 @@ function DomainPermissionInfoPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
-                <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: 'domain.com'})} />
+                <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: route.params.domain})} />
                 <br />
                 <RenderHTML html={translate('travel.domainPermissionInfo.accountantInvitation')} />
             </View>

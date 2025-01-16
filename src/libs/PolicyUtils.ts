@@ -1215,12 +1215,12 @@ function getAdminsPrivateEmailDomains(policyID?: string) {
         return [];
     }
     return [
-        ...new Set(
-            Object.entries(policy.employeeList ?? {})
+        ...new Set([
+            ...Object.entries(policy.employeeList ?? {})
                 .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
                 .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
-        ),
-        Str.extractEmailDomain(policy.owner).toLowerCase(),
+            Str.extractEmailDomain(policy.owner).toLowerCase(),
+        ]),
     ].filter((domain) => !isPublicDomain(domain));
 }
 

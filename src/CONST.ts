@@ -6489,6 +6489,9 @@ const CONST = {
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
+    TRAVEL: {
+        DEFAULT_DOMAIN: 'domain',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
