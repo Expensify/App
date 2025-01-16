@@ -1262,6 +1262,13 @@ function getValidReports(
             continue;
         }
 
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
+            if (!reportPolicy?.areCategoriesEnabled) {
+                continue;
+            }
+        }
+
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
@@ -1295,14 +1302,7 @@ function getValidReports(
             lastIOUCreationDate,
         };
 
-        if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newReportOption.policyID}`];
-            if (reportPolicy?.areCategoriesEnabled) {
-                validReportOptions.push(newReportOption);
-            }
-        } else {
-            validReportOptions.push(newReportOption);
-        }
+        validReportOptions.push(newReportOption);
     }
 
     return validReportOptions;
@@ -1328,12 +1328,14 @@ function getValidOptions(
         optionsToExclude.push({login});
     });
 
-    const {includeP2P, shouldBoldTitleByDefault, includeDomainEmail, ...getValidReportsConfig} = config;
+    // Shared configs
+    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
     const allPersonalDetailsOptions = includeP2P
-        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail ?? !Str.isDomainEmail(detail.login)))
+        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
         : [];
 
+    // TODO: optimize
     const personalDetailsOptions: ReportUtils.OptionData[] = [];
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
     // Next loop over all personal details removing any that are selectedUsers or recentChats
