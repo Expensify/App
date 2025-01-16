@@ -384,7 +384,7 @@ function MoneyRequestConfirmationList({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            IOU.setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
             return;
         }
 

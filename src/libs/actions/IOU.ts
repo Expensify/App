@@ -3901,11 +3901,12 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
+    const {linkedTrackedExpenseReportAction: ignore, ...reportInformationForAPI} = reportInformation;
+
     const parameters: CategorizeTrackedExpenseApiParams = {
-        ...reportInformation,
+        ...reportInformationForAPI,
         ...policyParams,
         ...transactionParams,
-        linkedTrackedExpenseReportAction: undefined,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
