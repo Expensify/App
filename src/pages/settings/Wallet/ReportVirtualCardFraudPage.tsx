@@ -18,6 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearCardListErrors, clearReportVirtualCardFraudForm, reportVirtualExpensifyCardFraud} from '@userActions/Card';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -112,7 +113,7 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
-                        clearCardListErrors(virtualCard?.cardID ?? 0);
+                        clearCardListErrors(virtualCard?.cardID ?? CONST.DEFAULT_NUMBER_ID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
