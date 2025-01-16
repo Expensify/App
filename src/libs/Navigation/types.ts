@@ -745,6 +745,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
         role?: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
