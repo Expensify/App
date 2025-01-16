@@ -113,7 +113,7 @@ type GetOptionsConfig = {
 };
 
 type GetUserToInviteConfig = {
-    searchValue: string;
+    searchValue: string | undefined;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
     shouldAcceptName?: boolean;
@@ -513,7 +513,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (report?.private_isArchived) {
+    if (ReportUtils.isArchivedNonExpenseReport(report)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -603,6 +603,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = ReportUtils.getRejectedReportMessage();
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
+        lastMessageTextFromReport = ReportUtils.getUpgradeWorkspaceMessage();
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
+        lastMessageTextFromReport = ReportUtils.getDowngradeWorkspaceMessage();
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
@@ -611,6 +615,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
+    // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
+    if (reportID && !report.private_isArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return lastMessageTextFromReport || (ReportUtils.getReportLastMessage(reportID).lastMessageText ?? '');
+    }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
@@ -1100,6 +1108,10 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
+    if (!searchValue) {
+        return null;
+    }
+
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
@@ -1108,7 +1120,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
+    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
     }
 

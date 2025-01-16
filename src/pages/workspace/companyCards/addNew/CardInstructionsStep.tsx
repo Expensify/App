@@ -10,11 +10,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {updateSelectedFeed} from '@libs/actions/Card';
+import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName} from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
@@ -52,34 +52,34 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
     const submit = () => {
-        if (isStripeFeedProvider) {
-            Card.updateSelectedFeed(feedProvider, policyID ?? '-1');
+        if (isStripeFeedProvider && policyID) {
+            updateSelectedFeed(feedProvider, policyID);
             Navigation.goBack();
             return;
         }
         if (isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_NAME,
             });
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
+        setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isAmexFeedProvider) {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
             });
             return;
         }
         if (isStripeFeedProvider) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
     return (
@@ -98,7 +98,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: CardUtils.getCardFeedName(feedProvider)})}
+                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankName(feedProvider)})}
                 </Text>
                 <Text style={[styles.ph5, styles.mb3]}>{translate(translationKey)}</Text>
                 <View style={[styles.ph5]}>
