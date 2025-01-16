@@ -6,9 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,7 @@ function SearchFiltersTagPage() {
         return items;
     }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
-    const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
+    const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 
     return (
         <ScreenWrapper
