@@ -56,6 +56,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={styles.textAlignCenter}>
+                            {translate('validateCodeModal.doNotShare')}
                             {translate('validateCodeModal.description')}
                             {!session?.authToken && (
                                 <>
@@ -67,6 +68,11 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                     </View>
                     <View style={styles.mt6}>
                         <Text style={styles.validateCodeDigits}>{code}</Text>
+                    </View>
+                    <View style={[styles.mt6]}>
+                        <Text style={styles.textAlignCenter}>
+                            {translate('validateCodeModal.doNotShare')}
+                        </Text>
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>

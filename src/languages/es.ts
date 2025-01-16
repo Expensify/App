@@ -567,6 +567,7 @@ const translations = {
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
         title: 'Aquí está tu código mágico',
         or: ', ¡o',
+        doNotShare: 'No compartas tu código con nadie.\nExpensify nunca te lo pedirá.',
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',

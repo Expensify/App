@@ -575,6 +575,7 @@ const translations = {
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: "Here's your magic code",
         description: 'Please enter the code from the device\nwhere it was originally requested',
+        doNotShare: 'Do not share your code with anyone.\nExpensify will never ask you for it!',
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
