@@ -121,7 +121,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Click the green *+* button.\n' +
+                '1. Press the <custom-emoji emoji="action-menu-icon" /> button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -144,7 +144,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Click the green *+* button.\n' +
+                '1. Press the <custom-emoji emoji="action-menu-icon" /> button\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -175,7 +175,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Click the green *+* button.\n' +
+                '1. Press the <custom-emoji emoji="action-menu-icon" /> button.\n' +
                 '2. Choose *Track expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Click *Track*.\n' +
@@ -197,7 +197,7 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Click the green *+* button.\n' +
+                '1. Press the <custom-emoji emoji="action-menu-icon" /> button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Click "Just track it (don\'t submit it)".\n' +
@@ -5127,7 +5127,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
+                        '1. Press the <custom-emoji emoji="action-menu-icon" /> button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
@@ -5144,7 +5144,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Hit the green *+* button.\n' +
+                        '1. Press the <custom-emoji emoji="action-menu-icon" /> button\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter any email, SMS, or name of who you want to split with.\n' +
                         '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
@@ -5194,7 +5194,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
+                        '1. Press the <custom-emoji emoji="action-menu-icon" /> button.\n' +
                         '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +

@@ -68,6 +68,9 @@ type FloatingActionButtonAndPopoverProps = {
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu?: () => void;
+
+    /* An accessibility render as emoji for the button */
+    isEmoji?: boolean;
 };
 
 type FloatingActionButtonAndPopoverRef = {
@@ -167,7 +170,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: FloatingActionButtonAndPopoverProps, ref: ForwardedRef<FloatingActionButtonAndPopoverRef>) {
+function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isEmoji}: FloatingActionButtonAndPopoverProps, ref: ForwardedRef<FloatingActionButtonAndPopoverRef>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -452,109 +455,132 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const canModifyTask = Task.canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = Task.canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
+    const popoverMenu = (
+        <PopoverMenu
+            onClose={hideCreateMenu}
+            isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
+            anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+            onItemSelected={hideCreateMenu}
+            fromSidebarMediumScreen={!shouldUseNarrowLayout}
+            menuItems={[
+                ...expenseMenuItems,
+                {
+                    icon: Expensicons.ChatBubble,
+                    text: translate('sidebarScreen.fabNewChat'),
+                    onSelected: () => interceptAnonymousUser(Report.startNewChat),
+                },
+                ...(canSendInvoice
+                    ? [
+                          {
+                              icon: Expensicons.InvoiceGeneric,
+                              text: translate('workspace.invoices.sendInvoice'),
+                              shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                              onSelected: () =>
+                                  interceptAnonymousUser(() => {
+                                      if (shouldRedirectToExpensifyClassic) {
+                                          setModalVisible(true);
+                                          return;
+                                      }
+
+                                      IOU.startMoneyRequest(
+                                          CONST.IOU.TYPE.INVOICE,
+                                          // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                          // for all of the routes in the creation flow.
+                                          ReportUtils.generateReportID(),
+                                      );
+                                  }),
+                          },
+                      ]
+                    : []),
+                ...(canUseSpotnanaTravel
+                    ? [
+                          {
+                              icon: Expensicons.Suitcase,
+                              text: translate('travel.bookTravel'),
+                              onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                          },
+                      ]
+                    : []),
+                ...(!hasSeenTour
+                    ? [
+                          {
+                              icon: Expensicons.Binoculars,
+                              iconStyles: styles.popoverIconCircle,
+                              iconFill: theme.icon,
+                              text: translate('tour.takeATwoMinuteTour'),
+                              description: translate('tour.exploreExpensify'),
+                              onSelected: () => {
+                                  Link.openExternalLink(navatticURL);
+                                  Welcome.setSelfTourViewed(Session.isAnonymousUser());
+                                  if (viewTourTaskReport && canModifyTask && canActionTask) {
+                                      Task.completeTask(viewTourTaskReport);
+                                  }
+                              },
+                          },
+                      ]
+                    : []),
+                ...(!isLoading && shouldShowNewWorkspaceButton
+                    ? [
+                          {
+                              displayInDefaultIconColor: true,
+                              contentFit: 'contain' as ImageContentFit,
+                              icon: Expensicons.NewWorkspace,
+                              iconWidth: variables.w46,
+                              iconHeight: variables.h40,
+                              text: translate('workspace.new.newWorkspace'),
+                              description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                              onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
+                          },
+                      ]
+                    : []),
+                ...quickActionMenuItems,
+            ]}
+            withoutOverlay
+            anchorRef={fabRef}
+        />
+    );
+    const confirmModal = (
+        <ConfirmModal
+            prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
+            isVisible={modalVisible}
+            onConfirm={() => {
+                setModalVisible(false);
+                Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+            }}
+            onCancel={() => setModalVisible(false)}
+            title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
+            confirmText={translate('exitSurvey.goToExpensifyClassic')}
+            cancelText={translate('common.cancel')}
+        />
+    );
+    const floatingActionButton = (
+        <FloatingActionButton
+            accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+            role={CONST.ROLE.BUTTON}
+            isActive={isCreateMenuActive}
+            ref={fabRef}
+            onPress={toggleCreateMenu}
+            isEmoji={isEmoji}
+        />
+    );
+
+    if (isEmoji) {
+        return (
+            <>
+                <View style={styles.flexGrow1}>
+                    {popoverMenu}
+                    {confirmModal}
+                </View>
+                {floatingActionButton}
+            </>
+        );
+    }
+
     return (
         <View style={styles.flexGrow1}>
-            <PopoverMenu
-                onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                menuItems={[
-                    ...expenseMenuItems,
-                    {
-                        icon: Expensicons.ChatBubble,
-                        text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
-                    },
-                    ...(canSendInvoice
-                        ? [
-                              {
-                                  icon: Expensicons.InvoiceGeneric,
-                                  text: translate('workspace.invoices.sendInvoice'),
-                                  shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() => {
-                                          if (shouldRedirectToExpensifyClassic) {
-                                              setModalVisible(true);
-                                              return;
-                                          }
-
-                                          IOU.startMoneyRequest(
-                                              CONST.IOU.TYPE.INVOICE,
-                                              // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                              // for all of the routes in the creation flow.
-                                              ReportUtils.generateReportID(),
-                                          );
-                                      }),
-                              },
-                          ]
-                        : []),
-                    ...(canUseSpotnanaTravel
-                        ? [
-                              {
-                                  icon: Expensicons.Suitcase,
-                                  text: translate('travel.bookTravel'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
-                              },
-                          ]
-                        : []),
-                    ...(!hasSeenTour
-                        ? [
-                              {
-                                  icon: Expensicons.Binoculars,
-                                  iconStyles: styles.popoverIconCircle,
-                                  iconFill: theme.icon,
-                                  text: translate('tour.takeATwoMinuteTour'),
-                                  description: translate('tour.exploreExpensify'),
-                                  onSelected: () => {
-                                      Link.openExternalLink(navatticURL);
-                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
-                                      if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                          Task.completeTask(viewTourTaskReport);
-                                      }
-                                  },
-                              },
-                          ]
-                        : []),
-                    ...(!isLoading && shouldShowNewWorkspaceButton
-                        ? [
-                              {
-                                  displayInDefaultIconColor: true,
-                                  contentFit: 'contain' as ImageContentFit,
-                                  icon: Expensicons.NewWorkspace,
-                                  iconWidth: variables.w46,
-                                  iconHeight: variables.h40,
-                                  text: translate('workspace.new.newWorkspace'),
-                                  description: translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
-                              },
-                          ]
-                        : []),
-                    ...quickActionMenuItems,
-                ]}
-                withoutOverlay
-                anchorRef={fabRef}
-            />
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
-            />
-            <FloatingActionButton
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ROLE.BUTTON}
-                isActive={isCreateMenuActive}
-                ref={fabRef}
-                onPress={toggleCreateMenu}
-            />
+            {popoverMenu}
+            {confirmModal}
+            {floatingActionButton}
         </View>
     );
 }

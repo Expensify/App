@@ -58,9 +58,12 @@ type FloatingActionButtonProps = {
 
     /* An accessibility role for the button */
     role: Role;
+
+    /* An accessibility render as emoji for the button */
+    isEmoji?: boolean;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEmoji}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -117,6 +120,46 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         onPress(event);
     };
 
+    const floatingActionStyle = isEmoji ? styles.floatingActionEmoji : styles.floatingActionButton;
+    const iconSizeStyle = isEmoji ? variables.iconSizeExtraSmall : variables.iconSizeNormal;
+    const nativePositionFix = Platform.OS === 'web' ? [] : {height: '6%'};
+    const pressebleStyles = isEmoji ? [nativePositionFix] : [styles.h100, styles.bottomTabBarItem];
+    const animatedStyles = [floatingActionStyle, isEmoji ? {} : animatedStyle];
+
+    const button = (
+        <PressableWithoutFeedback
+            ref={(el) => {
+                fabPressable.current = el ?? null;
+                if (buttonRef && 'current' in buttonRef) {
+                    buttonRef.current = el ?? null;
+                }
+            }}
+            style={pressebleStyles}
+            accessibilityLabel={accessibilityLabel}
+            onPress={toggleFabAction}
+            onLongPress={() => {}}
+            role={role}
+            shouldUseHapticsOnLongPress={false}
+        >
+            <Animated.View style={animatedStyles}>
+                <Svg
+                    width={iconSizeStyle}
+                    height={iconSizeStyle}
+                    viewBox={`0 0 ${variables.iconSizeNormal} ${variables.iconSizeNormal}`}
+                >
+                    <AnimatedPath
+                        d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                        animatedProps={animatedProps}
+                    />
+                </Svg>
+            </Animated.View>
+        </PressableWithoutFeedback>
+    );
+
+    if (isEmoji) {
+        return button;
+    }
+
     return (
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
@@ -129,32 +172,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
         >
-            <PressableWithoutFeedback
-                ref={(el) => {
-                    fabPressable.current = el ?? null;
-                    if (buttonRef && 'current' in buttonRef) {
-                        buttonRef.current = el ?? null;
-                    }
-                }}
-                style={[styles.h100, styles.bottomTabBarItem]}
-                accessibilityLabel={accessibilityLabel}
-                onPress={toggleFabAction}
-                onLongPress={() => {}}
-                role={role}
-                shouldUseHapticsOnLongPress={false}
-            >
-                <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
-                    <Svg
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    >
-                        <AnimatedPath
-                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                            animatedProps={animatedProps}
-                        />
-                    </Svg>
-                </Animated.View>
-            </PressableWithoutFeedback>
+            {button}
         </EducationalTooltip>
     );
 }
