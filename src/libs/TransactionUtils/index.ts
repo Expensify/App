@@ -791,13 +791,8 @@ function hasBrokenConnectionViolation(transactionID?: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(
-    transactionIDList: string[] | undefined,
-    report: OnyxEntry<Report> | SearchReport,
-    policy: OnyxEntry<Policy> | SearchPolicy,
-    allViolations?: OnyxCollection<TransactionViolations>,
-): boolean {
-    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, allViolations)) ?? [];
+function shouldShowBrokenConnectionViolation(transactionIDList: string[] | undefined, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID)) ?? [];
     return (
         transactionsWithBrokenConnectionViolation.length > 0 &&
         transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
