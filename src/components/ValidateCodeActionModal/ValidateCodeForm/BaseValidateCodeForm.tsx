@@ -16,10 +16,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as User from '@userActions/User';
+import {isMobileSafari} from '@libs/Browser';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,7 +132,7 @@ function BaseValidateCodeForm({
             }
 
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!Browser.isMobileSafari()) {
+            if (!isMobileSafari()) {
                 focusTimeoutRef.current = setTimeout(() => {
                     inputValidateCodeRef.current?.focusLastSelected();
                 }, CONST.ANIMATED_TRANSITION);
@@ -186,7 +186,7 @@ function BaseValidateCodeForm({
 
             if (!isEmptyObject(validateError)) {
                 clearError();
-                User.clearValidateCodeActionError('actionVerified');
+                clearValidateCodeActionError('actionVerified');
             }
         },
         [validateError, clearError],
@@ -202,7 +202,7 @@ function BaseValidateCodeForm({
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
@@ -220,7 +220,16 @@ function BaseValidateCodeForm({
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={canShowError ? (formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})) : ''}
+                errorText={
+                    canShowError
+                        ? (() => {
+                              if (formError?.validateCode) {
+                                  return translate(formError?.validateCode);
+                              }
+                              return getLatestErrorMessage(account ?? {});
+                          })()
+                        : ''
+                }
                 hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
@@ -233,9 +242,9 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
+                errors={getLatestErrorField(validateCodeAction, 'actionVerified')}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearValidateCodeActionError('actionVerified')}
+                onClose={() => clearValidateCodeActionError('actionVerified')}
             >
                 {!shouldShowTimer && (
                     <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
