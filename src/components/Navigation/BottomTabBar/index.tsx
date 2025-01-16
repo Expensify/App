@@ -11,7 +11,6 @@ import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,6 +41,7 @@ type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
 
 type BottomTabBarProps = {
     selectedTab: BottomTabName;
+    shouldShowTooltip: boolean | undefined;
 };
 
 /**
@@ -72,7 +72,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
     return SearchQueryUtils.buildSearchQueryString(queryJSON);
 }
 
-function BottomTabBar({selectedTab}: BottomTabBarProps) {
+function BottomTabBar({selectedTab, shouldShowTooltip = false}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -89,12 +89,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
-    const isFocused = useBottomTabIsFocused();
+
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        selectedTab !== BOTTOM_TABS.HOME && isFocused,
+        shouldShowTooltip,
     );
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));

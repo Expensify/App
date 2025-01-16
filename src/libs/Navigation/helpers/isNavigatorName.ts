@@ -1,5 +1,5 @@
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {FullScreenName, OnboardingFlowName, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
+import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
 const ONBOARDING_SCREENS = [
@@ -15,6 +15,7 @@ const ONBOARDING_SCREENS = [
 const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), SCREENS.SEARCH.ROOT]);
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(ONBOARDING_SCREENS);
+const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
 
 /**
  * Functions defined below are used to check whether a screen belongs to a specific group.
@@ -32,6 +33,10 @@ function isOnboardingFlowName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<OnboardingFlowName>(screen, ONBOARDING_SCREENS_SET);
 }
 
+function isSplitNavigatorName(screen: string | undefined) {
+    return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorName>(screen, SPLIT_NAVIGATORS_SET);
+}
+
 function isFullScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
 }
@@ -40,4 +45,4 @@ function isSidebarScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorSidebarScreen>(screen, SIDEBARS_SET);
 }
 
-export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName};
+export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName};

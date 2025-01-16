@@ -1,12 +1,12 @@
 import {createNavigatorFactory} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/native';
+import TopLevelBottomTabBar from '@components/Navigation/TopLevelBottomTabBar';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomStateHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import RootStackRouter from './RootStackRouter';
-import TopLevelBottomTabBar from './TopLevelBottomTabBar';
 
 // This is an optimization to keep mounted only last few screens in the stack.
 function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
