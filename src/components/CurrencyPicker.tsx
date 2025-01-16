@@ -1,10 +1,11 @@
 import type {ReactNode} from 'react';
-import React, {useState} from 'react';
+import React, {Fragment, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
 import type {CurrencyListItem} from './CurrencySelectionList/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -30,9 +31,12 @@ type CurrencyPickerProps = {
 
     /** Is the MenuItem interactive */
     interactive?: boolean;
+
+    /** Should show the full page offline view (whenever the user is offline) */
+    shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, interactive, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -45,6 +49,8 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, int
         onInputChange?.(item.currencyCode);
         hidePickerModal();
     };
+
+    const BlockingComponent = shouldShowFullPageOfflineView ? FullPageOfflineBlockingView : Fragment;
 
     return (
         <>
@@ -77,13 +83,15 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, int
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />
-                    {!!headerContent && headerContent}
-                    <CurrencySelectionList
-                        initiallySelectedCurrencyCode={value}
-                        onSelect={updateInput}
-                        searchInputLabel={translate('common.search')}
-                        excludedCurrencies={excludeCurrencies}
-                    />
+                    <BlockingComponent>
+                        {!!headerContent && headerContent}
+                        <CurrencySelectionList
+                            initiallySelectedCurrencyCode={value}
+                            onSelect={updateInput}
+                            searchInputLabel={translate('common.search')}
+                            excludedCurrencies={excludeCurrencies}
+                        />
+                    </BlockingComponent>
                 </ScreenWrapper>
             </Modal>
         </>

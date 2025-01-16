@@ -76,6 +76,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         headerContent={currencyHeaderContent}
                         excludeCurrencies={CONST.CORPAY_FIELDS.EXCLUDED_CURRENCIES}
                         interactive={!isOffline}
+                        shouldShowFullPageOfflineView
                     />
                 </View>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (
