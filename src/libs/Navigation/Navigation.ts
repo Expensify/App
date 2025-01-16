@@ -27,6 +27,7 @@ import getTopmostReportParams from './helpers/getTopmostReportParams';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import type {LinkToOptions} from './helpers/linkTo/types';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
@@ -146,9 +147,9 @@ function isActiveRoute(routePath: Route): boolean {
 
 /**
  * Main navigation method for redirecting to a route.
- * @param [type] - Type of action to perform. Currently UP is supported.
+ * @param [options] - linkTo function options. They allow to specify if the replace action should be performed.
  */
-function navigate(route: Route = ROUTES.HOME, type?: string) {
+function navigate(route: Route, options?: LinkToOptions) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -157,7 +158,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         return;
     }
 
-    linkTo(navigationRef.current, route, type);
+    linkTo(navigationRef.current, route, options);
 }
 
 /**

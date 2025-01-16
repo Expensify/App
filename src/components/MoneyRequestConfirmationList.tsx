@@ -742,14 +742,14 @@ function MoneyRequestConfirmationList({
         const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
             return;
         }
 
         if (option.accountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
         }
     };
 

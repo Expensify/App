@@ -13,6 +13,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getMinimalAction from './getMinimalAction';
+import type {LinkToOptions} from './types';
+
+const defaultLinkToOptions: LinkToOptions = {
+    forceReplace: false,
+};
 
 function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
     if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
@@ -60,10 +65,13 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams.reportID === newParams.reportID;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, type?: string) {
+export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
+
+    // We know that the options are always defined because we have default options.
+    const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path);
     const extractedPolicyID = extractPolicyIDFromPath(normalizedPath);
@@ -96,7 +104,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+    if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
 

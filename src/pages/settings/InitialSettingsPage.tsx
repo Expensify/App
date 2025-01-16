@@ -330,11 +330,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 onPress={singleExecution(() => {
                                     if (item.action) {
                                         item.action();
-                                    } else {
-                                        waitForNavigate(() => {
-                                            Navigation.navigate(item.routeName);
-                                        })();
+                                        return;
                                     }
+
+                                    waitForNavigate(() => {
+                                        if (!item.routeName) {
+                                            return;
+                                        }
+                                        Navigation.navigate(item.routeName);
+                                    })();
                                 })}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}

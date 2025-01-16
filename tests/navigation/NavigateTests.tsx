@@ -96,7 +96,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator using replace action
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_ABOUT, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+                Navigation.navigate(ROUTES.SETTINGS_ABOUT, {forceReplace: true});
             });
 
             // Then replace the current page with the page passed to the navigate function

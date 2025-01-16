@@ -448,10 +448,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
                                     onPress={() =>
-                                        Navigation.navigate(
-                                            ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`),
-                                            CONST.NAVIGATION.ACTION_TYPE.REPLACE,
-                                        )
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), {forceReplace: true})
                                     }
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}

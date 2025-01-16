@@ -8,4 +8,9 @@ type ActionPayload = {
     params?: ActionPayloadParams;
 };
 
-export type {ActionPayload, ActionPayloadParams};
+type LinkToOptions = {
+    // To explicitly set the action type to replace.
+    forceReplace: boolean;
+};
+
+export type {ActionPayload, ActionPayloadParams, LinkToOptions};
