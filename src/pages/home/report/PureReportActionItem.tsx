@@ -108,9 +108,9 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    type MissingPaymentMethod,
     shouldDisplayThreadReplies,
 } from '@libs/ReportUtils';
+import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
