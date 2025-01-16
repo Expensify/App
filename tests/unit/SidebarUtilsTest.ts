@@ -58,12 +58,12 @@ describe('SidebarUtils', () => {
             };
 
             await Onyx.multiSet({
-                ...MOCK_REPORTS,
-                ...MOCK_TRANSACTION_VIOLATIONS,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
                 },
+                ...MOCK_REPORTS,
+                ...MOCK_TRANSACTION_VIOLATIONS,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 

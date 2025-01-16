@@ -742,6 +742,7 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<Report>;
+const userReportsOpenOrSubmittedByPolicyId: Record<string, Report[] | undefined> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -762,6 +763,11 @@ Onyx.connect({
                 return;
             }
             handleReportChanged(report);
+            if (report.policyID && report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
+                const policyReports = userReportsOpenOrSubmittedByPolicyId[report.policyID] ?? [];
+                policyReports.push(report);
+                userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports;
+            }
         });
     },
 });
@@ -6617,13 +6623,20 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
+    if (!report.policyID) {
+        return false;
+    }
+
     // Get all potential reports, which are the ones that are:
     // - Owned by the same user
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
-    const reports = Object.values(allReports ?? {}) as Report[];
-    const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
+    const potentialReports = userReportsOpenOrSubmittedByPolicyId[report.policyID];
+    if (!potentialReports) {
+        return false;
+    }
+
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
