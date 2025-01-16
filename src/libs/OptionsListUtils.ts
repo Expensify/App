@@ -192,11 +192,11 @@ type GetValidReportsConfig = {
     includeMoneyRequests?: boolean;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
-    optionsToExclude?: Array<Partial<OptionData>>;
+    loginsToExclude?: Record<string, boolean>;
 } & GetValidOptionsSharedConfig;
 
 type GetOptionsConfig = {
-    excludeLogins?: string[];
+    excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
@@ -204,7 +204,7 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
-    optionsToExclude?: Array<Partial<OptionData>>;
+    loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     shouldAcceptName?: boolean;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
@@ -236,7 +236,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
-    excludeLogins?: string[];
+    excludeLogins?: Record<string, boolean>;
 };
 
 type OrderOptionsConfig =
@@ -1167,7 +1167,7 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    optionsToExclude = [],
+    loginsToExclude = {},
     selectedOptions = [],
     reportActions = {},
     showChatPreviewLine = false,
@@ -1182,8 +1182,7 @@ function getUserToInviteOption({
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+    const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
 
     if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
@@ -1240,7 +1239,7 @@ function getValidReports(
         includeP2P = true,
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
-        optionsToExclude = [],
+        loginsToExclude = {},
     }: GetValidReportsConfig,
 ) {
     const topmostReportId = Navigation.getTopmostReportId();
@@ -1336,7 +1335,7 @@ function getValidReports(
         }
 
         // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-        if (!includeThreads && (!!option.login || option.reportID) && optionsToExclude.some((x) => x.login === option.login || x.reportID === option.reportID)) {
+        if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
             continue;
         }
 
@@ -1389,19 +1388,24 @@ function getValidReports(
  */
 function getValidOptions(
     options: OptionList,
-    {excludeLogins = [], includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
+    {excludeLogins = {}, includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
 ): Options {
     // Gather shared configs:
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const loginsToExclude: Record<string, boolean> = {
+        [CONST.EMAIL.NOTIFICATIONS]: true,
+        ...excludeLogins,
+    };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
-        optionsToExclude.push(...selectedOptions);
+        selectedOptions.forEach((option) => {
+            if (!option.login) {
+                return;
+            }
+            loginsToExclude[option.login] = true;
+        });
     }
-    excludeLogins.forEach((login) => {
-        optionsToExclude.push({login});
-    });
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
     // Get valid recent reports:
@@ -1412,11 +1416,19 @@ function getValidOptions(
             includeP2P,
             includeDomainEmail,
             selectedOptions,
-            optionsToExclude,
+            loginsToExclude,
             shouldBoldTitleByDefault,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentAttendees.filter((attendee) => {
+            const login = attendee.login ?? attendee.displayName;
+            if (login) {
+                loginsToExclude[login] = true;
+                return true;
+            }
+
+            return false;
+        });
         recentReportOptions = recentAttendees as OptionData[];
     }
 
@@ -1424,7 +1436,13 @@ function getValidOptions(
     const personalDetailsOptions: OptionData[] = [];
     let currentUserOption: OptionData | undefined;
     if (includeP2P) {
-        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+        let personalDetailLoginsToExclude = loginsToExclude;
+        if (currentUserLogin) {
+            personalDetailLoginsToExclude = {
+                ...loginsToExclude,
+                [currentUserLogin]: true,
+            };
+        }
         for (let i = 0; i < options.personalDetails.length; i++) {
             // eslint-disable-next-line rulesdir/prefer-at
             const detail = options.personalDetails[i];
@@ -1436,7 +1454,7 @@ function getValidOptions(
                 currentUserOption = detail;
             }
 
-            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === detail.login)) {
+            if (personalDetailLoginsToExclude[detail.login]) {
                 continue;
             }
 
@@ -1536,7 +1554,7 @@ function getAttendeeOptions(
         {
             betas,
             selectedOptions: attendees,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
@@ -1558,7 +1576,7 @@ function getShareDestinationOptions(
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
     selectedOptions: Array<Partial<OptionData>> = [],
-    excludeLogins: string[] = [],
+    excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
 ) {
     return getValidOptions(
@@ -1611,7 +1629,7 @@ function formatMemberForList(member: OptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     betas: Beta[] = [],
-    excludeLogins: string[] = [],
+    excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
@@ -1827,7 +1845,7 @@ function filterCurrentUserOption(currentUserOption: OptionData | null | undefine
 }
 
 function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): OptionData | null {
-    const {canInviteUser = true, excludeLogins = []} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
     }
@@ -1843,14 +1861,13 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         return null;
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-    excludeLogins.forEach((login) => {
-        optionsToExclude.push({login});
-    });
-
+    const loginsToExclude: Record<string, boolean> = {
+        [CONST.EMAIL.NOTIFICATIONS]: true,
+        ...excludeLogins,
+    };
     return getUserToInviteOption({
         searchValue,
-        optionsToExclude,
+        loginsToExclude,
         ...config,
     });
 }

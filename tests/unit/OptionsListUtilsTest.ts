@@ -478,7 +478,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -488,7 +488,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -502,7 +505,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -526,7 +529,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we provide a "selected" option to getValidOptions()
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
 
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -548,7 +551,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -560,7 +563,10 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
@@ -576,7 +582,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -761,8 +767,8 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
-            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS});
-            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
             expect(filterOptions.recentReports.length).toBe(0);
         });
 
@@ -770,7 +776,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
 
             const options = OptionsListUtils.getSearchOptions(OPTIONS);
-            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
