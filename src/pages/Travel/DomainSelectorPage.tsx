@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsEmailPrivateDomains} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains, getMostUsedPrivateEmailDomain} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -21,17 +21,19 @@ function DomainSelectorPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [selectedDomain, setSelectedDomain] = useState('');
 
+    const recommendedDomain = useMemo(() => getMostUsedPrivateEmailDomain(activePolicyID), [activePolicyID]);
+
     const data: DomainItem[] = useMemo(() => {
-        return getAdminsEmailPrivateDomains(activePolicyID).map((domain) => {
+        return getAdminsPrivateEmailDomains(activePolicyID).map((domain) => {
             return {
                 value: domain,
                 isSelected: domain === selectedDomain,
                 keyForList: domain,
                 text: domain,
-                isRecommended: domain === 'domain.com',
+                isRecommended: domain === recommendedDomain,
             };
         });
-    }, [activePolicyID, selectedDomain]);
+    }, [activePolicyID, recommendedDomain, selectedDomain]);
 
     const footerContent = useMemo(
         () => (

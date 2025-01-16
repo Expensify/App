@@ -1206,7 +1206,7 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
-function getAdminsEmailPrivateDomains(policyID?: string) {
+function getAdminsPrivateEmailDomains(policyID?: string) {
     if (!policyID) {
         return [];
     }
@@ -1222,6 +1222,32 @@ function getAdminsEmailPrivateDomains(policyID?: string) {
         ),
         Str.extractEmailDomain(policy.owner).toLowerCase(),
     ].filter((domain) => !isPublicDomain(domain));
+}
+
+function getMostUsedPrivateEmailDomain(policyID?: string) {
+    if (!policyID) {
+        return undefined;
+    }
+    const policy = getPolicy(policyID);
+    if (!policy) {
+        return undefined;
+    }
+    const domainOccurrences = [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()]
+        .filter((domain) => !isPublicDomain(domain))
+        .reduce((domainOccurrences, domain) => {
+            domainOccurrences[domain] = (domainOccurrences[domain] || 0) + 1;
+            return domainOccurrences;
+        }, {} as Record<string, number>);
+    if (Object.keys(domainOccurrences).length === 0) {
+        return undefined;
+    }
+    let mostRequent = {domain: '', count: 0};
+    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+        if (count > mostRequent.count) {
+            mostRequent = {domain, count};
+        }
+    });
+    return mostRequent.domain;
 }
 
 export {
@@ -1352,7 +1378,8 @@ export {
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
-    getAdminsEmailPrivateDomains,
+    getAdminsPrivateEmailDomains,
+    getMostUsedPrivateEmailDomain,
 };
 
 export type {MemberEmailsToAccountIDs};

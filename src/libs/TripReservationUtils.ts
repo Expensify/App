@@ -126,7 +126,6 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     } else if (isPolicyProvisioned) {
         Navigation.navigate(ROUTES.TRAVEL_TCS);
     } else {
-        
         Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
     }
 }
