@@ -733,10 +733,12 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
     let cards: Record<string, Card> = {};
 
     Object.entries(allCardsList).forEach(([key, allCards]) => {
-        if (key.includes(workspaceAccountID.toString()) && !key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            const {cardList, ...feedCards} = allCards ?? {};
-            cards = {...cards, ...feedCards};
+        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            return;
         }
+
+        const {cardList, ...feedCards} = allCards ?? {};
+        cards = {...cards, ...feedCards};
     });
 
     return cards;
