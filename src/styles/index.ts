@@ -1247,8 +1247,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputAndIconContainer: {
-            flex: 1,
-            height: '100%',
             zIndex: -1,
             flexDirection: 'row',
         },
