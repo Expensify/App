@@ -149,10 +149,6 @@ function ReportPreview({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-    });
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -370,7 +366,7 @@ function ReportPreview({
         if (isPolicyExpenseChat) {
             payerOrApproverName = getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
             payerOrApproverName = getDisplayNameForParticipant(managerID, true);
         }
@@ -393,7 +389,6 @@ function ReportPreview({
         chatReport,
         isInvoiceRoom,
         invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
         managerID,
         isApproved,
         iouSettled,
@@ -554,12 +549,7 @@ function ReportPreview({
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting, styles.lh20]}
-                                                testID="reportPreview-previewMessage"
-                                            >
-                                                {previewMessage}
-                                            </Text>
+                                            <Text style={[styles.textLabelSupporting, styles.lh20]}>{previewMessage}</Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon
