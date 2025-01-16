@@ -6,7 +6,6 @@ import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';

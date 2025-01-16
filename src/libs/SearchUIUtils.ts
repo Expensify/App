@@ -18,7 +18,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
+import {isDeletedAction} from './ReportActionsUtils';
 import {
     hasOnlyHeldExpenses,
     hasViolations,
@@ -364,10 +364,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     // eslint-disable-next-line no-continue
                     continue;
                 }
-                // if (!isAddCommentAction(reportAction)) {
-                //     // eslint-disable-next-line no-continue
-                //     continue;
-                // }
+
                 reportActionItems.push({
                     ...reportAction,
                     from,
