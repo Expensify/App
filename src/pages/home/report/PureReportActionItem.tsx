@@ -317,7 +317,7 @@ function PureReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-    console.log('test');
+
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
