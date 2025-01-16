@@ -60,10 +60,10 @@ type FloatingActionButtonProps = {
     role: Role;
 
     /* If the tooltip is allowed to be shown */
-    tooltipAllowed: boolean;
+    isTooltipAllowed: boolean;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role, tooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -76,7 +76,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, tool
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
         // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
-        tooltipAllowed && (!isActiveRouteHome || isSidebarLoaded),
+        isTooltipAllowed && (!isActiveRouteHome || isSidebarLoaded),
     );
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;

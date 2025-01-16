@@ -70,7 +70,7 @@ function TopLevelBottomTabBar() {
                 2. We need to hide tooltips as well if they were displayed. */}
             <BottomTabBar
                 selectedTab={selectedTab}
-                tooltipAllowed={shouldDisplayTopLevelBottomTabBar}
+                isTooltipAllowed={shouldDisplayTopLevelBottomTabBar}
             />
         </View>
     );
