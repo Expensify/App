@@ -2541,6 +2541,10 @@ const translations = {
                 `You don't have permission to enable Expensify Travel for the domain <strong>${domain}</strong>. You'll need to ask someone from that domain to enable travel instead.`,
             accountantInvitation: `If you're a accountant, consider joining the <a href="https://use.expensify.com/accountants-program">ExpensifyApproved! accountants program</a> to enable travel for this domain.`,
         },
+        publicDomainError: {
+            title: 'Get started with Expensify Travel',
+            message: 'To use Expensify Travel, you must use your work email address (e.g., admin@company.com), not a personal email (e.g., admin@gmail.com).',
+        },
     },
     workspace: {
         common: {

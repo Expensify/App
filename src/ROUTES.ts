@@ -1447,6 +1447,7 @@ const ROUTES = {
         route: 'travel/domain-permission-info/:domain',
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission-info/${domain}`, backTo),
     },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),

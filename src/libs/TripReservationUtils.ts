@@ -128,6 +128,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     } else {
         const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(activePolicyID);
         if (adminDomains.length === 0) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
         } else if (adminDomains.length === 1) {
             Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(adminDomains[0]));
         } else {
