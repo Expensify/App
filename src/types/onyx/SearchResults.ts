@@ -162,6 +162,15 @@ type SearchReport = {
 
     /** Collection of report participants, indexed by their accountID */
     participants?: Participants;
+
+    /** ID of the parent report of the current report, if it exists */
+    parentReportID?: string;
+
+    /** ID of the parent report action of the current report, if it exists */
+    parentReportActionID?: string;
+
+    /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
 };
 
 /** Model of report action search result */
@@ -204,6 +213,12 @@ type SearchReportAction = {
 type SearchPolicy = {
     /** The policy type */
     type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** The ID of the policy */
+    id: string;
+
+    /** The policy name */
+    name?: string;
 
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
@@ -373,6 +388,9 @@ type SearchTransaction = {
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Types of searchable transactions */

@@ -147,15 +147,19 @@ function getForReportAction({
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
-    reportsParam?: OnyxCollection<Report>;
+    reportsParam?: SearchReport[];
     policyTagLists?: OnyxCollection<PolicyTagLists>;
 }): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const reports = reportsParam ?? allReports;
-    const report = typeof reportOrID === 'string' ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    let report: SearchReport | undefined | OnyxEntry<Report>;
+    if (typeof reportOrID === 'string') {
+        report = reportsParam ? reportsParam.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    } else {
+        report = reportOrID;
+    }
     const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];

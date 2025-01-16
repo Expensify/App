@@ -386,8 +386,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
-                const invoiceReceiverPolicy =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : {};
+                const invoiceReceiverPolicy: SearchPolicy | undefined =
+                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (isDeletedAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
