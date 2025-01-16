@@ -1967,7 +1967,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             optimisticData: taskOptimisticData,
             successData: taskSuccessData,
             failureData: taskFailureData,
-        } = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], expenseChatReportID, policyID);
+        } = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
