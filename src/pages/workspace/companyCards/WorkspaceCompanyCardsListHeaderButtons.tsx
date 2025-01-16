@@ -5,11 +5,12 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
@@ -17,7 +18,6 @@ import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -40,6 +40,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -52,11 +53,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
 
     return (
-        <OfflineWithFeedback
-            errors={isSelectedFeedConnectionBroken ? {error: CONST.COMPANY_CARDS.CONNECTION_ERROR} : undefined}
-            canDismissError={false}
-            errorRowStyles={styles.ph5}
-        >
+        <View>
             <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
                 <PressableWithFeedback
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
@@ -104,7 +101,26 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     />
                 </View>
             </View>
-        </OfflineWithFeedback>
+            {isSelectedFeedConnectionBroken && (
+                <View style={[styles.flexRow, styles.ph5]}>
+                    <Icon
+                        src={Expensicons.DotIndicator}
+                        fill={theme.danger}
+                        additionalStyles={styles.mr1}
+                    />
+                    <Text style={styles.offlineFeedback.text}>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
+                        <TextLink
+                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, Navigation.getActiveRoute()))}
+                        >
+                            {translate('workspace.companyCards.brokenConnectionErrorLink')}
+                        </TextLink>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
+                    </Text>
+                </View>
+            )}
+        </View>
     );
 }
 

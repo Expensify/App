@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
-import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -72,27 +71,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                     </TextLink>
 
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
-                </Text>
-            );
-        }
-
-        if (message === CONST.COMPANY_CARDS.CONNECTION_ERROR) {
-            return (
-                <Text
-                    key={index}
-                    style={styles.offlineFeedback.text}
-                >
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                        onPress={() => {
-                            // TODO: re-navigate the user to the bank’s website to re-authenticate https://github.com/Expensify/App/issues/50448
-                        }}
-                    >
-                        {Localize.translateLocal('workspace.companyCards.brokenConnectionErrorLink')}
-                    </TextLink>
-
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
                 </Text>
             );
         }
