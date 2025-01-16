@@ -5,7 +5,6 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import {prepareOnboardingOnyxData} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -1968,7 +1967,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             optimisticData: taskOptimisticData,
             successData: taskSuccessData,
             failureData: taskFailureData,
-        } = prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], expenseChatReportID, policyID);
+        } = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], expenseChatReportID, policyID);
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
