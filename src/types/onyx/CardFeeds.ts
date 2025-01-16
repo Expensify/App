@@ -117,6 +117,9 @@ type AddNewCompanyCardFeed = {
     isEditing: boolean;
 };
 
+/** Card feed connection */
+type CompanyCardFeedConnection = ValueOf<typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS>;
+
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
@@ -129,4 +132,5 @@ export type {
     CardFeedProvider,
     CompanyFeeds,
     CompanyCardNicknames,
+    CompanyCardFeedConnection,
 };

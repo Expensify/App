@@ -17,7 +17,7 @@ import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustom
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankConnectionFromFeed} from '@userActions/CompanyCards';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -50,6 +50,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const isSelectedFeedCustom = isCustomFeed(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
+    const bankConnection = getBankConnectionFromFeed(selectedFeed);
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
 
     return (
@@ -101,7 +102,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     />
                 </View>
             </View>
-            {isSelectedFeedConnectionBroken && (
+            {isSelectedFeedConnectionBroken && !!bankConnection && (
                 <View style={[styles.flexRow, styles.ph5]}>
                     <Icon
                         src={Expensicons.DotIndicator}
@@ -112,7 +113,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, Navigation.getActiveRoute()))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, bankConnection, Navigation.getActiveRoute()))}
                         >
                             {translate('workspace.companyCards.brokenConnectionErrorLink')}
                         </TextLink>

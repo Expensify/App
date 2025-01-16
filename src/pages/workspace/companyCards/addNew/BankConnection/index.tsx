@@ -13,31 +13,37 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
 type BankConnectionStepProps = {
     policyID?: string;
+    route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
 };
 
-function BankConnection({policyID}: BankConnectionStepProps) {
+function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const {bankConnection, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
+    const policyID = policyIDFromProps ?? policyIDFromRoute;
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const {isNewFeedConnected, newFeed} = useMemo(() => CardUtils.checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
 
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName, bankConnection);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -48,6 +54,9 @@ function BankConnection({policyID}: BankConnectionStepProps) {
 
     const handleBackButtonPress = () => {
         customWindow?.close();
+        if (backTo) {
+            Navigation.goBack(backTo);
+        }
         if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
             CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
@@ -84,7 +93,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={!backTo ? translate('workspace.companyCards.addCards') : undefined}
                 onBackButtonPress={handleBackButtonPress}
             />
             <BlockingView
