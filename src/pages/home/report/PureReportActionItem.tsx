@@ -90,8 +90,27 @@ import {
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
 } from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {MissingPaymentMethod} from '@libs/ReportUtils';
+import {
+    canWriteInReport,
+    chatIncludesConcierge,
+    getDisplayNamesWithTooltips,
+    getIconsForParticipants,
+    getIOUApprovedMessage,
+    getIOUForwardedMessage,
+    getIOUSubmittedMessage,
+    getIOUUnapprovedMessage,
+    getReportAutomaticallyApprovedMessage,
+    getReportAutomaticallySubmittedMessage,
+    getWhisperDisplayNames,
+    getWorkspaceNameUpdatedMessage,
+    isArchivedNonExpenseReport,
+    isChatThread,
+    isCompletedTaskReport,
+    isReportMessageAttachment,
+    isTaskReport,
+    type MissingPaymentMethod,
+    shouldDisplayThreadReplies,
+} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -365,7 +384,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }
@@ -457,7 +476,7 @@ function PureReportActionItem({
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
-    const disabledActions = useMemo(() => (!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -731,7 +750,7 @@ function PureReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (isReimbursementQueuedAction(action)) {
-            const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
+            const linkedReport = isChatThread(report) ? parentReport : report;
             const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
@@ -783,25 +802,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action)} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -811,7 +830,7 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
@@ -832,7 +851,7 @@ function PureReportActionItem({
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getReportActionMessage(action)?.text ?? '')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getWorkspaceNameUpdatedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
@@ -916,8 +935,7 @@ function PureReportActionItem({
                                     index={index}
                                     ref={textInputRef}
                                     shouldDisableEmojiPicker={
-                                        (ReportUtils.chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -929,7 +947,6 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -967,14 +984,14 @@ function PureReportActionItem({
                     </View>
                 )}
 
-                {shouldDisplayThreadReplies && (
+                {shouldDisplayThreadReplies(action, isThreadReportParentAction) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
                             childReportID={`${action.childReportID}`}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
+                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
                         />
                     </View>
@@ -1066,7 +1083,7 @@ function PureReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
-    const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
     return (
         <PressableWithSecondaryInteraction
@@ -1152,7 +1169,7 @@ function PureReportActionItem({
                                             &nbsp;
                                         </Text>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo) ?? ''}
+                                            fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -1190,11 +1207,11 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
         prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
         // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-        ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
+        isTaskReport(prevProps.report) === isTaskReport(nextProps.report) &&
         prevProps.action.actionName === nextProps.action.actionName &&
         prevProps.report?.reportName === nextProps.report?.reportName &&
         prevProps.report?.description === nextProps.report?.description &&
-        ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
+        isCompletedTaskReport(prevProps.report) === isCompletedTaskReport(nextProps.report) &&
         prevProps.report?.managerID === nextProps.report?.managerID &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
         prevProps.report?.total === nextProps.report?.total &&

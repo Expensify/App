@@ -894,7 +894,7 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData): Op
 /**
  * Searches for a match when provided with a value
  */
-function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoom = false): boolean {
+function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoomParam = false): boolean {
     const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
     const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
@@ -904,7 +904,7 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
             return;
         }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoom && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoomParam && participantNames.has(word));
     });
     return matching;
 }
@@ -1263,23 +1263,23 @@ function getValidOptions(
         }
 
         const isThread = option.isThread;
-        const isTaskReport = option.isTaskReport;
-        const isPolicyExpenseChat = option.isPolicyExpenseChat;
-        const isMoneyRequestReport = option.isMoneyRequestReport;
-        const isSelfDM = option.isSelfDM;
-        const isChatRoom = option.isChatRoom;
+        const isOptionTaskReport = option.isTaskReport;
+        const isOptionPolicyExpenseChat = option.isPolicyExpenseChat;
+        const isOptionMoneyRequestReport = option.isMoneyRequestReport;
+        const isOptionSelfDM = option.isSelfDM;
+        const isOptionChatRoom = option.isChatRoom;
         const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
-        if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        if (isOptionPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return false;
         }
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
-        if (!includeP2P && !isPolicyExpenseChat) {
+        if (!includeP2P && !isOptionPolicyExpenseChat) {
             return false;
         }
 
-        if (isSelfDM && !includeSelfDM) {
+        if (isOptionSelfDM && !includeSelfDM) {
             return false;
         }
 
@@ -1287,11 +1287,11 @@ function getValidOptions(
             return false;
         }
 
-        if (isTaskReport && !includeTasks) {
+        if (isOptionTaskReport && !includeTasks) {
             return false;
         }
 
-        if (isMoneyRequestReport && !includeMoneyRequests) {
+        if (isOptionMoneyRequestReport && !includeMoneyRequests) {
             return false;
         }
 
@@ -1300,7 +1300,7 @@ function getValidOptions(
             return false;
         }
 
-        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        if ((!accountIDs || accountIDs.length === 0) && !isOptionChatRoom) {
             return false;
         }
 
@@ -1680,8 +1680,8 @@ function formatSectionsFromSearchTerm(
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
-                          const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          const isOptionPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                          return isOptionPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -1705,8 +1705,8 @@ function formatSectionsFromSearchTerm(
             title: undefined,
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      const isOptionPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                      return isOptionPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
