@@ -2,12 +2,14 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -36,6 +38,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const {isNewFeedConnected, newFeed} = useMemo(() => CardUtils.checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
+    const {isOffline} = useNetwork();
 
     const url = getCompanyCardBankConnection(policyID, bankName);
 
@@ -67,7 +70,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     );
 
     useEffect(() => {
-        if (!url) {
+        if (!url || isOffline) {
             return;
         }
         if (isNewFeedConnected) {
@@ -79,7 +82,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [isNewFeedConnected, newFeed, policyID, url]);
+    }, [isNewFeedConnected, isOffline, newFeed, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
@@ -87,16 +90,18 @@ function BankConnection({policyID}: BankConnectionStepProps) {
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <BlockingView
-                icon={Illustrations.PendingBank}
-                iconWidth={styles.pendingBankCardIllustration.width}
-                iconHeight={styles.pendingBankCardIllustration.height}
-                title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
-                CustomSubtitle={CustomSubtitle}
-                shouldShowLink
-                onLinkPress={onOpenBankConnectionFlow}
-            />
+            <FullPageOfflineBlockingView>
+                <BlockingView
+                    icon={Illustrations.PendingBank}
+                    iconWidth={styles.pendingBankCardIllustration.width}
+                    iconHeight={styles.pendingBankCardIllustration.height}
+                    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
+                    linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
+                    CustomSubtitle={CustomSubtitle}
+                    shouldShowLink
+                    onLinkPress={onOpenBankConnectionFlow}
+                />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
