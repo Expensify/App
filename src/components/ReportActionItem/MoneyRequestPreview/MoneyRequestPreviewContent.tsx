@@ -44,7 +44,7 @@ import {
     isPaidGroupPolicyExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
-    isSettled as isSettledUtil,
+    isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -151,7 +151,7 @@ function MoneyRequestPreviewContent({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isFetchingWaypointsFromServer = isFetchingWaypointsFromServerTransactionUtils(transaction);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
-    const isSettled = isSettledUtil(iouReport?.reportID);
+    const isSettled = isSettledReportUtils(iouReport?.reportID);
     const isApproved = isReportApproved(iouReport);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
@@ -258,9 +258,9 @@ function MoneyRequestPreviewContent({
                 }
                 return message;
             }
-        } else if (hasNoticeTypeViolations && transaction && !isReportApproved(iouReport) && !isSettledUtil(iouReport?.reportID)) {
+        } else if (hasNoticeTypeViolations && transaction && !isReportApproved(iouReport) && !isSettledReportUtils(iouReport?.reportID)) {
             message += ` • ${translate('violations.reviewRequired')}`;
-        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved(iouReport) && !isSettledUtil(iouReport?.reportID) && !isPartialHold) {
+        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved(iouReport) && !isSettledReportUtils(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -410,7 +410,7 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {isSettledUtil(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
+                                                {isSettledReportUtils(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
