@@ -363,23 +363,18 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const optimisticReportActions = transactionsReportActions
-        .map((action, index) => {
-            const reportAction = optimisticDissmidedViolationReportActions.at(index);
-            const reportActionID = reportAction?.reportActionID;
-            if (!reportActionID) {
-                return;
-            }
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-                value: {
-                    [reportActionID]: reportAction as ReportAction,
-                },
-            };
-        })
-        .filter(Boolean) as OnyxUpdate[];
-
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: optimisticDissmidedViolationReportAction as ReportAction,
+                  }
+                : undefined,
+        };
+    });
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
@@ -421,41 +416,35 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
-    const failureReportActions = transactionsReportActions
-        .map((action, index) => {
-            const reportActionID = optimisticDissmidedViolationReportActions.at(index)?.reportActionID;
-            if (!reportActionID) {
-                return;
-            }
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-                value: {
-                    [reportActionID]: null,
-                },
-            };
-        })
-        .filter(Boolean) as OnyxUpdate[];
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                  }
+                : undefined,
+        };
+    });
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    const successData = transactionsReportActions
-        .map((action, index) => {
-            const reportActionID = optimisticDissmidedViolationReportActions.at(index)?.reportActionID;
-            if (!reportActionID) {
-                return;
-            }
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-                value: {
-                    [reportActionID]: null,
-                },
-            };
-        })
-        .filter(Boolean) as OnyxUpdate[];
+    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                  }
+                : undefined,
+        };
+    });
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
     // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE
@@ -490,7 +479,10 @@ function clearError(transactionID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
-function markAsCash(transactionID: string, transactionThreadReportID: string) {
+function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.RTER,

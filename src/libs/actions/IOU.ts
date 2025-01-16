@@ -131,6 +131,7 @@ import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
+    allHavePendingRTERViolation,
     buildOptimisticTransaction,
     getAllReportTransactions,
     getAmount,
@@ -145,6 +146,7 @@ import {
     isOnHold,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
+    shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -2917,8 +2919,8 @@ function calculateDiffAmount(
  * @param policyCategories
  */
 function getUpdateMoneyRequestParams(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
@@ -3254,8 +3256,8 @@ function getUpdateMoneyRequestParams(
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  */
 function getUpdateTrackExpenseParams(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData {
@@ -3563,8 +3565,8 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
 }
 
 type UpdateMoneyRequestDistanceParams = {
-    transactionID: string;
-    transactionThreadReportID: string;
+    transactionID: string | undefined;
+    transactionThreadReportID: string | undefined;
     waypoints: WaypointCollection;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
@@ -6915,6 +6917,7 @@ function getReportFromHoldRequestsOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 iouReportID: optimisticExpenseReport.reportID,
+                lastVisibleActionCreated: optimisticExpenseReportPreview.created,
             },
         },
         // add new optimistic expense report
@@ -6989,6 +6992,14 @@ function getReportFromHoldRequestsOnyxData(
     ];
 
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: chatReport.iouReportID,
+                lastVisibleActionCreated: chatReport.lastVisibleActionCreated,
+            },
+        },
         // remove added optimistic expense report
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7375,8 +7386,9 @@ function canApproveIOU(
             isTransactionBeingScanned = true;
         }
     }
+    const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isTransactionBeingScanned;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isTransactionBeingScanned && !isPayAtEndExpenseReport;
 }
 
 function canIOUBePaid(
@@ -7447,15 +7459,28 @@ function canIOUBePaid(
     );
 }
 
-function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy) {
+function canSubmitReport(
+    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
+    transactionIDList: string[],
+    allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
+) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const isArchived = isArchivedReport(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
 
-    // This logic differs from the one in MoneyRequestHeader
-    // We are intentionally doing this for now because Auth violations are not ready and thus not returned by Search results. Additionally, the risk of a customer having either RTER or Broken connection violation is really small in the current cohort.
-    return isOpenExpenseReport && reimbursableSpend !== 0 && (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID);
+    return (
+        isOpenExpenseReport &&
+        !isArchived &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        !hasBrokenConnectionViolation &&
+        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
+    );
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
@@ -8110,7 +8135,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(iouReport?.reportID ?? '', userAccountID);
+    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID ?? '', userAccountID);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
