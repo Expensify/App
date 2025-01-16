@@ -2,7 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isProcessingReport, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -29,7 +29,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
-    const isPolicyAdmin = isPolicyAdminUtil(policy);
+    const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
 
     if (!brokenConnection530Error && !brokenConnectionError) {
         return '';

@@ -36,13 +36,13 @@ import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/type
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getPolicy} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionUtil} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionUtils} from '@libs/ReportActionsUtils';
 import {
     getTransactionDetails,
     getWorkspaceIcon,
     isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
-    isPolicyExpenseChat as isPolicyExpenseChatUtil,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
     isSettled as isSettledUtil,
 } from '@libs/ReportUtils';
@@ -52,17 +52,17 @@ import {
     compareDuplicateTransactionFields,
     getTransactionViolations,
     hasMissingSmartscanFields,
-    hasNoticeTypeViolation,
+    hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
     hasPendingUI,
-    hasReceipt as hasReceiptUtil,
-    hasViolation,
-    hasWarningTypeViolation,
-    isAmountMissing as isAmountMissingUtil,
-    isCardTransaction as isCardTransactionUtil,
-    isDistanceRequest as isDistanceRequestUtil,
-    isFetchingWaypointsFromServer as isFetchingWaypointsFromServerUtil,
-    isMerchantMissing as isMerchantMissingUtil,
-    isOnHold as isOnHoldUtil,
+    hasReceipt as hasReceiptTransactionUtils,
+    hasViolation as hasViolationTransactionUtils,
+    hasWarningTypeViolation as hasWarningTypeViolationTransactionUtils,
+    isAmountMissing as isAmountMissingTransactionUtils,
+    isCardTransaction as isCardTransactionTransactionUtils,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isFetchingWaypointsFromServer as isFetchingWaypointsFromServerTransactionUtils,
+    isMerchantMissing as isMerchantMissingTransactionUtils,
+    isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
     removeSettledAndApprovedTransactions,
@@ -106,7 +106,7 @@ function MoneyRequestPreviewContent({
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || CONST.DEFAULT_NUMBER_ID}`);
 
     const policy = getPolicy(iouReport?.policyID);
-    const isMoneyRequestAction = isMoneyRequestActionUtil(action);
+    const isMoneyRequestAction = isMoneyRequestActionReportActionUtils(action);
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
@@ -116,9 +116,9 @@ function MoneyRequestPreviewContent({
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyExpenseChat = isPolicyExpenseChatUtil(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
 
-    const participantAccountIDs = isMoneyRequestActionUtil(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs = isMoneyRequestActionReportActionUtils(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
@@ -139,18 +139,18 @@ function MoneyRequestPreviewContent({
 
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const hasReceipt = hasReceiptUtil(transaction);
+    const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
-    const isOnHold = isOnHoldUtil(transaction);
+    const isOnHold = isOnHoldTransactionUtils(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = hasViolation(transaction?.transactionID, allViolations, true);
-    const hasNoticeTypeViolations = hasNoticeTypeViolation(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = hasWarningTypeViolation(transaction?.transactionID, allViolations, true);
+    const hasViolations = hasViolationTransactionUtils(transaction?.transactionID, allViolations, true);
+    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, allViolations, true);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const isDistanceRequest = isDistanceRequestUtil(transaction);
-    const isFetchingWaypointsFromServer = isFetchingWaypointsFromServerUtil(transaction);
-    const isCardTransaction = isCardTransactionUtil(transaction);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isFetchingWaypointsFromServer = isFetchingWaypointsFromServerTransactionUtils(transaction);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const isSettled = isSettledUtil(iouReport?.reportID);
     const isApproved = isReportApproved(iouReport);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -180,7 +180,7 @@ function MoneyRequestPreviewContent({
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = isMoneyRequestActionUtil(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const reviewingTransactionID = isMoneyRequestActionReportActionUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -247,8 +247,8 @@ function MoneyRequestPreviewContent({
                 return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
             if (hasFieldErrors) {
-                const isMerchantMissing = isMerchantMissingUtil(transaction);
-                const isAmountMissing = isAmountMissingUtil(transaction);
+                const isMerchantMissing = isMerchantMissingTransactionUtils(transaction);
+                const isAmountMissing = isAmountMissingTransactionUtils(transaction);
                 if (isAmountMissing && isMerchantMissing) {
                     message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
                 } else if (isAmountMissing) {
@@ -301,7 +301,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = isMoneyRequestActionUtil(action) ? getOriginalMessage(action) ?? undefined : undefined;
+        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = isMoneyRequestActionReportActionUtils(action) ? getOriginalMessage(action) ?? undefined : undefined;
         return convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
