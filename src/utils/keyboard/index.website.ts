@@ -1,4 +1,5 @@
 import {Keyboard} from 'react-native';
+import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 
 let isVisible = false;
@@ -21,7 +22,7 @@ window.visualViewport?.addEventListener('resize', handleResize);
 
 const dismiss = (): Promise<void> => {
     return new Promise((resolve) => {
-        if (!isVisible) {
+        if (!isVisible || !Browser.isMobile()) {
             resolve();
             return;
         }
