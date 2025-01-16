@@ -11,14 +11,14 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getActivePolicies, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
-import * as IOU from '@userActions/IOU';
+import {initMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -57,8 +57,8 @@ function IOURequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
@@ -75,7 +75,7 @@ function IOURequestStartPage({
         if (transaction?.reportID === reportID || isLoadingSelectedTab) {
             return;
         }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+        initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
 
     const navigateBack = () => {
@@ -87,7 +87,7 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
+            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );
@@ -100,15 +100,15 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email)
-        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: PolicyUtils.getPerDiemCustomUnit(mappedPolicy)}))
+    const perDiemCustomUnits = getActivePolicies(allPolicies, session?.email)
+        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
         .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
 
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
 
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
 
-    const currentPolicyPerDiemUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+    const currentPolicyPerDiemUnit = getPerDiemCustomUnit(policy);
 
     const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
 
@@ -134,7 +134,7 @@ function IOURequestStartPage({
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+                shouldEnableMinHeight={canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
