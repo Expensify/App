@@ -13,7 +13,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/home/sidebar/BottomTabAvatar');
-jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/TopLevelBottomTabBar');
+jest.mock('@src/components/Navigation/TopLevelBottomTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
