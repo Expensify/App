@@ -1404,6 +1404,22 @@ function getValidOptions(
     });
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
+    // Get valid recent reports:
+    let recentReportOptions: OptionData[] = [];
+    if (includeRecentReports) {
+        recentReportOptions = getValidReports(options.reports, {
+            ...getValidReportsConfig,
+            includeP2P,
+            includeDomainEmail,
+            selectedOptions,
+            optionsToExclude,
+            shouldBoldTitleByDefault,
+        });
+    } else if (recentAttendees && recentAttendees?.length > 0) {
+        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentReportOptions = recentAttendees as OptionData[];
+    }
+
     // Get valid personal details and check if we can find the current user:
     const personalDetailsOptions: OptionData[] = [];
     let currentUserOption: OptionData | undefined;
@@ -1428,22 +1444,6 @@ function getValidOptions(
 
             personalDetailsOptions.push(detail);
         }
-    }
-
-    // Get valid recent reports:
-    let recentReportOptions: OptionData[] = [];
-    if (includeRecentReports) {
-        recentReportOptions = getValidReports(options.reports, {
-            ...getValidReportsConfig,
-            includeP2P,
-            includeDomainEmail,
-            selectedOptions,
-            optionsToExclude,
-            shouldBoldTitleByDefault,
-        });
-    } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
-        recentReportOptions = recentAttendees as OptionData[];
     }
 
     return {
