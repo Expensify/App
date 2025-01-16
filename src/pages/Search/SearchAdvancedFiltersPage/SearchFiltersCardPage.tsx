@@ -13,7 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, getDescriptionForPolicyDomainCard, isCard, isCardIssued} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getDescriptionForPolicyDomainCard, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -73,7 +73,7 @@ function buildIndividualCardsData(
     selectedCards: string[],
 ): ItemsGroupedBySelection {
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => isCardIssued(card))
+        .filter((card) => !isCardHiddenFromSearch(card))
         .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
@@ -81,7 +81,7 @@ function buildIndividualCardsData(
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && isCardIssued(card))
+                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && !isCardHiddenFromSearch(card))
                 .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
         });
 
@@ -165,7 +165,7 @@ function buildCardFeedsData(
         .forEach(([cardFeedKey, cardFeed]) => {
             const cardFeedArray = Object.values(cardFeed ?? {});
             const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
-            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && isCardIssued(cardFeedItem))) {
+            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
                 return;
             }
             const {domainName, bank} = representativeCard;
@@ -173,7 +173,7 @@ function buildCardFeedsData(
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = getPolicy(policyID?.toUpperCase());
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
-                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && isCardIssued(card))
+                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
                 .map(([cardKey]) => cardKey);
 
             const feedItem = createCardFeedItem({
@@ -219,7 +219,7 @@ function SearchFiltersCardPage() {
         () =>
             Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
                 // Cards in cardList can also be domain cards, we use them to compute domain feed
-                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && isCardIssued(currentCard)) {
+                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
                     if (accumulator[currentCard.domainName]) {
                         accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
                     } else {
