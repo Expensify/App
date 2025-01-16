@@ -725,16 +725,18 @@ function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
-function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>): Record<string, Card> | undefined {
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
     if (!allCardsList) {
         return;
     }
 
     let cards: Record<string, Card> = {};
 
-    Object.values(allCardsList).forEach((allCards) => {
-        const {cardList, ...feedCards} = allCards ?? {};
-        cards = {...cards, ...feedCards};
+    Object.entries(allCardsList).forEach(([key, allCards]) => {
+        if (key.includes(workspaceAccountID.toString()) && !key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            const {cardList, ...feedCards} = allCards ?? {};
+            cards = {...cards, ...feedCards};
+        }
     });
 
     return cards;

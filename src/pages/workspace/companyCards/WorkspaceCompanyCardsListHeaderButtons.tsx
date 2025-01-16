@@ -72,7 +72,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                             <CaretWrapper>
                                 <Text style={styles.textStrong}>{formattedFeedName}</Text>
                             </CaretWrapper>
-                            {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards), selectedFeed) && (
+                            {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed) && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}

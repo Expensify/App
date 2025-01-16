@@ -223,7 +223,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     }
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-        const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards));
+        const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID));
 
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.companyCards',
