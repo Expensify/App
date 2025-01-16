@@ -3589,7 +3589,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Gane',
-                subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
+                subtitle: 'Agiliza tus ingresos y recibir pagos más rápido.',
             },
             organizeSection: {
                 title: 'Organizar',
