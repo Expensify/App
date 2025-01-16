@@ -95,7 +95,7 @@ function ReportActionItemSingle({
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
 
-    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    let displayName = ReportUtils.getDisplayNameForParticipant({accountID: actorAccountID});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -108,7 +108,7 @@ function ReportActionItemSingle({
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report, undefined, policy);
+        displayName = ReportUtils.getPolicyName({report, policy});
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
@@ -137,7 +137,7 @@ function ReportActionItemSingle({
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
                 source: secondaryUserAvatar,
@@ -155,7 +155,7 @@ function ReportActionItemSingle({
     } else if (ReportUtils.isInvoiceReport(iouReport)) {
         const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant({accountID: secondaryAccountId});
 
         secondaryAvatar = {
             source: secondaryUserAvatar,

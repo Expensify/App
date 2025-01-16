@@ -139,12 +139,27 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportOrID: string | SearchReport | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction({
+    reportOrID,
+    reportAction,
+    reportsParam,
+    policyTagLists = allPolicyTags,
+}: {
+    reportOrID: string | SearchReport | undefined;
+    reportAction: OnyxEntry<ReportAction>;
+    reportsParam?: SearchReport[];
+    policyTagLists?: OnyxCollection<PolicyTagLists>;
+}): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    let report: SearchReport | undefined | OnyxEntry<Report>;
+    if (typeof reportOrID === 'string') {
+        report = reportsParam ? reportsParam.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    } else {
+        report = reportOrID;
+    }
     const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
@@ -232,7 +247,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const policyTags = policyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);

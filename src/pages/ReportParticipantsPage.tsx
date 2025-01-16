@@ -381,7 +381,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         }
                     }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName({report}))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
@@ -392,7 +392,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('workspace.people.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? ''),
+                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}

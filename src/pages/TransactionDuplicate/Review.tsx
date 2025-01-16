@@ -28,14 +28,14 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
+    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-    const transactionIDs = [transactionID, ...duplicateTransactionIDs];
+    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : [];
 
     const transactions = transactionIDs.map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
@@ -44,11 +44,13 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportApproved(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions.some(
+        (transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportApproved({reportOrID: transaction?.reportID}),
+    );
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-            <FullPageNotFoundView shouldShow={transactionID === '-1'}>
+            <FullPageNotFoundView shouldShow={!transactionID}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

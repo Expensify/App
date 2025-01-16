@@ -148,7 +148,7 @@ function TaskView({report}: TaskViewProps) {
                     {report.managerID ? (
                         <MenuItem
                             label={translate('task.assignee')}
-                            title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
+                            title={ReportUtils.getDisplayNameForParticipant({accountID: report.managerID})}
                             icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}

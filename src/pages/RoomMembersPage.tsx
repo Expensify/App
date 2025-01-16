@@ -368,7 +368,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName({report}))}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedMembers([]);
@@ -389,7 +389,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? ''),
+                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
