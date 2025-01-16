@@ -766,7 +766,11 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 /**
  * Revert custom unit of the draft transaction to the original transaction's value
  */
-function resetDraftTransactionsCustomUnit(transactionID: string) {
+function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (!originalTransaction) {
         return;
