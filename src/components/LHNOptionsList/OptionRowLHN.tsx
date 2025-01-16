@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -18,6 +18,7 @@ import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,8 +34,8 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -54,16 +55,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const shouldShowWokspaceChatTooltip = ReportUtils.isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
-    const isActiveRouteHome = useNavigationState((state) => state?.routes.some((route) => route.name === SCREENS.HOME));
+
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
         const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         const shouldShowTooltips = shouldShowWokspaceChatTooltip || shouldShowGetStartedTooltip;
-        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isActiveRouteHome : isActiveRouteHome;
+        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return {tooltipToRender: tooltip, shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible};
-    }, [shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isActiveRouteHome]);
+    }, [shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 

@@ -562,11 +562,14 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, bottomSafeAreaOffset: number) => ({
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             position: 'absolute',
-            width: '100%',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            transform: [{translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth}],
             paddingBottom: bottomSafeAreaOffset,
             bottom: shouldDisplayTopLevelBottomTabBar ? 0 : -(bottomSafeAreaOffset + variables.bottomTabHeight),
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
         }),
 
         bottomTabBarContainer: {
