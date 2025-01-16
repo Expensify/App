@@ -218,6 +218,11 @@ type UpdateWorkflowDataOnApproverRemovalParams = {
 
 type UpdateWorkflowDataOnApproverRemovalResult = Array<
     ApprovalWorkflow & {
+        /**
+         * @property {boolean} [removeApprovalWorkflow] - A flag that determines if the approval workflow should be removed.
+         *   - `true`: Indicates the approval workflow needs to be removed.
+         *   - `false` or `undefined`: No removal is required; the workflow will be updated instead.
+         */
         removeApprovalWorkflow?: boolean;
     }
 >;

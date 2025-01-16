@@ -244,42 +244,28 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         // Check if any of the account IDs are approvers
         const hasApprovers = accountIDsToRemove.some((accountID) => isApprover(policy, accountID));
 
-        if (!hasApprovers) {
-            setSelectedEmployees([]);
-            setRemoveMembersConfirmModalVisible(false);
-
-            InteractionManager.runAfterInteractions(() => {
-                removeMembers(accountIDsToRemove, route.params.policyID);
-            });
-
-            return;
-        }
-
-        const ownerEmail = ownerDetails.login;
-
-        accountIDsToRemove.forEach((accountID) => {
-            const removedApprover = personalDetails?.[accountID];
-
-            if (!removedApprover?.login || !ownerEmail) {
-                return;
-            }
-
-            const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-                approvalWorkflows,
-                removedApprover,
-                ownerDetails,
-            });
-
-            updatedWorkflows.forEach((workflow) => {
-                if (workflow?.removeApprovalWorkflow) {
-                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                    removeApprovalWorkflowAction(policyID, updatedWorkflow);
-                } else {
-                    updateApprovalWorkflow(policyID, workflow, [], []);
+        if (hasApprovers) {
+            const ownerEmail = ownerDetails.login;
+            accountIDsToRemove.forEach((accountID) => {
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    return;
                 }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                updatedWorkflows.forEach((workflow) => {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                    } else {
+                        updateApprovalWorkflow(policyID, workflow, [], []);
+                    }
+                });
             });
-        });
+        }
 
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
