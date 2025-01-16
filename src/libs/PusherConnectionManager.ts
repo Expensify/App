@@ -25,7 +25,7 @@ function init() {
                 if (error && 'type' in error) {
                     const errorType = error?.type;
                     const code = error?.data?.code;
-                    const errorMessage = error?.data?.message || '';
+                    const errorMessage = error?.data?.message ?? '';
                     if (errorType === CONST.ERROR.PUSHER_ERROR && code === 1006) {
                         // 1006 code happens when a websocket connection is closed. There may or may not be a reason attached indicating why the connection was closed.
                         // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
