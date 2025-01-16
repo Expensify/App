@@ -56,7 +56,6 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={styles.textAlignCenter}>
-                            {translate('validateCodeModal.doNotShare')}
                             {translate('validateCodeModal.description')}
                             {!session?.authToken && (
                                 <>
