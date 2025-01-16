@@ -3359,8 +3359,8 @@ const translations = {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
-                customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
-                directFeedDetails: 'Connect now using your master credentials. This is most common.',
+                customFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
