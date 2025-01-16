@@ -102,7 +102,7 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
-        if (!isOnSearch || !snapshotData) {
+        if (!isOnSearch || !snapshotData || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
             return [snapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
         const keyData = getKeyData(snapshotData as unknown as SearchResults, key as TKey);
