@@ -29,21 +29,21 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import filterArrayByMatch from './filterArrayByMatch';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as Localize from './Localize';
-import * as LoginUtils from './LoginUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translate, translateLocal} from './Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PhoneNumber from './PhoneNumber';
-import * as PolicyUtils from './PolicyUtils';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
+import {canSendInvoiceFromWorkspace} from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import StringUtils from './StringUtils';
-import * as TaskUtils from './TaskUtils';
-import * as UserUtils from './UserUtils';
+import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
+import {generateAccountID} from './UserUtils';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
@@ -375,7 +375,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID),
@@ -384,7 +384,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
         text: displayName,
         firstName: detail?.firstName ?? '',
         lastName: detail?.lastName ?? '',
-        alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
+        alternateText: formatPhoneNumber(login) || displayName,
         icons: [
             {
                 source: detail?.avatar ?? FallbackAvatar,
@@ -425,7 +425,7 @@ function uniqFast(items: string[]): string[] {
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails))
+          lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
         : '';
 }
 
@@ -441,11 +441,11 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     const formattedLastMessageText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? ''));
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : Localize.translate(preferredLocale, 'iou.expense');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : Localize.translate(preferredLocale, 'threads.thread');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
@@ -457,16 +457,16 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : Localize.translate(preferredLocale, 'task.task');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : Localize.translate(preferredLocale, 'common.group');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'common.group');
     }
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageText
-        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
+        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
@@ -481,7 +481,7 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
         memberDetails += ` ${personalDetail.lastName}`;
     }
     if (personalDetail.displayName) {
-        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`;
+        memberDetails += ` ${getDisplayNameOrDefault(personalDetail)}`;
     }
     if (personalDetail.phoneNumber) {
         memberDetails += ` ${personalDetail.phoneNumber}`;
@@ -522,18 +522,18 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)),
+                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: ReportUtils.getPolicyName(report, false, policy),
                 });
                 break;
             }
             case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`);
+                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.${archiveReason}`);
                 break;
             }
             default: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+                lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.default`);
             }
         }
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
@@ -564,16 +564,16 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '-1')) {
-        lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
+        lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, type: ''})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+        lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (ReportActionUtils.isTaskAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
     } else if (
         ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
@@ -722,15 +722,13 @@ function createOption(
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails
-            ? ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
-            : ReportUtils.getReportName(report);
+        reportName = showPersonalDetails ? ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || formatPhoneNumber(personalDetail?.login ?? '') : ReportUtils.getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
-        result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
+        result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
@@ -769,13 +767,13 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
-        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+        option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = ReportUtils.getReportName(report);
-        option.alternateText = Localize.translateLocal('workspace.common.invoices');
+        option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = ReportUtils.getPolicyName(report);
-        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+        option.alternateText = translateLocal('workspace.common.workspace');
     }
     option.isDisabled = ReportUtils.isDraftReport(participant.reportID);
     option.selected = participant.selected;
@@ -806,7 +804,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
-    option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    option.alternateText = translateLocal('workspace.common.workspace');
     option.selected = participant.selected;
     option.isSelected = participant.selected;
     return option;
@@ -841,7 +839,7 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
-    const userDetailsLogin = PhoneNumber.addSMSDomainIfPhoneNumber(userDetails.login ?? '');
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
     if (currentUserLogin?.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
@@ -859,7 +857,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));
     return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
 }
 
@@ -1076,7 +1074,7 @@ function canCreateOptimisticPersonalDetailOption({
     if (!currentUserOption) {
         return true;
     }
-    return currentUserOption.login !== PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserOption.login !== searchValue?.toLowerCase();
+    return currentUserOption.login !== addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserOption.login !== searchValue?.toLowerCase();
 }
 
 /**
@@ -1094,20 +1092,20 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue)));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
     if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
     }
 
     // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+    const optimisticAccountID = generateAccountID(searchValue);
     const personalDetailsExtended = {
         ...allPersonalDetails,
         [optimisticAccountID]: {
@@ -1290,7 +1288,7 @@ function getValidOptions(
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
                 ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
                 !reportOption.private_isArchived &&
-                PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
+                canSendInvoiceFromWorkspace(reportOption.policyID);
 
             /**
                 Exclude the report option if it doesn't meet any of the following conditions:
@@ -1427,8 +1425,8 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, login)),
-        alternateText: LocalePhoneNumber.formatPhoneNumber(login || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false)),
+        text: formatPhoneNumber(getDisplayNameOrDefault(personalDetail, login)),
+        alternateText: formatPhoneNumber(login || getDisplayNameOrDefault(personalDetail, '', false)),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
@@ -1563,27 +1561,27 @@ function getMemberInviteOptions(
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
-    const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+            return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
+            return translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return Localize.translate(preferredLocale, 'common.noResultsFound');
+        return translate(preferredLocale, 'common.noResultsFound');
     }
 
     return '';
@@ -1594,7 +1592,7 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
  */
 function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return Localize.translate(preferredLocale, 'common.noResultsFound');
+        return translate(preferredLocale, 'common.noResultsFound');
     }
     return '';
 }
@@ -1829,7 +1827,7 @@ function filterSelfDMChat(report: ReportUtils.OptionData, searchTerms: string[])
 }
 
 function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
