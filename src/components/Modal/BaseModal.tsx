@@ -36,6 +36,8 @@ function BaseModal(
         fullscreen = true,
         animationIn,
         animationOut,
+        useNativeDriver,
+        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -247,8 +249,8 @@ function BaseModal(
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationOut={animationOut ?? modalStyleAnimationOut}
-                    useNativeDriver
-                    useNativeDriverForBackdrop
+                    useNativeDriver={useNativeDriver}
+                    useNativeDriverForBackdrop={useNativeDriverForBackdrop}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
