@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -10,11 +10,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {checkIfNewFeedConnected} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {updateSelectedFeed} from '@userActions/Card';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,10 +32,11 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
-    const {isNewFeedConnected, newFeed} = useMemo(() => CardUtils.checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
+    const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
+    const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
 
     const url = getCompanyCardBankConnection(policyID, bankName);
 
@@ -49,14 +50,14 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const handleBackButtonPress = () => {
         customWindow?.close();
         if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
         if (bankName === CONST.COMPANY_CARDS.BANKS.AMEX) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
     const CustomSubtitle = (
@@ -71,15 +72,18 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             return;
         }
         if (isNewFeedConnected) {
+            setShouldBlockWindowOpen(true);
             customWindow?.close();
             if (newFeed) {
-                Card.updateSelectedFeed(newFeed, policyID);
+                updateSelectedFeed(newFeed, policyID);
             }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             return;
         }
-        customWindow = openBankConnection(url);
-    }, [isNewFeedConnected, newFeed, policyID, url]);
+        if (!shouldBlockWindowOpen) {
+            customWindow = openBankConnection(url);
+        }
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
