@@ -167,6 +167,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         );
     };
 
+    // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
+    // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner(), [firstDayFreeTrial, lastDayFreeTrial]);
@@ -298,7 +300,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {!shouldUseNarrowLayout && !shouldShowDiscountBanner() && isChatUsedForOnboarding && <FreeTrial pressable />}
+                                    {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && <FreeTrial pressable />}
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
