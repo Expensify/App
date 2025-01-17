@@ -291,7 +291,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
+                                    {!shouldUseNarrowLayout && !shouldShowDiscountBanner() && isChatUsedForOnboarding && <FreeTrial pressable />}
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
@@ -315,7 +315,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                {!isLoading && !shouldShowDiscountBanner() && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                     <FreeTrial
                         pressable
                         addSpacing

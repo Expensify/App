@@ -6,6 +6,8 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
@@ -19,7 +21,9 @@ type EarlyDiscountBannerProps = {
 };
 
 function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -39,23 +43,25 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     }, [firstDayFreeTrial]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.flexRow, styles.justifyContentCenter] : [];
+        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
+                    style={shouldUseNarrowLayout && styles.flex1}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
                 />
-                {discountInfo?.discountType === 25 && (
+                {discountInfo?.discountType === 50 && (
                     <Button
+                        style={shouldUseNarrowLayout && styles.flex1}
                         text={translate('subscription.billingBanner.earlyDiscount.noThanks')}
                         onPress={() => setIsDismissed(true)}
                     />
                 )}
             </View>
         );
-    }, [shouldUseNarrowLayout, styles.flex0, styles.flexRow, styles.flexBasis100, styles.gap2, styles.justifyContentCenter, discountInfo, translate]);
+    }, [shouldUseNarrowLayout, styles.flex0, styles.flexBasis100, styles.justifyContentCenter, styles.flexRow, styles.gap2, styles.flex1, translate, discountInfo?.discountType]);
 
     if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
         return null;
@@ -80,13 +86,14 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     return (
         <BillingBanner
             title={title}
+            style={!isSubscriptionPage && [styles.hoveredComponentBG, styles.borderBottom]}
             subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', {
                 days: discountInfo?.days,
                 hours: discountInfo?.hours,
                 minutes: discountInfo?.minutes,
                 seconds: discountInfo?.seconds,
             })}
-            subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel]}
+            subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel, isSubscriptionPage && StyleUtils.getTextColorStyle(theme.trialTimer)]}
             icon={Illustrations.TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}
         />

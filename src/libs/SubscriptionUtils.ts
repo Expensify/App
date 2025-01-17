@@ -1,4 +1,5 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -253,8 +254,8 @@ function shouldShowDiscountBanner(): boolean {
     }
 
     const dateNow = Date.now() / 1000;
-    const firstDayTimestamp = new Date(`${firstDayFreeTrial} UTC`).getTime() / 1000;
-    const lastDayTimestamp = new Date(`${lastDayFreeTrial} UTC`).getTime() / 1000;
+    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
+    const lastDayTimestamp = fromZonedTime(`${lastDayFreeTrial}`, 'UTC').getTime() / 1000;
     if (dateNow > lastDayTimestamp) {
         return false;
     }
@@ -267,7 +268,7 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
         return null;
     }
     const dateNow = Math.floor(Date.now() / 1000);
-    const firstDayTimestamp = new Date(`${firstDayFreeTrial} UTC`).getTime() / 1000;
+    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
 
     let timeLeftInSeconds;
     const timeLeft24 = CONST.DATE.SECONDS_PER_DAY - (dateNow - firstDayTimestamp);
