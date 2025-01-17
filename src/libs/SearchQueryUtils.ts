@@ -533,7 +533,13 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList | undefined, reports: OnyxCollection<OnyxTypes.Report>) {
+function getFilterDisplayValue(
+    filterName: string,
+    filterValue: string,
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    cardList: OnyxTypes.CardList,
+) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -544,7 +550,7 @@ function getFilterDisplayValue(filterName: string, filterValue: string, personal
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        return getCardDescription(cardID) || filterValue;
+        return getCardDescription(cardID, cardList) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
@@ -567,6 +573,7 @@ function buildUserReadableQueryString(
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
+    cardList: OnyxTypes.CardList,
 ) {
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -598,7 +605,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);

@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -18,7 +19,15 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
-import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
+import {
+    hasOnlyHeldExpenses,
+    hasViolations,
+    isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isClosedReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isSettled,
+} from './ReportUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -48,6 +57,8 @@ type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 /**
  * @private
@@ -89,6 +100,13 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
+
+/**
+ * @private
+ */
+function isViolationEntry(key: string): key is ViolationKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
 
 /**
@@ -243,7 +261,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 }
 
 /**
- * @private
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -262,12 +279,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors || report?.errors) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    }
-
     if (isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
@@ -276,8 +287,35 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.errors || report?.errors) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!isMoneyRequestReport(report) || (isTransaction && !data[key].isFromOneTransactionReport)) {
+    if (!isMoneyRequestReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    const allReportTransactions = (
+        isReportEntry(key)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
+                  .map((item) => item[1])
+            : [transaction]
+    ) as SearchTransaction[];
+
+    const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
+
+    if (shouldShowReview) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
+    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
+    // If this condition is not met, return early for performance reasons
+    if (isTransaction && !data[key].isFromOneTransactionReport) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -287,14 +325,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
-
-    const allReportTransactions = (
-        isReportEntry(key)
-            ? Object.entries(data)
-                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
-                  .map((item) => item[1])
-            : [transaction]
-    ) as SearchTransaction[];
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
@@ -310,7 +340,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy) && isAllowedToApproveExpenseReport) {
+    const transactionIDList = allReportTransactions.map((reportTransaction) => reportTransaction.transactionID);
+    if (canSubmitReport(report, policy, transactionIDList, allViolations) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -605,4 +636,5 @@ export {
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,
+    getAction,
 };

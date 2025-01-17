@@ -241,7 +241,7 @@ describe('actions/PolicyMember', () => {
             });
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, []);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
 
             await waitForBatchedUpdates();
 
