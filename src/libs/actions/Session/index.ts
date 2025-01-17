@@ -17,7 +17,7 @@ import type {
     RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
-    ResetSMSDeliveryFailureParams,
+    ResetSMSDeliveryFailureStatusParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
     UnlinkLoginParams,
@@ -1230,8 +1230,8 @@ function isUserOnPrivateDomain() {
 /**
  * To reset SMS delivery failure
  */
-function resetSMSDeliveryFailure(login: string) {
-    const params: ResetSMSDeliveryFailureParams = {login};
+function resetSMSDeliveryFailureStatus(login: string) {
+    const params: ResetSMSDeliveryFailureStatusParams = {login};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1270,7 +1270,7 @@ function resetSMSDeliveryFailure(login: string) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS, params, {optimisticData, successData, failureData});
 }
 
 export {
@@ -1314,5 +1314,5 @@ export {
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
-    resetSMSDeliveryFailure,
+    resetSMSDeliveryFailureStatus,
 };
