@@ -197,6 +197,7 @@ const WRITE_COMMANDS = {
     UPDATE_BILLING_CARD_CURRENCY: 'UpdateBillingCardCurrency',
     UNHOLD_MONEY_REQUEST: 'UnHoldRequest',
     REQUEST_MONEY: 'RequestMoney',
+    CREATE_PER_DIEM_REQUEST: 'CreatePerDiemRequest',
     SPLIT_BILL: 'SplitBill',
     SPLIT_BILL_AND_OPEN_REPORT: 'SplitBillAndOpenReport',
     DELETE_MONEY_REQUEST: 'DeleteMoneyRequest',
@@ -629,6 +630,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNHOLD_MONEY_REQUEST]: Parameters.UnHoldMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.REQUEST_MONEY]: Parameters.RequestMoneyParams;
+    [WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST]: Parameters.CreatePerDiemRequestParams;
     [WRITE_COMMANDS.SPLIT_BILL]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST]: Parameters.DeleteMoneyRequestParams;

@@ -22,6 +22,7 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     CONNECTION_COMPLETE: 'ConnectionComplete',
+    BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
