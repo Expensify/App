@@ -9,7 +9,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import * as Browser from '@libs/Browser';
+import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -89,9 +89,9 @@ type Styles = Record<
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -987,7 +987,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.borderLighter,
             // Adding browser specefic style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       WebkitTextFillColor: theme.textSupporting,
                       WebkitOpacity: 1,
@@ -1743,10 +1743,6 @@ const styles = (theme: ThemeColors) =>
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
             } satisfies ViewStyle),
-
-        welcomeVideoNarrowLayout: {
-            width: variables.onboardingModalWidth,
-        },
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
@@ -3198,7 +3194,7 @@ const styles = (theme: ThemeColors) =>
         inputTransparent: {
             color: 'transparent',
             // These properties are available in browser only
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       caretColor: 'transparent',
                       WebkitTextFillColor: 'transparent',
@@ -3996,12 +3992,6 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        reportActionComposeTooltipWrapper: {
-            backgroundColor: theme.tooltipHighlightBG,
-            paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
-        },
-
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -4009,7 +3999,7 @@ const styles = (theme: ThemeColors) =>
 
         productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
         },
 
@@ -4567,10 +4557,10 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
-            ...(Browser.getBrowser() &&
-                Browser.isSafari() &&
-                !Browser.isMobile() && {
+            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() &&
+                isSafari() &&
+                !isMobile() && {
                     transform: 'scale(0.7)',
                     fontSize: 13,
                     lineHeight: 15,
@@ -4769,6 +4759,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        cardItemSecondaryIconStyle: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderWidth: 2,
+            borderRadius: 2,
+            backgroundColor: theme.componentBG,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -4833,7 +4832,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
@@ -5225,6 +5224,12 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
+            alignSelf: 'center',
+        },
+
+        cardMiniature: {
+            overflow: 'hidden',
+            borderRadius: variables.cardMiniatureBorderRadius,
             alignSelf: 'center',
         },
 
