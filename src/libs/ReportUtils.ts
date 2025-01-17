@@ -8292,16 +8292,6 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<R
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport);
 }
 
-function tripTransactionsSelector(tripRoomReportID: string | undefined): (reports: OnyxCollection<Report>) => Transaction[] {
-    return (reports: OnyxCollection<Report>): Transaction[] => {
-        const tripTransactionReportIDs = Object.values(reports ?? {})
-            .filter((report) => report && report?.parentReportID === tripRoomReportID)
-            .map((report) => report?.reportID);
-
-        return tripTransactionReportIDs.flatMap((reportID) => getReportTransactions(reportID));
-    };
-}
-
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
     return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
@@ -9097,7 +9087,6 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
-    tripTransactionsSelector,
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
