@@ -17,7 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {getCardDescription, isCard, isCardIssued, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -337,7 +337,7 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter((card) => isCard(card) && isCardIssued(card))
+                    .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
                     .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
                     .sort()
                     .slice(0, 10);
@@ -391,9 +391,9 @@ function SearchAutocompleteList(
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
-    const recentReportsOptions = useMemo(() => {
+    const [recentReportsOptions, userToInvite] = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+            return [searchOptions.recentReports.slice(0, 20)];
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
@@ -405,10 +405,7 @@ function SearchAutocompleteList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
-        }
-        return reportOptions.slice(0, 20);
+        return [reportOptions.slice(0, 20), filteredOptions.userToInvite];
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
@@ -432,6 +429,11 @@ function SearchAutocompleteList(
 
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
+    }
+
+    if (userToInvite) {
+        const styledUserToInvite = [userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
+        sections.push({title: undefined, data: styledUserToInvite});
     }
 
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
