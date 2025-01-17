@@ -4,9 +4,9 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {LoginList} from '@src/types/onyx';
 import * as Session from './actions/Session';
 import Navigation from './Navigation/Navigation';
-import {LoginList} from '@src/types/onyx';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
@@ -116,4 +116,14 @@ function userHasLoginInDomain(domain: string): boolean {
         .map((login) => Str.extractEmailDomain(login))
         .includes(domain);
 }
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError, userHasLoginInDomain};
+export {
+    getPhoneNumberWithoutSpecialChars,
+    appendCountryCode,
+    isEmailPublicDomain,
+    validateNumber,
+    getPhoneLogin,
+    areEmailsFromSamePrivateDomain,
+    postSAMLLogin,
+    handleSAMLLoginError,
+    userHasLoginInDomain,
+};

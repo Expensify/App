@@ -55,7 +55,7 @@ function DomainSelectorPage() {
                 text={translate('common.continue')}
             />
         ),
-        [selectedDomain, translate, styles],
+        [selectedDomain, translate, styles, onDomainSelected],
     );
 
     return (

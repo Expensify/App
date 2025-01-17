@@ -1,6 +1,8 @@
 import {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native-web';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,8 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {TravelNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-import FixedFooter from '@components/FixedFooter';
-import Button from '@components/Button';
 
 type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO>;
 

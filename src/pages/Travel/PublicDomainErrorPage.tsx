@@ -1,14 +1,14 @@
 import React from 'react';
 import {View} from 'react-native-web';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import style from '@components/Icon/IconWrapperStyles';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import FixedFooter from '@components/FixedFooter';
-import Button from '@components/Button';
-import style from '@components/Icon/IconWrapperStyles';
 
 function PublicDomainErrorPage() {
     const styles = useThemeStyles();
