@@ -135,8 +135,9 @@ function BaseReportActionContextMenu({
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
-    const policyID = ReportUtils.getReport(reportID)?.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policyID = report?.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
@@ -151,12 +152,12 @@ function BaseReportActionContextMenu({
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
-    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
-    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
+    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', paginatedReportActions ?? [], isOffline),
+        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID, paginatedReportActions ?? [], isOffline),
         [childReport?.reportID, paginatedReportActions, isOffline],
     );
 
@@ -176,9 +177,8 @@ function BaseReportActionContextMenu({
     }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
@@ -186,7 +186,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
     const areHoldRequirementsMet =
-        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -286,7 +286,7 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.isArchivedNonExpenseReportWithID(originalReportID),
             ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
@@ -306,7 +306,7 @@ function BaseReportActionContextMenu({
     )
         ? ReportActionsUtils.getOriginalMessage(reportAction)
         : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
 
@@ -323,6 +323,7 @@ function BaseReportActionContextMenu({
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
+                            report,
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),

@@ -142,9 +142,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
     const policyName = policy?.name ?? '';
-
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
             return;
@@ -193,21 +192,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         App.confirmReadyToOpenApp();
     }, []);
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
-        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.InvoiceGeneric,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-            badgeText: `${CurrencyUtils.getCurrencySymbol(currencyCode)}${CurrencyUtils.convertToFrontendAmountAsString(
-                policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0,
-                currencyCode,
-            )}`,
-        });
-    }
-
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
@@ -241,7 +225,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.perDiem',
+            translationKey: 'common.perDiem',
             icon: Expensicons.CalendarSolid,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.PER_DIEM,
@@ -264,6 +248,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Feed,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.RULES,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
+        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.invoices',
+            icon: Expensicons.InvoiceGeneric,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.INVOICES,
+            badgeText: CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
         });
     }
 
@@ -325,7 +321,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const menuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
-            icon: Expensicons.Home,
+            icon: Expensicons.Building,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
@@ -451,12 +447,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                    onPress={() => {
-                                        if (!currentUserPolicyExpenseChat?.reportID) {
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP);
-                                    }}
+                                    onPress={() =>
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), CONST.NAVIGATION.TYPE.UP)
+                                    }
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
                                     shouldShowSubscriptAvatar

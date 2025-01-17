@@ -88,10 +88,10 @@ index eafc942..e083941 100644
  //# sourceMappingURL=TNodeRenderer.js.map
 \ No newline at end of file
 diff --git a/node_modules/react-native-render-html/lib/commonjs/TRenderEngineProvider.js b/node_modules/react-native-render-html/lib/commonjs/TRenderEngineProvider.js
-index 3a700b6..89a4dd4 100644
+index 3a700b6..4011a1b 100644
 --- a/node_modules/react-native-render-html/lib/commonjs/TRenderEngineProvider.js
 +++ b/node_modules/react-native-render-html/lib/commonjs/TRenderEngineProvider.js
-@@ -5,89 +5,16 @@ Object.defineProperty(exports, "__esModule", {
+@@ -5,7 +5,6 @@ Object.defineProperty(exports, "__esModule", {
  });
  exports.useAmbientTRenderEngine = useAmbientTRenderEngine;
  exports.default = TRenderEngineProvider;
@@ -99,20 +99,10 @@ index 3a700b6..89a4dd4 100644
  
  var _react = _interopRequireDefault(require("react"));
  
--var _reactNative = require("react-native");
--
--var _propTypes = _interopRequireDefault(require("prop-types"));
--
- var _useTRenderEngine = _interopRequireDefault(require("./hooks/useTRenderEngine"));
- 
--var _defaultSystemFonts = _interopRequireDefault(require("./defaultSystemFonts"));
--
- function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
- 
- const defaultTRenderEngine = {};
+@@ -23,38 +22,6 @@ const defaultTRenderEngine = {};
  
  const TRenderEngineContext = /*#__PURE__*/_react.default.createContext(defaultTRenderEngine);
--
+ 
 -const tRenderEngineProviderPropTypes = {
 -  customHTMLElementModels: _propTypes.default.object.isRequired,
 -  enableCSSInlineProcessing: _propTypes.default.bool,
@@ -145,21 +135,13 @@ index 3a700b6..89a4dd4 100644
 - */
 -
 -exports.tRenderEngineProviderPropTypes = tRenderEngineProviderPropTypes;
--const defaultFallbackFonts = {
--  'sans-serif': _reactNative.Platform.select({
--    ios: 'system',
--    default: 'sans-serif'
--  }),
--  monospace: _reactNative.Platform.select({
--    ios: 'Menlo',
--    default: 'monospace'
--  }),
--  serif: _reactNative.Platform.select({
--    ios: 'Times New Roman',
--    default: 'serif'
--  })
--};
--exports.defaultFallbackFonts = defaultFallbackFonts;
+ const defaultFallbackFonts = {
+   'sans-serif': _reactNative.Platform.select({
+     ios: 'system',
+@@ -70,33 +37,6 @@ const defaultFallbackFonts = {
+   })
+ };
+ exports.defaultFallbackFonts = defaultFallbackFonts;
 -const defaultTRenderEngineProviderProps = {
 -  htmlParserOptions: {
 -    decodeEntities: true
@@ -178,18 +160,41 @@ index 3a700b6..89a4dd4 100644
 -  fallbackFonts: defaultFallbackFonts,
 -  systemFonts: _defaultSystemFonts.default
 -};
- /**
-  * Use the ambient transient render engine.
-  *
-@@ -96,7 +23,6 @@ const defaultTRenderEngineProviderProps = {
-  * @public
-  */
- 
+-/**
+- * Use the ambient transient render engine.
+- *
+- * @returns The ambient transient render engine.
+- *
+- * @public
+- */
+-
 -exports.defaultTRenderEngineProviderProps = defaultTRenderEngineProviderProps;
  
  function useAmbientTRenderEngine() {
    const engine = _react.default.useContext(TRenderEngineContext);
-@@ -126,15 +52,4 @@ function TRenderEngineProvider({
+@@ -119,22 +59,26 @@ function useAmbientTRenderEngine() {
+ 
+ function TRenderEngineProvider({
+   children,
++  htmlParserOptions = {
++    decodeEntities: true
++  },
++  emSize = 14,
++  ignoredDomTags = [],
++  ignoredStyles = [],
++  baseStyle = { fontSize: 14 },
++  tagsStyles = {},
++  classesStyles = {},
++  enableUserAgentStyles = true,
++  enableCSSInlineProcessing = true,
++  customHTMLElementModels = {},
++  fallbackFonts = defaultFallbackFonts,
++  systemFonts = defaultSystemFonts,
+   ...config
+ }) {
+-  const engine = (0, _useTRenderEngine.default)(config);
++  const engine = (0, _useTRenderEngine.default)({htmlParserOptions, emSize, ignoredDomTags, ignoredStyles, baseStyle, tagsStyles, classesStyles, enableUserAgentStyles, enableCSSInlineProcessing, customHTMLElementModels, fallbackFonts, systemFonts, ...config});
+   return /*#__PURE__*/_react.default.createElement(TRenderEngineContext.Provider, {
      value: engine
    }, children);
  }
@@ -202,7 +207,7 @@ index 3a700b6..89a4dd4 100644
 -/**
 - * @ignore
 - */
--
+ 
 -TRenderEngineProvider.propTypes = tRenderEngineProviderPropTypes;
  //# sourceMappingURL=TRenderEngineProvider.js.map
 \ No newline at end of file
@@ -463,20 +468,18 @@ index d32140f..0804ba7 100644
    TDefaultBlockRenderer,
    TDefaultPhrasingRenderer,
 diff --git a/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx b/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
-index 95b60df..96604c8 100644
+index 95b60df..db6fe0b 100644
 --- a/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
 +++ b/node_modules/react-native-render-html/src/TRenderEngineProvider.tsx
-@@ -1,73 +1,13 @@
+@@ -1,7 +1,6 @@
  import TRenderEngine from '@native-html/transient-render-engine';
  import React, { PropsWithChildren, ReactElement } from 'react';
--import { Platform } from 'react-native';
+ import { Platform } from 'react-native';
 -import PropTypes from 'prop-types';
  import useTRenderEngine from './hooks/useTRenderEngine';
  import { TRenderEngineConfig } from './shared-types';
--import defaultSystemFonts from './defaultSystemFonts';
- 
- const defaultTRenderEngine = {} as any;
- 
+ import defaultSystemFonts from './defaultSystemFonts';
+@@ -11,36 +10,6 @@ const defaultTRenderEngine = {} as any;
  const TRenderEngineContext =
    React.createContext<TRenderEngine>(defaultTRenderEngine);
  
@@ -510,16 +513,13 @@ index 95b60df..96604c8 100644
 -  selectDomRoot: PropTypes.func
 -};
 -
--/**
-- * Default fallback font for special keys such as 'sans-serif', 'monospace',
-- * 'serif', based on current platform.
-- */
--export const defaultFallbackFonts = {
--  'sans-serif': Platform.select({ ios: 'system', default: 'sans-serif' }),
--  monospace: Platform.select({ ios: 'Menlo', default: 'monospace' }),
--  serif: Platform.select({ ios: 'Times New Roman', default: 'serif' })
--};
--
+ /**
+  * Default fallback font for special keys such as 'sans-serif', 'monospace',
+  * 'serif', based on current platform.
+@@ -51,23 +20,6 @@ export const defaultFallbackFonts = {
+   serif: Platform.select({ ios: 'Times New Roman', default: 'serif' })
+ };
+ 
 -export const defaultTRenderEngineProviderProps: TRenderEngineConfig = {
 -  htmlParserOptions: {
 -    decodeEntities: true
@@ -540,7 +540,31 @@ index 95b60df..96604c8 100644
  /**
   * Use the ambient transient render engine.
   *
-@@ -106,13 +46,3 @@ export default function TRenderEngineProvider({
+@@ -97,22 +49,26 @@ export function useAmbientTRenderEngine() {
+  */
+ export default function TRenderEngineProvider({
+   children,
++  htmlParserOptions = {
++    decodeEntities: true
++  },
++  emSize = 14,
++  ignoredDomTags = [],
++  ignoredStyles = [],
++  baseStyle = { fontSize: 14 },
++  tagsStyles = {},
++  classesStyles = {},
++  enableUserAgentStyles = true,
++  enableCSSInlineProcessing = true,
++  customHTMLElementModels = {},
++  fallbackFonts = defaultFallbackFonts,
++  systemFonts = defaultSystemFonts,
+   ...config
+ }: PropsWithChildren<TRenderEngineConfig>): ReactElement {
+-  const engine = useTRenderEngine(config);
++  const engine = useTRenderEngine({htmlParserOptions, emSize, ignoredDomTags, ignoredStyles, baseStyle, tagsStyles, classesStyles, enableUserAgentStyles, enableCSSInlineProcessing, customHTMLElementModels, fallbackFonts, systemFonts, ...config});
+   return (
+     <TRenderEngineContext.Provider value={engine}>
+       {children}
      </TRenderEngineContext.Provider>
    );
  }

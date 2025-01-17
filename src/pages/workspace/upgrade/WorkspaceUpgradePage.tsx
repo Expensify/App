@@ -16,6 +16,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
@@ -38,24 +39,25 @@ function getFeatureNameAlias(featureName: string) {
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
 
-    const featureNameAlias = getFeatureNameAlias(route.params.featureName);
+    const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`policy_${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const canPerformUpgrade = useMemo(() => PolicyUtils.canModifyPlan(policyID), [policyID]);
     const isUpgraded = useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const goBack = useCallback(() => {
-        if (!feature) {
+        if (!feature || !policyID) {
+            Navigation.dismissModal();
             return;
         }
         switch (feature.id) {
@@ -87,10 +89,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 Navigation.dismissModal();
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params.backTo, route.params.featureName]);
+    }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
 
     const upgradeToCorporate = () => {
-        if (!canPerformUpgrade) {
+        if (!canPerformUpgrade || !policy) {
             return;
         }
 
@@ -98,7 +100,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     };
 
     const confirmUpgrade = useCallback(() => {
-        if (!feature) {
+        if (!feature || !policyID) {
             return;
         }
         switch (feature.id) {
@@ -151,7 +153,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        route.params.featureName,
+        route.params?.featureName,
     ]);
 
     useFocusEffect(
@@ -185,7 +187,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }}
             />
-            {isUpgraded && (
+            {!!policy && isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={goBack}
                     policyName={policy.name}
@@ -193,10 +195,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             )}
             {!isUpgraded && (
                 <UpgradeIntro
+                    policyID={policyID}
                     feature={feature}
                     onUpgrade={upgradeToCorporate}
                     buttonDisabled={isOffline}
-                    loading={policy.isPendingUpgrade}
+                    loading={policy?.isPendingUpgrade}
                 />
             )}
         </ScreenWrapper>
