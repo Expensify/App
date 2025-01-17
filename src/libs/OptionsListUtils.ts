@@ -39,7 +39,34 @@ import Performance from './Performance';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace} from './PolicyUtils';
-import * as ReportActionUtils from './ReportActionsUtils';
+import {
+    getCombinedReportActions,
+    getExportIntegrationLastMessageText,
+    getIOUReportIDFromReportActionPreview,
+    getMessageOfOldDotReportAction,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportActionMessageText,
+    getSortedReportActions,
+    isActionableAddPaymentCard,
+    isActionOfType,
+    isClosedAction,
+    isCreatedTaskReportAction,
+    isDeletedParentAction,
+    isModifiedExpenseAction,
+    isMoneyRequestAction,
+    isOldDotReportAction,
+    isPendingRemove,
+    isReimbursementDeQueuedAction,
+    isReimbursementQueuedAction,
+    isReportPreviewAction,
+    isResolvedActionTrackExpense,
+    isTaskAction,
+    isThreadParentMessage,
+    isUnapprovedAction,
+    isWhisperAction,
+    shouldReportActionBeVisible,
+} from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
@@ -256,15 +283,15 @@ Onyx.connect({
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
+            let sortedReportActions = getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself
-            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
+            const transactionThreadReportID = getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = ReportActionUtils.getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
+                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
             }
 
             const firstReportAction = sortedReportActions.at(0);
@@ -281,11 +308,11 @@ Onyx.connect({
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
-                    ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey, canUserPerformWriteAction) &&
-                    !ReportActionUtils.isWhisperAction(reportAction) &&
+                    shouldReportActionBeVisible(reportAction, actionKey, canUserPerformWriteAction) &&
+                    !isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
+                    !isResolvedActionTrackExpense(reportAction),
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
@@ -493,10 +520,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
         return;
     }
     const lastAction = lastVisibleReportActions[report.reportID];
-    if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
+    if (!isReportPreviewAction(lastAction)) {
         return;
     }
-    return ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+    return ReportUtils.getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
 }
 
 /**
@@ -513,7 +540,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     if (ReportUtils.isArchivedNonExpenseReport(report)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
@@ -532,17 +559,17 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.default`);
             }
         }
-    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
-    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+    } else if (isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = iouReport?.reportID
             ? allSortedReportActions[iouReport.reportID]?.find(
                   (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      ReportActionUtils.shouldReportActionBeVisible(reportAction, key, ReportUtils.canUserPerformWriteAction(report)) &&
+                      shouldReportActionBeVisible(reportAction, key, ReportUtils.canUserPerformWriteAction(report)) &&
                       reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                      ReportActionUtils.isMoneyRequestAction(reportAction),
+                      isMoneyRequestAction(reportAction),
               )
             : undefined;
         const reportPreviewMessage = ReportUtils.getReportPreviewMessage(
@@ -555,44 +582,41 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             lastReportAction,
         );
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(reportPreviewMessage);
-    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
+    } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
-    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
+    } else if (isReimbursementDeQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
-    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
+    } else if (isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && report?.reportID && ReportActionUtils.isThreadParentMessage(lastReportAction, report.reportID)) {
+    } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
-    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
+    } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
-    } else if (ReportActionUtils.isTaskAction(lastReportAction)) {
+    } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
-    } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
+    } else if (isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
-    } else if (
-        ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
-        ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
-    ) {
-        const wasSubmittedViaHarvesting = ReportActionUtils.getOriginalMessage(lastReportAction)?.harvesting ?? false;
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
+        const wasSubmittedViaHarvesting = getOriginalMessage(lastReportAction)?.harvesting ?? false;
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = ReportUtils.getReportAutomaticallySubmittedMessage(lastReportAction);
         } else {
             lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
         }
-    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
             lastMessageTextFromReport = ReportUtils.getReportAutomaticallyApprovedMessage(lastReportAction);
         } else {
             lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
         }
-    } else if (ReportActionUtils.isUnapprovedAction(lastReportAction)) {
+    } else if (isUnapprovedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getIOUUnapprovedMessage(lastReportAction);
-    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
-        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
             lastMessageTextFromReport = ReportUtils.getReportAutomaticallyForwardedMessage(lastReportAction, reportID);
         } else {
@@ -604,12 +628,12 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = ReportUtils.getDowngradeWorkspaceMessage();
-    } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
+    } else if (isActionableAddPaymentCard(lastReportAction)) {
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
-        lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
+        lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
+        lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -1304,12 +1328,10 @@ function getValidOptions(
 
             // Add a field to sort the recent reports by the time of last IOU request for create actions
             if (preferRecentExpenseReports) {
-                const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
-                    ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
-                );
+                const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
 
                 if (reportPreviewAction) {
-                    const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
+                    const iouReportID = getIOUReportIDFromReportActionPreview(reportPreviewAction);
                     const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] ?? [] : [];
                     const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                     if (lastIOUAction) {
