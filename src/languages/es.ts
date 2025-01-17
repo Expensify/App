@@ -3589,7 +3589,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Gane',
-                subtitle: 'Agiliza tus ingresos y recibir pagos más rápido.',
+                subtitle: 'Agiliza tus ingresos y recibe pagos más rápido.',
             },
             organizeSection: {
                 title: 'Organizar',
