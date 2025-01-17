@@ -362,3 +362,4 @@ export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspace
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
+export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
