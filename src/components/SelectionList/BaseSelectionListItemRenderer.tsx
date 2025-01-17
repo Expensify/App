@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
@@ -14,6 +14,7 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
+        titleContainerStyles?: StyleProp<ViewStyle>;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -42,6 +43,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     singleExecution,
+    titleContainerStyles,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isReportListItemType(item)) {
@@ -91,6 +93,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
+                titleContainerStyles={titleContainerStyles}
             />
             {item.footerContent && item.footerContent}
         </>

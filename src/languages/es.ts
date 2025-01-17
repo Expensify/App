@@ -568,6 +568,7 @@ const translations = {
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
         title: 'Aquí está tu código mágico',
         or: ', ¡o',
+        doNotShare: '¡No compartas tu código con nadie.\nExpensify nunca te lo pedirá.',
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
@@ -834,7 +835,7 @@ const translations = {
     quickAction: {
         scanReceipt: 'Escanear recibo',
         recordDistance: 'Grabar distancia',
-        requestMoney: 'Presentar gasto',
+        requestMoney: 'Crear gasto',
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
@@ -862,11 +863,10 @@ const translations = {
         categorize: 'Categorizar',
         share: 'Compartir',
         participants: 'Participantes',
-        submitExpense: 'Presentar gasto',
         createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
-        trackExpense: 'Seguimiento de gastos',
         chooseRecipient: 'Elige destinatario',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Crear un gasto de ${amount}`,
         confirmDetails: 'Confirma los detalles',
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
@@ -3615,7 +3615,7 @@ const translations = {
                 disableCardButton: 'Chatear con Concierge',
                 feed: {
                     title: 'Consigue la Tarjeta Expensify',
-                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify.',
+                    subTitle: 'Simplifica los gastos de tu empresa y ahorra hasta un 50 % en tu factura de Expensify, además:',
                     features: {
                         cashBack: 'Devolución de dinero en cada compra en Estados Unidos',
                         unlimited: 'Un número ilimitado de tarjetas virtuales',
