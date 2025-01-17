@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -72,7 +72,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const handleSubmit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
-        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
+        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
     };
 
     useEffect(() => {
@@ -83,10 +83,10 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
 
         if (reimbursementAccount?.isSuccess) {
             onNext();
-            BankAccounts.clearReimbursementAccountBankCreation();
+            clearReimbursementAccountBankCreation();
         }
 
-        return () => BankAccounts.clearReimbursementAccountBankCreation();
+        return () => clearReimbursementAccountBankCreation();
     }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     return (

@@ -12,9 +12,9 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
-import * as FormActions from '@userActions/FormActions';
+import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -38,7 +38,7 @@ function UploadStatement({onNext, isEditing}: UploadStatementProps) {
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[BANK_STATEMENT]);
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const baseError = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+        const baseError = getFieldRequiredErrors(values, STEP_FIELDS);
 
         if (baseError) {
             return baseError;
@@ -54,23 +54,23 @@ function UploadStatement({onNext, isEditing}: UploadStatementProps) {
     });
 
     const handleSelectIDFile = (files: FileObject[]) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: [...uploadedIDs, ...files]});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: [...uploadedIDs, ...files]});
         setUploadedID((prev) => [...prev, ...files]);
     };
 
     const handleRemoveIDFile = (fileName: string) => {
         const newUploadedIDs = uploadedIDs.filter((file) => file.name !== fileName);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: newUploadedIDs});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: newUploadedIDs});
         setUploadedID(newUploadedIDs);
     };
 
     const setUploadError = (error: string) => {
         if (!error) {
-            FormActions.clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
             return;
         }
 
-        FormActions.setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: {onUpload: error}});
+        setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[BANK_STATEMENT]: {onUpload: error}});
     };
 
     return (
