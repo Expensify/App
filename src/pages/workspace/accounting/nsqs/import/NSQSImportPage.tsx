@@ -14,7 +14,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function NetSuiteQuickStartImportPage({policy}: WithPolicyProps) {
+function NSQSImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -25,7 +25,7 @@ function NetSuiteQuickStartImportPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={NetSuiteQuickStartImportPage.displayName}
+            displayName={NSQSImportPage.displayName}
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -71,6 +71,6 @@ function NetSuiteQuickStartImportPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartImportPage.displayName = 'NetSuiteQuickStartImportPage';
+NSQSImportPage.displayName = 'NSQSImportPage';
 
-export default withPolicyConnections(NetSuiteQuickStartImportPage);
+export default withPolicyConnections(NSQSImportPage);

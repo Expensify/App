@@ -4,7 +4,7 @@ import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteQuickStartExportDate} from '@libs/actions/connections/NetSuiteQuickStart';
+import {updateNSQSExportDate} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 const Options = Object.values(CONST.NSQS_EXPORT_DATE);
 type Option = (typeof Options)[number];
 
-function NetSuiteQuickStartDatePage({policy}: WithPolicyProps) {
+function NSQSDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -35,7 +35,7 @@ function NetSuiteQuickStartDatePage({policy}: WithPolicyProps) {
     const updateExportDate = useCallback(
         ({value}: SelectorType<Option>) => {
             if (value !== exportDate) {
-                updateNetSuiteQuickStartExportDate(policyID, value, exportDate);
+                updateNSQSExportDate(policyID, value, exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID));
         },
@@ -49,7 +49,7 @@ function NetSuiteQuickStartDatePage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteQuickStartDatePage.displayName}
+            displayName={NSQSDatePage.displayName}
             headerContent={headerContent}
             sections={[{data: sectionData}]}
             listItem={RadioListItem}
@@ -66,6 +66,6 @@ function NetSuiteQuickStartDatePage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartDatePage.displayName = 'NetSuiteQuickStartDatePage';
+NSQSDatePage.displayName = 'NSQSDatePage';
 
-export default withPolicyConnections(NetSuiteQuickStartDatePage);
+export default withPolicyConnections(NSQSDatePage);

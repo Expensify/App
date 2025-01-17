@@ -12,7 +12,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function NetSuiteQuickStartExportPage({policy}: WithPolicyProps) {
+function NSQSExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -24,7 +24,7 @@ function NetSuiteQuickStartExportPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={NetSuiteQuickStartExportPage.displayName}
+            displayName={NSQSExportPage.displayName}
             headerTitle="workspace.accounting.export"
             title="workspace.nsqs.export.description"
             titleStyle={styles.pb3}
@@ -70,6 +70,6 @@ function NetSuiteQuickStartExportPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartExportPage.displayName = 'NetSuiteQuickStartExportPage';
+NSQSExportPage.displayName = 'NSQSExportPage';
 
-export default withPolicyConnections(NetSuiteQuickStartExportPage);
+export default withPolicyConnections(NSQSExportPage);

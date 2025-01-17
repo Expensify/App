@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Connections} from '@src/types/onyx/Policy';
 
-function buildOnyxDataForNetSuiteQuickStartConfiguration<TSettingName extends keyof Connections['nsqs']['config']>(
+function buildOnyxDataForNSQSConfiguration<TSettingName extends keyof Connections['nsqs']['config']>(
     policyID: string,
     settingName: TSettingName,
     settingValue: PartialDeep<Connections['nsqs']['config'][TSettingName]>,
@@ -83,12 +83,8 @@ function buildOnyxDataForNetSuiteQuickStartConfiguration<TSettingName extends ke
     };
 }
 
-function updateNetSuiteQuickStartCustomersMapping(
-    policyID: string,
-    mapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>,
-    oldMapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>,
-) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(
+function updateNSQSCustomersMapping(policyID: string, mapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>, oldMapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(
         policyID,
         'syncOptions',
         {mapping: {customers: mapping}},
@@ -101,15 +97,11 @@ function updateNetSuiteQuickStartCustomersMapping(
         mapping,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_CUSTOMERS_MAPPING, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_CUSTOMERS_MAPPING, params, onyxData);
 }
 
-function updateNetSuiteQuickStartProjectsMapping(
-    policyID: string,
-    mapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>,
-    oldMapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>,
-) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(
+function updateNSQSProjectsMapping(policyID: string, mapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>, oldMapping: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(
         policyID,
         'syncOptions',
         {mapping: {projects: mapping}},
@@ -122,58 +114,51 @@ function updateNetSuiteQuickStartProjectsMapping(
         mapping,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_PROJECTS_MAPPING, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_PROJECTS_MAPPING, params, onyxData);
 }
 
-function updateNetSuiteQuickStartExporter(policyID: string, email: string, oldEmail: string) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'exporter', email, oldEmail, CONST.NSQS_CONFIG.EXPORTER);
+function updateNSQSExporter(policyID: string, email: string, oldEmail: string) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'exporter', email, oldEmail, CONST.NSQS_CONFIG.EXPORTER);
 
     const params = {
         policyID,
         email,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORTER, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_EXPORTER, params, onyxData);
 }
 
-function updateNetSuiteQuickStartExportDate(policyID: string, value: ValueOf<typeof CONST.NSQS_EXPORT_DATE>, oldValue: ValueOf<typeof CONST.NSQS_EXPORT_DATE>) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'exportDate', value, oldValue, CONST.NSQS_CONFIG.EXPORT_DATE);
+function updateNSQSExportDate(policyID: string, value: ValueOf<typeof CONST.NSQS_EXPORT_DATE>, oldValue: ValueOf<typeof CONST.NSQS_EXPORT_DATE>) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'exportDate', value, oldValue, CONST.NSQS_CONFIG.EXPORT_DATE);
 
     const params = {
         policyID,
         value,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_EXPORT_DATE, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_EXPORT_DATE, params, onyxData);
 }
 
-function updateNetSuiteQuickStartAutoSync(policyID: string, enabled: boolean) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'autoSync', {enabled}, {enabled: !enabled}, CONST.NSQS_CONFIG.AUTO_SYNC);
+function updateNSQSAutoSync(policyID: string, enabled: boolean) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'autoSync', {enabled}, {enabled: !enabled}, CONST.NSQS_CONFIG.AUTO_SYNC);
 
     const params = {
         policyID,
         enabled,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_AUTO_SYNC, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC, params, onyxData);
 }
 
-function updateNetSuiteQuickStartApprovalAccount(policyID: string, value: string, oldValue: string) {
-    const onyxData = buildOnyxDataForNetSuiteQuickStartConfiguration(policyID, 'approvalAccount', value, oldValue, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT);
+function updateNSQSApprovalAccount(policyID: string, value: string, oldValue: string) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'approvalAccount', value, oldValue, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT);
 
     const params = {
         policyID,
         value,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_QUICKSTART_APPROVAL_ACCOUNT, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT, params, onyxData);
 }
 
-export {
-    updateNetSuiteQuickStartCustomersMapping,
-    updateNetSuiteQuickStartProjectsMapping,
-    updateNetSuiteQuickStartExporter,
-    updateNetSuiteQuickStartExportDate,
-    updateNetSuiteQuickStartAutoSync,
-    updateNetSuiteQuickStartApprovalAccount,
-};
+export {updateNSQSCustomersMapping, updateNSQSProjectsMapping, updateNSQSExporter, updateNSQSExportDate, updateNSQSAutoSync, updateNSQSApprovalAccount};

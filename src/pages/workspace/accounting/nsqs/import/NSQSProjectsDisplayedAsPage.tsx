@@ -3,7 +3,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteQuickStartProjectsMapping} from '@libs/actions/connections/NetSuiteQuickStart';
+import {updateNSQSProjectsMapping} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 const Options = [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] as const;
 type Option = (typeof Options)[number];
 
-function NetSuiteQuickStartProjectsDisplayedAsPage({policy}: WithPolicyProps) {
+function NSQSProjectsDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -34,7 +34,7 @@ function NetSuiteQuickStartProjectsDisplayedAsPage({policy}: WithPolicyProps) {
     const updateImportMapping = useCallback(
         ({value: mapping}: SelectorType<Option>) => {
             if (mapping !== importType) {
-                updateNetSuiteQuickStartProjectsMapping(policyID, mapping, importType);
+                updateNSQSProjectsMapping(policyID, mapping, importType);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID));
         },
@@ -46,7 +46,7 @@ function NetSuiteQuickStartProjectsDisplayedAsPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteQuickStartProjectsDisplayedAsPage.displayName}
+            displayName={NSQSProjectsDisplayedAsPage.displayName}
             sections={[{data: sectionData}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
@@ -62,6 +62,6 @@ function NetSuiteQuickStartProjectsDisplayedAsPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartProjectsDisplayedAsPage.displayName = 'NetSuiteQuickStartProjectsDisplayedAsPage';
+NSQSProjectsDisplayedAsPage.displayName = 'NSQSProjectsDisplayedAsPage';
 
-export default withPolicyConnections(NetSuiteQuickStartProjectsDisplayedAsPage);
+export default withPolicyConnections(NSQSProjectsDisplayedAsPage);

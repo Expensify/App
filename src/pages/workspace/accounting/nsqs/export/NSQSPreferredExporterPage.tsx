@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteQuickStartExporter} from '@libs/actions/connections/NetSuiteQuickStart';
+import {updateNSQSExporter} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminEmployees, settingsPendingAction} from '@libs/PolicyUtils';
@@ -16,7 +16,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function NetSuiteQuickStartPreferredExporterPage({policy}: WithPolicyProps) {
+function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -53,7 +53,7 @@ function NetSuiteQuickStartPreferredExporterPage({policy}: WithPolicyProps) {
     const updateExporter = useCallback(
         ({value: email}: SelectorType) => {
             if (email !== exporter) {
-                updateNetSuiteQuickStartExporter(policyID, email, exporter);
+                updateNSQSExporter(policyID, email, exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID));
         },
@@ -75,7 +75,7 @@ function NetSuiteQuickStartPreferredExporterPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteQuickStartPreferredExporterPage.displayName}
+            displayName={NSQSPreferredExporterPage.displayName}
             headerContent={headerContent}
             sections={[{data: sectionData}]}
             listItem={RadioListItem}
@@ -93,6 +93,6 @@ function NetSuiteQuickStartPreferredExporterPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartPreferredExporterPage.displayName = 'NetSuiteQuickStartPreferredExporterPage';
+NSQSPreferredExporterPage.displayName = 'NSQSPreferredExporterPage';
 
-export default withPolicyConnections(NetSuiteQuickStartPreferredExporterPage);
+export default withPolicyConnections(NSQSPreferredExporterPage);

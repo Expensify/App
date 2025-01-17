@@ -20,10 +20,10 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/NetSuiteQuickStartOAuth2Form';
+import INPUT_IDS from '@src/types/form/NSQSOAuth2Form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
+function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,7 +33,7 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
     return (
         // s77rt: do not use ConnectionLayout here. Just a regular ScreenWrapper
         <ConnectionLayout
-            displayName={NetSuiteQuickStartSetupPage.displayName}
+            displayName={NSQSSetupPage.displayName}
             headerTitle="workspace.nsqs.setup.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -76,6 +76,6 @@ function NetSuiteQuickStartSetupPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteQuickStartSetupPage.displayName = 'NetSuiteQuickStartSetupPage';
+NSQSSetupPage.displayName = 'NSQSSetupPage';
 
-export default withPolicyConnections(NetSuiteQuickStartSetupPage);
+export default withPolicyConnections(NSQSSetupPage);

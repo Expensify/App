@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
-import ConnectToNetSuiteQuickStartFlow from '@components/ConnectToNetSuiteQuickStartFlow';
+import ConnectToNSQSFlow from '@components/ConnectToNSQSFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
@@ -218,7 +218,7 @@ function getAccountingIntegrationData(
                 title: translate('workspace.accounting.nsqs'),
                 icon: Expensicons.NetSuiteSquare, // s77rt: wrong icon
                 setupConnectionFlow: (
-                    <ConnectToNetSuiteQuickStartFlow
+                    <ConnectToNSQSFlow
                         policyID={policyID}
                         key={key}
                     />
