@@ -27,7 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
-import {callback, composerFocusKeepFocusOn, inputFocusChange} from '@libs/actions/InputFocus';
+import {callback as inputFocusCallback, composerFocusKeepFocusOn, inputFocusChange} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -210,7 +210,7 @@ function ReportActionItemMessageEdit(
             }
 
             return () => {
-                callback(() => setIsFocused(false));
+                inputFocusCallback(() => setIsFocused(false));
                 inputFocusChange(false);
 
                 // Skip if the current report action is not active
