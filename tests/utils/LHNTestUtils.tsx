@@ -16,7 +16,6 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
@@ -28,12 +27,6 @@ type MockedReportActionItemSingleProps = {
 
     /** All the data of the action */
     reportAction: ReportAction;
-
-    /** Personal details list */
-    personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
-
-    /** Current connected policy */
-    policy?: Policy;
 };
 
 type MockedSidebarLinksProps = {
@@ -338,7 +331,7 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction, personalDetails, policy}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
@@ -349,21 +342,12 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report,
                 hasBeenFlagged={false}
                 iouReport={undefined}
                 isHovered={false}
-                personalDetails={personalDetails}
-                policy={policy}
-                invoiceReceiverPolicy={undefined}
             />
         </ComposeProviders>
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(
-    shouldShowSubscriptAvatar = true,
-    report?: Report,
-    reportAction?: ReportAction,
-    personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>,
-    policy?: Policy,
-) {
+function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report?: Report, reportAction?: ReportAction) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
@@ -372,8 +356,6 @@ function getDefaultRenderedReportActionItemSingle(
             shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
             report={currentReport}
             reportAction={currentReportAction}
-            personalDetails={personalDetails}
-            policy={policy}
         />,
     );
 }
