@@ -5855,7 +5855,7 @@ const translations = {
                     phrase1: 'Oferta por tiempo limitado:',
                     phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
                 },
-                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d: ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
+                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
         cardSection: {
