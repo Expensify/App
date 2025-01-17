@@ -53,7 +53,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingRight: 1,
             },
             code: {
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
                 backgroundColor: 'transparent',
