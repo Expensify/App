@@ -22,7 +22,7 @@ import {getCardDescription, isCard, isCardIssued, mergeCardListWithWorkspaceFeed
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
+import {escapeTagName, getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -229,14 +229,15 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                 const filteredTags = autocompleteList
+                    .map(getCleanedTagName)
                     .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAG,
-                    text: getCleanedTagName(tagName),
-                    autocompleteID: tagName,
+                    text: tagName,
+                    autocompleteID: escapeTagName(tagName),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
                 }));
             }
