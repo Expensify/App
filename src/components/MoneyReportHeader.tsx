@@ -34,6 +34,8 @@ import {
 import {
     allHavePendingRTERViolation,
     getAllReportTransactions,
+    getTransactionViolations,
+    hasPendingUI,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -41,8 +43,6 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
-    hasPendingUI,
-    getTransactionViolations,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -181,8 +181,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const numberOfRequests = allTransactions.length;
     const showRTERViolationMessage =
-        numberOfRequests === 1 &&
-        hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
+        numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
