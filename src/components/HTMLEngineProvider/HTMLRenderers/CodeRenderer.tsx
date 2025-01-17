@@ -28,12 +28,6 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
     const textStyleOverride = {
         fontSize,
         fontFamily: font,
-
-        // We need to override this properties bellow that was defined in `textStyle`
-        // Because by default the `react-native-render-html` add a style in the elements,
-        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
-        fontWeight: undefined,
-        fontStyle: undefined,
     };
 
     return (
