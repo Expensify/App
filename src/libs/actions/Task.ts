@@ -1221,7 +1221,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedReport(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
