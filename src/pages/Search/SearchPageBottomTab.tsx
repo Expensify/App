@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
@@ -13,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
@@ -21,7 +24,6 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
@@ -37,6 +39,7 @@ function SearchPageBottomTab() {
     const StyleUtils = useStyleUtils();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [narrowSearchRouterActive, setNarrowSearchRouterActive] = useState(false);
+    const {clearSelectedTransactions} = useSearchContext();
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
@@ -151,7 +154,16 @@ function SearchPageBottomTab() {
                         </View>
                     </View>
                 ) : (
-                    <SearchSelectionModeHeader queryJSON={queryJSON} />
+                    <>
+                        <HeaderWithBackButton
+                            title={translate('common.selectMultiple')}
+                            onBackButtonPress={() => {
+                                clearSelectedTransactions();
+                                turnOffMobileSelectionMode();
+                            }}
+                        />
+                        <SearchPageHeader queryJSON={queryJSON} />
+                    </>
                 )}
                 {!narrowSearchRouterActive && (
                     <Search
