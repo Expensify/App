@@ -3,12 +3,13 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
+import {getReportTransactions} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let lastLocationPermissionPrompt: string;
@@ -118,7 +119,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions: Transaction[] = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    const reportTransactions = getReportTransactions(iouReport.reportID);
     const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }

@@ -40,7 +40,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getAllReportTransactions} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -108,7 +107,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => ReportUtils.reportTransactionsSelector(_transactions, report.reportID),
+        initialValue: [],
+    });
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -163,11 +165,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const transactionIDList = useMemo(() => {
-        if (!isMoneyRequestReport) {
+        if (!isMoneyRequestReport || !transactions) {
             return [];
         }
-        return getAllReportTransactions(report.reportID, transactions).map((transaction) => transaction.transactionID);
-    }, [isMoneyRequestReport, report.reportID, transactions]);
+        return transactions.map((transaction) => transaction.transactionID);
+    }, [isMoneyRequestReport, transactions]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {

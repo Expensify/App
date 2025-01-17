@@ -26,7 +26,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isOpenExpenseReport, isProcessingReport, isReportApproved, isSettled, isThread} from '@libs/ReportUtils';
+import {getReportTransactions, isOpenExpenseReport, isProcessingReport, isReportApproved, isSettled, isThread} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -68,7 +68,7 @@ type BuildOptimisticTransactionParams = {
 };
 
 let allTransactions: OnyxCollection<Transaction> = {};
-let transactionsByReport: Record<string, Set<string>> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -77,18 +77,6 @@ Onyx.connect({
             return;
         }
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
-
-        transactionsByReport = {};
-        Object.entries(allTransactions).forEach(([transactionID, transaction]) => {
-            if (!transaction?.reportID) {
-                return;
-            }
-
-            if (!transactionsByReport[transaction.reportID]) {
-                transactionsByReport[transaction.reportID] = new Set();
-            }
-            transactionsByReport[transaction.reportID].add(transactionID);
-        });
     },
 });
 
@@ -830,25 +818,6 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: b
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
-function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
-    if (!reportID) {
-        return [];
-    }
-
-    if (transactions) {
-        return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
-    }
-
-    const transactionIDs = transactionsByReport[reportID];
-    if (!transactionIDs) {
-        return [];
-    }
-
-    return Array.from(transactionIDs)
-        .map((transactionID) => allTransactions?.[transactionID])
-        .filter((transaction): transaction is Transaction => !!transaction);
-}
-
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -1353,7 +1322,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
  * Return the sorted list transactions of an iou report
  */
 function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transaction>> {
-    return getAllReportTransactions(iouReportID).sort((transA, transB) => {
+    return getReportTransactions(iouReportID).sort((transA, transB) => {
         if (transA.created < transB.created) {
             return -1;
         }
@@ -1401,7 +1370,6 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
-    getAllReportTransactions,
     hasReceipt,
     hasEReceipt,
     hasRoute,

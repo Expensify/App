@@ -77,15 +77,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => ReportUtils.reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
+        initialValue: [],
+    });
+    const [transaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${
+            ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
+        }`,
+    );
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
-    const transaction =
-        transactions?.[
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) && ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-            }`
-        ] ?? undefined;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -105,7 +107,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID, transactions), [moneyRequestReport?.reportID, transactions]);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -113,8 +114,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const navigateBackToAfterDelete = useRef<Route>();
     const hasHeldExpenses = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
-    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
-    const transactionIDs = allTransactions.map((t) => t.transactionID);
+    const hasOnlyPendingTransactions =
+        transactions?.some((t) => {
+            const isPending = TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t);
+            return !isPending;
+        }) ?? false;
+    const transactionIDs = transactions?.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
@@ -494,7 +499,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
-                    transactionCount={transactionIDs.length}
+                    transactionCount={transactionIDs?.length ?? 0}
                 />
             )}
             <DelegateNoAccessModal
