@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
     const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
-    const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+    const isPersonal = liabilityType !== CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT;
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
