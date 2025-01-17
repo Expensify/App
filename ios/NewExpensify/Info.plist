@@ -97,6 +97,8 @@
 		<string>ExpensifyNeue-BoldItalic.otf</string>
 		<string>ExpensifyNeue-Italic.otf</string>
 		<string>ExpensifyNeue-Regular.otf</string>
+		<string>ExpensifyMono-BoldItalic.otf</string>
+		<string>ExpensifyMono-Italic.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
