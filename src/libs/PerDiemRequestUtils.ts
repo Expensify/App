@@ -6,10 +6,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
-import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
+import {getPolicy} from './PolicyUtils';
+import {isPolicyExpenseChat} from './ReportUtils';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -26,11 +26,11 @@ Onyx.connect({
 function getCustomUnitID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID);
+    const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
 
-    if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+    if (isPolicyExpenseChat(report) || isPolicyExpenseChat(parentReport)) {
         const perDiemUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
         if (perDiemUnit) {
             customUnitID = perDiemUnit.customUnitID;
@@ -144,10 +144,14 @@ function getDestinationListSections({
         });
     }
 
-    const selectedOptionRateID = selectedOptions.map((selectedOption) => selectedOption.rateID);
+    const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const data = getDestinationOptionTree(sortedDestinations);
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.includes(rateID));
+        if (filteredNonSelectedDestinations.length === 0) {
+            return destinationSections;
+        }
+        const data = getDestinationOptionTree(filteredNonSelectedDestinations);
         destinationSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -159,7 +163,7 @@ function getDestinationListSections({
         return destinationSections;
     }
 
-    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateID.includes(rateID));
+    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.includes(rateID));
 
     if (filteredRecentlyUsedDestinations.length > 0) {
         const cutRecentlyUsedDestinations = filteredRecentlyUsedDestinations.slice(0, maxRecentReportsToShow);
@@ -167,7 +171,7 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -177,7 +181,7 @@ function getDestinationListSections({
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -226,11 +230,11 @@ type Subrate = {
     rate?: number;
 };
 
-function getSubratesForDisplay(subrate: Subrate | undefined) {
+function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     if (!subrate) {
         return undefined;
     }
-    return `${subrate.name}, Qty: ${subrate.quantity}`;
+    return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
 /**
@@ -258,9 +262,9 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
     const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
     return {
-        firstDay: firstDayDiff === 1440 ? undefined : (firstDayDiff / 60).toFixed(2),
+        firstDay: firstDayDiff === 1440 ? undefined : firstDayDiff / 60,
         tripDays: firstDayDiff === 1440 ? tripDaysDiff + 1 : tripDaysDiff,
-        lastDay: lastDayDiff === 0 ? undefined : (lastDayDiff / 60).toFixed(2),
+        lastDay: lastDayDiff === 0 ? undefined : lastDayDiff / 60,
     };
 }
 
