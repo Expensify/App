@@ -153,6 +153,16 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
+        if (transaction?.transactionID) return;
+        IOU.startMoneyRequest(
+            CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+            // for all of the routes in the creation flow.
+            ReportUtils.generateReportID(),
+        );
+    }, []);
+
+    useEffect(() => {
         if (!transaction?.category) {
             return;
         }
