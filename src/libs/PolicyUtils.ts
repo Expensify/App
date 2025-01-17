@@ -1206,7 +1206,7 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
-function getAdminsPrivateEmailDomains(policyID?: string) {
+function getAdminsPrivateEmailDomains(policyID) {
     if (!policyID) {
         return [];
     }
@@ -1214,14 +1214,19 @@ function getAdminsPrivateEmailDomains(policyID?: string) {
     if (!policy) {
         return [];
     }
-    return [
-        ...new Set([
-            ...Object.entries(policy.employeeList ?? {})
-                .filter(([_, employee]) => employee.role === CONST.POLICY.ROLE.ADMIN)
-                .map(([email, _]) => Str.extractEmailDomain(email).toLowerCase()),
-            Str.extractEmailDomain(policy.owner).toLowerCase(),
-        ]),
-    ].filter((domain) => !isPublicDomain(domain));
+
+    const adminDomains = Object.entries(policy.employeeList ?? {})
+        .reduce((domains, [email, employee]) => {
+            if (employee.role === CONST.POLICY.ROLE.ADMIN) {
+                domains.push(Str.extractEmailDomain(email).toLowerCase());
+            }
+            return domains;
+        }, [] as string[]);
+
+    const ownerDomain = Str.extractEmailDomain(policy.owner).toLowerCase();
+
+    return [...new Set([...adminDomains, ownerDomain])]
+        .filter(domain => !isPublicDomain(domain));
 }
 
 function getMostFrequentEmailDomain(policyID: string, acceptedDomains: string[]) {
