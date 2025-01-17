@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,11 +21,11 @@ const {
     COMPANY_NAME,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     TAX_ID_EIN_NUMBER,
-    COMPANY_COUNTRY,
+    COMPANY_COUNTRY_CODE,
     COMPANY_STREET,
     COMPANY_CITY,
     COMPANY_STATE,
-    COMPANY_ZIP_CODE,
+    COMPANY_POSTAL_CODE,
     BUSINESS_CONTACT_NUMBER,
     BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
@@ -50,7 +50,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -105,7 +105,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                     />
                     <MenuItemWithTopDescription
                         description={translate('businessInfoStep.businessAddress')}
-                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_ZIP_CODE], values[COMPANY_COUNTRY])}
+                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE])}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(1);

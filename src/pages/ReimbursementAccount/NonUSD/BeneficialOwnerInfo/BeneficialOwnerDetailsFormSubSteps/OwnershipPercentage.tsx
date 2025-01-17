@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidOwnershipPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -28,9 +28,9 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [ownershipPercentageInputID]);
+            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID]);
 
-            if (values[ownershipPercentageInputID] && !ValidationUtils.isValidOwnershipPercentage(String(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
+            if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(String(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
             }
 

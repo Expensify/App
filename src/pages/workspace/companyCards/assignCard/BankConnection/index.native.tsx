@@ -6,11 +6,11 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import * as CardUtils from '@libs/CardUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,12 +29,12 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
-    const bankName = CardUtils.getCardFeedName(feed);
+    const bankName = getBankName(feed);
     const url = getCompanyCardBankConnection(policyID, bankName);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     // This does not apply for custom feeds, this is used to check if the feed is expired to push user to reauthenticate
-    const isFeedExpired = CardUtils.isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const isFeedExpired = isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -47,7 +47,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
             return;
         }
         if (!isFeedExpired) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
             });

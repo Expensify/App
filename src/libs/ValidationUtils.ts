@@ -8,10 +8,10 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
-import * as CardUtils from './CardUtils';
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
-import * as LoginUtils from './LoginUtils';
+import {translateLocal} from './Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -119,7 +119,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
             return;
         }
 
-        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
+        errors[fieldKey] = translateLocal('common.error.fieldRequired');
     });
 
     return errors;
@@ -138,7 +138,7 @@ function isValidExpirationDate(string: string): boolean {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
     return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
@@ -203,7 +203,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -214,10 +214,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
 
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
 /**
@@ -229,14 +229,14 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     return '';
@@ -319,7 +319,7 @@ function isValidTwoFactorCode(code: string): boolean {
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  */
 function isNumericWithSpecialChars(input: string): boolean {
-    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -516,7 +516,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
@@ -556,7 +556,7 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 }
 
 /**
- * Validates the given value if it is correct ABN number
+ * Validates the given value if it is correct ABN number - https://abr.business.gov.au/Help/AbnFormat
  * @param registrationNumber - number to validate.
  */
 function isValidABN(registrationNumber: string): boolean {
@@ -578,7 +578,7 @@ function isValidABN(registrationNumber: string): boolean {
 }
 
 /**
- * Validates the given value if it is correct ACN number
+ * Validates the given value if it is correct ACN number - https://asic.gov.au/for-business/registering-a-company/steps-to-register-a-company/australian-company-numbers/australian-company-number-digit-check/
  * @param registrationNumber - number to validate.
  */
 function isValidACN(registrationNumber: string): boolean {
