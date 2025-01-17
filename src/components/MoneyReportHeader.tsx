@@ -180,8 +180,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, transactionIDs);
 
     const numberOfRequests = allTransactions.length;
-    const showRTERViolationMessage =
-        numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID ?? CONST.DEFAULT_NUMBER_ID, transactionViolations));
+    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
