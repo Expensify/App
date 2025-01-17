@@ -5118,7 +5118,7 @@ const CONST = {
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
                         '5. Enter emails or phone numbers. \n' +
-                        '6. Add a custom invite message if you'd like!\n' +
+                        '6. Add a custom invite message if you’d like!\n' +
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}).`,
                 },
