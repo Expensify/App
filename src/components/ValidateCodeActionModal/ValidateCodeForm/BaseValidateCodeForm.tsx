@@ -219,7 +219,7 @@ function BaseValidateCodeForm({
             return translate(formError?.validateCode);
         }
         return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError, account]);
+    }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
     return (
