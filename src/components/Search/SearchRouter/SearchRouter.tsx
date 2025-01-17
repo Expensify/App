@@ -20,14 +20,14 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as InputUtils from '@libs/InputUtils';
+import {scrollToRight} from '@libs/InputUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
+import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import * as ReportUserActions from '@userActions/Report';
+import {navigateToAndOpenReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,12 +55,12 @@ function getContextualSearchQuery(item: SearchQueryItem) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;
@@ -171,7 +171,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             return;
         }
 
-        InputUtils.scrollToRight(textInputRef.current);
+        scrollToRight(textInputRef.current);
         shouldScrollRef.current = false;
     }, []);
 
@@ -180,7 +180,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
-            const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
@@ -199,7 +199,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = SearchQueryUtils.getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
             if (!updatedQuery) {
                 return;
             }
@@ -241,8 +241,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
                     onSearchQueryChange(newSearchQuery);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
@@ -262,7 +262,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 if (item?.reportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
                 } else if ('login' in item) {
-                    ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
                 }
             }
         },

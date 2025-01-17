@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as autocompleteParser from './SearchParser/autocompleteParser';
+import {parse} from './SearchParser/autocompleteParser';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -13,7 +13,7 @@ import * as autocompleteParser from './SearchParser/autocompleteParser';
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete = parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
@@ -141,7 +141,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 function parseForLiveMarkdown(input: string, userLogin: string, userDisplayName: string) {
     'worklet';
 
-    const parsedAutocomplete = autocompleteParser.parse(input) as SearchAutocompleteResult;
+    const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
 
     return ranges.map((range) => {
