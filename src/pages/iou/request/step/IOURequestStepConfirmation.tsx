@@ -17,31 +17,31 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFunc} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseFunc, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
+import {getBankAccountRoute} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
+import type {GpsPoint} from '@userActions/IOU';
 import {
-    createDistanceRequest as createDistanceRequestFunc,
+    createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    GpsPoint,
     navigateToStartStepIfScanFileCannotBeRead,
-    requestMoney as requestMoneyFunc,
+    requestMoney as requestMoneyIOUActions,
     sendInvoice,
     sendMoneyElsewhere,
     sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
-    splitBillAndOpenReport as splitBillAndOpenReportFunc,
-    splitBill as splitBillFunc,
-    startMoneyRequest,
-    startSplitBill as startSplitBillFunc,
-    trackExpense as trackExpenseFunc,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+    submitPerDiemExpense as submitPerDiemExpenseIOUActions,
+    trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
@@ -52,6 +52,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -105,7 +106,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseFunc(action);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
@@ -230,8 +231,7 @@ function IOURequestStepConfirmation({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isLocalFile = isLocalFileFunc(receiptPath);
+        const isLocalFile = isLocalFileFileUtils(receiptPath);
 
         if (!isLocalFile) {
             setReceiptFile(transaction?.receipt);
@@ -257,7 +257,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            requestMoneyFunc({
+            requestMoneyIOUActions({
                 report,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
@@ -293,6 +293,41 @@ function IOURequestStepConfirmation({
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
 
+    const submitPerDiemExpense = useCallback(
+        (selectedParticipants: Participant[], trimmedComment: string) => {
+            if (!transaction) {
+                return;
+            }
+
+            const participant = selectedParticipants.at(0);
+            if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
+                return;
+            }
+            submitPerDiemExpenseIOUActions({
+                report,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                },
+                transactionParams: {
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    comment: trimmedComment,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    customUnit: transaction.comment?.customUnit,
+                },
+            });
+        },
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+    );
+
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: GpsPoint) => {
             if (!report || !transaction) {
@@ -302,7 +337,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            trackExpenseFunc(
+            trackExpenseIOUActions(
                 report,
                 transaction.amount,
                 transaction.currency,
@@ -352,7 +387,7 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            createDistanceRequestFunc({
+            createDistanceRequestIOUActions({
                 report,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
@@ -387,9 +422,6 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
             setIsConfirmed(true);
-            if (isPerDiemRequest) {
-                return;
-            }
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -421,7 +453,7 @@ function IOURequestStepConfirmation({
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    startSplitBillFunc({
+                    startSplitBill({
                         participants: selectedParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -443,7 +475,7 @@ function IOURequestStepConfirmation({
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    splitBillFunc({
+                    splitBill({
                         participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -469,7 +501,7 @@ function IOURequestStepConfirmation({
             // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    splitBillAndOpenReportFunc({
+                    splitBillAndOpenReport({
                         participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -528,6 +560,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            if (isPerDiemRequest) {
+                submitPerDiemExpense(selectedParticipants, trimmedComment);
+                return;
+            }
+
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
@@ -559,7 +596,6 @@ function IOURequestStepConfirmation({
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
-            isPerDiemRequest,
             iouType,
             transaction,
             isDistanceRequest,
@@ -567,6 +603,7 @@ function IOURequestStepConfirmation({
             receiptFile,
             isCategorizingTrackExpense,
             isSharingTrackExpense,
+            isPerDiemRequest,
             requestMoney,
             createDistanceRequest,
             currentUserPersonalDetails.login,
@@ -578,6 +615,7 @@ function IOURequestStepConfirmation({
             policyTags,
             policyCategories,
             trackExpense,
+            submitPerDiemExpense,
         ],
     );
 
