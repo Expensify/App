@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -211,6 +211,16 @@ function BaseValidateCodeForm({
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
 
+    const errorText = useMemo(() => {
+        if (!canShowError) {
+            return '';
+        }
+        if (formError?.validateCode) {
+            return translate(formError?.validateCode);
+        }
+        return getLatestErrorMessage(account ?? {});
+    }, [canShowError, formError, account]);
+
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
     return (
         <>
@@ -220,16 +230,7 @@ function BaseValidateCodeForm({
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={
-                    canShowError
-                        ? (() => {
-                              if (formError?.validateCode) {
-                                  return translate(formError?.validateCode);
-                              }
-                              return getLatestErrorMessage(account ?? {});
-                          })()
-                        : ''
-                }
+                errorText={errorText}
                 hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
