@@ -39,7 +39,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, []);
+    }, [bottom]);
 
     const setIsKeyboardAnimating = useCallback((isAnimating: boolean) => {
         isKeyboardAnimatingRef.current = isAnimating;
@@ -49,10 +49,12 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         {
             onStart: () => {
                 'worklet';
+
                 runOnJS(setIsKeyboardAnimating)(true);
             },
             onEnd: () => {
                 'worklet';
+
                 runOnJS(setIsKeyboardAnimating)(false);
             },
         },
@@ -63,7 +65,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         () => ({
             keyboardHeight,
             isKeyboardShown: keyboardHeight !== 0,
-            isKeyboardAnimatingRef: isKeyboardAnimatingRef,
+            isKeyboardAnimatingRef,
         }),
         [keyboardHeight],
     );
