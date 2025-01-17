@@ -5344,6 +5344,21 @@ const styles = (theme: ThemeColors) =>
             width: variables.sideBarWidth - 19,
         },
 
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
+            borderRadius: 2,
+            overflow: 'hidden',
+            marginBottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
+        },
+
         accountSwitcherAnchorPosition: {
             top: 80,
             left: 12,
