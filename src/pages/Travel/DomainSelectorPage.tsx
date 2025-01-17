@@ -35,20 +35,6 @@ function DomainSelectorPage() {
         });
     }, [domains, recommendedDomain, selectedDomain]);
 
-    const footerContent = useMemo(
-        () => (
-            <Button
-                isDisabled={selectedDomain.length <= 0}
-                success
-                large
-                style={[styles.w100]}
-                onPress={() => Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain))}
-                text={translate('common.continue')}
-            />
-        ),
-        [selectedDomain, translate, styles],
-    );
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -66,7 +52,14 @@ function DomainSelectorPage() {
                 canSelectMultiple
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
-                footerContent={footerContent}
+                footerContent={<Button
+                    isDisabled={selectedDomain.length <= 0}
+                    success
+                    large
+                    style={[styles.w100]}
+                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain))}
+                    text={translate('common.continue')}
+                />}
             />
         </ScreenWrapper>
     );
