@@ -115,16 +115,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasHeldExpenses = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
-        return (
-            transactions?.some((t) => {
-                const isPending = TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t);
-                return !isPending;
-            }) ?? false
-        );
+        return !transactions?.some((t) => {
+            const isPending = TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t);
+            return !isPending;
+        });
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
+    const hasAllPendingRTERViolations = transaction?.transactionID ? TransactionUtils.allHavePendingRTERViolation([transaction.transactionID]) : false;
+    const shouldShowBrokenConnectionViolation = transaction?.transactionID
+        ? TransactionUtils.shouldShowBrokenConnectionViolation([transaction.transactionID], moneyRequestReport, policy)
+        : false;
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedReport(moneyRequestReport);
