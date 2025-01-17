@@ -3,10 +3,10 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import * as User from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Delegate from '@userActions/Delegate';
+import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +26,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
-    const validateLoginError = ErrorUtils.getLatestError(addDelegateErrors);
+    const validateLoginError = getLatestError(addDelegateErrors);
 
     useEffect(() => {
         if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
@@ -45,7 +45,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         if (!validateLoginError) {
             return;
         }
-        Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
+        clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
     };
 
     return (
@@ -57,9 +57,9 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => User.requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction()}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
-            handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
+            handleSubmitForm={(validateCode) => addDelegate(login, role, validateCode)}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );

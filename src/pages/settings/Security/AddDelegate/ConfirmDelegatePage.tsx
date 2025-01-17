@@ -15,7 +15,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -38,7 +38,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
         navigation.setParams({showValidateActionModal: String(isValidateCodeActionModalVisible)});
     }, [isValidateCodeActionModalVisible, navigation]);
 
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
+    const personalDetails = getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
