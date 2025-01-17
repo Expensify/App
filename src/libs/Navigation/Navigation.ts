@@ -29,6 +29,7 @@ import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
+import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
@@ -549,6 +550,7 @@ export default {
     navigateToReportWithPolicyCheck,
     popToTop,
     removeScreenFromNavigationState,
+    switchPolicyID,
 };
 
 export {navigationRef};
