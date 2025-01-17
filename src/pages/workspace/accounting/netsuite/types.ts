@@ -13,6 +13,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
 
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
+    /** Optional hint text passed to the MenuItemWithTopDescription */
     hintText?: string;
 };
 
@@ -55,10 +56,19 @@ type ToggleItem = ToggleSettingOptionRowProps & {
 };
 
 type AccordionItem = {
+    /** Type of the item */
     type: 'accordion';
+
+    /** Items nested inside the accordion */
     children: MenuItemToRender[];
+
+    /** Whether the item should be hidden */
     shouldHide: boolean;
+
+    /** Indicates if the accordion is expanded */
     shouldExpand: SharedValue<boolean>;
+
+    /** Indicates if the accordion opening and closing should be animated */
     shouldAnimateSection: SharedValue<boolean>;
 };
 
