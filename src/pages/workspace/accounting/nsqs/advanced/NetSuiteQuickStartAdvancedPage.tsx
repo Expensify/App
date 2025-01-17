@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,6 +15,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {NSQSAccount} from '@src/types/onyx/Policy';
 
 function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -23,6 +24,19 @@ function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
+    const nsqsData = policy?.connections?.nsqs?.data;
+    const payableList = nsqsData?.payableList ?? [];
+
+    const defaultApprovalAccount: NSQSAccount = useMemo(
+        () => ({
+            id: '',
+            name: translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
+            type: CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
+        }),
+        [translate],
+    );
+    const otherApprovalAccounts: NSQSAccount[] = useMemo(() => payableList.filter((account) => account.type === CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE), [payableList]);
+    const selectedApprovalAccount = [defaultApprovalAccount, ...otherApprovalAccounts].find((account) => account.id === approvalAccount);
 
     const toggleAutoSync = useCallback(() => {
         updateNetSuiteQuickStartAutoSync(policyID, !isAutoSyncEnabled);
@@ -52,7 +66,7 @@ function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
                 />
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
-                        title={approvalAccount || translate(`workspace.nsqs.advanced.defaultApprovalAccount`)}
+                        title={selectedApprovalAccount?.name}
                         description={translate(`workspace.nsqs.advanced.approvalAccount`)}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                         shouldShowRightIcon
