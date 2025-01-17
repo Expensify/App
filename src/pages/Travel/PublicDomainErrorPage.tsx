@@ -18,9 +18,10 @@ function PublicDomainErrorPage() {
             testID={PublicDomainErrorPage.displayName}
         >
             <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
-            <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
+            <View style={[styles.mt3, styles.mr5, styles.ml5]}>
                 <Text style={styles.headerAnonymousFooter}>{`${translate('travel.publicDomainError.title')}`}</Text>
-                <br />
+            </View>
+            <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
                 <Text>{translate('travel.publicDomainError.message')}</Text>
             </View>
         </ScreenWrapper>
