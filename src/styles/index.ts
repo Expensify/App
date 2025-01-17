@@ -1738,10 +1738,6 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
-        welcomeVideoNarrowLayout: {
-            width: variables.onboardingModalWidth,
-        },
-
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -4001,12 +3997,6 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        reportActionComposeTooltipWrapper: {
-            backgroundColor: theme.tooltipHighlightBG,
-            paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
-        },
-
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -4014,7 +4004,7 @@ const styles = (theme: ThemeColors) =>
 
         productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
         },
 
@@ -4847,7 +4837,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
