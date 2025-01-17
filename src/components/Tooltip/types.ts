@@ -40,8 +40,8 @@ type SharedTooltipProps = {
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
+    /** Whether the tooltip should teleport to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type GenericTooltipState = {
@@ -61,8 +61,14 @@ type GenericTooltipState = {
 type GenericTooltipProps = SharedTooltipProps & {
     children: React.FC<GenericTooltipState>;
 
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
+
     /** Whether to ignore TooltipSense activity and always triger animation */
     shouldForceAnimate?: boolean;
+
+    /** Whether it is education tooltip */
+    isEducationTooltip?: boolean;
 };
 
 type TooltipProps = ChildrenProps &
@@ -73,11 +79,11 @@ type TooltipProps = ChildrenProps &
 
 type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
-        /** Whether to automatically dismiss the tooltip after 5 seconds */
-        shouldAutoDismiss?: boolean;
-
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
+
+        /** Whether the tooltip should hide when navigating */
+        shouldHideOnNavigate?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {

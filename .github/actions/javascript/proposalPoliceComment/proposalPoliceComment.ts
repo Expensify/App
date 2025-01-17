@@ -1,22 +1,28 @@
 import {setFailed} from '@actions/core';
 import {context} from '@actions/github';
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
+import {format} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import OpenAIUtils from '@github/libs/OpenAIUtils';
-
-function isCommentCreatedOrEditedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent | IssueCommentEditedEvent {
-    return payload.action === CONST.ACTIONS.CREATED || payload.action === CONST.ACTIONS.EDIT;
-}
+import type {AssistantResponse} from '@github/libs/OpenAIUtils';
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
 }
 
+function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueCommentEditedEvent {
+    return payload.action === CONST.ACTIONS.EDITED;
+}
+
 // Main function to process the workflow event
 async function run() {
-    // get date early, as soon as the workflow starts running
-    const date = new Date();
+    // Capture the timestamp immediately at the start of the run
+    const now = Date.now();
+    const zonedDate = toZonedTime(now, 'UTC');
+    const formattedDate = format(zonedDate, "yyyy-MM-dd HH:mm:ss 'UTC'");
+
     // Verify this is running for an expected webhook event
     if (context.eventName !== CONST.EVENTS.ISSUE_COMMENT) {
         throw new Error('ProposalPolice™ only supports the issue_comment webhook event');
@@ -38,7 +44,7 @@ async function run() {
     console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
     console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
 
-    if (!isCommentCreatedOrEditedEvent(payload)) {
+    if (!isCommentCreatedEvent(payload) && !isCommentEditedEvent(payload)) {
         console.error('Unsupported action type:', payload?.action);
         setFailed(new Error(`Unsupported action type ${payload?.action}`));
         return;
@@ -49,28 +55,23 @@ async function run() {
         : `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
 
     const assistantResponse = await OpenAIUtils.prompt(prompt);
+    const parsedAssistantResponse = JSON.parse(OpenAIUtils.sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
+    console.log('parsedAssistantResponse: ', parsedAssistantResponse);
 
-    // check if assistant response is either NO_ACTION or "NO_ACTION" strings
-    // as sometimes the assistant response varies
-    const isNoAction = assistantResponse.trim().replaceAll(' ', '_').replaceAll('"', '').toUpperCase() === CONST.NO_ACTION;
+    // fallback to empty strings to avoid crashing in case parsing fails and we fallback to empty object
+    const {action = '', message = ''} = parsedAssistantResponse ?? {};
+    const isNoAction = action.trim() === CONST.NO_ACTION;
+    const isActionEdit = action.trim() === CONST.ACTION_EDIT;
+    const isActionRequired = action.trim() === CONST.ACTION_REQUIRED;
 
-    // If assistant response is NO_ACTION, do nothing
-    if (isNoAction) {
-        console.log('Detected NO_ACTION for comment, returning early');
+    // If assistant response is NO_ACTION and there's no message, do nothing
+    if (isNoAction && !message) {
+        console.log('Detected NO_ACTION for comment, returning early.');
         return;
     }
 
-    // if the assistant responded with no action but there's some context in the response
-    if (assistantResponse.includes(`[${CONST.NO_ACTION}]`)) {
-        // extract the text after [NO_ACTION] from assistantResponse since this is a
-        // bot related action keyword
-        const noActionContext = assistantResponse.split(`[${CONST.NO_ACTION}] `).at(1)?.replace('"', '');
-        console.log('[NO_ACTION] w/ context: ', noActionContext);
-        return;
-    }
-
-    if (isCommentCreatedEvent(payload)) {
-        const formattedResponse = assistantResponse
+    if (isCommentCreatedEvent(payload) && isActionRequired) {
+        const formattedResponse = message
             // replace {user} from response template with @username
             .replaceAll('{user}', `@${payload.comment?.user.login}`)
 
@@ -84,20 +85,15 @@ async function run() {
         // Create a comment with the assistant's response
         console.log('ProposalPolice™ commenting on issue...');
         await GithubUtils.createComment(CONST.APP_REPO, context.issue.number, formattedResponse);
-        // edit comment if assistant detected substantial changes and if the comment was not edited already by the bot
-    } else if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
-        // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
-        // bot related action keyword
-        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ').at(1)?.replace('"', '');
-        // format the date like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-        const formattedDate = `${date.toISOString()?.split('.').at(0)?.replace('T', ' ')} UTC`;
-        extractedNotice = extractedNotice?.replace('{updated_timestamp}', formattedDate);
+        // edit comment if assistant detected substantial changes
+    } else if (isActionEdit) {
+        const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
         console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
         await GithubUtils.octokit.issues.updateComment({
             ...context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
             comment_id: payload.comment.id,
-            body: `${extractedNotice}\n\n${payload.comment?.body}`,
+            body: `${formattedResponse}\n\n${payload.comment?.body}`,
         });
     }
 }

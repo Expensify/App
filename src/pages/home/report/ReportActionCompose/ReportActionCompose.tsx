@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -27,23 +27,24 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import variables from '@styles/variables';
-import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
-import * as Report from '@userActions/Report';
+import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
+import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
-import * as User from '@userActions/User';
+import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -128,17 +129,18 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const offsetTop = useViewportOffsetTop();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const isScreenFocused = useIsFocused();
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE,
-        shouldShowEducationalTooltip,
+        shouldShowEducationalTooltip && isScreenFocused,
     );
 
     /**
@@ -148,7 +150,6 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
-    const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -200,12 +201,12 @@ function ReportActionCompose({
     );
 
     const shouldShowReportRecipientLocalTime = useMemo(
-        () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
+        () => canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
-    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
+    const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // Placeholder to display in the chat input.
@@ -240,11 +241,12 @@ function ReportActionCompose({
     );
 
     const onAddActionPressed = useCallback(() => {
+        hideProductTrainingTooltip();
         if (!willBlurTextInputOnTapOutside) {
             isKeyboardVisibleWhenShowingModalRef.current = !!composerRef.current?.isFocused();
         }
         composerRef.current?.blur();
-    }, []);
+    }, [hideProductTrainingTooltip]);
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
@@ -286,7 +288,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
+                addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -335,25 +337,18 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID)) {
+            if (!isActiveEmojiPickerAction(report?.reportID)) {
                 return;
             }
-            EmojiPickerActions.hideEmojiPicker();
+            hideEmojiPicker();
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setShouldHideEducationalTooltip(true);
-        });
-        return unsubscribe;
-    }, [navigation]);
-
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
-    const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipientAcountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
@@ -412,7 +407,7 @@ function ReportActionCompose({
     const onValueChange = useCallback(
         (value: string) => {
             if (value.length === 0 && isComposerFullSize) {
-                Report.setIsComposerFullSize(reportID, false);
+                setIsComposerFullSize(reportID, false);
             }
             debouncedValidate(value);
         },
@@ -432,17 +427,15 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender={!shouldHideEducationalTooltip && shouldShowProductTrainingTooltip}
+                        shouldRender={shouldShowProductTrainingTooltip}
                         renderTooltipContent={renderProductTrainingTooltip}
-                        shouldUseOverlay
-                        onHideTooltip={hideProductTrainingTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
-                        wrapperStyle={styles.reportActionComposeTooltipWrapper}
+                        wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pv2]}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
-                        shiftVertical={variables.composerTooltipShiftVertical}
+                        shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
                     >
                         <View
                             ref={containerRef}
@@ -499,7 +492,7 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
                                             policyID={report?.policyID}
-                                            includeChronos={ReportUtils.chatIncludesChronos(report)}
+                                            includeChronos={chatIncludesChronos(report)}
                                             isGroupPolicyReport={isGroupPolicyReport}
                                             lastReportAction={lastReportAction}
                                             isMenuVisible={isMenuVisible}
@@ -535,7 +528,7 @@ function ReportActionCompose({
                                     </>
                                 )}
                             </AttachmentModal>
-                            {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                            {canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
                                     onModalHide={(isNavigating) => {
