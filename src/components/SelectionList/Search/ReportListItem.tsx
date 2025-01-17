@@ -64,6 +64,7 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    shouldAnimationOnRemove,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
 
@@ -157,6 +158,7 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            shouldAnimationOnRemove={shouldAnimationOnRemove}
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (

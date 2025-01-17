@@ -521,6 +521,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+            shouldAnimationOnRemove
         />
     );
 }

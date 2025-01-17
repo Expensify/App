@@ -37,6 +37,8 @@ type PressableWithFeedbackProps = PressableProps & {
 
     /** The color of the underlay that will show through when the Pressable is active. */
     underlayColor?: Color;
+
+    shouldAnimationOnRemove?: boolean;
 };
 
 function PressableWithFeedback(
@@ -47,6 +49,7 @@ function PressableWithFeedback(
         pressDimmingValue = variables.pressDimValue,
         hoverDimmingValue = variables.hoverDimValue,
         dimAnimationDuration,
+        shouldAnimationOnRemove,
         ...rest
     }: PressableWithFeedbackProps,
     ref: PressableRef,
@@ -61,6 +64,7 @@ function PressableWithFeedback(
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
+            shouldAnimationOnRemove={shouldAnimationOnRemove}
         >
             <GenericPressable
                 ref={ref}
