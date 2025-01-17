@@ -25,9 +25,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ComposerUtils from '@libs/ComposerUtils';
+import {setShouldShowComposeInput} from '@libs/actions/Composer';
+import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
+import {callback, composerFocusKeepFocusOn, inputFocusChange} from '@libs/actions/InputFocus';
+import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
+import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -35,13 +39,9 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getCommentLength} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
-import * as ComposerActions from '@userActions/Composer';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as InputFocus from '@userActions/InputFocus';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -102,7 +102,7 @@ function ReportActionItemMessageEdit(
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
+            emojisPresentBefore.current = extractEmojis(draftMessage);
         }
         return draftMessage;
     });
@@ -126,17 +126,17 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = Parser.htmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), {
+        const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(action), {
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
         });
-        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
+        if (isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
-        InputFocus.composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
+        composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
     }, [isFocused, modal, onyxFocused]);
 
     useEffect(() => {
@@ -183,7 +183,7 @@ function ReportActionItemMessageEdit(
 
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
-        () => isFocusedRef.current || EmojiPickerAction.isActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
+        () => isFocusedRef.current || isEmojiPickerActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
         [action.reportActionID],
     );
 
@@ -210,16 +210,16 @@ function ReportActionItemMessageEdit(
             }
 
             return () => {
-                InputFocus.callback(() => setIsFocused(false));
-                InputFocus.inputFocusChange(false);
+                callback(() => setIsFocused(false));
+                inputFocusChange(false);
 
                 // Skip if the current report action is not active
                 if (!isActive()) {
                     return;
                 }
 
-                if (EmojiPickerAction.isActive(action.reportActionID)) {
-                    EmojiPickerAction.clearActive();
+                if (isEmojiPickerActive(action.reportActionID)) {
+                    clearActive();
                 }
                 if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                     ReportActionContextMenu.clearActiveReportAction();
@@ -235,7 +235,7 @@ function ReportActionItemMessageEdit(
     );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
-    useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
+    useEffect(() => () => setShouldShowComposeInput(true), []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -246,7 +246,7 @@ function ReportActionItemMessageEdit(
         () =>
             // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
-                Report.saveReportActionDraft(reportID, action, newDraft);
+                saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
             }, 1000),
         [reportID, action],
@@ -267,7 +267,7 @@ function ReportActionItemMessageEdit(
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
-            const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
             emojisPresentBefore.current = emojis;
 
@@ -301,7 +301,7 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        Report.deleteReportActionDraft(reportID, action);
+        deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
@@ -324,7 +324,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -336,7 +336,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -357,7 +357,7 @@ function ReportActionItemMessageEdit(
             // To fix this, immediately set the selection again after focusing the input.
             emojiPickerSelectionRef.current = newSelection;
         }
-        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
+        updateDraft(insertText(draft, selection, `${emoji} `));
     };
 
     const hideSuggestionMenu = useCallback(() => {
@@ -382,7 +382,7 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+            if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
             const keyEvent = e as KeyboardEvent;
@@ -535,8 +535,8 @@ function ReportActionItemMessageEdit(
                                 setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
-                                if (!EmojiPickerAction.isActive(action.reportActionID)) {
-                                    EmojiPickerAction.clearActive();
+                                if (!isEmojiPickerActive(action.reportActionID)) {
+                                    clearActive();
                                 }
                                 if (!ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                                     ReportActionContextMenu.clearActiveReportAction();
@@ -545,11 +545,7 @@ function ReportActionItemMessageEdit(
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (
-                                    relatedTargetId === CONST.COMPOSER.NATIVE_ID ||
-                                    relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID ||
-                                    EmojiPickerAction.isEmojiPickerVisible()
-                                ) {
+                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
