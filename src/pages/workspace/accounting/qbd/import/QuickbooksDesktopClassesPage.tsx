@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
@@ -22,6 +25,8 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const isSwitchOn = !!(qbdConfig?.mappings?.classes && qbdConfig.mappings.classes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = qbdConfig?.mappings?.classes === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
     return (
         <ConnectionLayout
@@ -50,7 +55,11 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
                 onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
             />
-            {isSwitchOn && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES], qbdConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -65,7 +74,7 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
                         }
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

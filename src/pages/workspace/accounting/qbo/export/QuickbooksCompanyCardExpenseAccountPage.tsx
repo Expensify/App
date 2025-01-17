@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
@@ -19,10 +22,12 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
+
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
 
     const sections = [
         {
@@ -73,7 +78,6 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qboConfig?.autoCreateVendor}
-                        shouldPlaceSubtitleBelowSwitch
                         pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR], qboConfig?.pendingFields)}
                         errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
                         onToggle={(isOn) =>
@@ -94,7 +98,11 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         }
                         onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
                     />
-                    {qboConfig?.autoCreateVendor && (
+                    <Accordion
+                        isExpanded={isAccordionExpanded}
+                        style={styles.overflowHidden}
+                        isToggleTriggered={shouldAnimateAccordionSection}
+                    >
                         <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={nonReimbursableBillDefaultVendorObject?.name}
@@ -108,7 +116,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 shouldShowRightIcon
                             />
                         </OfflineWithFeedback>
-                    )}
+                    </Accordion>
                 </>
             )}
         </ConnectionLayout>

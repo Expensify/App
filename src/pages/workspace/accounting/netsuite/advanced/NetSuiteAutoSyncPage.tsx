@@ -1,9 +1,11 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
+import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
@@ -28,6 +30,8 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
 
     return (
         <AccessOrNotFoundWrapper
@@ -58,7 +62,12 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     pendingAction={pendingAction}
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
-                {!!autoSyncConfig?.autoSync?.enabled && (
+
+                <Accordion
+                    isExpanded={isAccordionExpanded}
+                    style={styles.overflowHidden}
+                    isToggleTriggered={shouldAnimateAccordionSection}
+                >
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={
@@ -71,7 +80,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
-                )}
+                </Accordion>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

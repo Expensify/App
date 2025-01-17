@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
@@ -18,6 +18,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
+import useAccordionAnimation from "@hooks/useAccordionAnimation";
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -27,6 +28,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const isSwitchOn = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTagsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
     const shouldShowLineItemsRestriction = shouldShowLocationsLineItemsRestriction(qboConfig);
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
     const updateQuickbooksOnlineSyncLocations = useCallback(
         (settingValue: IntegrationEntityMap) => {
@@ -47,6 +49,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         }
         updateQuickbooksOnlineSyncLocations(CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD);
     }, [qboConfig, updateQuickbooksOnlineSyncLocations]);
+
+
 
     return (
         <ConnectionLayout
@@ -78,7 +82,11 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
                 pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
             />
-            {isSwitchOn && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         interactive={!shouldShowLineItemsRestriction}
@@ -90,15 +98,10 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         brickRoadIndicator={
                             PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                         }
+                        hintText={translate('workspace.qbo.locationsLineItemsRestrictionDescription')}
                     />
                 </OfflineWithFeedback>
-            )}
-
-            {shouldShowLineItemsRestriction && isSwitchOn && (
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
-                    <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsLineItemsRestrictionDescription')}</Text>
-                </View>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }
