@@ -114,11 +114,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const navigateBackToAfterDelete = useRef<Route>();
     const hasHeldExpenses = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
-    const hasOnlyPendingTransactions =
-        transactions?.some((t) => {
-            const isPending = TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t);
-            return !isPending;
-        }) ?? false;
+    const hasOnlyPendingTransactions = useMemo(() => {
+        return (
+            transactions?.some((t) => {
+                const isPending = TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t);
+                return !isPending;
+            }) ?? false
+        );
+    }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID]);
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, moneyRequestReport, policy);
