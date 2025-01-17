@@ -31,7 +31,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const showValidateActionModal = route.params.showValidateActionModal === 'true';
     const {isOffline} = useNetwork();
-    const shouldDisableModalAnimationRef = useRef(true);
+    const [shouldDisableModalAnimation, setShouldDisableModalAnimation] = useState(true);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
     useEffect(() => {
@@ -54,7 +54,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
-                shouldDisableModalAnimationRef.current = false;
+                setShouldDisableModalAnimation(false);
                 setIsValidateCodeActionModalVisible(true);
             }}
         />
@@ -87,8 +87,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    disableAnimation={shouldDisableModalAnimationRef.current}
+                    disableAnimation={shouldDisableModalAnimation}
                     shouldHandleNavigationBack
                     login={login}
                     role={role}
