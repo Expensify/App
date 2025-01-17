@@ -1,12 +1,10 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAllTripsTransactions} from '@libs/TransactionUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+import useTripTransactions from '@hooks/useTripTransactions';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
@@ -18,10 +16,7 @@ type TripSummaryProps = {
 
 function TripSummary({report}: TripSummaryProps) {
     const styles = useThemeStyles();
-
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const tripTransactions = useMemo(() => getAllTripsTransactions(report?.reportID, reports, transactions), [report?.reportID, reports, transactions]);
+    const tripTransactions = useTripTransactions(report?.reportID);
 
     if (!report?.reportID) {
         return null;

@@ -843,18 +843,6 @@ function getAllReportTransactions(reportID?: string, transactions?: OnyxCollecti
     return reportTransactions;
 }
 
-function getAllTripsTransactions(tripRoomReportID: string | undefined, reports: OnyxCollection<Report>, transactions: OnyxCollection<Transaction>): Transaction[] {
-    const tripTransactionReportIDs = Object.values(reports ?? {})
-        .filter((report) => report && report.chatReportID === tripRoomReportID)
-        .map((report) => report?.reportID);
-
-    const tripTransactions: Transaction[] = Object.values(transactions ?? {}).filter(
-        (transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID),
-    );
-
-    return tripTransactions;
-}
-
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -1458,7 +1446,6 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
-    getAllTripsTransactions,
     isPerDiemRequest,
 };
 
