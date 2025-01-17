@@ -1088,7 +1088,7 @@ type NSQSAccount = {
 };
 
 /**
- * Connection data for NetSuite QuickStart
+ * Connection data for NSQS
  */
 type NSQSConnectionData = {
     /** Collection of the payable accounts */
@@ -1096,15 +1096,15 @@ type NSQSConnectionData = {
 };
 
 /**
- * Connection config for NetSuite QuickStart
+ * Connection config for NSQS
  */
 type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Configuration of automatic synchronization from NetSuite QuickStart to the app */
+    /** Configuration of automatic synchronization from NSQS to the app */
     autoSync: {
         /** Job ID of the synchronization */
         jobID: string;
 
-        /** Whether changes made in NetSuite QuickStart should be reflected into the app automatically */
+        /** Whether changes made in NSQS should be reflected into the app automatically */
         enabled: boolean;
     };
 
@@ -1424,7 +1424,7 @@ type Connections = {
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
-    /** NetSuite QuickStart integration connection */
+    /** NSQS integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
 
     /** Sage Intacct integration connection */

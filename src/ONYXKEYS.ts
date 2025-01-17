@@ -822,8 +822,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM]: FormTypes.NetSuiteTokenInputForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM]: FormTypes.NetSuiteCustomFormIDForm;
-    [ONYXKEYS.FORMS.NSQS_OAUTH2_FORM]: FormTypes.NetSuiteQuickStartOAuth2Form;
-    [ONYXKEYS.FORMS.NSQS_OAUTH2_FORM_DRAFT]: FormTypes.NetSuiteQuickStartOAuth2Form;
+    [ONYXKEYS.FORMS.NSQS_OAUTH2_FORM]: FormTypes.NSQSOAuth2Form;
+    [ONYXKEYS.FORMS.NSQS_OAUTH2_FORM_DRAFT]: FormTypes.NSQSOAuth2Form;
     [ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM]: FormTypes.SageIntacctDimensionForm;
     [ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM]: FormTypes.SearchAdvancedFiltersForm;
     [ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM]: FormTypes.TextPickerModalForm;

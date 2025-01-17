@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteQuickStartAutoSync} from '@libs/actions/connections/NetSuiteQuickStart';
+import {updateNSQSAutoSync} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {NSQSAccount} from '@src/types/onyx/Policy';
 
-function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
+function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -39,13 +39,13 @@ function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
     const selectedApprovalAccount = [defaultApprovalAccount, ...otherApprovalAccounts].find((account) => account.id === approvalAccount);
 
     const toggleAutoSync = useCallback(() => {
-        updateNetSuiteQuickStartAutoSync(policyID, !isAutoSyncEnabled);
+        updateNSQSAutoSync(policyID, !isAutoSyncEnabled);
     }, [policyID, isAutoSyncEnabled]);
 
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={NetSuiteQuickStartAdvancedPage.displayName}
+            displayName={NSQSAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -79,6 +79,6 @@ function NetSuiteQuickStartAdvancedPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartAdvancedPage.displayName = 'NetSuiteQuickStartAdvancedPage';
+NSQSAdvancedPage.displayName = 'NSQSAdvancedPage';
 
-export default withPolicyConnections(NetSuiteQuickStartAdvancedPage);
+export default withPolicyConnections(NSQSAdvancedPage);

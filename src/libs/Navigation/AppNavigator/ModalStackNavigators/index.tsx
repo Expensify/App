@@ -494,21 +494,21 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ACCOUNTING_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteAccountingMethodPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/NetSuiteQuickStartSetupPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NetSuiteQuickStartImportPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NetSuiteQuickStartCustomersPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/NSQSSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSImportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSCustomersPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NetSuiteQuickStartCustomersDisplayedAsPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NetSuiteQuickStartProjectsPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSCustomersDisplayedAsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSProjectsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS_DISPLAYED_AS]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NetSuiteQuickStartProjectsDisplayedAsPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NetSuiteQuickStartExportPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSProjectsDisplayedAsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NSQSExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PREFERRED_EXPORTER]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NetSuiteQuickStartPreferredExporterPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NetSuiteQuickStartDatePage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/advanced/NetSuiteQuickStartAdvancedPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NSQSPreferredExporterPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/export/NSQSDatePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/advanced/NSQSAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/advanced/NetSuiteQuickStartApprovalAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/advanced/NSQSApprovalAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/SageIntacctPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/EnterSageIntacctCredentialsPage').default,

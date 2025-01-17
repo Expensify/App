@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type NetSuiteQuickStartOAuth2Form = Form<
+type NSQSOAuth2Form = Form<
     InputID,
     {
         [INPUT_IDS.NSQS_ACCOUNT_ID]: string;
     }
 >;
 
-export type {NetSuiteQuickStartOAuth2Form};
+export type {NSQSOAuth2Form};
 export default INPUT_IDS;

@@ -4,7 +4,7 @@ import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteQuickStartApprovalAccount, updateNetSuiteQuickStartExporter} from '@libs/actions/connections/NetSuiteQuickStart';
+import {updateNSQSApprovalAccount, updateNSQSExporter} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {NSQSAccount} from '@src/types/onyx/Policy';
 
-function NetSuiteQuickStartApprovalAccountPage({policy}: WithPolicyProps) {
+function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
@@ -44,7 +44,7 @@ function NetSuiteQuickStartApprovalAccountPage({policy}: WithPolicyProps) {
     const updateApprovalAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== approvalAccount) {
-                updateNetSuiteQuickStartApprovalAccount(policyID, value, approvalAccount);
+                updateNSQSApprovalAccount(policyID, value, approvalAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID));
         },
@@ -58,7 +58,7 @@ function NetSuiteQuickStartApprovalAccountPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteQuickStartApprovalAccountPage.displayName}
+            displayName={NSQSApprovalAccountPage.displayName}
             headerContent={headerContent}
             sections={[{data: sectionData}]}
             listItem={RadioListItem}
@@ -76,6 +76,6 @@ function NetSuiteQuickStartApprovalAccountPage({policy}: WithPolicyProps) {
     );
 }
 
-NetSuiteQuickStartApprovalAccountPage.displayName = 'NetSuiteQuickStartApprovalAccountPage';
+NSQSApprovalAccountPage.displayName = 'NSQSApprovalAccountPage';
 
-export default withPolicyConnections(NetSuiteQuickStartApprovalAccountPage);
+export default withPolicyConnections(NSQSApprovalAccountPage);
