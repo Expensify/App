@@ -12,8 +12,8 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as ReimbursementAccount from './ReimbursementAccount';
+import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -63,7 +63,7 @@ function clearPlaid(): Promise<void | void[]> {
 }
 
 function openPlaidView() {
-    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+    clearPlaid().then(() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
 function setPlaidEvent(eventName: string | null) {
@@ -73,10 +73,16 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
+function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: string, source?: string, isUserValidated = true) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        if (policyID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+        }
+        if (source) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
@@ -161,7 +167,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = t
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -196,7 +202,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount) {
+function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -207,6 +213,12 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
     };
+    if (policyID) {
+        parameters.policyID = policyID;
+    }
+    if (source) {
+        parameters.source = source;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -244,7 +256,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -334,7 +346,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -425,7 +437,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     isSuccess: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -633,7 +645,7 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     const errorFields: FormInputErrors<AccountFormValues> = {};
 
     if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = Localize.translateLocal('bankAccount.error.youNeedToSelectAnOption');
+        errorFields.selectedPlaidAccountID = translateLocal('bankAccount.error.youNeedToSelectAnOption');
     }
 
     return errorFields;

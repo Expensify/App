@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -114,7 +114,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
                 return;
             }
 

@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
+import {getChatFSAttributes} from '@libs/Fullstory';
 import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +30,7 @@ import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import {PersonalDetailsContext} from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -171,6 +173,7 @@ function ReportActionsList({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const participantsContext = useContext(PersonalDetailsContext);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -565,7 +568,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = ReportUtils.isArchivedRoom(report);
+        const isArchivedReport = ReportUtils.isArchivedNonExpenseReport(report);
         const hasNewMessagesInView = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -630,7 +633,7 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
+        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, reportNameValuePairs],
     );
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
@@ -724,13 +727,19 @@ function ReportActionsList({
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
     const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
+    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+
     return (
         <>
             <FloatingMessageCounter
                 isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <View style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+            <View
+                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                testID={reportActionsListTestID}
+                fsClass={reportActionsListFSClass}
+            >
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
