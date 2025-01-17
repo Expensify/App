@@ -71,7 +71,6 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
-    FirstDayTextParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
@@ -91,7 +90,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastDayTextParams,
     LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
@@ -167,7 +165,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    TripLengthTextParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
@@ -490,6 +487,7 @@ const translations = {
         destination: 'Destino',
         subrate: 'Subtasa',
         perDiem: 'Per diem',
+        validate: 'Validar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -570,6 +568,7 @@ const translations = {
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
         title: 'Aquí está tu código mágico',
         or: ', ¡o',
+        doNotShare: '¡No compartas tu código con nadie.\nExpensify nunca te lo pedirá.',
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
@@ -836,7 +835,7 @@ const translations = {
     quickAction: {
         scanReceipt: 'Escanear recibo',
         recordDistance: 'Grabar distancia',
-        requestMoney: 'Presentar gasto',
+        requestMoney: 'Crear gasto',
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
@@ -864,11 +863,10 @@ const translations = {
         categorize: 'Categorizar',
         share: 'Compartir',
         participants: 'Participantes',
-        submitExpense: 'Presentar gasto',
         createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
-        trackExpense: 'Seguimiento de gastos',
         chooseRecipient: 'Elige destinatario',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Crear un gasto de ${amount}`,
         confirmDetails: 'Confirma los detalles',
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
@@ -1090,9 +1088,21 @@ const translations = {
         deleteSubrateConfirmation: '¿Estás seguro de que deseas eliminar esta subtasa?',
         quantity: 'Cantidad',
         subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
-        firstDayText: ({hours}: FirstDayTextParams) => `Primer día: ${hours} horas`,
-        lastDayText: ({hours}: LastDayTextParams) => `Último día: ${hours} horas`,
-        tripLengthText: ({days}: TripLengthTextParams) => `Viaje: ${days} días completos`,
+        qty: 'Cant',
+        firstDayText: () => ({
+            one: `Primer día: 1 hora`,
+            other: (count: number) => `Primer día: ${count} horas`,
+        }),
+        lastDayText: () => ({
+            one: `Último día: 1 hora`,
+            other: (count: number) => `Último día: ${count} horas`,
+        }),
+        tripLengthText: () => ({
+            one: `Viaje: 1 día completo`,
+            other: (count: number) => `Viaje: ${count} días completos`,
+        }),
+        dates: 'Fechas',
+        rates: 'Tasas',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1884,7 +1894,10 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar mensajes SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
     },
     welcomeSignUpForm: {
         join: 'Unirse',
@@ -1984,7 +1997,7 @@ const translations = {
         chooseAnAccountBelow: 'Elige una cuenta a continuación',
         addBankAccount: 'Añadir cuenta bancaria',
         chooseAnAccount: 'Elige una cuenta',
-        connectOnlineWithPlaid: 'Conectar con Plaid',
+        connectOnlineWithPlaid: 'Inicia sesión en tu banco',
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
@@ -3400,8 +3413,8 @@ const translations = {
                     text: 'Obtén más información sobre estas ',
                     linkText: 'opciones.',
                 },
-                customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
-                directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
+                customFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
+                directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
                     heading:
@@ -3617,7 +3630,7 @@ const translations = {
                 disableCardButton: 'Chatear con Concierge',
                 feed: {
                     title: 'Consigue la Tarjeta Expensify',
-                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify.',
+                    subTitle: 'Simplifica los gastos de tu empresa y ahorra hasta un 50 % en tu factura de Expensify, además:',
                     features: {
                         cashBack: 'Devolución de dinero en cada compra en Estados Unidos',
                         unlimited: 'Un número ilimitado de tarjetas virtuales',

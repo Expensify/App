@@ -182,7 +182,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
 
     return (
         <>
