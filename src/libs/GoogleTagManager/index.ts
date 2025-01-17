@@ -26,7 +26,10 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number) {
     }
 
     const params = {event, user_id: accountID};
-    window.dataLayer.push(params);
+
+    // Pass a copy of params here since the dataLayer modifies the object
+    window.dataLayer.push({...params});
+
     Log.info('[GTM] event published', false, params);
 }
 
