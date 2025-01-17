@@ -168,7 +168,7 @@ function BaseGetPhysicalCard({
         (validateCode: string) => {
             setCurrentCardID(cardToBeIssued?.cardID.toString());
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
-            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? CONST.DEFAULT_NUMBER_ID, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
         },
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
@@ -184,7 +184,6 @@ function BaseGetPhysicalCard({
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicator={false}
             testID={BaseGetPhysicalCard.displayName}
         >
             <HeaderWithBackButton

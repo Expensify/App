@@ -185,10 +185,8 @@ function IOURequestStepDistance({
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             buttonText = translate('iou.split');
-        } else if (iouType === CONST.IOU.TYPE.TRACK) {
-            buttonText = translate('iou.trackExpense');
         } else {
-            buttonText = translate('iou.submitExpense');
+            buttonText = translate('iou.createExpense');
         }
     }
 

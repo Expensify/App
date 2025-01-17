@@ -16,14 +16,13 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as IOU from '@userActions/IOU';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,9 +67,8 @@ function IOURequestStepWaypoint({
     report,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const {canUseCombinedTrackSubmit} = usePermissions();
     const policy = usePolicy(report?.policyID);
-    const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+    const customUnit = getPerDiemCustomUnit(policy);
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -106,15 +104,15 @@ function IOURequestStepWaypoint({
         const subrateValue = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityValue, 10);
         if (quantityValue === '') {
-            ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
+            addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
         }
         if (subrateValue === '' || !validOptions.some(({value}) => value === subrateValue)) {
-            ErrorUtils.addErrorMessage(errors, `subrate${pageIndex}`, translate('common.error.fieldRequired'));
+            addErrorMessage(errors, `subrate${pageIndex}`, translate('common.error.fieldRequired'));
         }
         if (Number.isNaN(quantityInt)) {
-            ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.invalidQuantity'));
+            addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.invalidQuantity'));
         } else if (quantityInt <= 0) {
-            ErrorUtils.addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.quantityGreaterThanZero'));
+            addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.quantityGreaterThanZero'));
         }
 
         return errors;
@@ -129,9 +127,9 @@ function IOURequestStepWaypoint({
         const rate = selectedSubrate?.rate ?? 0;
 
         if (parsedIndex === filledSubrateCount) {
-            IOU.addSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
+            addSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
         } else {
-            IOU.updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
+            updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
         }
 
         if (backTo) {
@@ -142,7 +140,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteSubrateAndHideModal = () => {
-        IOU.removeSubrate(transaction, pageIndex);
+        removeSubrate(transaction, pageIndex);
         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         goBack();
@@ -150,11 +148,11 @@ function IOURequestStepWaypoint({
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SUBMIT]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.TRACK]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };

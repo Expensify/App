@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -60,7 +59,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const {canUseCombinedTrackSubmit} = usePermissions();
+
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
             item !== CONST.IOU.TYPE.INVOICE,
@@ -69,7 +68,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .map(
             (item, index) =>
                 `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
-                    canUseCombinedTrackSubmit && item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
                 )}`,
         )
         .join(', ');

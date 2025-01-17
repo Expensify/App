@@ -8,7 +8,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValueSelectorModalProps} from './types';
 
-function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true, onBackdropPress}: ValueSelectorModalProps) {
+function ValueSelectorModal({
+    items = [],
+    selectedItem,
+    label = '',
+    isVisible,
+    onClose,
+    onItemSelected,
+    shouldShowTooltips = true,
+    onBackdropPress,
+    shouldEnableKeyboardAvoidingView = true,
+}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
 
     const sections = useMemo(
@@ -31,6 +41,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 testID={ValueSelectorModal.displayName}
+                shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
                 <HeaderWithBackButton
                     title={label}

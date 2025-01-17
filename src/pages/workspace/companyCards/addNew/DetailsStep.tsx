@@ -15,10 +15,11 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,8 +35,13 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
@@ -53,21 +59,21 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
-        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, lastSelectedFeed);
+        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
     };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
 
             switch (feedProvider) {
                 case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:

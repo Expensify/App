@@ -80,7 +80,7 @@ const lightTheme = {
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
-    tooltipHighlightBG: colors.green100,
+    tooltipHighlightBG: colors.green700,
     tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,

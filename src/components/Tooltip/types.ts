@@ -66,6 +66,9 @@ type GenericTooltipProps = SharedTooltipProps & {
 
     /** Whether to ignore TooltipSense activity and always triger animation */
     shouldForceAnimate?: boolean;
+
+    /** Whether it is education tooltip */
+    isEducationTooltip?: boolean;
 };
 
 type TooltipProps = ChildrenProps &

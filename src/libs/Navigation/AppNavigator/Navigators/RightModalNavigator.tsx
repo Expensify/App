@@ -188,10 +188,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         options={hideKeyboardOnSwipe}
                     />
                     <Stack.Screen
-                        name="ProcessMoneyRequestHold"
-                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
-                    />
-                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                         component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                     />

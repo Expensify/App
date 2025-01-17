@@ -34,6 +34,9 @@ type ValueSelectorModalProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView?: boolean;
 };
 
 type ValuePickerProps = {

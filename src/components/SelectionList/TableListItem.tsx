@@ -26,6 +26,7 @@ function TableListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    titleContainerStyles,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -115,7 +116,7 @@ function TableListItem<TItem extends ListItem>({
                             ]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text ?? ''}
