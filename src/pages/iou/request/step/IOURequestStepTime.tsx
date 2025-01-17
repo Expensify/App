@@ -8,13 +8,12 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import TimeModalPicker from '@components/TimeModalPicker';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as IOUUtils from '@libs/IOUUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as IOU from '@userActions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,14 +42,13 @@ function IOURequestStepTime({
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`);
     const {translate} = useLocalize();
-    const {canUseCombinedTrackSubmit} = usePermissions();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
 
     const navigateBack = () => {
         if (backTo) {
@@ -68,7 +66,7 @@ function IOURequestStepTime({
         const isValid = DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd});
 
         if (!isValid) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.END_TIME, translate('common.error.invalidTimeShouldBeFuture'));
+            addErrorMessage(errors, INPUT_IDS.END_TIME, translate('common.error.invalidTimeShouldBeFuture'));
         }
 
         return errors;
@@ -78,7 +76,7 @@ function IOURequestStepTime({
         const newStart = DateUtils.combineDateAndTime(value.startTime, value.startDate);
         const newEnd = DateUtils.combineDateAndTime(value.endTime, value.endDate);
 
-        IOU.setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
+        setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
 
         if (backTo) {
             navigateBack();
@@ -89,11 +87,11 @@ function IOURequestStepTime({
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SUBMIT]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.TRACK]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };

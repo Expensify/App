@@ -41,7 +41,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
-    isArchivedRoom,
+    isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
     isInvoiceReport,
@@ -586,7 +586,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedRoom(report);
+        const isArchivedReport = isArchivedNonExpenseReport(report);
         const hasNewMessagesInView = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -651,7 +651,7 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedRoom(report, reportNameValuePairs)],
+        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, reportNameValuePairs)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, reportNameValuePairs],
     );
     const hideComposer = !canUserPerformWriteAction(report);
