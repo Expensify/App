@@ -1072,10 +1072,28 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+type NSQSAccount = {
+    /** GL code assigned to the financial account */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'GL Code'?: string;
+
+    /** Name of the account */
+    name: string;
+
+    /** ID assigned to the financial account in NSQS */
+    id: string;
+
+    /** Type of the financial account */
+    type: ValueOf<typeof CONST.NSQS_ACCOUNT_TYPE>;
+};
+
 /**
  * Connection data for NetSuite QuickStart
  */
-type NSQSConnectionData = {};
+type NSQSConnectionData = {
+    /** Collection of the payable accounts */
+    payableList: NSQSAccount[];
+};
 
 /**
  * Connection config for NetSuite QuickStart
@@ -1972,6 +1990,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    NSQSAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
