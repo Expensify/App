@@ -84,15 +84,15 @@ const ROUTES = {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
-            const baseRoute = getUrlWithBackToParam(`a/${accountID as string}`, backTo);
+        getRoute: (accountID?: number, backTo?: string, login?: string) => {
+            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
             const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
             return `${baseRoute}${loginParam}` as const;
         },
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: string | number) => `a/${accountID as string}/avatar` as const,
+        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
     },
 
     GET_ASSISTANCE: {
@@ -297,7 +297,10 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
+            }
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
             const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
             return `${baseRoute}${referrerParam}` as const;
@@ -363,7 +366,12 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/details`, backTo);
+        },
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
@@ -399,7 +407,12 @@ const ROUTES = {
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_DESCRIPTION route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/description` as const, backTo);
+        },
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
@@ -411,7 +424,7 @@ const ROUTES = {
     },
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID as string}/edit` as const, backTo),
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
@@ -419,7 +432,7 @@ const ROUTES = {
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID as string}` as const, backTo),
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
@@ -764,7 +777,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
@@ -896,7 +909,12 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_DESCRIPTION: {
         route: 'settings/workspaces/:policyID/profile/description',
-        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/profile/description` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE_DESCRIPTION route');
+            }
+            return `settings/workspaces/${policyID}/profile/description` as const;
+        },
     },
     WORKSPACE_PROFILE_SHARE: {
         route: 'settings/workspaces/:policyID/profile/share',
@@ -1252,7 +1270,7 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
         getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export`, backTo),
+            `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export?backTo=${backTo}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
@@ -1479,7 +1497,7 @@ const ROUTES = {
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
+        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
@@ -1544,7 +1562,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/export` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/xero/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
@@ -1669,7 +1687,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/connections/netsuite/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
@@ -1807,7 +1825,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/sage-intacct/export`, backTo),
+        getRoute: (policyID: string, backTo?: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export?backTo=${backTo}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',

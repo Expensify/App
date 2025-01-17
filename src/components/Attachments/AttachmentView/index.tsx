@@ -179,7 +179,7 @@ function AttachmentView({
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
+    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
