@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Log from '@libs/Log';
 import type {GoogleTagManagerEvent} from './types';
 import type GoogleTagManagerModule from './types';
@@ -14,7 +15,7 @@ type WindowWithDataLayer = Window & {
 
 type DataLayerPushParams = {
     event: GoogleTagManagerEvent;
-    accountID: number;
+    user_id: number;
 };
 
 declare const window: WindowWithDataLayer;
@@ -24,8 +25,9 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number) {
         return;
     }
 
-    window.dataLayer.push({event, accountID});
-    Log.info('[GTM] event published', false, {event, accountID});
+    const params = {event, user_id: accountID};
+    window.dataLayer.push(params);
+    Log.info('[GTM] event published', false, params);
 }
 
 const GoogleTagManager: GoogleTagManagerModule = {
