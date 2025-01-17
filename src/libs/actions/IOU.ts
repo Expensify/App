@@ -110,6 +110,7 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
+    isArchivedReportWithID,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -7801,7 +7802,7 @@ function canSubmitReport(
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-    const isArchived = isArchivedReport(report);
+    const isArchived = isArchivedReportWithID(report?.reportID);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
