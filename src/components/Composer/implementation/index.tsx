@@ -242,7 +242,8 @@ function Composer(
                 return;
             }
 
-            // Only prevent scrolling when composer is scrollable
+            // When the composer has no scrollable content, the stopPropagation will prevent the inverted wheel event handler on the Chat body
+            // which defaults to the browser wheel behavior. This causes the chat body to scroll in the opposite direction creating jerky behavior.
             if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
                 return;
             }
