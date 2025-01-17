@@ -55,6 +55,7 @@ function Confirmation({onNext}: SubStepProps) {
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        // return ValidationUtils.getFieldRequiredErrors(values, [BANK_CURRENCY]);
         return ValidationUtils.getFieldRequiredErrors(values, [COUNTRY]);
     }, []);
 
@@ -112,6 +113,8 @@ function Confirmation({onNext}: SubStepProps) {
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
                             inputID={COUNTRY}
+                            // inputID={BANK_CURRENCY}
+                            // shouldSaveDraft
                         />
                     </FormProvider>
                 </ScrollView>

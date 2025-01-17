@@ -15,7 +15,7 @@ function HangTight({tempSubmit}: {tempSubmit: () => void}) {
     const styles = useThemeStyles();
 
     const handleSendReminder = () => {
-        // TODO remove that
+        // TODO this should send a message to the email provided in the previous step
         tempSubmit();
     };
 

@@ -7,6 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -15,8 +16,9 @@ const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCO
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
-    const countryInputKey: `beneficialOwner_${string}_${string}` = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}`;
+    const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
     const inputKeys = {
         street: `${PREFIX}_${ownerBeingModifiedID}_${STREET}`,
         city: `${PREFIX}_${ownerBeingModifiedID}_${CITY}`,
@@ -26,10 +28,10 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
     } as const;
 
     const defaultValues = {
-        street: reimbursementAccountDraft?.[inputKeys.street] ?? '',
-        city: reimbursementAccountDraft?.[inputKeys.city] ?? '',
-        state: reimbursementAccountDraft?.[inputKeys.state] ?? '',
-        zipCode: reimbursementAccountDraft?.[inputKeys.zipCode] ?? '',
+        street: String(reimbursementAccountDraft?.[inputKeys.street] ?? ''),
+        city: String(reimbursementAccountDraft?.[inputKeys.city] ?? ''),
+        state: String(reimbursementAccountDraft?.[inputKeys.state] ?? ''),
+        zipCode: String(reimbursementAccountDraft?.[inputKeys.zipCode] ?? ''),
         country: (reimbursementAccountDraft?.[inputKeys.country] ?? '') as Country | '',
     };
 
@@ -58,9 +60,22 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
     };
 
+    const handleNextStep = () => {
+        // owner is US based we need to gather last four digits of his SSN
+        if (reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US) {
+            onNext();
+            // currency is set to GBP and owner is UK based, so we skip SSN and Documents step
+        } else if (countryStepCountryValue === CONST.COUNTRY.GB && reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.GB) {
+            onMove(6, false);
+            // owner is not US based so we skip SSN step
+        } else {
+            onMove(5, false);
+        }
+    };
+
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        onNext,
+        onNext: handleNextStep,
         shouldSaveDraft: isEditing,
     });
 
