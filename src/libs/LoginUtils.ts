@@ -1,7 +1,11 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as Session from './actions/Session';
+import Navigation from './Navigation/Navigation';
 import {LoginList} from '@src/types/onyx';
 import {parsePhoneNumber} from './PhoneNumber';
 
@@ -82,6 +86,28 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
+function postSAMLLogin(body: FormData): Promise<Response | void> {
+    return fetch(CONFIG.EXPENSIFY.SAML_URL, {
+        method: CONST.NETWORK.METHOD.POST,
+        body,
+        credentials: 'omit',
+    }).then((response) => {
+        if (!response.ok) {
+            throw new Error('An error occurred while logging in. Please try again');
+        }
+        return response.json() as Promise<Response>;
+    });
+}
+
+function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
+    if (cleanSignInData) {
+        Session.clearSignInData();
+    }
+
+    Session.setAccountError(errorMessage);
+    Navigation.goBack(ROUTES.HOME);
+}
+
 /**
  * Check whether the current user has a login for a specific domain.
  */
@@ -90,4 +116,4 @@ function userHasLoginInDomain(domain: string): boolean {
         .map((login) => Str.extractEmailDomain(login))
         .includes(domain);
 }
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, userHasLoginInDomain};
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError, userHasLoginInDomain};

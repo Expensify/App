@@ -16,6 +16,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.UNLINK_LOGIN]: ROUTES.UNLINK_LOGIN,
         [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
         [SCREENS.CONNECTION_COMPLETE]: ROUTES.CONNECTION_COMPLETE,
+        [SCREENS.BANK_CONNECTION_COMPLETE]: ROUTES.BANK_CONNECTION_COMPLETE,
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
@@ -87,6 +88,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.TRACK_TRAINING_MODAL,
                     exact: true,
                 },
+                [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
@@ -1365,11 +1367,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
-                    screens: {
-                        [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
@@ -1599,5 +1596,4 @@ const normalizedConfigs = Object.keys(config.screens)
         return acc;
     }, {} as Record<Screen, RouteConfig>);
 
-export {normalizedConfigs};
-export default config;
+export {normalizedConfigs, config};

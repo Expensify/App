@@ -301,6 +301,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    titleContainerStyles?: StyleProp<ViewStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -570,6 +573,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles applid for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
     /** This may improve scroll performance for large lists */
     removeClippedSubviews?: boolean;
