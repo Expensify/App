@@ -15,7 +15,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
-import * as styleConst from '@components/TextInput/styleConst';
+import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INACTIVE_LABEL_TRANSLATE_Y} from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useHtmlPaste from '@hooks/useHtmlPaste';
@@ -24,8 +24,8 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as InputUtils from '@libs/InputUtils';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -101,8 +101,8 @@ function BaseTextInput(
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
 
-    const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
-    const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
+    const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
+    const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
 
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
@@ -141,7 +141,7 @@ function BaseTextInput(
             return;
         }
 
-        animateLabel(styleConst.ACTIVE_LABEL_TRANSLATE_Y, styleConst.ACTIVE_LABEL_SCALE);
+        animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_SCALE);
         isLabelActive.current = true;
     }, [animateLabel, value]);
 
@@ -152,7 +152,7 @@ function BaseTextInput(
             return;
         }
 
-        animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
+        animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
@@ -272,7 +272,7 @@ function BaseTextInput(
      * See https://github.com/Expensify/App/issues/13802
      */
     const lineHeight = useMemo(() => {
-        if (Browser.isSafari() || Browser.isMobileChrome()) {
+        if (isSafari() || isMobileChrome()) {
             const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
             if (lineHeightValue !== undefined) {
                 return lineHeightValue;
@@ -286,7 +286,7 @@ function BaseTextInput(
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
-    const inputMode = inputProps.inputMode ?? (Browser.isMobileChrome() ? 'search' : undefined);
+    const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
 
     return (
         <>
@@ -391,7 +391,7 @@ function BaseTextInput(
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
                                     // Set overflow property to enable the parent flexbox to shrink its size
                                     // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+                                    !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -434,7 +434,7 @@ function BaseTextInput(
                                         if (didScrollToEndRef.current || !input.current) {
                                             return;
                                         }
-                                        InputUtils.scrollToRight(input.current);
+                                        scrollToRight(input.current);
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
@@ -527,7 +527,7 @@ function BaseTextInput(
                             return;
                         }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
+                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
