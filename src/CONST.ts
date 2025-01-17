@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
-import * as Url from './libs/Url';
+import {addTrailingForwardSlash} from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
@@ -18,7 +18,7 @@ const EMPTY_OBJECT = Object.freeze({});
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
-const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
+const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -60,6 +60,9 @@ const chatTypes = {
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
+
+// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
@@ -119,7 +122,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 'Here’s how to submit an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Submit expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
                 '\n' +
@@ -651,13 +654,12 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
-        COMPANY_CARD_FEEDS: 'companyCardFeeds',
-        DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
+        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -700,6 +702,9 @@ const CONST = {
         },
         SHIFT: {
             DEFAULT: 'shift',
+        },
+        ENTER: {
+            DEFAULT: 'enter',
         },
     },
     KEYBOARD_SHORTCUTS: {
@@ -830,6 +835,11 @@ const CONST = {
                 [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
             },
         },
+        BACKSPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Backspace',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -872,7 +882,7 @@ const CONST = {
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
-    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive--practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
+    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
@@ -910,6 +920,7 @@ const CONST = {
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
@@ -917,6 +928,7 @@ const CONST = {
         ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
+        COMPLETED: 'completed',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1436,6 +1448,8 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
+    // The number of milliseconds for an idle session to expire
+    SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -1458,8 +1472,8 @@ const CONST = {
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
-    // 6 numeric digits
-    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
+    // We allow either 6 digits for validated users or 9-character base26 for unvalidated users
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$|^[A-Z]{9}$/,
 
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
@@ -1551,6 +1565,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -1664,6 +1679,16 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    },
+
+    FULL_STORY: {
+        MASK: 'fs-mask',
+        UNMASK: 'fs-unmask',
+        CUSTOMER: 'customer',
+        CONCIERGE: 'concierge',
+        OTHER: 'other',
+        WEB_PROP_ATTR: 'data-testid',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -2746,6 +2771,7 @@ const CONST = {
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
+            BANK_CONNECTION: 'BankConnection',
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
             CARD_NAME: 'CardName',
@@ -2779,6 +2805,7 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        HIDDEN_FROM_SEARCH_STATES: cardHiddenFromSearchStates,
         LIMIT_TYPES: {
             SMART: 'smart',
             MONTHLY: 'monthly',
@@ -4483,6 +4510,7 @@ const CONST = {
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
     TRIP_ID_PATH: (tripID?: string) => (tripID ? `trips/${tripID}` : undefined),
+    TRIP_SUPPORT: '/support',
     SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
     STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
@@ -4931,45 +4959,6 @@ const CONST = {
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
-    ONBOARDING_CONCIERGE: {
-        [onboardingChoices.EMPLOYER]:
-            '# Expensify is the fastest way to get paid back!\n' +
-            '\n' +
-            'To submit expenses for reimbursement:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
-            '\n' +
-            "That'll send a request to get you paid back. Let me know if you have any questions!",
-        [onboardingChoices.MANAGE_TEAM]:
-            "# Let's start managing your team's expenses!\n" +
-            '\n' +
-            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
-            '\n' +
-            'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
-        [onboardingChoices.PERSONAL_SPEND]:
-            "# Let's start tracking your expenses! \n" +
-            '\n' +
-            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "My expenses").\n' +
-            '\n' +
-            'Then, add expenses to your workspace:\n' +
-            '1. Find your workspace using the search field.\n' +
-            '2. Click the gray + button next to the message field.\n' +
-            '3. Click Request money, then add your expense type.\n' +
-            '\n' +
-            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
-        [onboardingChoices.CHAT_SPLIT]:
-            '# Splitting the bill is as easy as a conversation!\n' +
-            '\n' +
-            'To split an expense:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
-            '\n' +
-            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
-    },
     ONBOARDING_ACCOUNTING_MAPPING: {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
@@ -4994,7 +4983,7 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    description:
+                    description: ({workspaceSettingsLink}) =>
                         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                         '\n' +
                         'Here’s how to create a workspace:\n' +
@@ -5002,7 +4991,7 @@ const CONST = {
                         '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
-                        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
+                        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
                 },
                 selfGuidedTourTask,
                 {
@@ -5206,7 +5195,7 @@ const CONST = {
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
-                        '2. Choose *Submit expense*.\n' +
+                        '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
                         '\n' +

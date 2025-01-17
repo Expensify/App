@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,6 +112,7 @@ function AttachmentView({
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const theme = useTheme();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
@@ -175,7 +177,7 @@ function AttachmentView({
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
+    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
@@ -281,7 +283,7 @@ function AttachmentView({
                         }}
                     />
                 </View>
-                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+                <View style={safeAreaPaddingBottomStyle}>{isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}</View>
             </>
         );
     }
