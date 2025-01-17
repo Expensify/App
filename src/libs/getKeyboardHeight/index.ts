@@ -1,4 +1,4 @@
-import GetKeyboardHeight from './types';
+import type GetKeyboardHeight from './types';
 
 const getKeyboardHeight: GetKeyboardHeight = (height: number) => height;
 
