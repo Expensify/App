@@ -76,7 +76,6 @@ function SearchFiltersAmountPage() {
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyInput}
                         inputID={INPUT_IDS.LESS_THAN}
-                        onPaste={(e) => console.log('paste', e.nativeEvent)}
                         name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThanFormattedAmount}
                         label={translate('search.filters.amount.lessThan')}
