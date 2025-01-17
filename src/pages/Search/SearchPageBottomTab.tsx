@@ -5,8 +5,8 @@ import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedVa
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -74,8 +74,6 @@ function SearchPageBottomTab() {
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
-    const isSearchNameModified = searchParams?.name === searchParams?.q;
-    const searchName = isSearchNameModified ? undefined : searchParams?.name;
     const policyIDFromSearchQuery = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
@@ -106,33 +104,35 @@ function SearchPageBottomTab() {
         ...styles.pRelative,
     };
 
-    return (
-        <ScreenWrapper
-            testID={SearchPageBottomTab.displayName}
-            style={styles.pv0}
-            shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
-            headerGapStyles={styles.searchHeaderGap}
-        >
-            {!selectionMode?.isEnabled ? (
-                <View style={[styles.zIndex10, narrowSearchRouterActive && styles.flex1, styles.mh100]}>
-                    <View style={[styles.zIndex10, styles.appBG]}>
-                        <TopBar
-                            activeWorkspaceID={policyID}
-                            breadcrumbLabel={translate('common.reports')}
-                            shouldDisplaySearch={false}
-                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
-                            narrowSearchRouterActive={narrowSearchRouterActive}
-                            deactivateNarrowSearchRouter={() => {
-                                topBarOffset.set(StyleUtils.searchHeaderHeight);
-                                setNarrowSearchRouterActive(false);
-                            }}
-                        />
-                    </View>
-                    {shouldUseNarrowLayout ? (
+    if (shouldUseNarrowLayout) {
+        return (
+            <ScreenWrapper
+                testID={SearchPageBottomTab.displayName}
+                style={styles.pv0}
+                shouldEnableMaxHeight
+                offlineIndicatorStyle={styles.mtAuto}
+                headerGapStyles={styles.searchHeaderGap}
+            >
+                {!selectionMode?.isEnabled ? (
+                    <View style={[styles.zIndex10, narrowSearchRouterActive && styles.flex1, styles.mh100]}>
+                        <View style={[styles.zIndex10, styles.appBG]}>
+                            <TopBar
+                                activeWorkspaceID={policyID}
+                                breadcrumbLabel={translate('common.reports')}
+                                shouldDisplaySearch={false}
+                                shouldDisplayCancelSearch={shouldDisplayCancelSearch}
+                                narrowSearchRouterActive={narrowSearchRouterActive}
+                                deactivateNarrowSearchRouter={() => {
+                                    topBarOffset.set(StyleUtils.searchHeaderHeight);
+                                    setNarrowSearchRouterActive(false);
+                                }}
+                            />
+                        </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[narrowSearchRouterActive ? searchRouterActiveStyle : topBarAnimatedStyle, !narrowSearchRouterActive && styles.searchTopBarStyle]}>
-                                <SearchPageHeaderNarrow
+                            <Animated.View
+                                style={[narrowSearchRouterActive ? searchRouterActiveStyle : topBarAnimatedStyle, !narrowSearchRouterActive && styles.searchTopBarStyle, {paddingTop: 1}]}
+                            >
+                                <SearchPageHeader
                                     queryJSON={queryJSON}
                                     narrowSearchRouterActive={narrowSearchRouterActive}
                                     activateNarrowSearchRouter={() => {
@@ -149,25 +149,47 @@ function SearchPageBottomTab() {
                                 )}
                             </Animated.View>
                         </View>
-                    ) : (
-                        <SearchTypeMenu
-                            queryJSON={queryJSON}
-                            searchName={searchName}
-                        />
-                    )}
+                    </View>
+                ) : (
+                    <SearchSelectionModeHeader queryJSON={queryJSON} />
+                )}
+                {!narrowSearchRouterActive && (
+                    <Search
+                        isSearchScreenFocused={isActiveCentralPaneRoute}
+                        queryJSON={queryJSON}
+                        onSearchListScroll={scrollHandler}
+                        onContentSizeChange={onContentSizeChange}
+                        contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                    />
+                )}
+            </ScreenWrapper>
+        );
+    }
+
+    return (
+        <ScreenWrapper
+            testID={SearchPageBottomTab.displayName}
+            style={styles.pv0}
+            shouldEnableMaxHeight
+            offlineIndicatorStyle={styles.mtAuto}
+            headerGapStyles={styles.searchHeaderGap}
+        >
+            <View style={[styles.zIndex10, narrowSearchRouterActive && styles.flex1, styles.mh100]}>
+                <View style={[styles.zIndex10, styles.appBG]}>
+                    <TopBar
+                        activeWorkspaceID={policyID}
+                        breadcrumbLabel={translate('common.reports')}
+                        shouldDisplaySearch={false}
+                        shouldDisplayCancelSearch={shouldDisplayCancelSearch}
+                        narrowSearchRouterActive={narrowSearchRouterActive}
+                        deactivateNarrowSearchRouter={() => {
+                            topBarOffset.set(StyleUtils.searchHeaderHeight);
+                            setNarrowSearchRouterActive(false);
+                        }}
+                    />
                 </View>
-            ) : (
-                <SearchSelectionModeHeader queryJSON={queryJSON} />
-            )}
-            {shouldUseNarrowLayout && !narrowSearchRouterActive && (
-                <Search
-                    isSearchScreenFocused={isActiveCentralPaneRoute}
-                    queryJSON={queryJSON}
-                    onSearchListScroll={scrollHandler}
-                    onContentSizeChange={onContentSizeChange}
-                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                />
-            )}
+                <SearchTypeMenu queryJSON={queryJSON} />
+            </View>
         </ScreenWrapper>
     );
 }

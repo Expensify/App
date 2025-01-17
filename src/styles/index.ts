@@ -3697,6 +3697,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
+            zIndex: 11,
         },
 
         searchTableHeaderActive: {
@@ -3715,7 +3716,7 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             position: 'absolute',
-            zIndex: variables.searchTopBarZIndex,
+            zIndex: 11,
             backgroundColor: theme.appBG,
         },
 

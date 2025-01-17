@@ -3,7 +3,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';

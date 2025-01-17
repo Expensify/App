@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -16,6 +17,7 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -29,17 +31,21 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchTypeMenuButton from './SearchTypeMenuButton';
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
 
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
+    narrowSearchRouterActive?: boolean;
+    activateNarrowSearchRouter?: () => void;
     children: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNarrowSearchRouter, children}: SearchPageHeaderInputProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
@@ -61,16 +67,15 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
-    const {registerSearchPageInput, unregisterSearchPageInput} = useSearchRouterContext();
+    const {registerSearchPageInput} = useSearchRouterContext();
 
-    // If query is non-canned that means Search Input is displayed, so we need to register its ref in the context.
     useEffect(() => {
-        if (!isFocused || !textInputRef.current) {
+        if (shouldUseNarrowLayout || !isFocused || !textInputRef.current) {
             return;
         }
 
         registerSearchPageInput(textInputRef.current);
-    }, [isCannedQuery, isFocused, registerSearchPageInput, unregisterSearchPageInput]);
+    }, [isCannedQuery, isFocused, registerSearchPageInput, shouldUseNarrowLayout]);
 
     useEffect(() => {
         setTextInputValue(isCannedQuery ? '' : queryText);
@@ -159,12 +164,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         [autocompleteSubstitutions],
     );
 
-    const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
-    const showAutocompleteList = () => {
-        listRef.current?.updateAndScrollToFocusedIndex(0);
-        setIsAutocompleteListVisible(true);
-    };
-
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
@@ -176,6 +175,73 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
+    const inputRowWidth = useSharedValue(0);
+    const animatedPadding = useDerivedValue(() => {
+        return withTiming(narrowSearchRouterActive ? 0 : 52, {duration: 300});
+    }, [narrowSearchRouterActive]);
+    const inputWrapperStyleTest = useAnimatedStyle(() => {
+        return {
+            marginRight: animatedPadding.value,
+        };
+    });
+
+    if (shouldUseNarrowLayout) {
+        return (
+            <View
+                dataSet={{dragArea: false}}
+                style={[styles.flex1]}
+            >
+                <View style={[styles.appBG, styles.flex1]}>
+                    <View
+                        style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: 52}]}
+                        onLayout={(event) => {
+                            inputRowWidth.set(event.nativeEvent.layout.width);
+                        }}
+                    >
+                        <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyleTest]}>
+                            <SearchRouterInput
+                                value={textInputValue}
+                                onSearchQueryChange={onSearchQueryChange}
+                                isFullWidth
+                                onSubmit={() => {
+                                    submitSearch(textInputValue);
+                                }}
+                                autoFocus={false}
+                                onFocus={activateNarrowSearchRouter}
+                                wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                                wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
+                                outerWrapperStyle={[]}
+                                rightComponent={children}
+                                routerListRef={listRef}
+                                ref={textInputRef}
+                            />
+                        </Animated.View>
+                        <View style={[styles.pAbsolute, {right: 0}]}>
+                            <SearchTypeMenuButton queryJSON={queryJSON} />
+                        </View>
+                    </View>
+                    {!!narrowSearchRouterActive && (
+                        <View style={[styles.flex1]}>
+                            <SearchRouterList
+                                autocompleteQueryValue={autocompleteQueryValue}
+                                searchQueryItem={searchQueryItem}
+                                onListItemPress={onListItemPress}
+                                setTextQuery={setTextInputValue}
+                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                                ref={listRef}
+                            />
+                        </View>
+                    )}
+                </View>
+            </View>
+        );
+    }
+
+    const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
+    const showAutocompleteList = () => {
+        listRef.current?.updateAndScrollToFocusedIndex(0);
+        setIsAutocompleteListVisible(true);
+    };
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const popoverHorizontalPosition = 12 - BORDER_WIDTH;
     const autocompleteInputStyle = isAutocompleteListVisible

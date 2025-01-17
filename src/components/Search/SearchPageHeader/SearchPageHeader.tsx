@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -39,11 +38,11 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; narrowSearchRouterActive?: boolean; activateNarrowSearchRouter?: () => void};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, narrowSearchRouterActive, activateNarrowSearchRouter}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -68,23 +67,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const [isScreenFocused, setIsScreenFocused] = useState(false);
-
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isScreenFocused,
     );
 
     const {status, hash} = queryJSON;
-
-    useFocusEffect(
-        useCallback(() => {
-            setIsScreenFocused(true);
-            return () => {
-                setIsScreenFocused(false);
-            };
-        }, []),
-    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -315,48 +302,45 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         styles.textWrap,
     ]);
 
-    if (shouldUseNarrowLayout) {
-        if (selectionMode?.isEnabled) {
-            return (
-                <View>
-                    <SearchSelectedNarrow
-                        options={headerButtonsOptions}
-                        itemsLength={selectedTransactionsKeys.length}
-                    />
-                    <ConfirmModal
-                        isVisible={isDeleteExpensesConfirmModalVisible}
-                        onConfirm={handleDeleteExpenses}
-                        onCancel={() => {
-                            setIsDeleteExpensesConfirmModalVisible(false);
-                        }}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={() => setIsDownloadErrorModalVisible(false)}
-                    />
-                </View>
-            );
-        }
-        return null;
+    if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+        return (
+            <View>
+                <SearchSelectedNarrow
+                    options={headerButtonsOptions}
+                    itemsLength={selectedTransactionsKeys.length}
+                />
+                <ConfirmModal
+                    isVisible={isDeleteExpensesConfirmModalVisible}
+                    onConfirm={handleDeleteExpenses}
+                    onCancel={() => {
+                        setIsDeleteExpensesConfirmModalVisible(false);
+                    }}
+                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <DecisionModal
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.offlinePrompt')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isOfflineModalVisible}
+                    onClose={() => setIsOfflineModalVisible(false)}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadErrorModalVisible}
+                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
+            </View>
+        );
     }
 
     const onFiltersButtonPress = () => {
@@ -369,7 +353,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
     return (
         <>
-            <SearchPageHeaderInput queryJSON={queryJSON}>
+            <SearchPageHeaderInput
+                narrowSearchRouterActive={narrowSearchRouterActive}
+                activateNarrowSearchRouter={activateNarrowSearchRouter}
+                queryJSON={queryJSON}
+            >
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu
                         onPress={() => null}
@@ -392,7 +380,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         renderTooltipContent={renderProductTrainingTooltip}
                     >
                         <Button
-                            innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
+                            innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}
                             icon={Expensicons.Filters}
                             onPress={onFiltersButtonPress}
                         />

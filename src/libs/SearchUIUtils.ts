@@ -5,6 +5,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SavedSearchMenuItem, SaveSearchItem, SearchTypeMenuItem} from '@pages/Search/SearchTypeMenu';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -14,12 +15,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {clearAllFilters} from './actions/Search';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
+    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -28,6 +32,7 @@ import {
     isMoneyRequestReport,
     isSettled,
 } from './ReportUtils';
+import {buildCannedSearchQuery} from './SearchQueryUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -621,6 +626,71 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | null, email: string | undefined): SearchTypeMenuItem[] {
+    const typeMenuItems: SearchTypeMenuItem[] = [
+        {
+            translationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
+        },
+        {
+            translationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
+        },
+    ];
+
+    if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
+        typeMenuItems.push({
+            translationPath: 'workspace.common.invoices',
+            type: CONST.SEARCH.DATA_TYPES.INVOICE,
+            icon: Expensicons.InvoiceGeneric,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
+        });
+    }
+    typeMenuItems.push({
+        translationPath: 'travel.trips',
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        icon: Expensicons.Suitcase,
+        getRoute: (policyID?: string) => {
+            const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+        },
+    });
+
+    return typeMenuItems;
+}
+
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+    const baseMenuItem: SavedSearchMenuItem = {
+        key,
+        title,
+        hash: key,
+        query: item.query,
+        shouldShowRightComponent: true,
+        focused: Number(key) === hash,
+        onPress: () => {
+            clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
+        },
+        pendingAction: item.pendingAction,
+        disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        shouldIconUseAutoWidthStyle: true,
+    };
+    return baseMenuItem;
+}
+
 export {
     getListItem,
     getSections,
@@ -636,4 +706,6 @@ export {
     isCorrectSearchUserName,
     isReportActionEntry,
     getAction,
+    createTypeMenuItems,
+    createBaseSavedSearchMenuItem,
 };
