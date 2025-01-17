@@ -2540,7 +2540,7 @@ const translations = {
         phoneError: 'To book travel, your default contact method must be a valid email',
         domainSelector: {
             title: 'Domain',
-            subtitle: 'Choose a domain for travel stuff or something. We can get real copy to go here that makes sense.',
+            subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
         domainPermissionInfo: {
