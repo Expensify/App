@@ -4,7 +4,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {LoginList} from '@src/types/onyx';
 import * as Session from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -13,12 +12,6 @@ let countryCodeByIP: number;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIP = val ?? 1),
-});
-
-let currentUserLogins: LoginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (currentUserLogins = val ?? {}),
 });
 
 /**
@@ -108,22 +101,4 @@ function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
     Navigation.goBack(ROUTES.HOME);
 }
 
-/**
- * Check whether the current user has a login for a specific domain.
- */
-function userHasLoginInDomain(domain: string): boolean {
-    return Object.keys(currentUserLogins)
-        .map((login) => Str.extractEmailDomain(login))
-        .includes(domain);
-}
-export {
-    getPhoneNumberWithoutSpecialChars,
-    appendCountryCode,
-    isEmailPublicDomain,
-    validateNumber,
-    getPhoneLogin,
-    areEmailsFromSamePrivateDomain,
-    postSAMLLogin,
-    handleSAMLLoginError,
-    userHasLoginInDomain,
-};
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError};
