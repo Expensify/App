@@ -3708,11 +3708,20 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
+            position: 'relative',
+            flex: 1,
+        },
+
+        narrowSearchRouterActiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
-            zIndex: 11,
+            zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
 

@@ -18,7 +18,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,13 +76,13 @@ function SearchPageBottomTab() {
     );
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
-    const policyIDFromSearchQuery = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const parsedQuery = buildSearchQueryJSON(searchParams?.q);
+    const policyIDFromSearchQuery = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -100,12 +100,7 @@ function SearchPageBottomTab() {
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!SearchQueryUtils.isCannedSearchQuery(queryJSON) || narrowSearchRouterActive);
-
-    const searchRouterActiveStyle = {
-        ...styles.flex1,
-        ...styles.pRelative,
-    };
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedSearchQuery(queryJSON) || narrowSearchRouterActive);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -133,7 +128,11 @@ function SearchPageBottomTab() {
                         </View>
                         <View style={[styles.flex1]}>
                             <Animated.View
-                                style={[narrowSearchRouterActive ? searchRouterActiveStyle : topBarAnimatedStyle, !narrowSearchRouterActive && styles.searchTopBarStyle, {paddingTop: 1}]}
+                                style={[
+                                    narrowSearchRouterActive ? styles.narrowSearchRouterInactiveStyle : topBarAnimatedStyle,
+                                    !narrowSearchRouterActive && styles.narrowSearchRouterActiveStyle,
+                                    styles.narrowSearchHeaderStyle,
+                                ]}
                             >
                                 <SearchPageHeader
                                     queryJSON={queryJSON}

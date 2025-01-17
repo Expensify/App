@@ -207,7 +207,10 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                                     submitSearch(textInputValue);
                                 }}
                                 autoFocus={false}
-                                onFocus={activateNarrowSearchRouter}
+                                onFocus={() => {
+                                    listRef.current?.updateAndScrollToFocusedIndex(0);
+                                    activateNarrowSearchRouter?.();
+                                }}
                                 wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                                 wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                                 outerWrapperStyle={[]}
@@ -220,18 +223,16 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                             <SearchTypeMenuButton queryJSON={queryJSON} />
                         </View>
                     </View>
-                    {!!narrowSearchRouterActive && (
-                        <View style={[styles.flex1]}>
-                            <SearchRouterList
-                                autocompleteQueryValue={autocompleteQueryValue}
-                                searchQueryItem={searchQueryItem}
-                                onListItemPress={onListItemPress}
-                                setTextQuery={setTextInputValue}
-                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                                ref={listRef}
-                            />
-                        </View>
-                    )}
+                    <View style={[styles.flex1, !narrowSearchRouterActive && styles.dNone]}>
+                        <SearchRouterList
+                            autocompleteQueryValue={autocompleteQueryValue}
+                            searchQueryItem={searchQueryItem}
+                            onListItemPress={onListItemPress}
+                            setTextQuery={setTextInputValue}
+                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                            ref={listRef}
+                        />
+                    </View>
                 </View>
             </View>
         );
