@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {TravelNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
+import FixedFooter from '@components/FixedFooter';
+import Button from '@components/Button';
 
 type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO>;
 
@@ -26,12 +28,23 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
                 title={translate('travel.domainPermissionInfo.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.mt3, styles.mr5, styles.ml5]}>
-                <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: route.params.domain})} />
+            <View style={[styles.flex1]}>
+                <View style={[styles.mt3, styles.mr5, styles.ml5]}>
+                    <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: route.params.domain})} />
+                </View>
+                <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
+                    <RenderHTML html={translate('travel.domainPermissionInfo.accountantInvitation')} />
+                </View>
             </View>
-            <View style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>
-                <RenderHTML html={translate('travel.domainPermissionInfo.accountantInvitation')} />
-            </View>
+            <FixedFooter>
+                <Button
+                    success
+                    large
+                    style={[styles.w100]}
+                    onPress={() => Navigation.goBack()}
+                    text={translate('common.buttonConfirm')}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
