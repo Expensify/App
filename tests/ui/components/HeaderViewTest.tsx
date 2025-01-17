@@ -49,7 +49,7 @@ describe('HeaderView', () => {
             <HeaderView
                 report={report}
                 onNavigationMenuButtonClicked={() => {}}
-                parentReportAction={createRandomReportAction(0)}
+                parentReportAction={null}
                 reportID={report.reportID}
             />,
         );
