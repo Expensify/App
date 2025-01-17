@@ -6,6 +6,7 @@ import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import GlobalCreateIcon from '@assets/images/customEmoji/global-create.svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,6 +16,7 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -120,44 +122,28 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
         onPress(event);
     };
 
-    const floatingActionStyle = isEmoji ? styles.floatingActionEmoji : styles.floatingActionButton;
-    const iconSizeStyle = isEmoji ? variables.iconSizeExtraSmall : variables.iconSizeNormal;
-    const nativePositionFix = Platform.OS === 'web' ? [] : {height: '6%'};
-    const pressebleStyles = isEmoji ? [nativePositionFix] : [styles.h100, styles.bottomTabBarItem];
-    const animatedStyles = [floatingActionStyle, isEmoji ? {} : animatedStyle];
-
-    const button = (
-        <PressableWithoutFeedback
-            ref={(el) => {
-                fabPressable.current = el ?? null;
-                if (buttonRef && 'current' in buttonRef) {
-                    buttonRef.current = el ?? null;
-                }
-            }}
-            style={pressebleStyles}
-            accessibilityLabel={accessibilityLabel}
-            onPress={toggleFabAction}
-            onLongPress={() => {}}
-            role={role}
-            shouldUseHapticsOnLongPress={false}
-        >
-            <Animated.View style={animatedStyles}>
-                <Svg
-                    width={iconSizeStyle}
-                    height={iconSizeStyle}
-                    viewBox={`0 0 ${variables.iconSizeNormal} ${variables.iconSizeNormal}`}
-                >
-                    <AnimatedPath
-                        d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                        animatedProps={animatedProps}
-                    />
-                </Svg>
-            </Animated.View>
-        </PressableWithoutFeedback>
-    );
-
     if (isEmoji) {
-        return button;
+        return (
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={{verticalAlign: 'bottom'}}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={() => {}}
+                role={role}
+                shouldUseHapticsOnLongPress={false}
+            >
+                <ImageSVG
+                    src={GlobalCreateIcon}
+                    height={variables.iconSizeNormal}
+                />
+            </PressableWithoutFeedback>
+        );
     }
 
     return (
@@ -172,7 +158,32 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
         >
-            {button}
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={[styles.h100, styles.bottomTabBarItem]}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={() => {}}
+                role={role}
+                shouldUseHapticsOnLongPress={false}
+            >
+                <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
+                    <Svg
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    >
+                        <AnimatedPath
+                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                            animatedProps={animatedProps}
+                        />
+                    </Svg>
+                </Animated.View>
+            </PressableWithoutFeedback>
         </EducationalTooltip>
     );
 }

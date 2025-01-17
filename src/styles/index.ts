@@ -1658,15 +1658,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        floatingActionEmoji: {
-            backgroundColor: theme.success,
-            height: variables.iconSizeSmall,
-            width: variables.iconSizeSmall,
-            borderRadius: 999,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-
         sidebarFooterUsername: {
             color: theme.heading,
             fontSize: variables.fontSizeLabel,
