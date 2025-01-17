@@ -15,7 +15,7 @@
     "postinstall": "./scripts/postInstall.sh",
     "clean": "./scripts/clean.sh",
     "clean-standalone": "STANDALONE_NEW_DOT=true ./scripts/clean.sh",
-    "android": "./scripts/set-pusher-suffix.sh && npm run grunt:build:shared && ./scripts/run-build.sh --android",
+    "android": "./scripts/set-pusher-suffix.sh && cd Mobile-Expensify && npm run grunt:build:shared && ../scripts/run-build.sh --android",
     "android-standalone": "./scripts/set-pusher-suffix.sh && STANDALONE_NEW_DOT=true ./scripts/run-build.sh --android",
     "ios": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --ios",
     "ios-standalone": "./scripts/set-pusher-suffix.sh && STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ios",
