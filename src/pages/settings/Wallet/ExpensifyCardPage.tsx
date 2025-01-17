@@ -24,6 +24,7 @@ import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
@@ -272,6 +273,18 @@ function ExpensifyCardPage({
                                 </>
                             );
                         })}
+                        <MenuItem
+                            icon={Expensicons.MoneySearch}
+                            title={translate('workspace.common.viewTransactions')}
+                            style={styles.mt3}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                    }),
+                                );
+                            }}
+                        />
                     </>
                 )}
             </ScrollView>
