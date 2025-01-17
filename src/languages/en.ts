@@ -495,6 +495,7 @@ const translations = {
         destination: 'Destination',
         subrate: 'Subrate',
         perDiem: 'Per diem',
+        validate: 'Validate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1887,7 +1888,10 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
+        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
     },
     welcomeSignUpForm: {
         join: 'Join',
