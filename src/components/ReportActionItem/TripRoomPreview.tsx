@@ -34,7 +34,7 @@ type TripRoomPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;

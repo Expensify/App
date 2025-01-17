@@ -13,7 +13,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** All the data of the action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;

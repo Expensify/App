@@ -25,7 +25,7 @@ module.exports = {
                 'src/libs/actions/IOU.ts',
                 'src/libs/actions/Report.ts',
                 'src/pages/workspace/WorkspaceInitialPage.tsx',
-                'src/pages/home/report/PureReportActionItem.tsx',
+                // 'src/pages/home/report/PureReportActionItem.tsx',
                 'src/libs/SidebarUtils.ts',
             ],
             rules: {

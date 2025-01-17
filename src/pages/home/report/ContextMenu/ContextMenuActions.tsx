@@ -147,7 +147,7 @@ type ShouldShow = (args: {
 type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
-    reportID: string;
+    reportID: string | undefined;
     report: OnyxEntry<ReportType>;
     draftMessage: string;
     selection: string;
@@ -630,6 +630,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport &&
             reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
+            if (!reportID) {
+                return;
+            }
+
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute)));
@@ -687,6 +691,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Bug,
         shouldShow: ({type, user}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !!user?.isDebugModeEnabled,
         onPress: (closePopover, {reportID}) => {
+            if (!reportID) {
+                return;
+            }
+
             Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },

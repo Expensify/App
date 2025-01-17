@@ -874,7 +874,7 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>) {
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
     if (!reportAction) {
         return;
@@ -933,7 +933,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>) {
     if (!reportAction) {
         return;
     }

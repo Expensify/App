@@ -1360,7 +1360,12 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
 /**
  * Gets metadata info about links in the provided report action
  */
-function expandURLPreview(reportID: string, reportActionID: string) {
+function expandURLPreview(reportID: string | undefined, reportActionID: string) {
+    if (!reportID) {
+        Log.warn('Invalid reportID passed to expandURLPreview. Not calling the API because it will fail.');
+        return;
+    }
+
     const parameters: ExpandURLPreviewParams = {
         reportID,
         reportActionID,
@@ -1454,7 +1459,12 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
 }
 
 /** Toggles the pinned state of the report. */
-function togglePinnedState(reportID: string, isPinnedChat: boolean) {
+function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) {
+    if (!reportID) {
+        Log.warn('Invalid reportID passed to togglePinnedState. Not calling the API because it will fail.');
+        return;
+    }
+
     const pinnedValue = !isPinnedChat;
 
     // Optimistically pin/unpin the report before we send out the command
@@ -1740,7 +1750,7 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
@@ -1870,13 +1880,13 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
 }
 
 /** Deletes the draft for a comment report action. */
-function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
@@ -2824,7 +2834,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function toggleEmojiReaction(
-    reportID: string,
+    reportID: string | undefined,
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,

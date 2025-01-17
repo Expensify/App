@@ -31,7 +31,7 @@ type ReportActionItemMessageProps = {
     isHidden?: boolean;
 
     /** The ID of the report */
-    reportID: string;
+    reportID: string | undefined;
 };
 
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {

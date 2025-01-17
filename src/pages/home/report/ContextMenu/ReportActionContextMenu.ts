@@ -171,8 +171,8 @@ function hideDeleteModal() {
 /**
  * Opens the Confirm delete action modal
  */
-function showDeleteModal(reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
-    if (!contextMenuRef.current) {
+function showDeleteModal(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
+    if (!contextMenuRef.current || !reportID) {
         return;
     }
     contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);

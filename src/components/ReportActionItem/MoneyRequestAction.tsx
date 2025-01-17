@@ -34,13 +34,13 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
     action: OnyxTypes.ReportAction;
 
     /** The ID of the associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** The ID of the associated expense report */
-    requestReportID: string;
+    requestReportID: string | undefined;
 
     /** The ID of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: boolean;

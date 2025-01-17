@@ -34,7 +34,7 @@ import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuProps = {
     /** The ID of the report this report action is attached to. */
-    reportID: string;
+    reportID: string | undefined;
 
     /** The ID of the report action this context menu is attached to. */
     reportActionID: string;
@@ -192,6 +192,7 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
+            reportID &&
             contextAction.shouldShow({
                 type,
                 reportAction,
