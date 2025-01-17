@@ -63,7 +63,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {keyboardHeight} = useKeyboardState();
+    const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
     const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
@@ -83,7 +83,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const suggestionsLength = props.suggestions.length;
 
     useEffect(() => {
-        if (!measureParentContainerAndReportCursor) {
+        if (!measureParentContainerAndReportCursor || isKeyboardAnimatingRef.current) {
             return;
         }
 
