@@ -72,16 +72,17 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
      */
     const privateNotes = useMemo(() => {
         const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
-        return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
-            const privateNote = report.privateNotes?.[Number(accountID)];
+        return Object.keys(report.privateNotes ?? {}).map((privateNoteAccountID: string) => {
+            const accountID = Number(privateNoteAccountID);
+            const privateNote = report.privateNotes?.[accountID];
             return {
                 reportID: report.reportID,
-                accountID,
-                title: Number(sessionAccountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
+                accountID: privateNoteAccountID,
+                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : personalDetailsList?.[privateNoteAccountID]?.login ?? '',
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
-                brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
+                brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
-                disabled: Number(sessionAccountID) !== Number(accountID),
+                disabled: Number(sessionAccountID) !== accountID,
             };
         });
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);

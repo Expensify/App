@@ -4019,12 +4019,6 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        reportActionComposeTooltipWrapper: {
-            backgroundColor: theme.tooltipHighlightBG,
-            paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
-        },
-
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -4032,7 +4026,7 @@ const styles = (theme: ThemeColors) =>
 
         productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
         },
 
