@@ -193,6 +193,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
+    isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
 import {addTrailingForwardSlash} from './Url';
@@ -3445,9 +3446,22 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         return isAdmin || isManager;
     }
 
+    if (
+        (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) &&
+        isPerDiemRequest(transaction)
+    ) {
+        return false;
+    }
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-        return !isInvoiceReport(moneyRequestReport) && !isReceiptBeingScanned(transaction) && !isDistanceRequest(transaction) && (isAdmin || isManager || isRequestor);
+        return (
+            !isInvoiceReport(moneyRequestReport) &&
+            !isReceiptBeingScanned(transaction) &&
+            !isDistanceRequest(transaction) &&
+            !isPerDiemRequest(transaction) &&
+            (isAdmin || isManager || isRequestor)
+        );
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
