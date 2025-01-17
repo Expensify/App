@@ -4,6 +4,7 @@ import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
