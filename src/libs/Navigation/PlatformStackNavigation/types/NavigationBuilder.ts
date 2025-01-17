@@ -23,6 +23,7 @@ type PlatformNavigationBuilderOptions<
 > = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> &
     NavigationBuilderOptions<NavigationOptions> &
     RouterOptions & {
+        persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
         parentRoute?: RouteProp<ParamListBase>;

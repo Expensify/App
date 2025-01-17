@@ -40,6 +40,7 @@ function ReportsSplitNavigator() {
         <FreezeWrapper>
             <FocusTrapForScreens>
                 <Split.Navigator
+                    persistentScreens={[SCREENS.HOME]}
                     sidebarScreen={SCREENS.HOME}
                     defaultCentralScreen={SCREENS.REPORT}
                     parentRoute={route}

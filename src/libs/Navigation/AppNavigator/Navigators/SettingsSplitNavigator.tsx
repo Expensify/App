@@ -32,6 +32,7 @@ function SettingsSplitNavigator() {
     return (
         <FocusTrapForScreens>
             <Split.Navigator
+                persistentScreens={[SCREENS.SETTINGS.ROOT]}
                 sidebarScreen={SCREENS.SETTINGS.ROOT}
                 defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
                 parentRoute={route}

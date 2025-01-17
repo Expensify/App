@@ -69,6 +69,7 @@ type PlatformStackNavigatorProps<
 > = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
     RouterOptions &
     StackNavigationConfig & {
+        persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
     };

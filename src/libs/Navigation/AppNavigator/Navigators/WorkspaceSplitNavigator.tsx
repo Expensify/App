@@ -57,6 +57,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
     return (
         <FocusTrapForScreens>
             <Split.Navigator
+                persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
                 parentRoute={route}
