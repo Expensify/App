@@ -31,7 +31,43 @@ import Performance from '@libs/Performance';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canAddTransactionReciept,
+    canBeExported,
+    getArchiveReason,
+    getBankAccountRoute,
+    getDisplayNameForParticipant,
+    getInvoicePayerName,
+    getMoneyRequestSpendBreakdown,
+    getNonHeldAndFullAmount,
+    getPolicyName,
+    getTransactionsWithReceipts,
+    hasActionsWithErrors,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasMissingInvoiceBankAccount,
+    hasMissingPaymentMethod,
+    hasMissingSmartscanFields as hasMissingSmartscanFieldsReportUtils,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasNoticeTypeViolations,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
+    hasReportViolations,
+    hasUpdatedTotal,
+    hasViolations,
+    hasWarningTypeViolations,
+    isAllowedToApproveExpenseReport,
+    isAllowedToSubmitDraftExpenseReport,
+    isArchivedRoomWithID,
+    isInvoiceReport as isInvoiceReportUtils,
+    isInvoiceRoom as isInvoiceRoomReportUtils,
+    isOpenExpenseReport as isOpenExpenseReportReportUtils,
+    isPayAtEndExpenseReport,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
+    isReportApproved,
+    isReportOwner,
+    isSettled,
+} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -114,10 +150,10 @@ function ReportPreview({
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
-            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
-            hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
-            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
+            hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID),
+            areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
+            hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -142,23 +178,23 @@ function ReportPreview({
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]) || isApprovedAnimationRunning;
 
-    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
+    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(iouReport);
 
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID);
-    const hasHeldExpenses = ReportUtils.hasHeldExpenses(iouReport?.reportID);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
+    const hasHeldExpenses = hasHeldExpensesReportUtils(iouReport?.reportID);
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
+    const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
 
-    const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const iouSettled = isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
-    const isApproved = ReportUtils.isReportApproved(iouReport, action);
+    const isApproved = isReportApproved(iouReport, action);
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
@@ -166,13 +202,13 @@ function ReportPreview({
     }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
-    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
+    const isOpenExpenseReport = isPolicyExpenseChat && isOpenExpenseReportReportUtils(iouReport);
 
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
+    const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
@@ -181,16 +217,16 @@ function ReportPreview({
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ReportUtils.hasViolations(iouReportID, transactionViolations, true) ||
-        ReportUtils.hasNoticeTypeViolations(iouReportID, transactionViolations, true) ||
-        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
-        (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
-        ReportUtils.hasActionsWithErrors(iouReportID);
+        hasViolations(iouReportID, transactionViolations, true) ||
+        hasNoticeTypeViolations(iouReportID, transactionViolations, true) ||
+        hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
+        (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
+        hasActionsWithErrors(iouReportID);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const lastThreeTransactions = allTransactions.slice(-3).filter((t) => {
         const iouAction = ReportActionsUtils.getIOUActionForReportID(iouReport?.reportID, t.transactionID);
-        const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, iouAction, currentUserAccountID);
+        const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, currentUserAccountID);
         return TransactionUtils.hasReceipt(t) || shouldShowReceiptEmptyState;
     });
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
@@ -212,7 +248,7 @@ function ReportPreview({
         !shouldShowBrokenConnectionViolation &&
         (iouReport?.ownerAccountID === currentUserAccountID || isAdmin || iouReport?.managerID === currentUserAccountID);
 
-    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -245,12 +281,12 @@ function ReportPreview({
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 setIsNoDelegateAccessMenuVisible(true);
-            } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
                 setIsPaidAnimationRunning(true);
                 HapticFeedback.longPress();
-                if (ReportUtils.isInvoiceReport(iouReport)) {
+                if (isInvoiceReportUtils(iouReport)) {
                     IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
                 } else {
                     IOU.payMoneyRequest(type, chatReport, iouReport);
@@ -264,7 +300,7 @@ function ReportPreview({
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
-        } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+        } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
             setIsApprovedAnimationRunning(true);
@@ -279,7 +315,7 @@ function ReportPreview({
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
+        if (hasHeldExpensesReportUtils(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
             return nonHeldAmount;
         }
 
@@ -332,11 +368,11 @@ function ReportPreview({
 
         let payerOrApproverName;
         if (isPolicyExpenseChat) {
-            payerOrApproverName = ReportUtils.getPolicyName(chatReport, undefined, policy);
+            payerOrApproverName = getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
-            payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
+            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
-            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(managerID, true);
+            payerOrApproverName = getDisplayNameForParticipant(managerID, true);
         }
 
         if (isApproved) {
@@ -347,7 +383,7 @@ function ReportPreview({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
+            payerOrApproverName = getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
@@ -365,12 +401,11 @@ function ReportPreview({
         translate,
     ]);
 
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
+    const bankAccountRoute = getBankAccountRoute(chatReport);
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
-    const shouldPromptUserToAddBankAccount =
-        (ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID)) && !ReportUtils.isSettled(iouReportID);
+    const shouldPromptUserToAddBankAccount = (hasMissingPaymentMethod(userWallet, iouReportID) || hasMissingInvoiceBankAccount(iouReportID)) && !isSettled(iouReportID);
     const shouldShowRBR = hasErrors && !iouSettled;
 
     /*
@@ -387,9 +422,9 @@ function ReportPreview({
     const shouldShowScanningSubtitle = (numberOfScanningReceipts === 1 && numberOfRequests === 1) || (numberOfScanningReceipts >= 1 && Number(nonHeldAmount) === 0);
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
-    const isPayAtEndExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID, allTransactions);
-    const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: ReportUtils.getArchiveReason});
+    const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, allTransactions);
+    const isArchivedReport = isArchivedRoomWithID(iouReportID);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason});
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isPayAtEndExpense) {
@@ -448,7 +483,7 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(iouReport);
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {

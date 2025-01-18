@@ -785,13 +785,18 @@ function hasBrokenConnectionViolation(transactionID?: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(transactionID: string | undefined, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
-    if (!transactionID) {
-        return false;
-    }
+
+function shouldShowBrokenConnectionViolation(
+    transactionIDList: string[] | undefined,
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    allViolations?: OnyxCollection<TransactionViolations>,
+): boolean {
+    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, allViolations)) ?? [];
     return (
-        hasBrokenConnectionViolation(transactionID) &&
-        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
+        transactionsWithBrokenConnectionViolation.length > 0 &&
+        transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
+        (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)))
     );
 }
 
