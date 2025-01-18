@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
