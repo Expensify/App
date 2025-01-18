@@ -78,10 +78,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const transactionIDList = transaction ? [transaction.transactionID] : [];
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation([transaction?.transactionID]);
-
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction?.transactionID, parentReport, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, parentReport, policy);
 
     const shouldShowMarkAsCashButton = hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
 
