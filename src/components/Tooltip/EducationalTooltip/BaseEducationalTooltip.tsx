@@ -59,6 +59,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         <GenericTooltip
             shouldForceAnimate
             shouldRender={shouldRender}
+            isEducationTooltip
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
