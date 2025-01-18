@@ -43,7 +43,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     }, [isOn, offsetX]);
 
     const handleSwitchPress = () => {
-        InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
             if (disabled) {
                 disabledAction?.();
                 return;
