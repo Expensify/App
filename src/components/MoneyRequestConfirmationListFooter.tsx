@@ -14,7 +14,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -236,7 +236,7 @@ function MoneyRequestConfirmationListFooter({
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
-    const isMultilevelTags = useMemo(() => isMultiLevelTags(policyTags), [policyTags]);
+    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const senderWorkspace = useMemo(() => {
@@ -613,7 +613,7 @@ function MoneyRequestConfirmationListFooter({
         <MenuItemWithTopDescription
             key={`${translate('common.subrate')}${field?.key ?? index}`}
             shouldShowRightIcon={!isReadOnly}
-            title={getSubratesForDisplay(field)}
+            title={getSubratesForDisplay(field, translate('iou.qty'))}
             description={translate('common.subrate')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
@@ -639,7 +639,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="firstDay"
                     icon={Expensicons.Stopwatch}
-                    text={translate('iou.firstDayText', {hours: firstDay})}
+                    text={translate('iou.firstDayText', {count: firstDay})}
                 />,
             );
         }
@@ -648,7 +648,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="tripDays"
                     icon={Expensicons.CalendarSolid}
-                    text={translate('iou.tripLengthText', {days: tripDays})}
+                    text={translate('iou.tripLengthText', {count: tripDays})}
                 />,
             );
         }
@@ -657,7 +657,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="lastDay"
                     icon={Expensicons.Stopwatch}
-                    text={translate('iou.lastDayText', {hours: lastDay})}
+                    text={translate('iou.lastDayText', {count: lastDay})}
                 />,
             );
         }

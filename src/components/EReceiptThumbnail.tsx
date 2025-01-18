@@ -1,16 +1,15 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
@@ -18,14 +17,10 @@ import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
 import Text from './Text';
 
-type EReceiptThumbnailOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
-};
-
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
 type EReceiptThumbnailProps = {
-    /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
+    /** TransactionID of the transaction this EReceipt corresponds to. */
     transactionID?: string;
 
     /** Border radius to be applied on the parent view. */
@@ -54,10 +49,9 @@ const backgroundImages = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
@@ -69,6 +63,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
     const tripIcon = getTripEReceiptIcon(transaction);
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
@@ -136,7 +131,15 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             {fileExtension.toUpperCase()}
                         </Text>
                     )}
-                    {MCCIcon && !isReceiptThumbnail ? (
+                    {isPerDiemRequest ? (
+                        <Icon
+                            src={Expensicons.CalendarSolid}
+                            height={receiptMCCSize}
+                            width={receiptMCCSize}
+                            fill={primaryColor}
+                        />
+                    ) : null}
+                    {!isPerDiemRequest && MCCIcon && !isReceiptThumbnail ? (
                         <Icon
                             src={MCCIcon}
                             height={receiptMCCSize}
@@ -144,7 +147,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             fill={primaryColor}
                         />
                     ) : null}
-                    {!MCCIcon && tripIcon ? (
+                    {!isPerDiemRequest && !MCCIcon && tripIcon ? (
                         <Icon
                             src={tripIcon}
                             height={receiptMCCSize}
@@ -160,4 +163,5 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
-export type {EReceiptThumbnailOnyxProps, EReceiptThumbnailProps, IconSize};
+
+export type {IconSize, EReceiptThumbnailProps};
