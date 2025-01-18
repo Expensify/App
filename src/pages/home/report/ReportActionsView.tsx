@@ -12,16 +12,12 @@ import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as NumberUtils from '@libs/NumberUtils';
-import {generateNewRandomInt} from '@libs/NumberUtils';
+import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +28,8 @@ import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
+import { getCombinedReportActions, getMostRecentIOURequestActionID, getOriginalMessage, getReportPreviewAction, getSortedReportActionsForDisplay, isCreatedAction, isDeletedParentAction, isMoneyRequestAction, shouldReportActionBeVisible } from '@libs/ReportActionsUtils';
+import { getNewerActions, getOlderActions, openReport, updateLoadingInitialReportAction } from '@libs/actions/Report';
 
 type ReportActionsViewProps = {
     /** The report currently being looked at */
@@ -90,7 +88,7 @@ function ReportActionsView({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
-            ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, ReportUtils.canUserPerformWriteAction(report), true),
+            getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
@@ -121,7 +119,7 @@ function ReportActionsView({
             return;
         }
 
-        Report.openReport(reportID, reportActionID);
+        openReport(reportID, reportActionID);
     };
 
     useEffect(() => {
@@ -129,7 +127,7 @@ function ReportActionsView({
         if (!reportActionID || !isOffline) {
             return;
         }
-        Report.updateLoadingInitialReportAction(report.reportID);
+        updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
 
     // Change the list ID only for comment linking to get the positioning right
@@ -155,24 +153,24 @@ function ReportActionsView({
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        if (!ReportUtils.isMoneyRequestReport(report) || !allReportActions.length) {
+        if (!isMoneyRequestReport(report) || !allReportActions.length) {
             return allReportActions;
         }
 
         const actions = [...allReportActions];
         const lastAction = allReportActions.at(-1);
 
-        if (lastAction && !ReportActionsUtils.isCreatedAction(lastAction)) {
-            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
+        if (lastAction && !isCreatedAction(lastAction)) {
+            const optimisticCreatedAction = buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
             optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID, report.reportID);
+        const reportPreviewAction = getReportPreviewAction(report.chatReportID, report.reportID);
         const moneyRequestActions = allReportActions.filter((action) => {
-            const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
+            const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
             return (
-                ReportActionsUtils.isMoneyRequestAction(action) &&
+                isMoneyRequestAction(action) &&
                 originalMessage &&
                 (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                     !!(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
@@ -181,13 +179,13 @@ function ReportActionsView({
         });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-            const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+            const optimisticIOUAction = buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
                 CONST.CURRENCY.USD,
                 '',
                 [],
-                NumberUtils.rand64(),
+                rand64(),
                 undefined,
                 report.reportID,
                 false,
@@ -212,7 +210,7 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
-        () => ReportActionsUtils.getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []),
+        () => getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []),
         [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
     );
 
@@ -248,18 +246,18 @@ function ReportActionsView({
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActionID, combinedReportActions, indexOfLinkedAction, currentReportActionID]);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const canUserPerformWriteActionValue = canUserPerformWriteAction(report);
     const visibleReportActions = useMemo(
         () =>
             reportActions.filter(
                 (reportAction) =>
                     (isOffline ||
-                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        isDeletedParentAction(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteActionValue),
             ),
-        [reportActions, isOffline, canUserPerformWriteAction],
+        [reportActions, isOffline, canUserPerformWriteActionValue],
     );
 
     const reportActionIDMap = useMemo(() => {
@@ -284,13 +282,13 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
+                getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
 
                 // Get newer actions based on the newest reportAction for the transaction thread report
                 const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getNewerActions(newestActionTransactionThreadReport?.reportID, newestActionTransactionThreadReport?.reportActionID);
+                getNewerActions(newestActionTransactionThreadReport?.reportID, newestActionTransactionThreadReport?.reportActionID);
             } else {
-                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
         [isLoadingNewerReportActions, isLoadingInitialReportActions, reportActionID, isOffline, transactionThreadReport, reportActionIDMap, reportID, hasNewerActions],
@@ -298,7 +296,7 @@ function ReportActionsView({
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
-    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
+    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created ?? '';
     const hasNewestReportAction = lastActionCreated >= (report.lastVisibleActionCreated ?? '') || lastActionCreated >= (transactionThreadReport?.lastVisibleActionCreated ?? '');
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
@@ -378,14 +376,14 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get older actions based on the oldest reportAction for the current report
                 const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                Report.getOlderActions(oldestActionCurrentReport?.reportID, oldestActionCurrentReport?.reportActionID);
+                getOlderActions(oldestActionCurrentReport?.reportID, oldestActionCurrentReport?.reportActionID);
 
                 // Get older actions based on the oldest reportAction for the transaction thread report
                 const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID, oldestActionTransactionThreadReport?.reportActionID);
+                getOlderActions(oldestActionTransactionThreadReport?.reportID, oldestActionTransactionThreadReport?.reportActionID);
             } else {
                 // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-                Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+                getOlderActions(reportID, oldestReportAction.reportActionID);
             }
         },
         [
