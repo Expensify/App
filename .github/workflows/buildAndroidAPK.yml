@@ -1,0 +1,74 @@
+name: ESLint check
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+
+
+jobs:
+  build:
+    name: Build Android app
+    runs-on: ubuntu-latest-xl
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Configure MapBox SDK
+          run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+        - name: Setup Node
+          uses: ./.github/actions/composite/setupNode
+
+        - name: Setup Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: oracle
+            java-version: 17
+
+        - name: Setup Gradle
+          uses: gradle/actions/setup-gradle@v4
+
+        - name: Setup Ruby
+          uses: ruby/setup-ruby@v1.190.0
+          with:
+            bundler-cache: true
+
+        - name: Get package version
+          id: getPackageVersion
+          run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
+
+        - name: Get Android native version
+          id: getAndroidVersion
+          run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+
+        - name: Setup DotEnv
+          run: |
+            cp .env.staging .env.adhoc
+            sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+            fi
+
+        - name: Build Android app (retryable)
+          uses: nick-fields/retry@v3
+          id: build
+          with:
+            retry_on: error
+            retry_wait_seconds: 60
+            timeout_minutes: 60
+            max_attempts: 3
+            command: |
+              lane='build_adhoc'
+              esac
+              bundle exec fastlane android "$lane"
+
+              # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
+              # shellcheck disable=SC1090
+              source "$GITHUB_ENV"
+
+              {
+                # aabPath and apkPath are environment varibles set within the Fastfile
+                echo "APK_PATH=$apkPath"
+                echo "APK_FILE_NAME=$(basename "$apkPath")"
+                echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-apk-artifact" >> "$GITHUB_OUTPUT"
+              } >> "$GITHUB_OUTPUT"    
