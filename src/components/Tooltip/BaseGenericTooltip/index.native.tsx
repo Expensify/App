@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {View as RNView} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -38,6 +39,7 @@ function BaseGenericTooltip({
     onHideTooltip = () => {},
     shouldTeleportPortalToModalLayer = false,
     isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -133,7 +135,13 @@ function BaseGenericTooltip({
                     setWrapperMeasuredHeight(height);
                 }}
             >
-                {content}
+                <PressableWithoutFeedback
+                    onPress={onTooltipPress}
+                    role={CONST.ROLE.TOOLTIP}
+                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                >
+                    {content}
+                </PressableWithoutFeedback>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>

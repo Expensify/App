@@ -242,6 +242,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
+                onTooltipPress={onPress}
             >
                 <Button
                     icon={Expensicons.Filters}

@@ -4610,6 +4610,8 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
+        /** Use for Tooltips */
+        TOOLTIP: 'tooltip',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',

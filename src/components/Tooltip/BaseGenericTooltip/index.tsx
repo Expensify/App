@@ -1,9 +1,11 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
+import {PopoverContext} from '@components/PopoverProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -39,6 +41,7 @@ function BaseGenericTooltip({
     shouldUseOverlay = false,
     onHideTooltip = () => {},
     isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -48,8 +51,17 @@ function BaseGenericTooltip({
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
+    const pressableRef = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
+    const {setActivePopoverExtraAnchorRef} = useContext(PopoverContext);
+
+    useEffect(() => {
+        if (!isEducationTooltip) {
+            return;
+        }
+        setActivePopoverExtraAnchorRef(pressableRef);
+    }, [isEducationTooltip, setActivePopoverExtraAnchorRef]);
 
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
@@ -141,7 +153,14 @@ function BaseGenericTooltip({
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
             >
-                {content}
+                <PressableWithoutFeedback
+                    onPress={onTooltipPress}
+                    ref={pressableRef}
+                    role={CONST.ROLE.TOOLTIP}
+                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                >
+                    {content}
+                </PressableWithoutFeedback>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
