@@ -132,7 +132,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const [isDuplicate, setIsDuplicate] = useState(isDuplicateTransactionUtils(transaction?.transactionID));
+    const [isDuplicate, setIsDuplicate] = useState(() => isDuplicateTransactionUtils(transaction?.transactionID));
     const prevIsDuplicate = usePrevious(isDuplicate);
 
     // Only the requestor can delete the request, admins can only edit it.
