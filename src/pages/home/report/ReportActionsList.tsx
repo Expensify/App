@@ -610,6 +610,8 @@ function ReportActionsList({
     }, [isFocused, isVisible]);
 
     // Handles scrolling to the unread marker.
+    // If we have an unread marker initially we do not need to scroll to it as this
+    // will be handled by the list `initialScrollKey`.
     const didScrollToUnreadMarker = useRef(false);
     useEffect(() => {
         if (unreadMarkerReportActionIndex === -1 || didScrollToUnreadMarker.current) {
