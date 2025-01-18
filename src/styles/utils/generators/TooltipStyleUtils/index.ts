@@ -241,7 +241,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
                 ...styles.userSelectNone,
-                ...styles.pointerEventsNone,
+                ...(!isEducationTooltip ? styles.pointerEventsNone : {}),
             },
             textStyle: {
                 color: theme.textReversed,
