@@ -37,6 +37,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {
+    canAddTransactionReciept,
     getTransactionDetails,
     getWorkspaceIcon,
     isPaidGroupPolicy,
@@ -357,7 +358,7 @@ function MoneyRequestPreviewContent({
     };
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, action, currentUserPersonalDetails.accountID) && !hasReceipt;
+    const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, action, currentUserPersonalDetails.accountID) && !hasReceipt;
 
     const childContainer = (
         <View>
@@ -379,7 +380,7 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {(shouldShowReceiptEmptyState || hasReceipt) && !isDeleted && (
+                    {!!(shouldShowReceiptEmptyState || hasReceipt) && !isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}

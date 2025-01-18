@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -29,9 +30,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportActionText} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getReportActionText} from '@libs/ReportActionsUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canAddTransactionReciept,
     canBeExported,
     getArchiveReason,
     getBankAccountRoute,
@@ -72,6 +74,7 @@ import {
     getMerchant,
     getTransactionViolations,
     hasPendingUI,
+    hasReceipt,
     isCardTransaction,
     isPartialMerchant,
     isPending,
@@ -234,9 +237,9 @@ function ReportPreview({
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = allTransactions.slice(-3).filter((t) => {
-        const iouAction = ReportActionsUtils.getIOUActionForReportID(iouReport?.reportID, t.transactionID);
+        const iouAction = getIOUActionForReportID(iouReport?.reportID, t.transactionID);
         const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, currentUserAccountID);
-        return TransactionUtils.hasReceipt(t) || shouldShowReceiptEmptyState;
+        return hasReceipt(t) || shouldShowReceiptEmptyState;
     });
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
