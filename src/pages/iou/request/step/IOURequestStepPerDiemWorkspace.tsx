@@ -7,10 +7,9 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
+import {canSubmitPerDiemExpenseFromWorkspace, getActivePolicies, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +38,7 @@ function IOURequestStepPerDiemWorkspace({
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActivePolicies(allPolicies, currentUserLogin).filter((policy) => PolicyUtils.canSubmitPerDiemExpenseFromWorkspace(policy));
+        const availableWorkspaces = getActivePolicies(allPolicies, currentUserLogin).filter((policy) => canSubmitPerDiemExpenseFromWorkspace(policy));
 
         return availableWorkspaces
             .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
@@ -50,7 +49,7 @@ function IOURequestStepPerDiemWorkspace({
                 icons: [
                     {
                         id: policy.id,
-                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
@@ -61,13 +60,13 @@ function IOURequestStepPerDiemWorkspace({
     }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const selectWorkspace = (item: WorkspaceListItem) => {
-        const policyExpenseReportID = ReportUtils.getPolicyExpenseChat(accountID, item.value)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;
         if (!policyExpenseReportID) {
             return;
         }
-        const selectedPolicy = PolicyUtils.getPolicy(item.value, allPolicies);
-        const perDiemUnit = PolicyUtils.getPerDiemCustomUnit(selectedPolicy);
-        IOU.setMoneyRequestParticipants(transactionID, [
+        const selectedPolicy = getPolicy(item.value, allPolicies);
+        const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
+        setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
@@ -76,12 +75,14 @@ function IOURequestStepPerDiemWorkspace({
                 policyID: item.value,
             },
         ]);
-        IOU.setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
     return (
         <SelectionList
+            key={selectedWorkspace?.policyID}
             sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
             onSelectRow={selectWorkspace}
             shouldSingleExecuteRowSelect
