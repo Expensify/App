@@ -1387,7 +1387,7 @@ function getValidPersonalDetailOptions(
     options: OptionList['personalDetails'],
     {
         loginsToExclude = {},
-        includeDomainEmail,
+        includeDomainEmail = false,
         shouldBoldTitleByDefault = false,
         currentUserRef,
     }: {
