@@ -731,6 +731,7 @@ function MoneyRequestConfirmationListFooter({
         [
             styles.moneyRequestImage,
             styles.cursorDefault,
+            styles.flex1,
             isLocalFile,
             receiptFilename,
             translate,
