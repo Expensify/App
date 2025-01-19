@@ -5,7 +5,6 @@ import type Navigation from '@libs/Navigation/Navigation';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomReportAction from '../../utils/collections/reportActions';
 import createRandomReport from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -49,7 +48,7 @@ describe('HeaderView', () => {
             <HeaderView
                 report={report}
                 onNavigationMenuButtonClicked={() => {}}
-                parentReportAction={createRandomReportAction(0)}
+                parentReportAction={null}
                 reportID={report.reportID}
             />,
         );

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -37,6 +37,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
+    const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const {isOffline} = useNetwork();
 
@@ -74,6 +75,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             return;
         }
         if (isNewFeedConnected) {
+            setShouldBlockWindowOpen(true);
             customWindow?.close();
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
@@ -81,8 +83,10 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             return;
         }
-        customWindow = openBankConnection(url);
-    }, [isNewFeedConnected, isOffline, newFeed, policyID, url]);
+        if (!shouldBlockWindowOpen) {
+            customWindow = openBankConnection(url);
+        }
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
