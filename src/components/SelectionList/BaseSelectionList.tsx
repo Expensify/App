@@ -120,6 +120,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
+        listItemTitleContainerStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -556,6 +557,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
+                    titleContainerStyles={listItemTitleContainerStyles}
                 />
             </View>
         );
