@@ -525,7 +525,7 @@ function ReportActionsList({
         readNewestAction(report.reportID);
         const unreadReportActionIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
         if (unreadReportActionIndex !== -1) {
-            reportScrollManager?.scrollToIndex(unreadReportActionIndex, undefined, 0.9);
+            reportScrollManager?.scrollToIndex(unreadReportActionIndex, undefined, CONST.SCROLL_TO_INDEX_VIEW_POSITION);
         } else {
             reportScrollManager.scrollToBottom();
         }
