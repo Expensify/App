@@ -9,6 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +40,8 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-    const taskTitle = convertToLTR(report.reportName ?? '');
+    const taskTitle = `<task-title>${convertToLTR(report.reportName ?? '')}<task-title>`;
+    const personalDetails = usePersonalDetails();
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
         false,
@@ -107,12 +109,15 @@ function TaskView({report}: TaskViewProps) {
                                             disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            <Text
+                                            {/* <Text
                                                 numberOfLines={3}
                                                 style={styles.taskTitleMenuItem}
                                             >
                                                 {taskTitle}
-                                            </Text>
+                                            </Text> */}
+                                            <View style={styles.renderHTMLTitle}>
+                                                <RenderHTML html={taskTitle} />
+                                            </View>
                                         </View>
                                         {!isDisableInteractive && (
                                             <View style={styles.taskRightIconContainer}>
