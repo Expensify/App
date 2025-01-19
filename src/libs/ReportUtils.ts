@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashEscape from 'lodash/escape';
@@ -6785,6 +6786,156 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
     );
 }
 
+const REPORT_FLAGS = {
+    // Basic report validity flags
+    HAS_VALID_STRUCTURE: 1 << 0, // 1
+    IS_SUPPORTED_TYPE: 1 << 1, // 2
+    HAS_DRAFT_COMMENT: 1 << 2, // 4
+    IS_PINNED: 1 << 3, // 8
+    HAS_ADD_WORKSPACE_ERROR: 1 << 4, // 16
+    IS_UNREAD: 1 << 5, // 32
+    IS_ARCHIVED: 1 << 6, // 64
+    IS_EMPTY_CHAT: 1 << 7, // 128
+    IS_SELF_DM: 1 << 8, // 256
+    HAS_VIOLATIONS: 1 << 9, // 512
+    IS_SINGLE_TRANSACTION_THREAD: 1 << 10, // 1024
+
+    // Chat type flags
+    IS_CHAT_ROOM: 1 << 11, // 2048
+    IS_CHAT_THREAD: 1 << 12, // 4096
+    IS_SYSTEM_CHAT: 1 << 13, // 8192
+    IS_GROUP_CHAT: 1 << 14, // 16384
+    IS_MONEY_REQUEST: 1 << 15, // 32768
+    IS_TASK_REPORT: 1 << 16, // 65536
+    IS_ADMIN_ROOM: 1 << 17, // 131072
+} as const;
+
+// Type for the flags
+type ReportFlag = keyof typeof REPORT_FLAGS;
+type ReportFlagValue = (typeof REPORT_FLAGS)[ReportFlag];
+
+// Cache to store computed flags
+const reportFlagsCache = new Map<string, ReportFlagValue>();
+
+/**
+ * Computes the flags for a report and caches the result
+ */
+function computeReportFlags(report: Report, policies: ShouldReportBeInOptionListParams['policies'], betas: ShouldReportBeInOptionListParams['betas']): number {
+    let flags = 0;
+
+    // Check basic report structure
+    if (
+        report?.reportID &&
+        report?.type &&
+        report?.reportName !== undefined &&
+        (report?.participants ||
+            isChatRoom(report) ||
+            isChatThread(report) ||
+            isArchivedReport(report, getReportNameValuePairs(report?.reportID)) ||
+            isMoneyRequestReport(report) ||
+            isTaskReport(report) ||
+            isSelfDM(report) ||
+            isSystemChat(report) ||
+            isGroupChat(report))
+    ) {
+        flags |= REPORT_FLAGS.HAS_VALID_STRUCTURE;
+    }
+
+    // Check if type is supported
+    if (!Object.values(CONST.REPORT.UNSUPPORTED_TYPE).includes(report?.type ?? '')) {
+        flags |= REPORT_FLAGS.IS_SUPPORTED_TYPE;
+    }
+
+    // Set various report type flags
+    if (isChatRoom(report)) {
+        flags |= REPORT_FLAGS.IS_CHAT_ROOM;
+    }
+    if (isChatThread(report)) {
+        flags |= REPORT_FLAGS.IS_CHAT_THREAD;
+    }
+    if (isSystemChat(report)) {
+        flags |= REPORT_FLAGS.IS_SYSTEM_CHAT;
+    }
+    if (isGroupChat(report)) {
+        flags |= REPORT_FLAGS.IS_GROUP_CHAT;
+    }
+    if (isMoneyRequestReport(report)) {
+        flags |= REPORT_FLAGS.IS_MONEY_REQUEST;
+    }
+    if (isTaskReport(report)) {
+        flags |= REPORT_FLAGS.IS_TASK_REPORT;
+    }
+    if (isAdminRoom(report)) {
+        flags |= REPORT_FLAGS.IS_ADMIN_ROOM;
+    }
+
+    // Set status flags
+    if (hasValidDraftComment(report.reportID)) {
+        flags |= REPORT_FLAGS.HAS_DRAFT_COMMENT;
+    }
+    if (report.isPinned) {
+        flags |= REPORT_FLAGS.IS_PINNED;
+    }
+    if (report.errorFields?.addWorkspaceRoom) {
+        flags |= REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR;
+    }
+    if (isUnread(report)) {
+        flags |= REPORT_FLAGS.IS_UNREAD;
+    }
+    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+        flags |= REPORT_FLAGS.IS_ARCHIVED;
+    }
+    if (isEmptyReport(report)) {
+        flags |= REPORT_FLAGS.IS_EMPTY_CHAT;
+    }
+    if (isSelfDM(report)) {
+        flags |= REPORT_FLAGS.IS_SELF_DM;
+    }
+
+    return flags;
+}
+
+function getReportFlags(report: Report, policies: ShouldReportBeInOptionListParams['policies'], betas: ShouldReportBeInOptionListParams['betas'], forceRecompute = false): number {
+    const cacheKey = report.reportID;
+    const cachedData = reportFlagsCache.get(cacheKey);
+
+    // Cache miss or force recompute
+    if (!cachedData || forceRecompute) {
+        const flags = computeReportFlags(report, policies, betas);
+        reportFlagsCache.set(cacheKey, flags);
+        return flags;
+    }
+
+    return cachedData;
+}
+
+function getVisibilityRequirements(params: ShouldReportBeInOptionListParams): {
+    requiredFlags: number;
+    excludedFlags: number;
+} {
+    const {isInFocusMode, excludeEmptyChats, includeSelfDM, includeDomainEmail} = params;
+
+    let requiredFlags = REPORT_FLAGS.HAS_VALID_STRUCTURE | REPORT_FLAGS.IS_SUPPORTED_TYPE;
+    let excludedFlags = 0;
+
+    // Focus mode requirements
+    if (isInFocusMode) {
+        requiredFlags |= REPORT_FLAGS.IS_UNREAD;
+    }
+
+    // Empty chat exclusion
+    if (excludeEmptyChats) {
+        excludedFlags |= REPORT_FLAGS.IS_EMPTY_CHAT;
+    }
+
+    // Self DM handling
+    if (!includeSelfDM) {
+        excludedFlags |= REPORT_FLAGS.IS_SELF_DM;
+    }
+
+    return {requiredFlags, excludedFlags};
+}
+
 type ShouldReportBeInOptionListParams = {
     report: OnyxEntry<Report>;
     currentReportId: string | undefined;
@@ -6797,6 +6948,63 @@ type ShouldReportBeInOptionListParams = {
     login?: string;
     includeDomainEmail?: boolean;
 };
+
+function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    const {report, currentReportId, isInFocusMode, betas, policies, excludeEmptyChats, doesReportHaveViolations, includeSelfDM = false, login, includeDomainEmail = false} = params;
+
+    if (!report?.reportID) {
+        return null;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === currentReportId) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
+    }
+
+    const flags = getReportFlags(report, policies, betas);
+    const {requiredFlags, excludedFlags} = getVisibilityRequirements(params);
+
+    // Check if report meets basic requirements
+    if ((flags & requiredFlags) !== requiredFlags) {
+        return null;
+    }
+
+    // Check if report has any excluded flags
+    if (flags & excludedFlags) {
+        return null;
+    }
+
+    // Priority checks (order matters)
+    if (flags & REPORT_FLAGS.HAS_DRAFT_COMMENT) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
+    }
+
+    if (flags & REPORT_FLAGS.IS_PINNED) {
+        return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
+    }
+
+    if (doesReportHaveViolations) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
+    }
+
+    if (flags & REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS;
+    }
+
+    // Focus mode unread check
+    if (params.isInFocusMode && flags & REPORT_FLAGS.IS_UNREAD) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_UNREAD;
+    }
+
+    // Default mode archived check
+    if (!params.isInFocusMode && flags & REPORT_FLAGS.IS_ARCHIVED) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
+    }
+
+    return CONST.REPORT_IN_LHN_REASONS.DEFAULT;
+}
 
 function reasonForReportToBeInOptionList({
     report,
