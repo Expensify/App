@@ -33,7 +33,7 @@ function ThreeDotsMenu({
     disabled = false,
     hideProductTrainingTooltip,
     renderProductTrainingTooltipContent,
-    shouldShowProductTrainingTooltip,
+    shouldShowProductTrainingTooltip = false,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
