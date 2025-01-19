@@ -19,7 +19,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
+import memoize from '@libs/memoize';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -153,40 +154,44 @@ function SearchRouterList(
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
 
-    const participantsAutocompleteList = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return [];
-        }
+    const getParticipantsAutocompleteList = useMemo(
+        () =>
+            memoize(() => {
+                if (!areOptionsInitialized) {
+                    return [];
+                }
 
-        const currentUserRef = {
-            current: undefined as OptionData | undefined,
-        };
-        const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
-            loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
-            shouldBoldTitleByDefault: false,
-            currentUserRef,
-        });
-
-        // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-        const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
-        const autocompleteOptions = Object.values(personalDetailsFromOptions)
-            .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
-            .map((details) => {
-                return {
-                    name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                    accountID: details.accountID.toString(),
+                const currentUserRef = {
+                    current: undefined as OptionData | undefined,
                 };
-            });
-        const currentUser = currentUserRef.current;
-        if (currentUser && currentUser.accountID) {
-            autocompleteOptions.push({
-                name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID.toString(),
-            });
-        }
+                const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
+                    loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    shouldBoldTitleByDefault: false,
+                    currentUserRef,
+                });
 
-        return autocompleteOptions;
-    }, [areOptionsInitialized, options.personalDetails]);
+                // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
+                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
+                const autocompleteOptions = Object.values(personalDetailsFromOptions)
+                    .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
+                    .map((details) => {
+                        return {
+                            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
+                            accountID: details.accountID.toString(),
+                        };
+                    });
+                const currentUser = currentUserRef.current;
+                if (currentUser && currentUser.accountID) {
+                    autocompleteOptions.push({
+                        name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
+                        accountID: currentUser.accountID.toString(),
+                    });
+                }
+
+                return autocompleteOptions;
+            }),
+        [areOptionsInitialized, options.personalDetails],
+    );
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
 
@@ -272,7 +277,7 @@ function SearchRouterList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -284,7 +289,7 @@ function SearchRouterList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -359,7 +364,7 @@ function SearchRouterList(
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
-        participantsAutocompleteList,
+        getParticipantsAutocompleteList,
         searchOptions.recentReports,
         typeAutocompleteList,
         statusAutocompleteList,
