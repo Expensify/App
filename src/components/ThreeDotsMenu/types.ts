@@ -41,6 +41,12 @@ type ThreeDotsMenuProps = {
 
     /** Function to hide the product training tooltip */
     hideProductTrainingTooltip?: () => void;
+
+    /** Tooltip content to render */
+    renderProductTrainingTooltipContent: () => React.JSX.Element;
+
+    /** Should we render the tooltip */
+    shouldShowProductTrainingTooltip: boolean;
 };
 
 export default ThreeDotsMenuProps;

@@ -38,13 +38,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
-type SavedSearchMenuItem = MenuItemWithLink & {
-    key: string;
-    hash: string;
-    query: string;
-    styles: Array<ViewStyle | TextStyle>;
-};
-
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
     searchName?: string;
@@ -132,7 +125,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
             }
 
-            const baseMenuItem: SavedSearchMenuItem = {
+            return {
                 key,
                 title,
                 hash: key,
@@ -148,6 +141,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
+                        shouldRenderTooltip={!isNarrow && index === 0 && shouldShowProductTrainingTooltip}
+                        renderTooltipContent={renderProductTrainingTooltip}
                     />
                 ),
                 styles: [styles.alignItemsCenter],
@@ -155,37 +150,18 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 shouldIconUseAutoWidthStyle: true,
             };
-
-            if (!isNarrow) {
-                return {
-                    ...baseMenuItem,
-                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
-                    tooltipAnchorAlignment: {
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    },
-                    tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
-                    tooltipShiftVertical: variables.savedSearchShiftVertical,
-                    tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-                    renderTooltipContent: renderProductTrainingTooltip,
-                };
-            }
-            return baseMenuItem;
         },
         [
             allCards,
             hash,
             getOverflowMenu,
             styles.alignItemsCenter,
-            styles.mh4,
-            styles.pv2,
             personalDetails,
             reports,
             taxRates,
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
-            styles.productTrainingTooltipWrapper,
         ],
     );
 
