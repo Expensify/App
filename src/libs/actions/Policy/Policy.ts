@@ -1696,8 +1696,10 @@ Onyx.connect({
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  * @param [expenseReportId] the reportID of the expense report that is being used to create the workspace
+ * @param [engagementChoice] the engagement choice for the workspace
+ * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: OnboardingPurpose) {
+    function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: OnboardingPurpose, shouldAddOnboardingTasks = true) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
@@ -1961,7 +1963,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         customUnitRateID,
     };
 
-    if (!introSelected?.createWorkspace && engagementChoice) {
+    if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
         const {
             guidedSetupData,
             optimisticData: taskOptimisticData,
@@ -1995,8 +1997,9 @@ function createWorkspace(
     policyName = '',
     policyID = generatePolicyID(),
     engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+    shouldAddOnboardingTasks = true,
 ): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice);
+    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice, shouldAddOnboardingTasks);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy

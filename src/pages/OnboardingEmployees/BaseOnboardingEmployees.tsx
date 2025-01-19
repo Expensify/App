@@ -76,7 +76,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // We need `adminsChatReportID` for `Report.completeOnboarding`, but at the same time, we don't want to call `Policy.createWorkspace` more than once.
                     // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
                     const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                        ? Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+                        ? Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, false)
                         : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
                     if (shouldCreateWorkspace) {
