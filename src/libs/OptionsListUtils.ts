@@ -1313,7 +1313,6 @@ function getValidReports(
             continue;
         }
 
-        // Skip notifications@expensify.com
         if (option.login === CONST.EMAIL.NOTIFICATIONS) {
             continue;
         }
