@@ -244,7 +244,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                     mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
                     initialViewState={initialViewState}
-                    style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
+                    style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                     mapStyle={styleURL}
                     interactive={interactive}
                 >
