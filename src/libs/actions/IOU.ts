@@ -8521,7 +8521,10 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
-function detachReceipt(transactionID: string) {
+function detachReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const newTransaction = transaction
         ? {
