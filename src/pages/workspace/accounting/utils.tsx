@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToNSQSFlow from '@components/ConnectToNSQSFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
@@ -210,6 +211,18 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+            // s77rt: add missing fields
+            return {
+                title: translate('workspace.accounting.nsqs'),
+                icon: Expensicons.NetSuiteSquare, // s77rt: wrong icon
+                setupConnectionFlow: (
+                    <ConnectToNSQSFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {

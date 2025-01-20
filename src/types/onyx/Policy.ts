@@ -1072,6 +1072,67 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+type NSQSAccount = {
+    /** GL code assigned to the financial account */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'GL Code'?: string;
+
+    /** Name of the account */
+    name: string;
+
+    /** ID assigned to the financial account in NSQS */
+    id: string;
+
+    /** Type of the financial account */
+    type: ValueOf<typeof CONST.NSQS_ACCOUNT_TYPE>;
+};
+
+/**
+ * Connection data for NSQS
+ */
+type NSQSConnectionData = {
+    /** Collection of the payable accounts */
+    payableList: NSQSAccount[];
+};
+
+/**
+ * Connection config for NSQS
+ */
+type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Configuration of automatic synchronization from NSQS to the app */
+    autoSync: {
+        /** Job ID of the synchronization */
+        jobID: string;
+
+        /** Whether changes made in NSQS should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    syncOptions: {
+        mapping: {
+            customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+            projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+        };
+    };
+
+    currency: string;
+    exporter: string;
+    exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
+    credentials: {
+        // s77rt double check the field names (camel case)
+        accessToken: string;
+        companyID: string;
+        expires: string;
+        scope: string;
+        tokenType: string;
+    };
+    isConfigured: boolean;
+    approvalAccount: string;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     /** Element ID */
@@ -1367,6 +1428,9 @@ type Connections = {
 
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
+
+    /** NSQS integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
@@ -1931,6 +1995,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    NSQSAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
+import {Dictionary} from 'lodash';
+import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -2108,6 +2110,35 @@ const CONST = {
         '_vietNam',
     ] as string[],
 
+    NSQS_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+    },
+
+    NSQS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NSQS_INTEGRATION_ENTITY_MAP_TYPES: {
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
+        REPORT_FIELD: 'REPORT_FIELD',
+        TAG: 'TAG',
+    },
+
+    NSQS_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNC_OPTIONS: {
+            MAPPING: {
+                CUSTOMERS: 'syncOptions.mapping.customers',
+                PROJECTS: 'syncOptions.mapping.projects',
+            },
+        },
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        APPROVAL_ACCOUNT: 'approvalAccount',
+    },
+
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
@@ -2592,17 +2623,20 @@ const CONST = {
                 QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                NSQS: 'nsqs',
                 SAGE_INTACCT: 'intacct',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                NSQS: 'nsqs',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
+                nsqs: 'NSQS',
                 quickbooksOnline: 'QuickBooks Online',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
@@ -2616,6 +2650,7 @@ const CONST = {
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
+                // s77rt: do we have a link for nsqs?
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2680,6 +2715,8 @@ const CONST = {
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
                 NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
+                NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
+                // s77rt get NSQS sync stages
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -2688,6 +2725,19 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            get MULTI_CONNECTIONS_MAPPING() {
+                return {
+                    [this.NAME.QBO]: null,
+                    [this.NAME.QBD]: null,
+                    [this.NAME.XERO]: null,
+                    [this.NAME.NETSUITE]: this.NAME.NETSUITE,
+                    [this.NAME.NSQS]: this.NAME.NETSUITE,
+                    [this.NAME.SAGE_INTACCT]: null,
+                };
+            },
+            get MULTI_CONNECTIONS_MAPPING_INVERTED() {
+                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<ValueOf<typeof this.NAME>[] | undefined>;
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -4965,6 +5015,7 @@ const CONST = {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
         netsuite: 'NetSuite',
+        // s77rt: Do I need to add NSQS here?
         intacct: 'Sage Intacct',
         quickbooksDesktop: 'QuickBooks Desktop',
     },

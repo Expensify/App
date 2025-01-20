@@ -3052,8 +3052,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {

@@ -49,6 +49,9 @@ type SelectionScreenProps<T = string> = {
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null | undefined;
 
@@ -115,6 +118,7 @@ function SelectionScreen<T = string>({
     listFooterContent,
     sections,
     listItem,
+    listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -146,7 +150,7 @@ function SelectionScreen<T = string>({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
+            shouldBeBlocked={false} // s77rt: revert this line
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
@@ -180,6 +184,7 @@ function SelectionScreen<T = string>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         isAlternateTextMultilineSupported
+                        listItemWrapperStyle={listItemWrapperStyle}
                     >
                         <ErrorMessageRow
                             errors={errors}
