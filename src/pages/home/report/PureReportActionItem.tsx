@@ -453,7 +453,7 @@ function PureReportActionItem({
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
-        if (!canUseLinkPreviews()) {
+        if (!Permissions.canUseLinkPreviews()) {
             return;
         }
 
@@ -994,7 +994,7 @@ function PureReportActionItem({
         return (
             <>
                 {children}
-                {canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
+                {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                     <View style={draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                     </View>
