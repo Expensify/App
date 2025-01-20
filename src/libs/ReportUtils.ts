@@ -157,7 +157,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import {
-    getAllReportTransactions,
     getAttendees,
     getBillable,
     getCardID,
@@ -895,6 +894,14 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
  */
 function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+}
+
+function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
+    if (!transactions || !reportID) {
+        return [];
+    }
+
+    return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
 
 function getReportTransactions(reportID: string | undefined): Transaction[] {
@@ -1892,7 +1899,7 @@ function isPayAtEndExpenseReport(reportID: string | undefined, transactions: Tra
         return false;
     }
 
-    return isPayAtEndExpense(transactions?.[0] ?? getAllReportTransactions(reportID).at(0));
+    return isPayAtEndExpense(transactions?.[0] ?? getReportTransactions(reportID).at(0));
 }
 
 /**
@@ -2989,7 +2996,7 @@ function getReasonAndReportActionThatRequiresAttention(
 
     const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
-    const transactions = getAllReportTransactions(iouReportID);
+    const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
@@ -3729,7 +3736,7 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    const allReportTransactions = getAllReportTransactions(report.reportID);
+    const allReportTransactions = getReportTransactions(report.reportID);
     const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
     const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
 
@@ -8965,6 +8972,8 @@ export {
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
+    getReportTransactions,
+    reportTransactionsSelector,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
