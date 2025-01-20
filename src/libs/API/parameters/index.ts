@@ -363,3 +363,5 @@ export type {default as DismissProductTrainingParams} from './DismissProductTrai
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
+export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
+export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
