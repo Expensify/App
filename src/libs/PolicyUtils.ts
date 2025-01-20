@@ -1212,15 +1212,15 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
     }
 
     const adminDomains = Object.entries(policy.employeeList ?? {}).reduce((domains, [email, employee]) => {
-        if (employee.role === CONST.POLICY.ROLE.ADMIN) {
-            domains.push(Str.extractEmailDomain(email).toLowerCase());
+        if (employee.role != CONST.POLICY.ROLE.ADMIN) {
+            return domains;
         }
+        domains.push(Str.extractEmailDomain(email).toLowerCase());
         return domains;
     }, [] as string[]);
+    const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
 
-    const ownerDomain = Str.extractEmailDomain(policy.owner).toLowerCase();
-
-    return [...new Set([...adminDomains, ownerDomain])].filter((domain) => !isPublicDomain(domain));
+    return [...new Set([...adminDomains, ...ownerDomains])].filter((domain) => !isPublicDomain(domain));
 }
 
 function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
@@ -1229,15 +1229,17 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     }
     let domainOccurrences = {} as Record<string, number>;
     [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()].forEach((memberDomain) => {
-        if (acceptedDomains.includes(memberDomain)) {
-            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        if (!acceptedDomains.includes(memberDomain)) {
+            return;
         }
+        domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
     });
     let mostRequent = {domain: '', count: 0};
     Object.entries(domainOccurrences).forEach(([domain, count]) => {
-        if (count > mostRequent.count) {
-            mostRequent = {domain, count};
+        if (count <= mostRequent.count) {
+            return;
         }
+        mostRequent = {domain, count};
     });
     if (mostRequent.count === 0) {
         return undefined;

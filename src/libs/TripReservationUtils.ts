@@ -126,7 +126,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     } else if (isPolicyProvisioned) {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
     } else {
-        const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(activePolicyID);
+        const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(policy);
         let routeToNavigateTo;
         if (adminDomains.length === 0) {
             routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;

@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import TravelDomainListItem, {DomainItem} from '@components/SelectionList/TravelDomainListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
@@ -18,7 +19,7 @@ function DomainSelectorPage() {
     const {translate} = useLocalize();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? 0}`);
+    const policy = usePolicy(activePolicyID);
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
@@ -53,16 +54,18 @@ function DomainSelectorPage() {
                 canSelectMultiple
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
-                footerContent={<Button
-                    isDisabled={!selectedDomain}
-                    success
-                    large
-                    style={[styles.w100]}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? ''));
-                    }}
-                    text={translate('common.continue')}
-                />}
+                footerContent={
+                    <Button
+                        isDisabled={!selectedDomain}
+                        success
+                        large
+                        style={[styles.w100]}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? ''));
+                        }}
+                        text={translate('common.continue')}
+                    />
+                }
             />
         </ScreenWrapper>
     );
