@@ -1374,7 +1374,12 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT route');
+            }
+            return `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
         route: 'settings/workspaces/:policyID/expensify-card/settings',
