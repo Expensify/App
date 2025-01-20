@@ -100,6 +100,7 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
+    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -990,6 +991,7 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -1022,6 +1024,7 @@ const translations = {
             invalidQuantity: 'Please enter a valid quantity.',
             quantityGreaterThanZero: 'Quantity must be greater than zero.',
             invalidSubrateLength: 'There must be at least one subrate.',
+            invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
