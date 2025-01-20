@@ -1,8 +1,9 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useLayoutEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {SharedValue} from 'react-native-reanimated';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
+import {withSequence} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,7 +72,7 @@ const useSafeAreaPaddings = () => {
 
 type ActionSheetKeyboardSpaceProps = ViewProps & {
     /** scroll offset of the parent ScrollView */
-    position: SharedValue<number>;
+    position?: SharedValue<number>;
 };
 
 function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
@@ -181,7 +182,14 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 }
 
                 if (elementOffset < 0) {
-                    return isClosingKeyboard ? 0 : lastKeyboardHeight + Math.min(elementOffset + position.get(), 0);
+                    const heightDifference = (fy ?? 0) - lastKeyboardHeight - keyboardHeight - safeArea.top - safeArea.bottom;
+                    if (isClosingKeyboard) {
+                        return 0;
+                    }
+                    if (heightDifference > safeArea.top) {
+                        return withSequence(withTiming(lastKeyboardHeight - keyboardHeight, {duration: 0}), withSpring(heightDifference, SPRING_CONFIG));
+                    }
+                    return lastKeyboardHeight - keyboardHeight;
                 }
 
                 return lastKeyboardHeight;
