@@ -13,10 +13,15 @@ import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function CardTypeStep() {
+type CardTypeStepProps = {
+    /** ID of the policy */
+    policyID: string;
+};
+
+function CardTypeStep({policyID}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -27,15 +32,16 @@ function CardTypeStep() {
                 cardType: value,
             },
             isEditing: false,
+            policyID,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE});
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE, policyID});
     };
 
     return (
