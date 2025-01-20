@@ -14,6 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isEmptyValue from '@src/types/utils/isEmptyString';
 
 function SageIntacctExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -22,7 +23,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT>>();
     const backTo = route?.params?.backTo;
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
-    const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT && backTo;
+    const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT && !isEmptyValue(backTo);
 
     const sections = useMemo(
         () => [

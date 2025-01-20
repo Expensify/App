@@ -14,6 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isEmptyValue from '@src/types/utils/isEmptyString';
 
 function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -24,7 +25,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
 
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
-    const shouldGoBackToSpecificRoute = !exportConfiguration?.nonReimbursableAccount && backTo;
+    const shouldGoBackToSpecificRoute = !exportConfiguration?.nonReimbursableAccount && !isEmptyValue(backTo);
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {

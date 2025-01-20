@@ -17,6 +17,7 @@ import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isEmptyValue from '@src/types/utils/isEmptyString';
 
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -32,7 +33,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
-    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && backTo;
+    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && !isEmptyValue(backTo);
 
     const menuItems = [
         {
