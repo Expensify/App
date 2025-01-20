@@ -119,6 +119,11 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Learn more about expense tracking and submission.
 
+      - href: connect-credit-cards
+        title: Connect Credit Cards
+        icon: /assets/images/bank-card.svg
+        description: Track credit card transactions and reconcile company cards.
+        
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
