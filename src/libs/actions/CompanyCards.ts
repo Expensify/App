@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -18,10 +18,11 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds} from '@src/types/onyx';
+import type {Card, CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {AddNewCardFeedData, AddNewCardFeedStep, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -403,8 +404,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
 
 function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const optimisticFeedUpdates = {[bankName]: {errors: null}};
-    const failureFeedUpdates = {[bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -435,13 +434,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: null,
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: optimisticFeedUpdates},
             },
         },
     ];
@@ -502,13 +494,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: failureFeedUpdates},
             },
         },
     ];
@@ -740,6 +725,39 @@ function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
+    if (!allCardsList) {
+        return;
+    }
+
+    let cards: Record<string, Card> = {};
+
+    Object.entries(allCardsList).forEach(([key, allCards]) => {
+        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            return;
+        }
+
+        const {cardList, ...feedCards} = allCards ?? {};
+        cards = {...cards, ...feedCards};
+    });
+
+    return cards;
+}
+
+function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return false;
+    }
+
+    return !!Object.values(feedCards).find((card) => {
+        if (card.bank === feedToExclude) {
+            return false;
+        }
+
+        return card.lastScrapeResult !== 200;
+    });
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -757,4 +775,6 @@ export {
     clearAddNewCardFlow,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
+    checkIfFeedConnectionIsBroken,
+    flatAllCardsList,
 };

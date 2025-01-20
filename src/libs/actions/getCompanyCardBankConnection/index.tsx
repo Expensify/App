@@ -11,7 +11,7 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID?: string, bankName?: string, scrapeMinDate?: string) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
@@ -23,7 +23,7 @@ export default function getCompanyCardBankConnection(policyID?: string, bankName
         isNewDot: 'true',
         domainName: PolicyUtils.getDomainNameForPolicy(policyID),
         isCorporate: 'true',
-        scrapeMinDate: scrapeMinDate ?? '',
+        scrapeMinDate: '',
     };
     const commandURL = getApiRoot({
         shouldSkipWebProxy: true,
