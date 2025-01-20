@@ -30,6 +30,7 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
+    disableAnimation,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
 }: ValidateCodeActionModalProps) {
@@ -70,6 +71,7 @@ function ValidateCodeActionModal({
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            animationInTiming={disableAnimation ? 1 : undefined}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
