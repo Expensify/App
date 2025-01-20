@@ -521,9 +521,14 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
             return;
         }
-        reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
+        const unreadReportActionIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
+        if (unreadReportActionIndex !== -1) {
+            reportScrollManager?.scrollToIndex(unreadReportActionIndex, undefined, CONST.SCROLL_TO_INDEX_VIEW_POSITION);
+        } else {
+            reportScrollManager.scrollToBottom();
+        }
     };
 
     /**
