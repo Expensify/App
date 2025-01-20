@@ -9,6 +9,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {Gallery} from '@components/Icon/Expensicons';
+import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -18,10 +19,10 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {add} from '@libs/actions/CachedPDFPaths';
+import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,6 +168,10 @@ function AttachmentView({
         );
     }
 
+    if (isPerDiemRequest(transaction) && transaction && !hasReceiptSource(transaction)) {
+        return <PerDiemEReceipt transactionID={transaction.transactionID} />;
+    }
+
     if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
@@ -190,7 +195,7 @@ function AttachmentView({
         const onPDFLoadComplete = (path: string) => {
             const id = (transaction && transaction.transactionID) ?? reportActionID;
             if (path && id) {
-                add(id, path);
+                addCachedPDFPaths(id, path);
             }
             if (!loadComplete) {
                 setLoadComplete(true);
