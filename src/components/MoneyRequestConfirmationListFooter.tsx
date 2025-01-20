@@ -9,15 +9,17 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReceiptUtils from '@libs/ReceiptUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
+import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -27,8 +29,10 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -93,6 +97,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if it is a distance request */
     isDistanceRequest: boolean;
 
+    /** Flag indicating if it is a per diem request */
+    isPerDiemRequest: boolean;
+
     /** Flag indicating if it is editing a split bill */
     isEditingSplitBill: boolean | undefined;
 
@@ -156,6 +163,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if the smart scan fields should be shown */
     shouldShowSmartScanFields: boolean;
 
+    /** Flag indicating if the amount field should be shown */
+    shouldShowAmountField?: boolean;
+
     /** Flag indicating if the tax should be shown */
     shouldShowTax: boolean;
 
@@ -188,6 +198,7 @@ function MoneyRequestConfirmationListFooter({
     iouType,
     isCategoryRequired,
     isDistanceRequest,
+    isPerDiemRequest,
     isEditingSplitBill,
     isMerchantEmpty,
     isMerchantRequired,
@@ -209,6 +220,7 @@ function MoneyRequestConfirmationListFooter({
     shouldShowCategories,
     shouldShowMerchant,
     shouldShowSmartScanFields,
+    shouldShowAmountField = true,
     shouldShowTax,
     transaction,
     transactionID,
@@ -223,9 +235,9 @@ function MoneyRequestConfirmationListFooter({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && TagsOptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
-    const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
-    const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -235,7 +247,7 @@ function MoneyRequestConfirmationListFooter({
     const canUpdateSenderWorkspace = useMemo(() => {
         const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
 
-        return PolicyUtils.canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+        return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -245,27 +257,29 @@ function MoneyRequestConfirmationListFooter({
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.
-    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     // Do not hide fields in case of paying someone
-    const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
+    const shouldShowAllFields = !!isPerDiemRequest || !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
-    const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
+    const taxAmount = getTaxAmount(transaction, false);
+    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    const taxRateTitle = getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && PolicyUtils.isPaidGroupPolicy(policy);
+    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) && !isPerDiemRequest;
+    // The per diem custom unit
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
         isThumbnail,
         fileExtension,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
@@ -276,7 +290,6 @@ function MoneyRequestConfirmationListFooter({
             reportNameValuePairs: undefined,
             action: undefined,
             checkIfContextMenuActive: () => {},
-            onShowContextMenu: () => {},
             isDisabled: true,
         }),
         [],
@@ -305,11 +318,11 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
-            shouldShow: shouldShowSmartScanFields,
+            shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
             isSupplementary: false,
         },
         {
@@ -437,8 +450,8 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -474,13 +487,13 @@ function MoneyRequestConfirmationListFooter({
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
-            const shouldShow = shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
+            const shouldShow = shouldShowTags && (!isMultilevelTags || hasEnabledOptions(tags));
             return {
                 item: (
                     <MenuItemWithTopDescription
                         key={name}
                         shouldShowRightIcon={!isReadOnly}
-                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        title={getTagForDisplay(transaction, index)}
                         description={name}
                         numberOfLinesTitle={2}
                         onPress={() => {
@@ -591,6 +604,65 @@ function MoneyRequestConfirmationListFooter({
             isSupplementary: true,
         },
     ];
+
+    const subRates = getSubratesFields(perDiemCustomUnit, transaction);
+    const shouldDisplaySubrateError =
+        isPerDiemRequest && (shouldDisplayFieldError || formError === 'iou.error.invalidSubrateLength') && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
+
+    const subRateFields = subRates.map((field, index) => (
+        <MenuItemWithTopDescription
+            key={`${translate('common.subrate')}${field?.key ?? index}`}
+            shouldShowRightIcon={!isReadOnly}
+            title={getSubratesForDisplay(field, translate('iou.qty'))}
+            description={translate('common.subrate')}
+            style={[styles.moneyRequestMenuItem]}
+            titleStyle={styles.flex1}
+            onPress={() => {
+                if (!transactionID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRouteWithoutParams()));
+            }}
+            disabled={didConfirm}
+            interactive={!isReadOnly}
+            brickRoadIndicator={index === 0 && shouldDisplaySubrateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
+        />
+    ));
+
+    const {firstDay, tripDays, lastDay} = getTimeDifferenceIntervals(transaction);
+
+    const badgeElements = useMemo(() => {
+        const badges: React.JSX.Element[] = [];
+        if (firstDay) {
+            badges.push(
+                <Badge
+                    key="firstDay"
+                    icon={Expensicons.Stopwatch}
+                    text={translate('iou.firstDayText', {count: firstDay})}
+                />,
+            );
+        }
+        if (tripDays) {
+            badges.push(
+                <Badge
+                    key="tripDays"
+                    icon={Expensicons.CalendarSolid}
+                    text={translate('iou.tripLengthText', {count: tripDays})}
+                />,
+            );
+        }
+        if (lastDay) {
+            badges.push(
+                <Badge
+                    key="lastDay"
+                    icon={Expensicons.Stopwatch}
+                    text={translate('iou.lastDayText', {count: lastDay})}
+                />,
+            );
+        }
+        return badges;
+    }, [firstDay, lastDay, translate, tripDays]);
 
     const primaryFields: React.JSX.Element[] = [];
     const supplementaryFields: React.JSX.Element[] = [];
@@ -703,6 +775,46 @@ function MoneyRequestConfirmationListFooter({
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
+            )}
+            {isPerDiemRequest && (
+                <>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!isReadOnly}
+                        title={getDestinationForDisplay(perDiemCustomUnit, transaction)}
+                        description={translate('common.destination')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                    />
+                    <View style={styles.dividerLine} />
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!isReadOnly}
+                        title={getTimeForDisplay(transaction)}
+                        description={translate('iou.time')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        numberOfLinesTitle={2}
+                    />
+                    <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh3, styles.flexWrap, styles.pt1]}>{badgeElements}</View>
+                    <View style={styles.dividerLine} />
+                    {subRateFields}
+                    <View style={styles.dividerLine} />
+                </>
             )}
             {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

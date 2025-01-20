@@ -86,10 +86,10 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -108,7 +108,8 @@ function IOURequestStepScan({
         }
 
         return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+            !ReportUtils.isArchivedReport(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
@@ -337,10 +338,10 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? CONST.DEFAULT_NUMBER_ID,
+                        existingSplitChatReportID: reportID,
                         billable: false,
                         category: '',
                         tag: '',
