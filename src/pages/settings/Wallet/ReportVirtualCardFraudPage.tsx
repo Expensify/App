@@ -11,12 +11,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Card from '@userActions/Card';
+import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -40,8 +40,8 @@ function ReportVirtualCardFraudPage({
 
     const virtualCard = cardList?.[cardID];
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
-    const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
+    const virtualCardError = getLatestErrorMessage(virtualCard);
+    const validateError = getLatestErrorMessageField(virtualCard);
     const prevVirtualCard = usePrevious(virtualCard);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
@@ -68,7 +68,7 @@ function ReportVirtualCardFraudPage({
             if (!virtualCard) {
                 return;
             }
-            Card.reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+            reportVirtualExpensifyCardFraud(virtualCard, validateCode);
             setIsValidateCodeActionModalVisible(false);
         },
         [virtualCard],
@@ -114,7 +114,7 @@ function ReportVirtualCardFraudPage({
                         if (!virtualCard?.cardID) {
                             return;
                         }
-                        Card.clearCardListErrors(virtualCard.cardID);
+                        clearCardListErrors(virtualCard.cardID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
