@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import * as Session from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -26,7 +26,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -138,6 +138,9 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 }
 
 function getInternalNewExpensifyPath(href: string) {
+    if (!href) {
+        return '';
+    }
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
         !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
@@ -146,6 +149,10 @@ function getInternalNewExpensifyPath(href: string) {
 }
 
 function getInternalExpensifyPath(href: string) {
+    if (!href) {
+        return '';
+    }
+
     const attrPath = Url.getPathFromURL(href);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     if (!hasExpensifyOrigin || attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) || attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME)) {
@@ -168,7 +175,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID ?? '-1');
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(reportRoute);
         return;
     }
@@ -176,8 +183,8 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
-        if (Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            Session.signOutAndRedirectToSignIn();
+        if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+            signOutAndRedirectToSignIn();
             return;
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
