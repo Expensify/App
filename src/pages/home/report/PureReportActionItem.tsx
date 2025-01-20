@@ -39,6 +39,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {hideEmojiPicker, isActive} from '@libs/actions/EmojiPickerAction';
+import {acceptJoinRequest, declineJoinRequest} from '@libs/actions/Policy/Member';
+import {expandURLPreview} from '@libs/actions/Report';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session';
+import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -122,12 +127,7 @@ import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Member from '@userActions/Policy/Member';
-import * as Report from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -419,8 +419,8 @@ function PureReportActionItem({
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
             }
-            if (EmojiPickerAction.isActive(action.reportActionID)) {
-                EmojiPickerAction.hideEmojiPicker(true);
+            if (isActive(action.reportActionID)) {
+                hideEmojiPicker(true);
             }
             if (reactionListRef?.current?.isActiveReportAction(action.reportActionID)) {
                 reactionListRef?.current?.hideReactionList();
@@ -431,11 +431,11 @@ function PureReportActionItem({
 
     useEffect(() => {
         // We need to hide EmojiPicker when this is a deleted parent action
-        if (!isDeletedParentAction || !EmojiPickerAction.isActive(action.reportActionID)) {
+        if (!isDeletedParentAction || !isActive(action.reportActionID)) {
             return;
         }
 
-        EmojiPickerAction.hideEmojiPicker(true);
+        hideEmojiPicker(true);
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
@@ -457,7 +457,7 @@ function PureReportActionItem({
         }
 
         downloadedPreviews.current = urls;
-        Report.expandURLPreview(reportID, action.reportActionID);
+        expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
 
     useEffect(() => {
@@ -644,13 +644,13 @@ function PureReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Member.acceptJoinRequest(reportID, action),
+                    onPress: () => acceptJoinRequest(reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Member.declineJoinRequest(reportID, action),
+                    onPress: () => declineJoinRequest(reportID, action),
                 },
             ];
         }
@@ -992,7 +992,7 @@ function PureReportActionItem({
                                     index={index}
                                     ref={textInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -1027,11 +1027,11 @@ function PureReportActionItem({
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
-                                if (Session.isAnonymousUser()) {
+                                if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        Session.signOutAndRedirectToSignIn();
+                                        signOutAndRedirectToSignIn();
                                     });
                                 } else {
                                     toggleReaction(emoji, ignoreSkinToneOnCompare);
