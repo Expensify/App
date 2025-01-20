@@ -446,8 +446,8 @@ function ReportActionsList({
 
     const isNewMessageDisplayed = useMemo(() => {
         const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
-        const lastPrevAction = prevActions.at(0);
-        return lastAction?.reportActionID !== lastPrevAction?.reportActionID;
+        const lastPrevVisibleAction = prevActions.at(0);
+        return lastAction?.reportActionID !== lastPrevVisibleAction?.reportActionID;
     }, [prevSortedVisibleReportActionsObjects, lastAction]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
