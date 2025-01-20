@@ -69,6 +69,8 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             onModalShow={showModal}
             avoidKeyboard={false}
             fullscreen={fullscreen}
+            useNativeDriver={false}
+            useNativeDriverForBackdrop={false}
             type={type}
         >
             {children}
