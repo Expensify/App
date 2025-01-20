@@ -113,7 +113,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         const shouldShowApproveOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
@@ -136,12 +135,12 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                 },
+                disabled: isAnyTransactionOnHold,
             });
         }
 
         const shouldShowPayOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
                 : selectedTransactionsKeys.every(
@@ -193,6 +192,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
                 },
+                disabled: isAnyTransactionOnHold,
             });
         }
 
