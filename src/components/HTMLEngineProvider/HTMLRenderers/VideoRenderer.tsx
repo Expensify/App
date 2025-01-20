@@ -4,7 +4,6 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
@@ -25,7 +24,6 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
-    const currentReportIDValue = useCurrentReportID();
     const isDeleted = isDeletedNode(tnode);
 
     return (
@@ -36,7 +34,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                         <VideoPlayerPreview
                             key={key}
                             videoUrl={sourceURL}
-                            reportID={currentReportIDValue?.currentReportID ?? '-1'}
+                            reportID={report?.reportID ?? '-1'}
                             fileName={fileName}
                             thumbnailUrl={thumbnailUrl}
                             videoDimensions={{width, height}}
