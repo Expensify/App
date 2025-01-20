@@ -2,12 +2,12 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {startIssueNewCardFlow} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -25,13 +25,13 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
 
     const {currentStep} = issueNewCard ?? {};
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const backTo = route?.params?.backTo;
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
-        Card.startIssueNewCardFlow(policyID);
+        startIssueNewCardFlow(policyID);
     }, [policyID]);
 
     const getCurrentStep = () => {

@@ -8,14 +8,14 @@ import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type CardTypeStepProps = {
     /** ID of the policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardTypeStep({policyID}: CardTypeStepProps) {
@@ -26,7 +26,7 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
             data: {
                 cardType: value,
@@ -38,10 +38,10 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE, policyID});
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE, policyID});
     };
 
     return (

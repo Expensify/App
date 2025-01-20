@@ -20,7 +20,7 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
 type CardNameStepProps = {
     /** ID of the policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardNameStep({policyID}: CardNameStepProps) {
