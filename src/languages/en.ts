@@ -2517,6 +2517,7 @@ const translations = {
             carType: 'Car type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            freeCancellation: 'Free cancellation',
             confirmation: 'Confirmation number',
         },
         train: 'Rail',

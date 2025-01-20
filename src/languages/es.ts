@@ -2541,6 +2541,7 @@ const translations = {
             carType: 'Tipo de coche',
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
+            freeCancellation: 'Cancelación gratuita',
             confirmation: 'Número de confirmación',
         },
         train: 'Tren',
