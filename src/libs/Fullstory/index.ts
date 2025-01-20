@@ -137,6 +137,7 @@ const FS = {
                     return;
                 }
                 FS.onReady().then(() => {
+                    FullStory('start');
                     FS.consent(true);
                     const localMetadata = value;
                     localMetadata.environment = envName;
