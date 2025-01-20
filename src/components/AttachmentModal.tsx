@@ -450,8 +450,10 @@ function AttachmentModal({
                 onSelected: () => downloadAttachment(),
             });
         }
+
+        const hasOnlyEReceipt = TransactionUtils.hasEReceipt(transaction) && !TransactionUtils.hasReceiptSource(transaction);
         if (
-            !TransactionUtils.hasEReceipt(transaction) &&
+            !hasOnlyEReceipt &&
             TransactionUtils.hasReceipt(transaction) &&
             !TransactionUtils.isReceiptBeingScanned(transaction) &&
             canEditReceipt &&
