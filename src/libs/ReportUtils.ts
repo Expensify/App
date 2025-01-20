@@ -3472,6 +3472,25 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     return true;
 }
 
+function canAddTransactionReciept(iouReport: OnyxEntry<Report>, iouAction: OnyxInputOrEntry<ReportAction>, transaction: OnyxEntry<Transaction>, currentLoginAccountID: number): boolean {
+    const policy = getPolicy(iouReport?.policyID);
+    const isInvoice = isInvoiceReport(iouReport);
+    const canPerformWriteAction = !!canUserPerformWriteAction(iouReport);
+    const isApproved = isReportApproved(iouReport);
+    const isApprover = isMoneyRequestReport(iouReport) && iouReport?.managerID !== null && currentUserPersonalDetails?.accountID === iouReport?.managerID;
+    const isRequestor = currentLoginAccountID === iouAction?.actorAccountID;
+    const isManager = currentUserAccountID === iouReport?.managerID;
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const canEditReceipt =
+        canPerformWriteAction &&
+        !isReceiptBeingScanned(transaction) &&
+        !isDistanceRequest(transaction) &&
+        !isPerDiemRequest(transaction) &&
+        (isAdmin || isManager || isRequestor || !iouAction);
+    const isSettledRequest = isSettled(iouReport?.reportID);
+    return !isInvoice && !isApproved && !isSettledRequest && (canEditReceipt || isAdmin || isApprover || isRequestor || !iouAction) && (canEditReceipt || isPaidGroupPolicy(iouReport));
+}
+
 /**
  * Can only edit if:
  *
@@ -8020,6 +8039,9 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTra
  * Check if all expenses in the Report are on hold
  */
 function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+    if (!iouReportID) {
+        return false;
+    }
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
@@ -9158,6 +9180,7 @@ export {
     hasInvoiceReports,
     shouldUnmaskChat,
     getReportMetadata,
+    canAddTransactionReciept,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
 };

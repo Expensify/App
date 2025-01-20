@@ -766,6 +766,9 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
  * Get all transaction violations of the transaction with given tranactionID.
  */
 function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+    if (!transactionID) {
+        return null;
+    }
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
@@ -1145,10 +1148,6 @@ function compareDuplicateTransactionFields(
     reportID?: string | undefined,
     selectedTransactionID?: string,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    if (!reviewingTransactionID || !reportID) {
-        return {change: {}, keep: {}};
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

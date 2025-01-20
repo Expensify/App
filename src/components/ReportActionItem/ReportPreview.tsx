@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -29,9 +30,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportActionText} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getReportActionText} from '@libs/ReportActionsUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canAddTransactionReciept,
     canBeExported,
     getArchiveReason,
     getBankAccountRoute,
@@ -72,6 +74,7 @@ import {
     getMerchant,
     getTransactionViolations,
     hasPendingUI,
+    hasReceipt,
     isCardTransaction,
     isPartialMerchant,
     isPending,
@@ -146,6 +149,7 @@ function ReportPreview({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const currentUserAccountID = getCurrentUserAccountID();
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
@@ -232,7 +236,11 @@ function ReportPreview({
         hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
-    const lastThreeTransactions = allTransactions.slice(-3);
+    const lastThreeTransactions = allTransactions.slice(-3).filter((transaction) => {
+        const iouAction = getIOUActionForReportID(iouReport?.reportID, transaction.transactionID);
+        const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, transaction, currentUserAccountID);
+        return hasReceipt(transaction) || shouldShowReceiptEmptyState;
+    });
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
     const transactionIDList = [allTransactions.at(0)?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
