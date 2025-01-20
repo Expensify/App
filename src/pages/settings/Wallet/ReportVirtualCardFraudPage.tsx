@@ -42,6 +42,7 @@ function ReportVirtualCardFraudPage({
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
     const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
+    const prevVirtualCard = usePrevious(virtualCard);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
@@ -68,6 +69,7 @@ function ReportVirtualCardFraudPage({
                 return;
             }
             Card.reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+            setIsValidateCodeActionModalVisible(false);
         },
         [virtualCard],
     );
@@ -84,7 +86,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard)) {
+    if (isEmptyObject(virtualCard) && isEmptyObject(prevVirtualCard)) {
         return <NotFoundPage />;
     }
 
@@ -109,6 +111,9 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
+                        if (!virtualCard?.cardID) {
+                            return;
+                        }
                         Card.clearCardListErrors(virtualCard.cardID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
