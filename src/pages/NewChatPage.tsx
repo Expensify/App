@@ -196,9 +196,9 @@ function NewChatPage() {
 
         return [sectionsList, firstKey];
     }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param  option
      */
     const toggleOption = useCallback(
         (option: ListItem & Partial<OptionData>) => {
@@ -213,7 +213,6 @@ function NewChatPage() {
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-
             selectionListRef.current?.focusTextInput();
             selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
             setSelectedOptions(newSelectedOptions);
