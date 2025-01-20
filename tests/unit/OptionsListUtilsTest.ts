@@ -157,6 +157,49 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const WORKSPACE_CHATS: ReportUtils.OptionData[] = [
+        {
+            reportID: '1',
+            text: 'John Doe',
+        },
+        {
+            reportID: '2',
+            text: 'Jane Doe',
+        },
+        {
+            reportID: '3',
+            text: 'Alice Johnson',
+        },
+        {
+            reportID: '4',
+            text: 'Bob Johnson',
+        },
+        {
+            reportID: '5',
+            text: 'Charlie Davis',
+        },
+        {
+            reportID: '6',
+            text: 'Emily Brown',
+        },
+        {
+            reportID: '7',
+            text: 'George Brown',
+        },
+        {
+            reportID: '8',
+            text: 'Helen Martinez',
+        },
+        {
+            reportID: '9',
+            text: 'Ian Clark',
+        },
+        {
+            reportID: '10',
+            text: 'Laura Clark',
+        },
+    ];
+
     // And a set of personalDetails some with existing reports and some without
     const PERSONAL_DETAILS: PersonalDetailsList = {
         // These exist in our reports
@@ -1035,6 +1078,21 @@ describe('OptionsListUtils', () => {
             });
 
             expect(canCreate).toBe(false);
+        });
+    });
+
+    describe('filterWorkspaceChats', () => {
+        it('should return an empty array if there are no workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats([], []);
+
+            expect(result.length).toEqual(0);
+        });
+
+        it('should return all chats if there are no search terms', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, []);
+
+            expect(result).toEqual(WORKSPACE_CHATS);
+            expect(result.length).toEqual(WORKSPACE_CHATS.length);
         });
     });
 });

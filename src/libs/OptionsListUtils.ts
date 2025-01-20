@@ -2080,6 +2080,7 @@ export {
     getAlternateText,
     hasReportErrors,
     combineOrderingOfReportsAndPersonalDetails,
+    filterWorkspaceChats,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
