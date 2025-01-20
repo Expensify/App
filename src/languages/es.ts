@@ -2541,6 +2541,7 @@ const translations = {
             carType: 'Tipo de coche',
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
+            freeCancellation: 'Cancelación gratuita',
             confirmation: 'Número de confirmación',
         },
         train: 'Tren',
@@ -3602,7 +3603,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Gane',
-                subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
+                subtitle: 'Agiliza tus ingresos y recibe pagos más rápido.',
             },
             organizeSection: {
                 title: 'Organizar',
@@ -4604,6 +4605,7 @@ const translations = {
         description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         scheduleSetupCall: 'Concertar una llamada',
+        scheduleADemo: 'Programa una demostración',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
