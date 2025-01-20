@@ -2,11 +2,6 @@
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +12,11 @@ import * as Localize from '@libs/Localize';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler/index';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+import ConfirmModal from './ConfirmModal';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
