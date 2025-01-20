@@ -990,7 +990,7 @@ const unavailableTranslation = translateLocal('workspace.common.unavailable');
  */
 function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName)) {
+    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName && !policy)) {
         return noPolicyFound;
     }
 
@@ -3627,8 +3627,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  */
-function hasMissingSmartscanFields(iouReportID: string | undefined): boolean {
-    const reportTransactions = getReportTransactions(iouReportID);
+function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
+    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
 
     return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
 }

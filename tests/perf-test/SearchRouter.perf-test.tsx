@@ -86,6 +86,7 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
 
     return WithNavigationFocus;
 });
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(

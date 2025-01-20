@@ -35,6 +35,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -296,7 +297,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? action?.reportID ?? '';
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -346,6 +347,8 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const {isOnSearch} = useSearchState();
 
     useEffect(
         () => () => {
@@ -517,9 +520,14 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
+    const attachmentContextValue = useMemo(() => {
+        if (isOnSearch) {
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH};
+        }
+        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    }, [reportID, isOnSearch]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID ?? '-1'}), [reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {

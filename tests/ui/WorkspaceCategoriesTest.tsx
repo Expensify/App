@@ -20,6 +20,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 TestHelper.setupGlobalFetchMock();
 
 const RootStack = createResponsiveStackNavigator<FullScreenNavigatorParamList>();

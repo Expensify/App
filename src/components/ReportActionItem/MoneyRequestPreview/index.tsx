@@ -1,6 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyRequestPreviewContent from './MoneyRequestPreviewContent';
 import type {MoneyRequestPreviewProps} from './types';

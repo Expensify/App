@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
@@ -23,15 +23,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
-type AvatarWithDisplayNamePropsWithOnyx = {
-    /** All of the actions of the report */
-    parentReportActions: OnyxEntry<ReportActions>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
+type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
@@ -55,15 +47,7 @@ const fallbackIcon: Icon = {
     id: -1,
 };
 
-function AvatarWithDisplayName({
-    policy,
-    report,
-    parentReportActions,
-    isAnonymous = false,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldEnableDetailPageNavigation = false,
-    personalDetails = CONST.EMPTY_OBJECT,
-}: AvatarWithDisplayNameProps) {
+function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -71,6 +55,8 @@ function AvatarWithDisplayName({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
     );
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`, {canEvict: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -198,12 +184,4 @@ function AvatarWithDisplayName({
 
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
-export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
-        canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(AvatarWithDisplayName);
+export default AvatarWithDisplayName;

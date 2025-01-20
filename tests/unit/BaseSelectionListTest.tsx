@@ -15,6 +15,7 @@ const mockSections = Array.from({length: 10}, (_, index) => ({
     isSelected: index === 1,
 }));
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
