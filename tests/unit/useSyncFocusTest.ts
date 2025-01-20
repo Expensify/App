@@ -25,6 +25,9 @@ describe('useSyncFocus', () => {
         // Then the ref focus will not be called.
         expect(refMock.current.focus).not.toHaveBeenCalled();
 
+        const event = new KeyboardEvent('keydown', {key: 'Tab'});
+        document.dispatchEvent(event);
+
         // When isFocused changes from false to true
         rerender({isFocused: false});
         rerender({isFocused: true});
