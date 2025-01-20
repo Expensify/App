@@ -1,6 +1,5 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isExpensifyTeam} from '@libs/PolicyUtils';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
@@ -104,6 +103,12 @@ const FS = {
         new Promise((resolve) => {
             if (!isInitialized()) {
                 init({orgId: ''}, resolve);
+
+                // FS init function might have a race condition with the head snippet. If the head snipped is loaded first, 
+                // then the init function will not call the resolve function, and we'll never identify the user logging in,
+                // and we need to call resolve manually. We're adding a 1s timeout to make sure the init function has enough
+                // time to call the resolve function in case it ran successfully.
+                setTimeout(resolve, 1000);
             } else {
                 FullStory('observe', {type: 'start', callback: resolve});
             }
