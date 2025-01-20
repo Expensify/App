@@ -123,7 +123,7 @@ function createTaskAndNavigate(
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
 ) {
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
