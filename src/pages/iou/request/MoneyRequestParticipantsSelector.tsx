@@ -117,8 +117,7 @@ function MoneyRequestParticipantsSelector({
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
-                includeOwnedWorkspaceChats:
-                    (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+                includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
