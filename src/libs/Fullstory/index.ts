@@ -131,6 +131,8 @@ const FS = {
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
                 if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyTeam(value?.email)) {
+                    // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
+                    FullStory('shutdown');
                     return;
                 }
                 FS.onReady().then(() => {
