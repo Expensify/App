@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.84-1",
+  "version": "9.0.87-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -77,6 +77,7 @@
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-live-markdown": "0.1.210",
+    "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expo/metro-runtime": "^4.0.0",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
@@ -86,7 +87,7 @@
     "@formatjs/intl-numberformat": "^8.10.3",
     "@formatjs/intl-pluralrules": "^5.2.14",
     "@fullstory/browser": "^2.0.3",
-    "@fullstory/react-native": "^1.7.1",
+    "@fullstory/react-native": "^1.7.2",
     "@gorhom/portal": "^1.0.14",
     "@invertase/react-native-apple-authentication": "^2.2.2",
     "@onfido/react-native-sdk": "10.6.0",
@@ -105,7 +106,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "@react-navigation/stack": "6.3.29",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.30",
+    "@rnmapbox/maps": "10.1.33",
     "@shopify/flash-list": "1.7.1",
     "@ua/react-native-airship": "19.2.1",
     "awesome-phonenumber": "^5.4.0",
@@ -116,7 +117,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.114",
+    "expensify-common": "2.0.115",
     "expo": "52.0.14",
     "expo-asset": "^11.0.1",
     "expo-av": "^15.0.1",
@@ -162,7 +163,7 @@
     "react-native-launch-arguments": "^4.0.2",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "2.0.86",
+    "react-native-onyx": "2.0.89",
     "react-native-pager-view": "6.5.1",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
@@ -391,7 +392,7 @@
     ]
   },
   "engines": {
-    "node": "20.18.0",
+    "node": "20.18.1",
     "npm": "10.8.2"
   }
 }
