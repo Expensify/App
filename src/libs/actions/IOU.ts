@@ -6464,6 +6464,18 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         if (chatReport) {
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
         }
+
+        const lastMessageText = getLastVisibleMessage(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.lastMessageText;
+        const lastVisibleActionCreated = getLastVisibleAction(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.created;
+
         onyxUpdates.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -6471,16 +6483,8 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
                 value: {
                     hasOutstandingChildRequest: false,
                     iouReportID: null,
-                    lastMessageText: getLastVisibleMessage(
-                        iouReport?.chatReportID,
-                        canUserPerformWriteAction,
-                        reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-                    )?.lastMessageText,
-                    lastVisibleActionCreated: getLastVisibleAction(
-                        iouReport?.chatReportID,
-                        canUserPerformWriteAction,
-                        reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-                    )?.created,
+                    lastMessageText,
+                    lastVisibleActionCreated,
                 },
             },
             {
@@ -6611,22 +6615,26 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         if (chatReport) {
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
         }
+
+        const lastMessageText = getLastVisibleMessage(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.lastMessageText;
+        const lastVisibleActionCreated = getLastVisibleAction(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.created;
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: getLastVisibleMessage(
-                    iouReport?.chatReportID,
-                    canUserPerformWriteAction,
-                    reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-                )?.lastMessageText,
-                lastVisibleActionCreated: getLastVisibleAction(
-                    iouReport?.chatReportID,
-                    canUserPerformWriteAction,
-                    reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-                )?.created,
+                lastMessageText,
+                lastVisibleActionCreated,
             },
         });
         optimisticData.push({
