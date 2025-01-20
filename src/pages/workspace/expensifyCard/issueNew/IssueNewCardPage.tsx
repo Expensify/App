@@ -21,7 +21,7 @@ import LimitTypeStep from './LimitTypeStep';
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policy?.id}`);
 
     const {currentStep} = issueNewCard ?? {};
 
@@ -39,13 +39,13 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
                 return <AssigneeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
-                return <CardTypeStep />;
+                return <CardTypeStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:
                 return <LimitTypeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT:
-                return <LimitStep />;
+                return <LimitStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
-                return <CardNameStep />;
+                return <CardNameStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
                 return (
                     <ConfirmationStep
