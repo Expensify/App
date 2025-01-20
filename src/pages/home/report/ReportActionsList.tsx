@@ -273,7 +273,7 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
             const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -330,11 +330,11 @@ function ReportActionsList({
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
-                return reportAction.reportActionID;
+                return {unreadMarkerReportActionID: reportAction.reportActionID, unreadMarkerReportActionIndex: index};
             }
         }
 
-        return null;
+        return {unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1};
     }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
@@ -463,7 +463,7 @@ function ReportActionsList({
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
         //         because the two subscriptions could conflict!
         //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
@@ -608,6 +608,27 @@ function ReportActionsList({
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
+
+    // Handles scrolling to the unread marker.
+    // If we have an unread marker initially we do not need to scroll to it as this
+    // will be handled by the list `initialScrollKey`.
+    const didScrollToUnreadMarker = useRef(false);
+    useEffect(() => {
+        if (unreadMarkerReportActionIndex === -1 || didScrollToUnreadMarker.current) {
+            return;
+        }
+        didScrollToUnreadMarker.current = true;
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.ref?.current?.scrollToIndex({
+                index: unreadMarkerReportActionIndex,
+                animated: true,
+                // This scrolls the unread action at the top of the screen.
+                viewPosition: 1,
+                // This makes sure that the unread indicator doesn't get cut off.
+                viewOffset: -5,
+            });
+        });
+    }, [reportScrollManager, unreadMarkerReportActionIndex]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
@@ -782,7 +803,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={route?.params?.reportActionID}
+                    initialScrollKey={route?.params?.reportActionID ?? unreadMarkerReportActionID}
                 />
             </View>
         </>

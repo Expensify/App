@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
@@ -98,11 +98,36 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return config;
     }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
+    const listRef = useRef<RNFlatList | null>(null);
+    useImperativeHandle(
+        ref,
+        () =>
+            ({
+                ...listRef.current,
+                // Adjust the index passed here so it matches the original data.
+                scrollToIndex: (params) => {
+                    const actualIndex = params.index + dataIndexDifference;
+                    try {
+                        listRef.current?.scrollToIndex({...params, index: actualIndex});
+                    } catch (ex) {
+                        // It is possible that scrolling fails since the item we are trying to scroll to
+                        // has not been rendered yet. In this case, we call the onScrollToIndexFailed.
+                        props.onScrollToIndexFailed?.({
+                            index: actualIndex,
+                            // These metrics are not implemented.
+                            averageItemLength: 0,
+                            highestMeasuredFrameIndex: 0,
+                        });
+                    }
+                },
+            } as RNFlatList),
+    );
+
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            ref={ref}
+            ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
