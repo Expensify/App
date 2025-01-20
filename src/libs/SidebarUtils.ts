@@ -481,9 +481,9 @@ function getOptionData({
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
             result.alternateText = ReportActionsUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
-            result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan');
+            result.alternateText = Localize.translateLocal('workspaceActions.upgradedWorkspace');
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
-            result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlanDowngrade');
+            result.alternateText = Localize.translateLocal('workspaceActions.downgradedWorkspace');
         } else if (
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
