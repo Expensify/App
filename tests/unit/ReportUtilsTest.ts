@@ -1776,7 +1776,7 @@ describe('ReportUtils', () => {
                 policyID: fakePolicy.id,
             };
 
-            expect(isAllowedToApproveExpenseReport(expenseReport, undefined, fakePolicy)).toBeTruthy();
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
         });
         it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
             const fakePolicy: Policy = {
