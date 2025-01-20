@@ -787,7 +787,6 @@ describe('DebugUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: 'true',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
@@ -1061,7 +1060,6 @@ describe('DebugUtils', () => {
             await Onyx.multiSet({
                 ...MOCK_REPORTS,
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}2` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: false,
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,

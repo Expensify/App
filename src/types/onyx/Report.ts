@@ -224,7 +224,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** Whether the report is archived */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
 
         /** The report's welcome message */
