@@ -31,6 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getDescriptionForPolicyDomainCard, maskCardNumber} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,14 +40,13 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as Modal from '@userActions/Modal';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {close as closeModal} from '@userActions/Modal';
+import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultPaymentMethod as makeDefaultPaymentMethodAction, openWalletPage} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, Card} from '@src/types/onyx';
-import { maskCardNumber, getDescriptionForPolicyDomainCard } from '@libs/CardUtils';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */
@@ -245,7 +245,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            BankAccounts.openPersonalBankAccountSetupView();
+            openPersonalBankAccountSetupView();
             return;
         }
 
@@ -272,9 +272,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodAction(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodAction(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,
@@ -290,9 +290,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            BankAccounts.deletePaymentBankAccount(bankAccountID);
+            deletePaymentBankAccount(bankAccountID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
-            PaymentMethods.deletePaymentCard(fundID);
+            deletePaymentCard(fundID);
         }
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
 
@@ -316,7 +316,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         if (network.isOffline) {
             return;
         }
-        PaymentMethods.openWalletPage();
+        openWalletPage();
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
@@ -406,7 +406,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             <OfflineWithFeedback
                                 style={styles.flex1}
                                 contentContainerStyle={styles.flex1}
-                                onClose={PaymentMethods.clearWalletError}
+                                onClose={clearWalletError}
                                 errors={userWallet?.errors}
                                 errorRowStyles={[styles.ph6]}
                             >
@@ -476,7 +476,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 <OfflineWithFeedback
                                                     pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                     errors={walletTerms?.errors}
-                                                    onClose={PaymentMethods.clearWalletTermsError}
+                                                    onClose={clearWalletTermsError}
                                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                                     style={[styles.mt4, styles.mb2]}
                                                 >
@@ -497,7 +497,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         return;
                                                     }
                                                     // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
-                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
+                                                    setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                                 }}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
@@ -622,7 +622,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         icon={Expensicons.Mail}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
-                                                Modal.close(() => {
+                                                closeModal(() => {
                                                     setIsNoDelegateAccessMenuVisible(true);
                                                 });
                                                 return;
@@ -638,12 +638,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     icon={Expensicons.Trashcan}
                                     onPress={() => {
                                         if (isActingAsDelegate) {
-                                            Modal.close(() => {
+                                            closeModal(() => {
                                                 setIsNoDelegateAccessMenuVisible(true);
                                             });
                                             return;
                                         }
-                                        Modal.close(() => setShowConfirmDeleteModal(true));
+                                        closeModal(() => setShowConfirmDeleteModal(true));
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
