@@ -656,8 +656,12 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_SCAN route');
+            }
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo);
+        },
     },
     MONEY_REQUEST_STEP_TAG: {
         route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
