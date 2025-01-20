@@ -474,17 +474,28 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const dismissReceiptError = useCallback(() => {
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
-                Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+            if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                 return;
             }
             if (parentReportAction) {
-                IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                 return;
             }
         }
-        Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
-        ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
+        if (!report?.reportID) {
+            return;
+        }
+        if (!transaction?.transactionID) {
+            if (!linkedTransactionID) {
+                return;
+            }
+            clearError(linkedTransactionID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+            return;
+        }
+        clearError(transaction.transactionID);
+        clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
     return (

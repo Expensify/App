@@ -327,7 +327,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            trackExpenseIOUActions(
+            trackExpenseIOUActions({
                 report,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -348,7 +348,7 @@ function IOURequestStepConfirmation({
                 policyTagList: policyTags,
                 policyCategories,
                 gpsPoints,
-                Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                 action,
                 actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                 linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
