@@ -1119,7 +1119,12 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exporter: string;
     exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
     credentials: {
-        accountID: string;
+        // s77rt double check the field names (camel case)
+        accessToken: string;
+        companyID: string;
+        expires: string;
+        scope: string;
+        tokenType: string;
     };
     isConfigured: boolean;
     approvalAccount: string;
