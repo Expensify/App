@@ -1699,7 +1699,15 @@ Onyx.connect({
  * @param [engagementChoice] the engagement choice for the workspace
  * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-    function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: OnboardingPurpose, shouldAddOnboardingTasks = true) {
+function buildPolicyData(
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    policyName = '',
+    policyID = generatePolicyID(),
+    expenseReportId?: string,
+    engagementChoice?: OnboardingPurpose,
+    shouldAddOnboardingTasks = true,
+) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
