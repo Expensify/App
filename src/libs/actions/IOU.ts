@@ -1337,7 +1337,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy, policyTagList ?? {}, policyCategories ?? {}, hasDependentTags(policy, policyTagList ?? {}));
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        policy,
+        policyTagList ?? {},
+        policyCategories ?? {},
+        hasDependentTags(policy, policyTagList ?? {}),
+        false,
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1717,7 +1725,15 @@ function buildOnyxDataForInvoice(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy, policyTagList ?? {}, policyCategories ?? {}, hasDependentTags(policy, policyTagList ?? {}));
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        policy,
+        policyTagList ?? {},
+        policyCategories ?? {},
+        hasDependentTags(policy, policyTagList ?? {}),
+        false,
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -2087,7 +2103,15 @@ function buildOnyxDataForTrackExpense(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy, policyTagList ?? {}, policyCategories ?? {}, hasDependentTags(policy, policyTagList ?? {}));
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        policy,
+        policyTagList ?? {},
+        policyCategories ?? {},
+        hasDependentTags(policy, policyTagList ?? {}),
+        false,
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -3242,6 +3266,8 @@ function getUpdateMoneyRequestParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    const hasModifiedCreated = 'created' in transactionChanges;
+    const hasModifiedAmount = 'amount' in transactionChanges;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -3490,7 +3516,7 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
+    if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
@@ -3500,6 +3526,7 @@ function getUpdateMoneyRequestParams(
                 policyTagList ?? {},
                 policyCategories ?? {},
                 hasDependentTags(policy, policyTagList ?? {}),
+                isInvoiceReportReportUtils(iouReport),
             ),
         );
         failureData.push({
