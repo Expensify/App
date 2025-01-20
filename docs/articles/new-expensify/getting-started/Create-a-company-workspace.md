@@ -4,7 +4,7 @@ description: Get started with Expensify by creating a workspace for your company
 ---
 <div id="new-expensify" markdown="1">
 
-To create an Expensify account for your company, follow the 6 steps below and enjoy a free 7-day trial, which won’t begin until workspace activity has begun.
+To create an Expensify account for your company, follow the six steps below and enjoy a free 7-day trial, which won’t begin until workspace activity has begun.
 
 {% include info.html %}
 After you create your new company workspace, you can schedule a free private onboarding session with one of our Setup Specialists. After you complete the steps below, check your email and notifications in Expensify for your unique signup link.
@@ -103,7 +103,7 @@ The items that appear in your left menu under each workspace are determined by t
 - Tags
 - Taxes 
 
-Once enabled, a new menu option for the feature will appear in the left menu will additional settings for the feature. 
+Once enabled, a new menu option for the feature will appear in the left menu with additional settings for the feature. 
 
 To add more features,
 
