@@ -38,6 +38,7 @@ import androidx.versionedparcelable.ParcelUtils;
 
 import com.expensify.chat.R;
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
+import com.expensify.chat.customairshipextender.PayloadHandler;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -119,18 +120,26 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         // Attempt to parse data and apply custom notification styling
-        if (message.containsKey(PAYLOAD_KEY)) {
-            try {
-                JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-                if (payload.containsKey(ONYX_DATA_KEY)) {
-                    Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
-                    Log.d(TAG, "payload contains onxyData");
-                    String alert = message.getExtra(PushMessage.EXTRA_ALERT);
-                    applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
-            }
+        if (!message.containsKey(PAYLOAD_KEY)) {
+            return builder;
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) throw new Exception();
+
+            String rawPayload = message.getExtra(PAYLOAD_KEY);
+            if (rawPayload == null) throw new Exception();
+
+            String processedPayload = PayloadHandler.processPayload(rawPayload);
+            JsonMap payload = JsonValue.parseString(processedPayload).optMap();
+            if (!payload.containsKey(ONYX_DATA_KEY)) throw new Exception();
+
+            Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
+            Log.d(TAG, "payload contains onxyData");
+            String alert = message.getExtra(PushMessage.EXTRA_ALERT);
+            applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
         }
 
         return builder;
@@ -207,7 +216,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
-            
+
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
             String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
