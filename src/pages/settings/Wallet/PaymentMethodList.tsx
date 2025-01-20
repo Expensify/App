@@ -19,10 +19,11 @@ import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodSt
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, getDescriptionForPolicyDomainCard, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

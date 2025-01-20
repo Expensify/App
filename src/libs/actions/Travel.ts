@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,7 +9,7 @@ import {buildTravelDotURL} from './Link';
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
-function acceptSpotnanaTerms() {
+function acceptSpotnanaTerms(domain?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: 'merge',
@@ -32,10 +33,12 @@ function acceptSpotnanaTerms() {
 
     const error = new Error('Failed to generate spotnana token.');
 
+    const params: AcceptSpotnanaTermsParams = {domain};
+
     return new Promise((resolve, reject) => {
         asyncOpenURL(
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
-            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData, finallyData})
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, finallyData})
                 .then((response) => {
                     if (!response?.spotnanaToken) {
                         reject(error);
