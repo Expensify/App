@@ -1,4 +1,7 @@
 function isEmptyValue<T>(value?: T): boolean {
+    if (!value) {
+        return true;
+    }
     switch (value) {
         case 'undefined':
         case 'null':
