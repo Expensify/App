@@ -140,6 +140,19 @@ function BaseGenericTooltip({
         );
     }
 
+    const contentWithOrWithoutPressable = isEducationTooltip ? (
+        <PressableWithoutFeedback
+            onPress={onTooltipPress}
+            ref={pressableRef}
+            role={CONST.ROLE.TOOLTIP}
+            accessibilityLabel={CONST.ROLE.TOOLTIP}
+        >
+            {content}
+        </PressableWithoutFeedback>
+    ) : (
+        content
+    );
+
     const body = document.querySelector('body');
 
     if (!body) {
@@ -153,14 +166,7 @@ function BaseGenericTooltip({
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
             >
-                <PressableWithoutFeedback
-                    onPress={onTooltipPress}
-                    ref={pressableRef}
-                    role={CONST.ROLE.TOOLTIP}
-                    accessibilityLabel={CONST.ROLE.TOOLTIP}
-                >
-                    {content}
-                </PressableWithoutFeedback>
+                {contentWithOrWithoutPressable}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>

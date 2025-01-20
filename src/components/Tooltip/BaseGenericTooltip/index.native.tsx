@@ -115,6 +115,18 @@ function BaseGenericTooltip({
         );
     }
 
+    const contentWithOrWithoutPressable = isEducationTooltip ? (
+        <PressableWithoutFeedback
+            onPress={onTooltipPress}
+            role={CONST.ROLE.TOOLTIP}
+            accessibilityLabel={CONST.ROLE.TOOLTIP}
+        >
+            {content}
+        </PressableWithoutFeedback>
+    ) : (
+        content
+    );
+
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
@@ -135,13 +147,7 @@ function BaseGenericTooltip({
                     setWrapperMeasuredHeight(height);
                 }}
             >
-                <PressableWithoutFeedback
-                    onPress={onTooltipPress}
-                    role={CONST.ROLE.TOOLTIP}
-                    accessibilityLabel={CONST.ROLE.TOOLTIP}
-                >
-                    {content}
-                </PressableWithoutFeedback>
+                {contentWithOrWithoutPressable}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
