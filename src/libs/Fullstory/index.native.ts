@@ -5,6 +5,7 @@ import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+import { Str } from 'expensify-common';
 
 /**
  * Fullstory React-Native lib adapter
@@ -43,7 +44,7 @@ const FS = {
             // UserMetadata onyx key.
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyTeam(value?.email)) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
                     return;
                 }
                 FullStory.restart();

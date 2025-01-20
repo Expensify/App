@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
+import { Str } from 'expensify-common';
 
 /**
  * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
@@ -130,7 +131,7 @@ const FS = {
         try {
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyTeam(value?.email)) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     FullStory('shutdown');
                     return;
