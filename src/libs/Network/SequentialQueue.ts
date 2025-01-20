@@ -251,6 +251,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
+    const updatedRequest = {...newRequest, initiatedOffline: isOffline()};
 
     if (checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
@@ -259,8 +260,8 @@ function push(newRequest: OnyxRequest) {
 
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
-        delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
+        delete updatedRequest.checkAndFixConflictingRequest;
+        handleConflictActions(conflictAction, updatedRequest);
     } else {
         // Add request to Persisted Requests so that it can be retried if it fails
         savePersistedRequest(newRequest);
