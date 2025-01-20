@@ -5,6 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -78,7 +80,7 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
-import SettlementButton from './SettlementButton';
+import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -130,7 +132,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const [isDuplicate, setIsDuplicate] = useState(() => isDuplicateTransactionUtils(transaction?.transactionID));
+    const prevIsDuplicate = usePrevious(isDuplicate);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -154,21 +157,35 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportUtils(moneyRequestReport);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const shouldShowIsDuplicate = useMemo(
+        () => isDuplicate || (prevIsDuplicate && (isPaidAnimationRunning || isApprovedAnimationRunning)),
+        [isApprovedAnimationRunning, isDuplicate, isPaidAnimationRunning, prevIsDuplicate],
+    );
+
+    useEffect(() => {
+        setIsDuplicate(isDuplicateTransactionUtils(transaction?.transactionID));
+    }, [isPaidAnimationRunning, isApprovedAnimationRunning]);
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
+            canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
         [moneyRequestReport, chatReport, policy, transaction],
     );
-    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
 
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
         hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
 
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
+    const shouldShowApproveButton = useMemo(
+        () => (canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+    );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -222,12 +239,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
+                startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
+                startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -237,6 +256,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
+            startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
         }
     };
@@ -344,6 +364,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
+    console.log('alllooo', shouldShowSettlementButton, shouldUseNarrowLayout);
+
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
@@ -358,7 +380,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}
             >
-                {isDuplicate && !shouldUseNarrowLayout && (
+                {shouldShowIsDuplicate && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
@@ -372,8 +394,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
-                        <SettlementButton
+                        <AnimatedSettlementButton
                             shouldUseSuccessStyle={!hasHeldExpenses}
+                            isPaidAnimationRunning={isPaidAnimationRunning}
+                            isApprovedAnimationRunning={isApprovedAnimationRunning}
+                            onAnimationFinish={stopAnimation}
+                            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -427,7 +453,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {isDuplicate && shouldUseNarrowLayout && (
+                        {shouldShowIsDuplicate && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
@@ -438,8 +464,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                            <SettlementButton
+                            <AnimatedSettlementButton
                                 shouldUseSuccessStyle={!hasHeldExpenses}
+                                isPaidAnimationRunning={isPaidAnimationRunning}
+                                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                onAnimationFinish={stopAnimation}
+                                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
@@ -503,6 +533,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
                     transactionCount={transactionIDs.length}
+                    startAnimation={() => {
+                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                            startApprovedAnimation();
+                        } else {
+                            startAnimation();
+                        }
+                    }}
                 />
             )}
             <DelegateNoAccessModal
