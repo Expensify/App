@@ -70,14 +70,13 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
     /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: OnyxEntry<Report>;
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
@@ -89,17 +88,17 @@ type MoneyRequestViewProps = {
     isFromReviewDuplicates?: boolean;
 
     /** Updated transaction to show in duplicate transaction flow  */
-    updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    updatedTransaction?: OnyxEntry<Transaction>;
 };
 
-const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
+const receiptImageViolationNames: ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
 ];
 
-const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+const receiptFieldViolationNames: ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();

@@ -8,8 +8,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
-import * as FileUtils from './fileDownload/FileUtils';
-import * as TransactionUtils from './TransactionUtils';
+import {isLocalFile as isLocalFileFileUtils, splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
+import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
     image?: string;
@@ -30,10 +30,10 @@ type ThumbnailAndImageURI = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: ReceiptSource | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (!TransactionUtils.hasReceipt(transaction) && !receiptPath && !receiptFileName) {
+    if (!hasReceipt(transaction) && !receiptPath && !receiptFileName) {
         return {isEmptyReceipt: true};
     }
-    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+    if (isFetchingWaypointsFromServer(transaction)) {
         return {isThumbnail: true, isLocalFile: true};
     }
     // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
@@ -43,7 +43,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     // filename of uploaded image or last part of remote URI
     const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
-    const hasEReceipt = !TransactionUtils.hasReceiptSource(transaction) && transaction?.hasEReceipt;
+    const hasEReceipt = !hasReceiptSource(transaction) && transaction?.hasEReceipt;
     const isReceiptPDF = Str.isPDF(filename);
 
     if (hasEReceipt) {
@@ -63,8 +63,8 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
         return {thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`, image: path, filename};
     }
 
-    const isLocalFile = FileUtils.isLocalFile(path);
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
+    const isLocalFile = isLocalFileFileUtils(path);
+    const {fileExtension} = splitExtensionFromFileName(filename);
     return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }
 
@@ -77,9 +77,9 @@ type ValidateReceiptResult = {
  * Validate a given receipt file for correctness and adherence to file constraints
  */
 function validateReceipt(file: FileObject): Promise<ValidateReceiptResult> {
-    return FileUtils.validateImageForCorruption(file)
+    return validateImageForCorruption(file)
         .then(() => {
-            const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
             const extension = fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>;
 
             if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(extension)) {
