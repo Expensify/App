@@ -31,9 +31,16 @@ type UserIsLeavingRoomEvent = Record<string, boolean> & {
     userLogin?: string;
 };
 
+type PingPongEvent = Record<string, string | number> & {
+    id: string;
+    timestamp: number;
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
+    [TYPE.PING]: PingPongEvent;
+    [TYPE.PONG]: PingPongEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -441,4 +448,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent};
+export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent, PingPongEvent};

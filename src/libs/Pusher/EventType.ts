@@ -8,6 +8,12 @@ export default {
     USER_IS_LEAVING_ROOM: 'client-userIsLeavingRoom',
     USER_IS_TYPING: 'client-userIsTyping',
     MULTIPLE_EVENTS: 'multipleEvents',
+
+    // An event that the client sends to the server and then listens for a returned "pong" event
+    PING: 'ping',
+
+    // An event that the server sends back to the client in response to a "ping" event
+    PONG: 'pong',
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
         RECONNECT_APP: 'reconnectApp',
