@@ -190,34 +190,23 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
 
             // When the user submits the transaction to the selfDM report
-            trackExpense(
-                selfDMReport,
-                fakeTransaction.amount,
-                fakeTransaction.currency,
-                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                fakeTransaction.merchant,
-                participant.login,
-                participant.accountID,
+            trackExpense({
+                report: selfDMReport,
+                amount: fakeTransaction.amount,
+                currency: fakeTransaction.currency,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: fakeTransaction.merchant,
+                payeeEmail: participant.login,
+                payeeAccountID: participant.accountID,
                 participant,
-                '',
-                true,
-                undefined,
-                '',
-                undefined,
-                '',
-                0,
-                false,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                fakeWayPoints,
-                CONST.IOU.ACTION.CREATE,
-                fakeTransaction?.actionableWhisperReportActionID,
-                fakeTransaction?.linkedTrackedExpenseReportAction,
-                fakeTransaction?.linkedTrackedExpenseReportID,
-                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            );
+                isDraftPolicy: true,
+                validWaypoints: fakeWayPoints,
+                action: CONST.IOU.ACTION.CREATE,
+                actionableWhisperReportActionID: fakeTransaction?.actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction: fakeTransaction?.linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: fakeTransaction?.linkedTrackedExpenseReportID,
+                customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
@@ -283,34 +272,25 @@ describe('actions/IOU', () => {
             const transactionDraft = allTransactionsDraft?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`];
 
             // When the user confirms the category for the tracked expense
-            trackExpense(
-                expenseReport,
-                transactionDraft?.amount ?? fakeTransaction.amount,
-                transactionDraft?.currency ?? fakeTransaction.currency,
-                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                transactionDraft?.merchant ?? fakeTransaction.merchant,
-                participant.login,
-                participant.accountID,
-                {...participant, isPolicyExpenseChat: true},
-                '',
-                false,
-                undefined,
-                Object.keys(fakeCategories).at(0) ?? '',
-                '',
-                '',
-                0,
-                undefined,
-                fakePolicy,
-                undefined,
-                fakeCategories,
-                undefined,
-                Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
-                CONST.IOU.ACTION.CATEGORIZE,
-                transactionDraft?.actionableWhisperReportActionID,
-                transactionDraft?.linkedTrackedExpenseReportAction,
-                transactionDraft?.linkedTrackedExpenseReportID,
-                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            );
+            trackExpense({
+                report: expenseReport,
+                amount: transactionDraft?.amount ?? fakeTransaction.amount,
+                currency: transactionDraft?.currency ?? fakeTransaction.currency,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: transactionDraft?.merchant ?? fakeTransaction.merchant,
+                payeeEmail: participant.login,
+                payeeAccountID: participant.accountID,
+                participant: {...participant, isPolicyExpenseChat: true},
+                category: Object.keys(fakeCategories).at(0) ?? '',
+                policy: fakePolicy,
+                policyCategories: fakeCategories,
+                validWaypoints: Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                actionableWhisperReportActionID: transactionDraft?.actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction: transactionDraft?.linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
+                customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
@@ -4398,37 +4378,24 @@ describe('actions/IOU', () => {
             [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
-            trackExpense(
-                {reportID: ''},
-                10000,
-                CONST.CURRENCY.USD,
-                '2024-10-30',
-                'KFC',
-                RORY_EMAIL,
-                RORY_ACCOUNT_ID,
-                {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                '',
-                false,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+            trackExpense({
+                report: {reportID: ''},
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-10-30',
+                merchant: 'KFC',
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 action,
-                '1',
-                {
+                actionableWhisperReportActionID: '1',
+                linkedTrackedExpenseReportAction: {
                     reportActionID: '',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     created: '2024-10-30',
                 },
-                '1',
-            );
+                linkedTrackedExpenseReportID: '1',
+            });
 
             await waitForBatchedUpdates();
 
