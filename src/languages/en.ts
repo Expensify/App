@@ -3560,7 +3560,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Earn',
-                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+                subtitle: 'Streamline your revenue and get paid faster.',
             },
             organizeSection: {
                 title: 'Organize',
