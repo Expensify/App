@@ -13,6 +13,11 @@
                         "comment": "Profile Page"
                     },
                     {
+                        "/": "/settings/subscription/add-payment-card",
+                        "exclude": true,
+                        "comment": "Exclude specific settings URL for adding payment card"
+                    },
+                    {
                         "/": "/settings/*",
                         "comment": "Profile and app settings"
                     },
