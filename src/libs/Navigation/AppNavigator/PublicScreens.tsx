@@ -40,6 +40,10 @@ function PublicScreens() {
                 component={ConnectionCompletePage}
             />
             <RootStack.Screen
+                name={SCREENS.BANK_CONNECTION_COMPLETE}
+                component={ConnectionCompletePage}
+            />
+            <RootStack.Screen
                 name={SCREENS.UNLINK_LOGIN}
                 component={UnlinkLoginPage}
             />
