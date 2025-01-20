@@ -271,6 +271,7 @@ const translations = {
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
+        scanning: 'Scanning',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -879,13 +880,11 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
+        pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
-        receiptScanning: () => ({
-            one: 'Receipt scanning...',
-            other: 'Receipts scanning...',
-        }),
+        receiptScanning: 'Scanning...',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({
