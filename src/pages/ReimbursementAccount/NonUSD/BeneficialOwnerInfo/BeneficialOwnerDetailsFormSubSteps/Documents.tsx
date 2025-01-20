@@ -103,8 +103,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
-
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
+            <Text style={[styles.textSupporting, styles.mb5]}>{translate('ownershipInfoStep.pleaseUpload')}</Text>
+            <Text style={[styles.textSupporting, styles.mb6]}>{translate('ownershipInfoStep.acceptedFiles')}</Text>
             {isDocumentNeededStatus.isProofOfOwnershipNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.proofOfBeneficialOwner')}</Text>
