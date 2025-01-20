@@ -10,7 +10,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
@@ -24,11 +23,12 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as InputUtils from '@libs/InputUtils';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import InputComponentMap from './implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -65,7 +65,7 @@ function BaseTextInput(
         prefixCharacter = '',
         suffixCharacter = '',
         inputID,
-        isMarkdownEnabled = false,
+        type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         shouldUseDisabledStyles = true,
@@ -75,11 +75,13 @@ function BaseTextInput(
         suffixStyle = [],
         contentWidth,
         loadingSpinnerStyle,
+        uncontrolled = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
+    const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const theme = useTheme();
@@ -272,7 +274,7 @@ function BaseTextInput(
      * See https://github.com/Expensify/App/issues/13802
      */
     const lineHeight = useMemo(() => {
-        if (Browser.isSafari() || Browser.isMobileChrome()) {
+        if (isSafari() || isMobileChrome()) {
             const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
             if (lineHeightValue !== undefined) {
                 return lineHeightValue;
@@ -388,7 +390,7 @@ function BaseTextInput(
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
                                     // Set overflow property to enable the parent flexbox to shrink its size
                                     // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+                                    !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -408,7 +410,7 @@ function BaseTextInput(
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 inputMode={inputProps.inputMode}
-                                value={value}
+                                value={uncontrolled ? undefined : value}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
@@ -431,7 +433,7 @@ function BaseTextInput(
                                         if (didScrollToEndRef.current || !input.current) {
                                             return;
                                         }
-                                        InputUtils.scrollToRight(input.current);
+                                        scrollToRight(input.current);
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
@@ -524,7 +526,7 @@ function BaseTextInput(
                             return;
                         }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
+                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
