@@ -1212,7 +1212,7 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
     }
 
     const adminDomains = Object.entries(policy.employeeList ?? {}).reduce((domains, [email, employee]) => {
-        if (employee.role != CONST.POLICY.ROLE.ADMIN) {
+        if (employee.role !== CONST.POLICY.ROLE.ADMIN) {
             return domains;
         }
         domains.push(Str.extractEmailDomain(email).toLowerCase());
@@ -1246,6 +1246,16 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     }
     return mostRequent.domain;
 }
+
+const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+    // A domain name containing a policyID indicates that this is a workspace feed
+    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    if (policyID) {
+        const policy = getPolicy(policyID.toUpperCase());
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+};
 
 export {
     canEditTaxRate,
@@ -1377,6 +1387,7 @@ export {
     canModifyPlan,
     getAdminsPrivateEmailDomains,
     getMostFrequentEmailDomain,
+    getDescriptionForPolicyDomainCard,
 };
 
 export type {MemberEmailsToAccountIDs};

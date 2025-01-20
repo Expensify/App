@@ -445,16 +445,6 @@ function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
     return cards;
 }
 
-const getDescriptionForPolicyDomainCard = (domainName: string): string => {
-    // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
-    if (policyID) {
-        const policy = getPolicy(policyID.toUpperCase());
-        return policy?.name ?? domainName;
-    }
-    return domainName;
-};
-
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
@@ -508,7 +498,6 @@ export {
     getDefaultCardName,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
     isCardIssued,
     isCardHiddenFromSearch,

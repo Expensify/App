@@ -13,10 +13,10 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {openTravelDotLink} from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import { openTravelDotLink } from './actions/Link';
-import { getAdminsPrivateEmailDomains, getPolicy } from './PolicyUtils';
+import {getAdminsPrivateEmailDomains, getPolicy} from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -96,18 +96,21 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
 }
 
 function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
+    if (!activePolicyID) {
+        return;
+    }
     if (Str.isSMSLogin(primaryLogin)) {
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
     const policy = getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         return;
     }
 
-    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID || policy?.travelSettings?.associatedTravelDomainAccountID;
-    if (policy?.travelSettings?.hasAcceptedTerms || (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
+    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
+    if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
         openTravelDotLink(activePolicyID)
             ?.then(() => {
                 if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
@@ -131,7 +134,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         if (adminDomains.length === 0) {
             routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;
         } else if (adminDomains.length === 1) {
-            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains.at(0)!!);
+            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
         } else {
             routeToNavigateTo = ROUTES.TRAVEL_DOMAIN_SELECTOR;
         }
