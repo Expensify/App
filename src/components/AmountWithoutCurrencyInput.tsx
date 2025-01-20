@@ -15,7 +15,7 @@ type AmountFormProps = {
     shouldAllowNegative?: boolean;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyForm(
+function AmountWithoutCurrencyInput(
     {value: amount, onInputChange, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -30,7 +30,7 @@ function AmountWithoutCurrencyForm(
             ref={ref}
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             type="mask"
-            mask="[09999999].[99]"
+            mask="[09999999].[09]"
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
@@ -40,6 +40,6 @@ function AmountWithoutCurrencyForm(
     );
 }
 
-AmountWithoutCurrencyForm.displayName = 'AmountWithoutCurrencyForm';
+AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyForm';
 
-export default React.forwardRef(AmountWithoutCurrencyForm);
+export default React.forwardRef(AmountWithoutCurrencyInput);

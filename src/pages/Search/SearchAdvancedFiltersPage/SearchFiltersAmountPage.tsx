@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -62,7 +61,7 @@ function SearchFiltersAmountPage() {
             >
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         inputID={INPUT_IDS.GREATER_THAN}
                         name={INPUT_IDS.GREATER_THAN}
                         defaultValue={greaterThanFormattedAmount}
@@ -70,6 +69,7 @@ function SearchFiltersAmountPage() {
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        uncontrolled
                     />
                 </View>
                 <View style={styles.mb5}>
