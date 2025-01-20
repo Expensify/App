@@ -314,7 +314,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        IOU.cancelPayment(moneyRequestReport, chatReport);
+        IOU.cancelPayment(moneyRequestReport, chatReport, backTo);
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
