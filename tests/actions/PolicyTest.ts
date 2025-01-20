@@ -90,8 +90,10 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Two reports should be created: #admins and expense report
-            const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
+            // These reports should be created: #admins and expense report + task reports of manage team (default) intent
+            const workspaceReports = Object.values(allReports ?? {})
+                .filter((report) => report?.policyID === policyID)
+                .filter((report) => report?.type !== 'task');
             expect(workspaceReports.length).toBe(2);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -126,14 +128,35 @@ describe('actions/Policy', () => {
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
-            [adminReportActions, expenseReportActions].forEach((actions) => {
-                expect(actions.length).toBe(1);
-            });
-            [...adminReportActions, ...expenseReportActions].forEach((reportAction) => {
+            expect(expenseReportActions.length).toBe(1);
+            [...expenseReportActions].forEach((reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
+            // Created report action and and default MANAGE_TEAM intent tasks (7) assigned to user by guide, signingoff messages (1)
+            expect(adminReportActions.length).toBe(9);
+            let createdTaskReportActions = 0;
+            let signingOffMessage = 0;
+            let taskReportActions = 0;
+            adminReportActions.forEach((reportAction) => {
+                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    createdTaskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
+                    return;
+                }
+                if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
+                    taskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    // we dont check actorAccountID as it will be a random account id for the guide
+                    return;
+                }
+                signingOffMessage++;
+            });
+            expect(createdTaskReportActions).toBe(1);
+            expect(signingOffMessage).toBe(1);
+            expect(taskReportActions).toBe(7);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
