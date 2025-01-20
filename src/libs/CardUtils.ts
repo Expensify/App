@@ -17,7 +17,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getPolicy} from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
