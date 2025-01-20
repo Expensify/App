@@ -222,4 +222,53 @@ describe('actions/Policy', () => {
             expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
         });
     });
+
+    describe('enablePolicyRules', () => {
+        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // Disable the rule feature
+            Policy.enablePolicyRules(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the preventSelfApproval is reset to false
+            expect(policy?.preventSelfApproval).toBeFalsy();
+            expect(policy?.areRulesEnabled).toBeFalsy();
+            expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the pending action is cleared
+            expect(policy?.pendingFields?.areRulesEnabled).toBeFalsy();
+        });
+    });
 });

@@ -23,6 +23,7 @@ import {
     getReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -1760,6 +1761,41 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isAllowedToApproveExpenseReport', () => {
+        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: false,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, undefined, fakePolicy)).toBeTruthy();
+        });
+        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
+        });
+    });
+
     describe('getApprovalChain', () => {
         describe('submit and close policy', () => {
             it('should return empty array', () => {
@@ -1920,6 +1956,8 @@ describe('ReportUtils', () => {
                             const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
+
+                        waitForBatchedUpdates();
                     });
                 });
             });
