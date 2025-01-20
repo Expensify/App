@@ -105,6 +105,14 @@ Onyx.connect({
     },
 });
 
+let hasLoadedApp: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -258,6 +266,13 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
+            },
+        ],
         finallyData: [
             ...defaultData.finallyData,
             {
@@ -286,6 +301,10 @@ function openApp() {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
+    if (!hasLoadedApp) {
+        openApp();
+        return;
+    }
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = policyParams;
