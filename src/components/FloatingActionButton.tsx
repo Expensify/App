@@ -6,6 +6,7 @@ import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import GlobalCreateIcon from '@assets/images/customEmoji/global-create.svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,6 +16,7 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -58,9 +60,12 @@ type FloatingActionButtonProps = {
 
     /* An accessibility role for the button */
     role: Role;
+
+    /* An accessibility render as emoji for the button */
+    isEmoji?: boolean;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEmoji}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -116,6 +121,31 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         fabPressable.current?.blur();
         onPress(event);
     };
+
+    if (isEmoji) {
+        return (
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={(styles.floatingActionButtonEmoji, Platform.OS !== 'web' && {height: '5%'})}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={() => {}}
+                role={role}
+                shouldUseHapticsOnLongPress={false}
+            >
+                <ImageSVG
+                    src={GlobalCreateIcon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                />
+            </PressableWithoutFeedback>
+        );
+    }
 
     return (
         <EducationalTooltip
