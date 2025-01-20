@@ -125,7 +125,7 @@
     "expo-image": "^2.0.3",
     "expo-image-manipulator": "^13.0.5",
     "fast-equals": "^4.0.3",
-    "focus-trap-react": "^10.2.3",
+    "focus-trap-react": "^11.0.3",
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
