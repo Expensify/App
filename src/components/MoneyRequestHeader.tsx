@@ -18,9 +18,9 @@ import {
     getTransactionViolations,
     hasPendingRTERViolation,
     hasReceipt,
-    isDuplicate as isDuplicateUtil,
+    isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
-    isOnHold as isOnHoldUtil,
+    isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -71,8 +71,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isOnHold = isOnHoldUtil(transaction);
-    const isDuplicate = isDuplicateUtil(transaction?.transactionID);
+    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
