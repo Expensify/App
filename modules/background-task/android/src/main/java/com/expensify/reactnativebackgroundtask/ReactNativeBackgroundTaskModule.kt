@@ -14,6 +14,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.PersistableBundle
 import android.util.Log
+import androidx.core.content.ContextCompat
 
 class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplicationContext) :
   ReactNativeBackgroundTaskSpec(context) {
