@@ -153,7 +153,6 @@ function BaseReportActionContextMenu({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
@@ -173,17 +172,18 @@ function BaseReportActionContextMenu({
             }
             return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
+        return reportAction;
+    }, [reportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : reportAction;
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
+    const isParentActionOfRequest = ReportActionsUtils.isTransactionThread(reportAction) && !ReportActionsUtils.isSentMoneyReportAction(reportAction);
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView || isParentActionOfRequest;
 
     const areHoldRequirementsMet =
         !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
