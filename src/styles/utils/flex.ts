@@ -140,4 +140,8 @@ export default {
     flexBasis0: {
         flexBasis: 0,
     },
+
+    flexBasis100: {
+        flexBasis: '100%',
+    },
 } satisfies Record<string, ViewStyle>;

@@ -488,6 +488,7 @@ const CONST = {
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        SECONDS_PER_DAY: 24 * 60 * 60,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
