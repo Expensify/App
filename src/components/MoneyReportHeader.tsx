@@ -34,6 +34,8 @@ import {
 import {
     allHavePendingRTERViolation,
     getAllReportTransactions,
+    getTransactionViolations,
+    hasPendingUI,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -116,6 +118,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const transaction =
@@ -176,12 +179,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, transactionIDs);
 
+    const numberOfRequests = allTransactions.length;
+    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !hasAllPendingRTERViolations &&
+        !showRTERViolationMessage &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 
