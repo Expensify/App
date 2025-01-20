@@ -68,7 +68,7 @@ function IOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates);
+    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
@@ -92,8 +92,10 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else {
+        } else if (explicitPolicyID) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
+        } else {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
         }
     };
 
