@@ -15,7 +15,7 @@ import * as Browser from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
-import navigationRef from '@libs/Navigation/navigationRef';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -58,11 +58,8 @@ function BaseSidebarScreen() {
             return;
         }
 
-        navigationRef.current?.dispatch({
-            target: navigationRef.current.getRootState().key,
-            payload: getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT}),
-            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
-        });
+        const reportsSplitNavigatorWithoutPolicyID = getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT});
+        Navigation.replaceWithSplitNavigator(reportsSplitNavigatorWithoutPolicyID);
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID, isLoading, currentRoute.key]);
 

@@ -28,6 +28,7 @@ import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
+import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
@@ -551,6 +552,7 @@ export default {
     popToTop,
     removeScreenFromNavigationState,
     switchPolicyID,
+    replaceWithSplitNavigator,
 };
 
 export {navigationRef};
