@@ -12,6 +12,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -235,6 +236,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorOptions = useRootNavigatorOptions();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
@@ -406,6 +408,32 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const clearStatus = () => {
+        User.clearCustomStatus();
+        User.clearDraftCustomStatus();
+    };
+    useEffect(() => {
+        if (!currentUserPersonalDetails.status?.clearAfter) {
+            return;
+        }
+        const currentTime = new Date();
+        const clearAfterTime = new Date(currentUserPersonalDetails.status.clearAfter);
+        if (Number.isNaN(clearAfterTime.getTime())) {
+            return;
+        }
+        const subMilisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
+        if (subMilisecondsTime > 0) {
+            const timeoutID = setTimeout(() => {
+                clearStatus();
+            }, subMilisecondsTime);
+            return () => {
+                clearTimeout(timeoutID);
+            };
+        }
+
+        clearStatus();
+    }, [currentUserPersonalDetails.status?.clearAfter]);
+
     const CentralPaneScreenOptions: PlatformStackNavigationOptions = {
         ...hideKeyboardOnSwipe,
         headerShown: false,
@@ -571,7 +599,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={rootNavigatorOptions.fullScreen}
+                        component={ConnectionCompletePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.BANK_CONNECTION_COMPLETE}
+                        options={rootNavigatorOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {

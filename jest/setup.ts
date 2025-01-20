@@ -83,6 +83,11 @@ jest.mock('@src/libs/actions/Timing', () => ({
     end: jest.fn(),
 }));
 
+jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
+    defineTask: jest.fn(),
+    onBackgroundTaskExecution: jest.fn(),
+}));
+
 // This makes FlatList render synchronously for easier testing.
 jest.mock(
     '@react-native/virtualized-lists/Interaction/Batchinator',
@@ -99,5 +104,23 @@ jest.mock(
             }
 
             dispose() {}
+        },
+);
+
+jest.mock(
+    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    () =>
+        class SyncRenderTaskQueue {
+            private handler: (info: unknown) => void = () => {};
+
+            add(info: unknown) {
+                this.handler(info);
+            }
+
+            setHandler(handler: () => void) {
+                this.handler = handler;
+            }
+
+            cancel() {}
         },
 );
