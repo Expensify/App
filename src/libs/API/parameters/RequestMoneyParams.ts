@@ -14,8 +14,8 @@ type RequestMoneyParams = {
     chatReportID: string;
     transactionID: string;
     reportActionID: string;
-    createdChatReportActionID: string | undefined;
-    createdIOUReportActionID: string | undefined;
+    createdChatReportActionID?: string;
+    createdIOUReportActionID?: string;
     reportPreviewReportActionID: string;
     receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;

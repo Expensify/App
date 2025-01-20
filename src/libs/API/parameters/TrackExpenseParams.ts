@@ -12,7 +12,7 @@ type TrackExpenseParams = {
     chatReportID: string | undefined;
     transactionID: string | undefined;
     reportActionID: string | undefined;
-    createdChatReportActionID: string | undefined;
+    createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
     receipt?: Receipt;
