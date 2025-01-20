@@ -847,7 +847,7 @@ const translations = {
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Create expense',
-        trackScan: 'Create expense for receipt',
+        trackScan: 'Scan receipt',
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
