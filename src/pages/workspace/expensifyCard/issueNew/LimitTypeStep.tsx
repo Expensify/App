@@ -22,7 +22,8 @@ type LimitTypeStepProps = {
 function LimitTypeStep({policy}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const policyID = policy?.id ?? '-1';
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
@@ -36,15 +37,16 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT,
             data: {limitType: typeSelected},
             isEditing: false,
+            policyID,
         });
     }, [isEditing, typeSelected]);
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE});
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
     }, [isEditing]);
 
     const data = useMemo(() => {
