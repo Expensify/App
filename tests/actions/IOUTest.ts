@@ -39,7 +39,14 @@ import {
     isActionOfType,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildTransactionThread,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    generateReportID,
+    isIOUReport,
+} from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -537,9 +544,9 @@ describe('actions/IOU', () => {
                 );
         });
         it('trackExpense - categorizing tracked expense should set the quick action to REQUEST_MANUAL with the correct chatReportID', () => {
-            const chatReportID = ReportUtils.generateReportID();
+            const chatReportID = generateReportID();
             // When we categorize a tracked expense with a given chatReportID
-            IOU.trackExpense(
+            trackExpense(
                 {reportID: chatReportID},
                 1000,
                 'USD',

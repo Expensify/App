@@ -1755,12 +1755,12 @@ function buildOnyxDataForTrackExpense(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const isSelfDM = ReportUtils.isSelfDM(chatReport);
-    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isSelfDM ? CONST.QUICK_ACTIONS.TRACK_MANUAL : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
+    const isSelfDMReport = isSelfDM(chatReport);
+    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_MANUAL : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     if (isScanRequest) {
-        newQuickAction = isSelfDM ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.REQUEST_SCAN;
+        newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.REQUEST_SCAN;
     } else if (isDistanceRequest) {
-        newQuickAction = isSelfDM ? CONST.QUICK_ACTIONS.TRACK_DISTANCE : CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
+        newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE : CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
