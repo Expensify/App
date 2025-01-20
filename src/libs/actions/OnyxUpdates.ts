@@ -114,7 +114,9 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
-        Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData');
+        Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
+            lastUpdateID, lastUpdateIDAppliedToClient
+        });
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
