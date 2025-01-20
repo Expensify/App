@@ -115,6 +115,11 @@ type RequestCountParams = {
     pendingReceipts: number;
 };
 
+type DeleteTransactionParams = {
+    amount: string;
+    merchant: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -716,6 +721,7 @@ export type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
+    DeleteTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
