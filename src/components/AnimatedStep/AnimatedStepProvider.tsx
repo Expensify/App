@@ -9,8 +9,6 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {AnimationDirection} from './AnimatedStepContext';
 import AnimatedStepContext from './AnimatedStepContext';
 
-const ANIMATED_SCREEN_TRANSITION = 400;
-
 type AnimatedStepProviderProps = ChildrenProps & {
     initialStep: string;
     steps: Record<string, ReactNode>;
@@ -40,14 +38,14 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
             setCurrentStep(newStep);
 
             const sideBarWidth = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
-            const currentStepPosition = direction === 'in' ? sideBarWidth : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
-            const previousStepPosition = direction === 'in' ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
+            const currentStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? sideBarWidth : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+            const previousStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
 
             currentTranslateX.set(currentStepPosition);
-            currentTranslateX.set(withTiming(0, {duration: ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
+            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
 
             prevTranslateX.set(0);
-            prevTranslateX.set(withTiming(previousStepPosition, {duration: ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
+            prevTranslateX.set(withTiming(previousStepPosition, {duration: CONST.ANIMATED_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
         },
         [currentStep, previousStep, isSmallScreenWidth, windowWidth, currentTranslateX, prevTranslateX],
     );
@@ -58,7 +56,7 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
 
     const previousScreenAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{translateX: prevTranslateX.get()}],
-        zIndex: animationDirection === 'in' ? -1 : 1,
+        zIndex: animationDirection === CONST.ANIMATION_DIRECTION.IN ? -1 : 1,
     }));
 
     const contextValue = useMemo(
