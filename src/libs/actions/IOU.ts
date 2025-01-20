@@ -3727,13 +3727,16 @@ function updateMoneyRequestDate(
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
@@ -3773,7 +3776,7 @@ function updateMoneyRequestAttendees(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -7793,19 +7796,14 @@ function canIOUBePaid(
     );
 }
 
-function canSubmitReport(
-    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
-    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
-    transactionIDList: string[],
-    allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
-) {
+function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy, transactionIDList: string[]) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isArchived = isArchivedReport(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy);
 
     return (
         isOpenExpenseReport &&
