@@ -1603,7 +1603,7 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
  */
 function getIOUActionForReportID(reportID?: string, transactionID?: string): OnyxEntry<ReportAction> {
     if (!reportID || !transactionID) {
-        return;
+        return undefined;
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);

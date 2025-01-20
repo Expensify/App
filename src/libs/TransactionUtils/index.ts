@@ -760,7 +760,7 @@ function getTransactionViolations(transactionID: string | undefined): Transactio
     if (!transactionID) {
         return null;
     }
-    return allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((v) => !isViolationDismissed(transactionID, v)) ?? null;
+    return allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transactionID, violation)) ?? null;
 }
 
 /**
@@ -971,6 +971,9 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
@@ -983,6 +986,9 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(

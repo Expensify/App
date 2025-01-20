@@ -127,7 +127,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const transactionViolations = getTransactionViolations(getTransactionID(report, parentReportActions) ?? undefined);
 
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? CONST.DEFAULT_NUMBER_ID];
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report?.parentReportActionID] : undefined;
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
