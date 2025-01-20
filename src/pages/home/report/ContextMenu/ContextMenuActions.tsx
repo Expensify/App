@@ -546,7 +546,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getPolicyChangeLogChangeRoleMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(reportAction));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETED_TRANSACTION) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
