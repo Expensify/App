@@ -1,11 +1,32 @@
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {PartialDeep, ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import {ConnectPolicyToNSQSParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Connections} from '@src/types/onyx/Policy';
+
+function connectPolicyToNSQS(policyID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NSQS_SYNC_CONNECTION,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.NSQS,
+                timestamp: new Date().toISOString(),
+            },
+        },
+    ];
+
+    const params: ConnectPolicyToNSQSParams = {
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NSQS, params, {optimisticData});
+}
 
 function buildOnyxDataForNSQSConfiguration<TSettingName extends keyof Connections['nsqs']['config']>(
     policyID: string,
@@ -161,4 +182,4 @@ function updateNSQSApprovalAccount(policyID: string, value: string, oldValue: st
     API.write(WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT, params, onyxData);
 }
 
-export {updateNSQSCustomersMapping, updateNSQSProjectsMapping, updateNSQSExporter, updateNSQSExportDate, updateNSQSAutoSync, updateNSQSApprovalAccount};
+export {connectPolicyToNSQS, updateNSQSCustomersMapping, updateNSQSProjectsMapping, updateNSQSExporter, updateNSQSExportDate, updateNSQSAutoSync, updateNSQSApprovalAccount};

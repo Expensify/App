@@ -1,19 +1,17 @@
-import React, {useRef} from 'react';
-import type {ComponentType, ForwardedRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
+import {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isAuthenticationError} from '@libs/actions/connections';
+import {connectPolicyToNSQS} from '@libs/actions/connections/NSQS';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -21,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NSQSOAuth2Form';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -29,34 +26,48 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NSQS);
-    return (
-        // s77rt: do not use ConnectionLayout here. Just a regular ScreenWrapper
-        <ConnectionLayout
-            displayName={NSQSSetupPage.displayName}
-            headerTitle="workspace.nsqs.setup.title"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.flex1]}
-            titleStyle={styles.ph5}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
-            onBackButtonPress={() =>
-                Navigation.goBack(
-                    ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
-                )
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM> = {};
+            if (!values[INPUT_IDS.NSQS_ACCOUNT_ID]) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.NSQS_ACCOUNT_ID, translate('common.error.fieldRequired'));
             }
-            shouldIncludeSafeAreaPaddingBottom
-            shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NSQS])}
-            shouldBeBlocked={shouldPageBeBlocked}
+            return errors;
+        },
+        [translate],
+    );
+
+    const connectPolicy = useCallback(
+        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
+            // s77rt use formValues
+            connectPolicyToNSQS(policyID);
+            Navigation.dismissModal();
+        },
+        [policyID],
+    );
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+            testID={NSQSSetupPage.displayName}
         >
+            <HeaderWithBackButton
+                title={translate('workspace.nsqs.setup.title')}
+                onBackButtonPress={() =>
+                    Navigation.goBack(
+                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
+                    )
+                }
+            />
             <View style={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NSQS_OAUTH2_FORM}
                     style={styles.flexGrow1}
-                    // validate={() => null}
-                    onSubmit={() => null}
+                    validate={validate}
+                    onSubmit={connectPolicy}
                     submitButtonText={translate('workspace.accounting.setup')}
+                    enabledWhenOffline
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
@@ -72,7 +83,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
                     />
                 </FormProvider>
             </View>
-        </ConnectionLayout>
+        </ScreenWrapper>
     );
 }
 
