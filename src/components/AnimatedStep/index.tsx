@@ -1,50 +1,64 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import React, {useEffect} from 'react';
+import Animated from 'react-native-reanimated';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
-import CONST from '@src/CONST';
+import type {StepCounterParams} from '@src/languages/params';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {AnimationDirection} from './AnimatedStepContext';
+import useAnimatedStepContext from './useAnimatedStepContext';
 
 type AnimatedStepProps = ChildrenProps & {
-    /** Styles to be assigned to Container */
-    style: StyleProp<ViewStyle>;
+    /** Name of the step */
+    stepName: string;
 
-    /** Whether we're animating the step in or out */
-    direction: AnimationDirection;
+    /** Title of the Header */
+    title?: string;
 
-    /** Callback to fire when the animation ends */
-    onAnimationEnd?: () => void;
+    /** Data to display a step counter in the header */
+    stepCounter?: StepCounterParams;
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress?: () => void;
+
+    /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
+    onEntryTransitionEnd?: () => void;
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView?: boolean;
 };
 
-function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
+function AnimatedStep({stepName, title = '', stepCounter, onBackButtonPress, children = null, shouldEnableKeyboardAvoidingView = true, onEntryTransitionEnd}: AnimatedStepProps) {
     const styles = useThemeStyles();
+    const {previousStep, currentScreenAnimatedStyle, previousScreenAnimatedStyle} = useAnimatedStepContext();
 
-    const animationStyle = useMemo(() => {
-        const transitionValue = direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+    useEffect(() => {
+        if (previousStep) {
+            return;
+        }
 
-        return styles.makeSlideInTranslation('translateX', transitionValue);
-    }, [direction, styles]);
+        onEntryTransitionEnd?.();
+    }, [onEntryTransitionEnd, previousStep]);
 
     return (
-        <Animatable.View
-            onAnimationEnd={() => {
-                if (!onAnimationEnd) {
-                    return;
-                }
-                onAnimationEnd();
-            }}
-            duration={CONST.ANIMATED_TRANSITION}
-            animation={animationStyle}
-            // eslint-disable-next-line react-compiler/react-compiler
-            useNativeDriver={useNativeDriver}
-            style={style}
-        >
-            {children}
-        </Animatable.View>
+        <Animated.View style={[styles.animatedStep, stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle]}>
+            <ScreenWrapper
+                shouldShowOfflineIndicator={false}
+                shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                shouldEnableMaxHeight
+                testID={AnimatedStep.displayName}
+            >
+                <HeaderWithBackButton
+                    title={title}
+                    stepCounter={stepCounter}
+                    onBackButtonPress={onBackButtonPress}
+                />
+                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        </Animated.View>
     );
 }
 
 AnimatedStep.displayName = 'AnimatedStep';
+
 export default AnimatedStep;

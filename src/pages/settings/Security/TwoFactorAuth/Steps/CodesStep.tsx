@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AnimatedStep from '@components/AnimatedStep';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -23,7 +24,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CodesStepProps = BackToParams;
 
@@ -44,7 +45,7 @@ function CodesStep({backTo}: CodesStepProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -64,17 +65,18 @@ function CodesStep({backTo}: CodesStepProps) {
     useEffect(() => {
         setIsValidateModalVisible(!isUserValidated);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated]);
+    }, [isUserValidated, accountMetadata]);
 
     useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
-        <StepWrapper
+        <AnimatedStep
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.CODES}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
             stepCounter={{
@@ -193,7 +195,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     TwoFactorAuthActions.quitAndNavigateBack(backTo);
                 }}
             />
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 
