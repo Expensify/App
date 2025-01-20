@@ -39,7 +39,7 @@ function WorkspaceSwitcherPage() {
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const isFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -89,7 +89,6 @@ function WorkspaceSwitcherPage() {
             }
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
-            setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
             if (newPolicyID !== activeWorkspaceID) {
                 // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
@@ -97,7 +96,7 @@ function WorkspaceSwitcherPage() {
                 switchPolicyAfterInteractions(newPolicyID);
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID, isFocused],
+        [activeWorkspaceID, isFocused],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

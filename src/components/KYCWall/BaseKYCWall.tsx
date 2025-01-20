@@ -106,7 +106,7 @@ function KYCWall({
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 BankAccounts.openPersonalBankAccountSetupView();
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                Navigation.navigate(addDebitCardRoute);
+                Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && ReportUtils.isIOUReport(iouReport)) {
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = Policy.createWorkspaceFromIOUPayment(iouReport) ?? {};

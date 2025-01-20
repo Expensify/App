@@ -562,6 +562,16 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            position: 'absolute',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            transform: [{translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth}],
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: shouldDisplayTopLevelBottomTabBar ? 0 : -(bottomSafeAreaOffset + variables.bottomTabHeight),
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -1565,6 +1575,19 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             ...wordBreak.breakWord,
+        },
+
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         // Sidebar Styles

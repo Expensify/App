@@ -1,9 +1,10 @@
 import {InteractionManager} from 'react-native';
-import Navigation from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 
 function switchPolicyAfterInteractions(newPolicyID: string | undefined) {
     InteractionManager.runAfterInteractions(() => {
-        Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+        navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID: newPolicyID}});
     });
 }
 

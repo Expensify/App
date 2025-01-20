@@ -19,13 +19,23 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
-    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
+    const useCustomState = options?.useCustomState ?? (() => undefined);
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
 
-    function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
+    function PlatformNavigator({
+        id,
+        initialRouteName,
+        screenOptions,
+        screenListeners,
+        children,
+        sidebarScreen,
+        defaultCentralScreen,
+        parentRoute,
+        ...props
+    }: PlatformStackNavigatorProps<ParamListBase>) {
         const {
             navigation,
             state: originalState,
@@ -47,6 +57,9 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 defaultScreenOptions,
                 screenListeners,
                 initialRouteName,
+                defaultCentralScreen,
+                sidebarScreen,
+                parentRoute,
             } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, StackNavigationEventMap, ParamListBase, RouterOptions>,
             convertToWebNavigationOptions,
         );
@@ -57,21 +70,20 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 navigation,
                 descriptors,
                 displayName,
+                parentRoute,
             }),
-            [originalState, navigation, descriptors],
+            [originalState, navigation, descriptors, parentRoute],
         );
 
-        const {stateToRender, searchRoute} = useCustomState(customCodeProps);
+        const stateToRender = useCustomState(customCodeProps);
         const state = useMemo(() => stateToRender ?? originalState, [originalState, stateToRender]);
         const customCodePropsWithCustomState = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 ...customCodeProps,
                 state,
-                searchRoute,
             }),
-            [customCodeProps, state, searchRoute],
+            [customCodeProps, state],
         );
-
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
 

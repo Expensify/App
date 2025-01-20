@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -47,7 +47,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const onModalClose = () => {
         // Receipt Page can be opened either from Reports or from Search RHP view
         // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
-        const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
         const secondToLastRoute = rootState.routes.at(-2);
         if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             Navigation.dismissModal();

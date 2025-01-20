@@ -76,7 +76,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                     title={translate('delegate.role', {role})}
                     description={translate('delegate.accessLevel')}
                     helperText={translate('delegate.roleDescription', {role})}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role), CONST.NAVIGATION.ACTION_TYPE.PUSH)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal

@@ -38,6 +38,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
+        useNavigationState: () => true,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,

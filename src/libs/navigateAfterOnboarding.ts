@@ -1,6 +1,6 @@
 import ROUTES from '@src/ROUTES';
+import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from './ReportUtils';
 
 const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms: boolean | undefined, onboardingPolicyID?: string, activeWorkspaceID?: string) => {
