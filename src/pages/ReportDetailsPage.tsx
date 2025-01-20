@@ -87,9 +87,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
 
@@ -123,7 +125,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
@@ -277,6 +279,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
+    const shouldShowGoToWorkspace = PolicyUtils.shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
     const reportName = ReportUtils.getReportName(report);
 
@@ -454,23 +457,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -512,6 +498,43 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (shouldShowGoToWorkspace) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'workspace.common.goToWorkspace',
+                icon: Expensicons.Building,
+                action: () => {
+                    if (!report?.policyID) {
+                        return;
+                    }
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
+        if (shouldShowLeaveButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
+            });
+        }
+
         if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
@@ -528,7 +551,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -537,35 +559,38 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         report,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isTrackExpenseReport,
+        isDeletedParentAction,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowCancelPaymentButton,
+        shouldShowLeaveButton,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
-        canModifyTask,
-        shouldShowMenuItem,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        shouldOpenRoomMembersPage,
-        shouldShowCancelPaymentButton,
-        session,
-        isOffline,
-        transactionIDList,
-        leaveChat,
+        isExpenseReport,
         canUnapproveRequest,
         isDebugModeEnabled,
-        unapproveExpenseReportOrShowModal,
-        isExpenseReport,
+        shouldShowGoToWorkspace,
+        activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         backTo,
-        canActionTask,
-        isTrackExpenseReport,
-        iouTransactionID,
         parentReportAction,
+        iouTransactionID,
         moneyRequestReport?.reportID,
-        isDeletedParentAction,
+        session,
+        canModifyTask,
+        canActionTask,
+        isRootGroupChat,
+        leaveChat,
+        isOffline,
+        transactionIDList,
+        unapproveExpenseReportOrShowModal,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -643,8 +668,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
-
+        !ReportUtils.isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
@@ -850,22 +874,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        let urlToNavigateBack: string | undefined;
-
+        // If transaction was not deleted (i.e. Cancel was clicked), do nothing
+        // which only dismiss the delete confirmation modal
         if (!isTransactionDeleted.current) {
-            if (caseID === CASES.DEFAULT) {
-                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
-                if (urlToNavigateBack) {
-                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                    Navigation.goBack(urlToNavigateBack as Route);
-                } else {
-                    Navigation.dismissModal();
-                }
-                return;
-            }
             return;
         }
 
+        let urlToNavigateBack: string | undefined;
+
+        // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
@@ -881,7 +898,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

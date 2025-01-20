@@ -11,6 +11,9 @@ import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
+    /** TestID for test */
+    testID?: string;
+
     /** Child elements */
     children?: React.ReactNode;
 
@@ -44,6 +47,7 @@ type FullPageNotFoundViewProps = {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({
+    testID,
     children = null,
     shouldShow = false,
     titleKey = 'notFound.notHere',
@@ -65,7 +69,10 @@ function FullPageNotFoundView({
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
                 />
-                <View style={[styles.flex1, styles.blockingViewContainer]}>
+                <View
+                    style={[styles.flex1, styles.blockingViewContainer]}
+                    testID={testID}
+                >
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}

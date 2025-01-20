@@ -15,6 +15,7 @@ function FocusTrapForModal({children, active, initialFocus = false}: FocusTrapFo
                 clickOutsideDeactivates: true,
                 initialFocus,
                 fallbackFocus: document.body,
+                unpauseOnDeactivate: false,
                 setReturnFocus: (element) => {
                     if (ReportActionComposeFocusManager.isFocused()) {
                         return false;

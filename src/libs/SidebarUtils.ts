@@ -208,7 +208,7 @@ function getOrderedReportIDs(
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        } else if (ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -239,9 +239,7 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
 
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports]
-        .map((report) => report?.reportID)
-        .filter((reportID) => reportID) as string[];
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return LHNReports;
@@ -258,7 +256,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const errors = ReportUtils.getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {

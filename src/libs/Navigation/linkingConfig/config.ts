@@ -16,6 +16,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.UNLINK_LOGIN]: ROUTES.UNLINK_LOGIN,
         [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
         [SCREENS.CONNECTION_COMPLETE]: ROUTES.CONNECTION_COMPLETE,
+        [SCREENS.BANK_CONNECTION_COMPLETE]: ROUTES.BANK_CONNECTION_COMPLETE,
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
@@ -87,6 +88,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.TRACK_TRAINING_MODAL,
                     exact: true,
                 },
+                [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
@@ -1232,6 +1234,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
                                     exact: true,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'per-diem': {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                    exact: true,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1258,6 +1265,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.route,
                         [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
                         [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -1352,11 +1365,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.REFERRAL]: {
                     screens: {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
-                    screens: {
-                        [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
@@ -1585,5 +1593,4 @@ const normalizedConfigs = Object.keys(config.screens)
         return acc;
     }, {} as Record<Screen, RouteConfig>);
 
-export {normalizedConfigs};
-export default config;
+export {normalizedConfigs, config};
