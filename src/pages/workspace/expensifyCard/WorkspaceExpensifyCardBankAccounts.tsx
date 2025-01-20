@@ -16,14 +16,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as CardUtils from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
+import {configureExpensifyCardsForPolicy} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +40,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const policyID = route?.params?.policyID ?? '-1';
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
@@ -65,7 +65,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleSelectBankAccount = (value?: number) => {
-        Card.configureExpensifyCardsForPolicy(policyID, value);
+        configureExpensifyCardsForPolicy(policyID, value);
     };
 
     const renderBankOptions = () => {
@@ -73,7 +73,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;

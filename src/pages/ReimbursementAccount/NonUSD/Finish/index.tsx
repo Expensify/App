@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -26,7 +26,7 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
 
     return (
         <ScreenWrapper
