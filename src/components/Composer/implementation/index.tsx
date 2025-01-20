@@ -20,7 +20,6 @@ import {isMobileSafari, isSafari} from '@libs/Browser';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -73,7 +72,6 @@ function Composer(
         start: selectionProp.start,
         end: selectionProp.end,
     });
-    const [hasMultipleLines, setHasMultipleLines] = useState(false);
     const [isRendered, setIsRendered] = useState(false);
 
     // On mobile safari, the cursor will move from right to left with inputMode set to none during report transition
@@ -349,15 +347,15 @@ function Composer(
     const inputStyleMemo = useMemo(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(isComposerFullSize),
+            StyleUtils.getComposeTextAreaPadding(isComposerFullSize, textContainsOnlyEmojis),
             isMobileSafari() || isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
-            textContainsOnlyEmojis && hasMultipleLines ? styles.onlyEmojisTextLineHeight : {},
+            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, hasMultipleLines, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
@@ -379,7 +377,6 @@ function Composer(
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {
                 setPrevHeight(e.nativeEvent.contentSize.height);
-                setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
