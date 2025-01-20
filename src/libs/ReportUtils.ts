@@ -8452,7 +8452,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     actionName: IOUAction,
     reportActionID: string | undefined,
 ): void {
-    if (!transactionID || !reportID || !reportActionID) {
+    if (!transactionID || !reportID) {
         return;
     }
 
