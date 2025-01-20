@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -42,7 +42,7 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
             const previousStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
 
             currentTranslateX.set(currentStepPosition);
-            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
+            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => runOnJS(setPreviousStep)(null)));
 
             prevTranslateX.set(0);
             prevTranslateX.set(withTiming(previousStepPosition, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
