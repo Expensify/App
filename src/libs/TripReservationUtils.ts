@@ -13,10 +13,10 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as Link from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import * as PolicyUtils from './PolicyUtils';
+import { openTravelDotLink } from './actions/Link';
+import { getAdminsPrivateEmailDomains, getPolicy } from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -100,7 +100,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    const policy = PolicyUtils.getPolicy(activePolicyID);
+    const policy = getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;
@@ -108,7 +108,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
 
     const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID || policy?.travelSettings?.associatedTravelDomainAccountID;
     if (policy?.travelSettings?.hasAcceptedTerms || (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-        Link.openTravelDotLink(activePolicyID)
+        openTravelDotLink(activePolicyID)
             ?.then(() => {
                 if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                     return;
@@ -126,12 +126,12 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     } else if (isPolicyProvisioned) {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
     } else {
-        const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(policy);
+        const adminDomains = getAdminsPrivateEmailDomains(policy);
         let routeToNavigateTo;
         if (adminDomains.length === 0) {
             routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;
         } else if (adminDomains.length === 1) {
-            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains[0]);
+            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains.at(0)!!);
         } else {
             routeToNavigateTo = ROUTES.TRAVEL_DOMAIN_SELECTOR;
         }

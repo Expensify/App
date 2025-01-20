@@ -1227,7 +1227,7 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     if (!policy) {
         return undefined;
     }
-    let domainOccurrences = {} as Record<string, number>;
+    const domainOccurrences = {} as Record<string, number>;
     [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()].forEach((memberDomain) => {
         if (!acceptedDomains.includes(memberDomain)) {
             return;
