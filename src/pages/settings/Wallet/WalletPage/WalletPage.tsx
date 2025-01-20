@@ -32,10 +32,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDescriptionForPolicyDomainCard, maskCardNumber} from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PaymentUtils from '@libs/PaymentUtils';
+import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
@@ -164,14 +164,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -180,7 +180,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? '-1',
+                methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
@@ -221,7 +221,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 icon,
             },
             selectedPaymentMethodType: '',
-            methodID: cardID ?? '-1',
+            methodID: cardID ?? CONST.DEFAULT_NUMBER_ID,
         });
         setShouldShowCardMenu(true);
         setMenuPosition();
@@ -267,14 +267,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList ?? {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            makeDefaultPaymentMethodAction(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodAction(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            makeDefaultPaymentMethodAction(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodAction(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,
@@ -363,7 +363,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
     const isCurrentPaymentMethodDefault = () => {
-        const hasMultiplePaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
+        const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
         if (hasMultiplePaymentMethods) {
             if (paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 return paymentMethod.selectedPaymentMethod.bankAccountID === userWallet?.walletLinkedAccountID;
@@ -482,7 +482,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 >
                                                     <MenuItemWithTopDescription
                                                         description={translate('walletPage.balance')}
-                                                        title={CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                        title={convertToDisplayString(userWallet?.currentBalance ?? 0)}
                                                         titleStyle={styles.textHeadlineH2}
                                                         interactive={false}
                                                         wrapperStyle={styles.sectionMenuItemTopDescription}
