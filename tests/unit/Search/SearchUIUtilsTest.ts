@@ -6,7 +6,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 const accountID = 18439984;
 const policyID = 'A1B2C3';
 const reportID = '123456789';
+const reportID2 = '11111';
 const transactionID = '1';
+const transactionID2 = '2';
 
 // Given search data results consisting of involved users' personal details, policyID, reportID and transactionID
 const searchResults: OnyxTypes.SearchResults = {
@@ -54,6 +56,27 @@ const searchResults: OnyxTypes.SearchResults = {
             type: 'expense',
             unheldTotal: -5000,
         },
+        [`report_${reportID2}`]: {
+            accountID,
+            action: 'view',
+            chatReportID: '1706144653204915',
+            created: '2024-12-21 13:05:20',
+            currency: 'USD',
+            isOneTransactionReport: true,
+            isPolicyExpenseChat: false,
+            isWaitingOnBankAccount: false,
+            managerID: accountID,
+            nonReimbursableTotal: 0,
+            ownerAccountID: accountID,
+            policyID,
+            reportID: reportID2,
+            reportName: 'Expense Report #123',
+            stateNum: 1,
+            statusNum: 1,
+            total: -5000,
+            type: 'expense',
+            unheldTotal: -5000,
+        },
         [`transactions_${transactionID}`]: {
             accountID,
             action: 'view',
@@ -86,6 +109,44 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionThreadReportID: '456',
             transactionType: 'cash',
         },
+        [`transactions_${transactionID2}`]: {
+            accountID,
+            action: 'view',
+            amount: -5000,
+            canDelete: true,
+            canHold: true,
+            canUnhold: false,
+            category: '',
+            comment: {
+                comment: '',
+            },
+            created: '2024-12-21',
+            currency: 'USD',
+            hasEReceipt: false,
+            isFromOneTransactionReport: true,
+            managerID: accountID,
+            description: '',
+            hasViolation: true,
+            merchant: 'Expense',
+            modifiedAmount: 0,
+            modifiedCreated: '',
+            modifiedCurrency: '',
+            modifiedMerchant: 'Expense',
+            parentTransactionID: '',
+            policyID,
+            reportID: reportID2,
+            reportType: 'expense',
+            tag: '',
+            transactionID: transactionID2,
+            transactionThreadReportID: '456',
+            transactionType: 'cash',
+        },
+        [`transactionViolations_${transactionID2}`]: [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ],
     },
     search: {
         columnsToShow: {
@@ -110,5 +171,23 @@ const tests = transactionSections.map((transactionList) => [{transactionListItem
 describe('SearchUIUtils', () => {
     test.each(tests)('Transaction list item with "Expense" merchant', ({transactionListItem, expectedMerchant}) => {
         expect(transactionListItem.merchant).toEqual(expectedMerchant);
+    });
+});
+
+describe('Test getAction', () => {
+    test('Should return `Pay` action for transaction on policy with no approvals and no violations', () => {
+        let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID}`);
+        expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+
+        action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID}`);
+        expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+    });
+
+    test('Should return `Review` action for transaction on policy with no approvals and with violations', () => {
+        let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+        expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+
+        action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+        expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
     });
 });

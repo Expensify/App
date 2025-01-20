@@ -14,11 +14,11 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as LoginUtils from '@libs/LoginUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,7 +49,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         }
 
         // If the emails are not in the same private domain, we also return the displayText
-        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
+        if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
             return displayText;
         }
 
@@ -60,16 +60,16 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
+        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
-        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute());
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
@@ -91,12 +91,12 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         if (isDisabled) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
                     }}
                     onPress={(event) => {
                         event.preventDefault();
                         if (!isEmpty(htmlAttribAccountID)) {
-                            Navigation.navigate(ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute()));
+                            Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
                             return;
                         }
                         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
