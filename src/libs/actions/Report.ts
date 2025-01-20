@@ -1102,7 +1102,7 @@ function openReport(
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: undefined, childType: ''}},
+                value: {[parentReportActionID]: {childType: ''}},
             });
         }
     }
@@ -3627,6 +3627,7 @@ function prepareOnboardingOptimisticData(
     const {reportID: targetChatReportID, policyID: targetChatPolicyID} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
+        Log.warn('Missing reportID for onboarding optimistic data');
         return;
     }
 
@@ -3742,7 +3743,6 @@ function prepareOnboardingOptimisticData(
         taskReportID: currentTask.reportID,
         parentReportID: currentTask.parentReportID,
         parentReportActionID: taskReportAction.reportAction.reportActionID,
-        assigneeChatReportID: undefined,
         createdTaskReportActionID: taskCreatedAction.reportActionID,
         completedTaskReportActionID: completedTaskReportAction?.reportActionID,
         title: currentTask.reportName ?? '',

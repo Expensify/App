@@ -1,7 +1,7 @@
 import type {FileObject} from '@components/AttachmentModal';
 
 type AddCommentOrAttachementParams = {
-    reportID?: string;
+    reportID: string;
     reportActionID?: string;
     commentReportActionID?: string | null;
     reportComment?: string;
