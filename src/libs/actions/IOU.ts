@@ -4781,7 +4781,7 @@ function trackExpense({
         return (receiptParam as Receipt).state !== undefined;
     }
     const receiptState = isReceipt(trackedReceipt) ? trackedReceipt.state : undefined;
-    
+
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
