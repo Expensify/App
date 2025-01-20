@@ -205,6 +205,9 @@ type SearchPolicy = {
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
 
+    /** Whether the rules feature is enabled */
+    areRulesEnabled?: boolean;
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
