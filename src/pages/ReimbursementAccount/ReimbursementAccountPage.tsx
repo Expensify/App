@@ -52,6 +52,8 @@ import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
+type ReimbursementAccountStepToOpen = ValueOf<typeof ROUTE_NAMES> | '';
+
 const ROUTE_NAMES = {
     COMPANY: 'company',
     PERSONAL_INFORMATION: 'personal-information',
@@ -60,7 +62,7 @@ const ROUTE_NAMES = {
     VALIDATE: 'validate',
     ENABLE: 'enable',
     NEW: 'new',
-};
+} as const;
 
 const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
 
@@ -89,7 +91,7 @@ function getStepToOpenFromRouteParams(route: PlatformStackRouteProp<Reimbursemen
     }
 }
 
-function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof ROUTE_NAMES> {
+function getRouteForCurrentStep(currentStep: TBankAccountStep): ReimbursementAccountStepToOpen {
     switch (currentStep) {
         case CONST.BANK_ACCOUNT.STEP.COMPANY:
             return ROUTE_NAMES.COMPANY;
@@ -590,3 +592,4 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default withPolicy(ReimbursementAccountPage);
+export type {ReimbursementAccountStepToOpen};

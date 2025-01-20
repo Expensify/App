@@ -116,7 +116,7 @@ function KYCWall({
                     }
 
                     // Navigate to the bank account set up flow for this specific policy
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, ''));
 
                     return;
                 }

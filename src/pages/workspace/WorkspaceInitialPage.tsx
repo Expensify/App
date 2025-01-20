@@ -74,10 +74,12 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformS
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
-function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+function dismissError(policyID: string | undefined, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         PolicyUtils.goBackFromInvalidPolicy();
-        Policy.removeWorkspace(policyID);
+        if (policyID) {
+            Policy.removeWorkspace(policyID);
+        }
     } else {
         Policy.clearErrors(policyID);
     }
@@ -142,7 +144,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const policyName = policy?.name ?? '';
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {

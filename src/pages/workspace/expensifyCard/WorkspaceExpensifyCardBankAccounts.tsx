@@ -61,7 +61,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleAddBankAccount = () => {
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, 'new', ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value?: number) => {
