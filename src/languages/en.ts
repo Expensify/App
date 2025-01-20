@@ -70,7 +70,6 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
-    FirstDayTextParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
@@ -90,7 +89,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastDayTextParams,
     LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
@@ -166,7 +164,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    TripLengthTextParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
@@ -497,6 +494,7 @@ const translations = {
         destination: 'Destination',
         subrate: 'Subrate',
         perDiem: 'Per diem',
+        validate: 'Validate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1090,9 +1088,21 @@ const translations = {
         deleteSubrateConfirmation: 'Are you sure you want to delete this subrate?',
         quantity: 'Quantity',
         subrateSelection: 'Select a subrate and enter a quantity.',
-        firstDayText: ({hours}: FirstDayTextParams) => `First day: ${hours} hours`,
-        lastDayText: ({hours}: LastDayTextParams) => `Last day: ${hours} hours`,
-        tripLengthText: ({days}: TripLengthTextParams) => `Trip: ${days} full days`,
+        qty: 'Qty',
+        firstDayText: () => ({
+            one: `First day: 1 hour`,
+            other: (count: number) => `First day: ${count.toFixed(2)} hours`,
+        }),
+        lastDayText: () => ({
+            one: `Last day: 1 hour`,
+            other: (count: number) => `Last day: ${count.toFixed(2)} hours`,
+        }),
+        tripLengthText: () => ({
+            one: `Trip: 1 full day`,
+            other: (count: number) => `Trip: ${count} full days`,
+        }),
+        dates: 'Dates',
+        rates: 'Rates',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1877,7 +1887,10 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
+        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -1962,7 +1975,7 @@ const translations = {
         chooseAnAccountBelow: 'Choose an account below',
         addBankAccount: 'Add bank account',
         chooseAnAccount: 'Choose an account',
-        connectOnlineWithPlaid: 'Connect via Plaid',
+        connectOnlineWithPlaid: 'Log into your bank',
         connectManually: 'Connect manually',
         desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
@@ -3359,8 +3372,8 @@ const translations = {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
-                customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
-                directFeedDetails: 'Connect now using your master credentials. This is most common.',
+                customFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
