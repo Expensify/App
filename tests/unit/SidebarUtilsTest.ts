@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -332,6 +333,100 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getOptionsData', () => {
+        it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
+            // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
+            const report: Report = {
+                chatType: 'policyAdmins',
+                currency: 'USD',
+                description: '',
+                errorFields: {},
+                hasOutstandingChildRequest: false,
+                hasOutstandingChildTask: false,
+                isCancelledIOU: false,
+                isOwnPolicyExpenseChat: false,
+                isPinned: false,
+                isWaitingOnBankAccount: false,
+                lastActorAccountID: 18921695,
+                lastMessageHtml: 'removed 0 user',
+                lastMessageText: 'removed 0 user',
+                lastReadSequenceNumber: 0,
+                lastReadTime: '2025-01-20 12:30:03.787',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                lastVisibleActionLastModified: '2025-01-20 12:30:03.784',
+                nonReimbursableTotal: 0,
+                oldPolicyName: '',
+                ownerAccountID: 0,
+                participants: {
+                    '18921695': {
+                        notificationPreference: 'always',
+                    },
+                },
+                permissions: ['read', 'write'],
+                policyAvatar: '',
+                policyID: '6327584AE2AD92E6',
+                policyName: 'Arch Workspace 1',
+                private_isArchived: '',
+                reportID: '2336337065760599',
+                reportName: '#admins',
+                stateNum: 0,
+                statusNum: 0,
+                total: 0,
+                type: 'chat',
+                unheldNonReimbursableTotal: 0,
+                unheldTotal: 0,
+                welcomeMessage: '',
+                writeCapability: 'all',
+                managerID: 0,
+                privateNotes: {
+                    '18921695': {
+                        note: '',
+                    },
+                },
+            };
+            const lastAction: ReportAction = {
+                reportActionID: '8984164670214153383',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<muted-text>removed <mention-user accountID=19010378></mention-user> from <a href="https://dev.new.expensify.com:8082/r/5345362886584843" target="_blank">#r1</a></muted-text>',
+                        text: 'removed  from #r1',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM,
+                created: '2025-01-20 12:30:03.784',
+                actorAccountID: 18921695,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                hasViolations: false,
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                preferredLocale: CONST.LOCALES.EN,
+            });
+
+            // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+            expect(result?.alternateText).toBe(`f50: ${getReportActionMessageText(lastAction)}`);
         });
     });
 });
