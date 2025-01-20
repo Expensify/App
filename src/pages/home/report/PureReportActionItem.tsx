@@ -112,7 +112,7 @@ import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
@@ -425,8 +425,8 @@ function PureReportActionItem({
                 hideContextMenu();
                 hideDeleteModal();
             }
-            if (EmojiPickerAction.isActive(action.reportActionID)) {
-                EmojiPickerAction.hideEmojiPicker(true);
+            if (isActive(action.reportActionID)) {
+                hideEmojiPicker(true);
             }
             if (reactionListRef?.current?.isActiveReportAction(action.reportActionID)) {
                 reactionListRef?.current?.hideReactionList();
@@ -437,11 +437,11 @@ function PureReportActionItem({
 
     useEffect(() => {
         // We need to hide EmojiPicker when this is a deleted parent action
-        if (!isDeletedParentAction || !EmojiPickerAction.isActive(action.reportActionID)) {
+        if (!isDeletedParentAction || !isActive(action.reportActionID)) {
             return;
         }
 
-        EmojiPickerAction.hideEmojiPicker(true);
+        hideEmojiPicker(true);
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
