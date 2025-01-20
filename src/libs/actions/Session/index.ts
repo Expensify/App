@@ -594,7 +594,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
             .finally(() => {
-                resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
+                resolve(`${route}${isSingleNewDotEntry === 'true' ? '?singleNewDotEntry=true' : ''}` as Route);
             });
     });
 
