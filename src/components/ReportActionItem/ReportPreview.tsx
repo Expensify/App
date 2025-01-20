@@ -236,10 +236,10 @@ function ReportPreview({
         hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
-    const lastThreeTransactions = allTransactions.slice(-3).filter((t) => {
-        const iouAction = getIOUActionForReportID(iouReport?.reportID, t.transactionID);
-        const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, currentUserAccountID);
-        return hasReceipt(t) || shouldShowReceiptEmptyState;
+    const lastThreeTransactions = allTransactions.slice(-3).filter((transaction) => {
+        const iouAction = getIOUActionForReportID(iouReport?.reportID, transaction.transactionID);
+        const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, transaction, currentUserAccountID);
+        return hasReceipt(transaction) || shouldShowReceiptEmptyState;
     });
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(allTransactions.at(0), getTransactionViolations(allTransactions.at(0)?.transactionID, transactionViolations));
