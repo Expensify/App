@@ -21,9 +21,30 @@
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "contacts-nitro-module": ["./modules/ContactsNitroModule"],
+            "contacts-nitro-module/*": ["./modules/ContactsNitroModule/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts"],
+    "include": [
+        "src",
+        "desktop",
+        "web",
+        "website",
+        "docs",
+        "assets",
+        "config",
+        "tests",
+        "jest",
+        "__mocks__",
+        ".github/**/*",
+        ".storybook/**/*",
+        "scripts",
+        "modules/index.ts",
+        "**/*.nitro/*.ts",
+        "**/*.nitro/*.tsx",
+        "modules/ContactsNitroModule/lib/**/*",
+        "modules/ContactsNitroModule/lib/*.d.ts"
+    ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }
