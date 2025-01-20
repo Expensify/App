@@ -20,7 +20,7 @@ import {translateLocal} from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCleanedTagName} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     getActionableMentionWhisperMessage,
@@ -510,7 +510,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
                 } else if (isTagModificationAction(reportAction.actionName)) {
-                    Clipboard.setString(PolicyUtils.getCleanedTagName(getWorkspaceTagUpdateMessage(reportAction)));
+                    Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
