@@ -15,18 +15,29 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getCompanyFeeds} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
-import * as Category from '@userActions/Policy/Category';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
-import * as PerDiem from '@userActions/Policy/PerDiem';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Tag from '@userActions/Policy/Tag';
-import * as Report from '@userActions/Report';
+import {enablePolicyCategories} from '@userActions/Policy/Category';
+import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
+import {enablePerDiem} from '@userActions/Policy/PerDiem';
+import {
+    clearPolicyErrorField,
+    enableCompanyCards,
+    enableExpensifyCard,
+    enablePolicyConnections,
+    enablePolicyInvoicing,
+    enablePolicyReportFields,
+    enablePolicyRules,
+    enablePolicyTaxes,
+    enablePolicyWorkflows,
+    openPolicyMoreFeaturesPage,
+} from '@userActions/Policy/Policy';
+import {enablePolicyTags} from '@userActions/Policy/Tag';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +114,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
+                enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
         {
@@ -117,7 +128,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enableExpensifyCard(policyID, isEnabled);
+                enableExpensifyCard(policyID, isEnabled);
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
@@ -131,7 +142,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
         isActive: policy?.areCompanyCardsEnabled ?? false,
         pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-        disabled: !isEmptyObject(CardUtils.getCompanyFeeds(cardFeeds)),
+        disabled: !isEmptyObject(getCompanyFeeds(cardFeeds)),
         action: (isEnabled: boolean) => {
             if (!policyID) {
                 return;
@@ -140,7 +151,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
-            Policy.enableCompanyCards(policyID, isEnabled);
+            enableCompanyCards(policyID, isEnabled);
         },
         disabledAction: () => {
             setIsDisableCompanyCardsWarningModalOpen(true);
@@ -162,7 +173,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
+                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
             },
         });
     }
@@ -178,7 +189,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled);
             },
         },
         {
@@ -196,7 +207,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                Policy.enablePolicyRules(policyID, isEnabled);
+                enablePolicyRules(policyID, isEnabled);
             },
         },
     ];
@@ -212,7 +223,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyInvoicing(policyID, isEnabled);
+                enablePolicyInvoicing(policyID, isEnabled);
             },
         },
     ];
@@ -230,7 +241,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Category.enablePolicyCategories(policyID, isEnabled);
+                enablePolicyCategories(policyID, isEnabled);
             },
         },
         {
@@ -245,7 +256,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Tag.enablePolicyTags(policyID, isEnabled);
+                enablePolicyTags(policyID, isEnabled);
             },
         },
         {
@@ -260,7 +271,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyTaxes(policyID, isEnabled);
+                enablePolicyTaxes(policyID, isEnabled);
             },
         },
         {
@@ -283,7 +294,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         return;
                     }
 
-                    Policy.enablePolicyReportFields(policyID, true);
+                    enablePolicyReportFields(policyID, true);
                     return;
                 }
                 setIsReportFieldsWarningModalOpen(true);
@@ -308,15 +319,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyConnections(policyID, isEnabled);
+                enablePolicyConnections(policyID, isEnabled);
             },
             disabled: hasAccountingConnection,
-            errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
             onCloseError: () => {
                 if (!policyID) {
                     return;
                 }
-                Policy.clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             },
         },
     ];
@@ -396,7 +407,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 
     const fetchFeatures = useCallback(() => {
-        Policy.openPolicyMoreFeaturesPage(route.params.policyID);
+        openPolicyMoreFeaturesPage(route.params.policyID);
     }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
@@ -470,7 +481,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsReportFieldsWarningModalOpen(false);
-                        Policy.enablePolicyReportFields(policyID, false);
+                        enablePolicyReportFields(policyID, false);
                     }}
                     onCancel={() => setIsReportFieldsWarningModalOpen(false)}
                     prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
@@ -483,7 +494,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        Report.navigateToConciergeChat(true);
+                        navigateToConciergeChat(true);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -495,7 +506,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        Report.navigateToConciergeChat(true);
+                        navigateToConciergeChat(true);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
