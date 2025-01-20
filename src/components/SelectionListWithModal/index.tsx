@@ -113,6 +113,7 @@ function SelectionListWithModal<TItem extends ListItem>(
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
             >
                 <MenuItem
                     title={translate('common.select')}
