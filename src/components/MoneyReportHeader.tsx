@@ -179,7 +179,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
-        (shouldShowPayButton || shouldShowApproveButton) && !hasAllPendingRTERViolations && !shouldShowExportIntegrationButton && !shouldShowBrokenConnectionViolation;
+        !shouldShowSubmitButton &&
+        (shouldShowPayButton || shouldShowApproveButton) &&
+        !hasAllPendingRTERViolations &&
+        !shouldShowExportIntegrationButton &&
+        !shouldShowBrokenConnectionViolation;
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;

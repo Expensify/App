@@ -11,6 +11,7 @@ import type {
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
+    CreatePerDiemRequestParams,
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
@@ -32,7 +33,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -56,7 +57,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getLastVisibleAction,
@@ -146,6 +147,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     shouldShowBrokenConnectionViolation,
@@ -164,10 +166,11 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
+import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
@@ -316,6 +319,15 @@ type RequestMoneyTransactionParams = {
     linkedTrackedExpenseReportID?: string;
 };
 
+type PerDiemExpenseTransactionParams = {
+    currency: string;
+    comment?: string;
+    category?: string;
+    tag?: string;
+    created: string;
+    customUnit: TransactionCustomUnit;
+};
+
 type RequestMoneyPolicyParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -326,6 +338,21 @@ type RequestMoneyParticipantParams = {
     payeeEmail: string | undefined;
     payeeAccountID: number;
     participant: Participant;
+};
+
+type PerDiemExpenseInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
+    transactionParams: PerDiemExpenseTransactionParams;
+};
+
+type PerDiemExpenseInformationParams = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionParams: PerDiemExpenseTransactionParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
+    moneyRequestReportID?: string;
 };
 
 type RequestMoneyInformation = {
@@ -368,6 +395,7 @@ type MoneyRequestOptimisticParams = {
         categories?: string[];
         tags?: OnyxTypes.RecentlyUsedTags;
         currencies?: string[];
+        destinations?: string[];
     };
     personalDetailListAction?: OnyxTypes.PersonalDetailsList;
     nextStep?: OnyxTypes.ReportNextStep | null;
@@ -952,6 +980,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     } = optimisticParams;
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
@@ -1069,6 +1098,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report.policyID}`,
             value: policyRecentlyUsed.tags,
+        });
+    }
+
+    if (policyRecentlyUsed.destinations?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
+            value: policyRecentlyUsed.destinations,
         });
     }
 
@@ -1298,7 +1335,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         },
     ];
 
-    if (!isOneOnOneSplit) {
+    if (!isOneOnOneSplit && !isPerDiemRequest) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -2663,6 +2700,243 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 categories: optimisticPolicyRecentlyUsedCategories,
                 tags: optimisticPolicyRecentlyUsedTags,
                 currencies: optimisticPolicyRecentlyUsedCurrencies,
+            },
+            personalDetailListAction: optimisticPersonalDetailListAction,
+            nextStep: optimisticNextStep,
+        },
+    });
+
+    return {
+        payerAccountID,
+        payerEmail,
+        iouReport,
+        chatReport,
+        transaction: optimisticTransaction,
+        iouAction,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '-1',
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : '-1',
+        reportPreviewAction,
+        transactionThreadReportID: optimisticTransactionThread?.reportID ?? '-1',
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1',
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    };
+}
+
+function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
+    const subRates = customUnit.subRates ?? [];
+    return subRates.reduce((total, subRate) => total + (subRate.rate ?? 0), 0);
+}
+
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
+    if (!customUnit.customUnitRateID) {
+        return '';
+    }
+    const policyCustomUnit = getPerDiemCustomUnit(policy);
+    const rate = policyCustomUnit?.rates?.[customUnit.customUnitRateID];
+    const locationName = rate?.name ?? '';
+    const startDate = customUnit.attributes?.dates.start;
+    const endDate = customUnit.attributes?.dates.end;
+    if (!startDate || !endDate) {
+        return locationName;
+    }
+    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
+    return `${locationName}, ${formattedTime}`;
+}
+
+function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
+    const subRates = customUnit.subRates ?? [];
+    const subRateComments = subRates.map((subRate) => {
+        const rate = subRate.rate ?? 0;
+        const rateComment = subRate.name ?? '';
+        const quantity = subRate.quantity ?? 0;
+        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
+    });
+    return subRateComments.join(', ');
+}
+
+/**
+ * Gathers all the data needed to submit a per diem expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * it creates optimistic versions of them and uses those instead
+ */
+function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {comment = '', currency, created, category, tag, customUnit} = transactionParams;
+
+    const amount = computePerDiemExpenseAmount(customUnit);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
+    const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
+    const finalComment = comment || defaultComment;
+
+    const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+
+    // STEP 1: Get existing chat report OR build a new optimistic one
+    let isNewChatReport = false;
+    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
+
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
+    // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
+    if (!chatReport && isPolicyExpenseChat) {
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null;
+    }
+
+    if (!chatReport) {
+        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+    }
+
+    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    if (!chatReport) {
+        isNewChatReport = true;
+        chatReport = buildOptimisticChatReport([payerAccountID, payeeAccountID]);
+    }
+
+    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
+    if (moneyRequestReportID) {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+    } else {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+    }
+
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport);
+
+    if (!iouReport || shouldCreateNewMoneyRequestReport) {
+        iouReport = isPolicyExpenseChat
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '-1', payeeAccountID, amount, currency)
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+    } else if (isPolicyExpenseChat) {
+        iouReport = {...iouReport};
+        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+        if (iouReport?.currency === currency) {
+            if (typeof iouReport.total === 'number') {
+                iouReport.total -= amount;
+            }
+
+            if (typeof iouReport.unheldTotal === 'number') {
+                iouReport.unheldTotal -= amount;
+            }
+        }
+    } else {
+        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
+    }
+
+    // STEP 3: Build an optimistic transaction
+    const optimisticTransaction = buildOptimisticTransaction({
+        policy,
+        transactionParams: {
+            amount: isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: iouReport.reportID,
+            comment: finalComment,
+            created,
+            category,
+            merchant,
+            tag,
+            customUnit,
+            pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+    });
+    // This is to differentiate between a normal expense and a per diem expense
+    optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    optimisticTransaction.hasEReceipt = true;
+
+    const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticPolicyRecentlyUsedDestinations = buildOptimisticPolicyRecentlyUsedDestinations(iouReport.policyID, customUnit.customUnitRateID);
+
+    // STEP 4: Build optimistic reportActions. We need:
+    // 1. CREATED action for the chatReport
+    // 2. CREATED action for the iouReport
+    // 3. IOU action for the iouReport
+    // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
+    // 5. REPORT_PREVIEW action for the chatReport
+    // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        buildOptimisticMoneyRequestEntities(
+            iouReport,
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment,
+            payeeEmail,
+            [participant],
+            optimisticTransaction.transactionID,
+            undefined,
+            false,
+            false,
+            false,
+        );
+
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
+    if (reportPreviewAction) {
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+    } else {
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        chatReport.lastVisibleActionCreated = reportPreviewAction.created;
+
+        // Generated ReportPreview action is a parent report action of the iou report.
+        // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
+        iouReport.parentReportActionID = reportPreviewAction.reportActionID;
+    }
+
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
+    // Add optimistic personal details for participant
+    const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  // Disabling this line since participant.displayName can be an empty string
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  login: participant.login,
+                  isOptimisticPersonalDetail: true,
+              },
+          }
+        : {};
+
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
+
+    // STEP 5: Build Onyx Data
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+        isNewChatReport,
+        shouldCreateNewMoneyRequestReport,
+        policyParams: {
+            policy,
+            policyCategories,
+            policyTagList,
+        },
+        optimisticParams: {
+            chat: {
+                report: chatReport,
+                createdAction: optimisticCreatedActionForChat,
+                reportPreviewAction,
+            },
+            iou: {
+                report: iouReport,
+                createdAction: optimisticCreatedActionForIOUReport,
+                action: iouAction,
+            },
+            transactionParams: {
+                transaction: optimisticTransaction,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            },
+            policyRecentlyUsed: {
+                categories: optimisticPolicyRecentlyUsedCategories,
+                tags: optimisticPolicyRecentlyUsedTags,
+                currencies: optimisticPolicyRecentlyUsedCurrencies,
+                destinations: optimisticPolicyRecentlyUsedDestinations,
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
@@ -4122,6 +4396,82 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
     }
+
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+    if (activeReportID) {
+        notifyNewAction(activeReportID, payeeAccountID);
+    }
+}
+
+/**
+ * Submit per diem expense to another user
+ */
+function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
+    const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
+    const {payeeAccountID} = participantParams;
+    const {currency, comment = '', category, tag, created, customUnit} = transactionParams;
+
+    if (
+        isEmptyObject(policyParams.policy) ||
+        isEmptyObject(customUnit) ||
+        !customUnit.customUnitID ||
+        !customUnit.customUnitRateID ||
+        (customUnit.subRates ?? []).length === 0 ||
+        isEmptyObject(customUnit.attributes)
+    ) {
+        return;
+    }
+
+    // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+
+    const {
+        iouReport,
+        chatReport,
+        transaction,
+        iouAction,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewAction,
+        transactionThreadReportID,
+        createdReportActionIDForThread,
+        onyxData,
+    } = getPerDiemExpenseInformation({
+        parentChatReport: currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
+        moneyRequestReportID,
+    });
+    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+
+    const parameters: CreatePerDiemRequestParams = {
+        policyID: policyParams.policy.id,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateID: customUnit.customUnitRateID,
+        subRates: JSON.stringify(customUnit.subRates),
+        startDateTime: customUnit.attributes.dates.start,
+        endDateTime: customUnit.attributes.dates.end,
+        currency,
+        description: comment,
+        created,
+        iouReportID: iouReport.reportID,
+        chatReportID: chatReport.reportID,
+        transactionID: transaction.transactionID,
+        reportActionID: iouAction.reportActionID,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        category,
+        tag,
+        transactionThreadReportID,
+        createdReportActionIDForThread,
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
@@ -9202,5 +9552,6 @@ export {
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
     canSubmitReport,
+    submitPerDiemExpense,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
