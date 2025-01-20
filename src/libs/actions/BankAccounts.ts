@@ -557,7 +557,7 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                 value: {
                     isSavingCorpayOnboardingDirectorInformation: false,
                     isSuccess: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
