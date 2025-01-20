@@ -160,43 +160,43 @@ describe('OptionsListUtils', () => {
     const WORKSPACE_CHATS: ReportUtils.OptionData[] = [
         {
             reportID: '1',
-            text: 'John Doe',
+            text: 'Google Workspace',
         },
         {
             reportID: '2',
-            text: 'Jane Doe',
+            text: 'Google Drive Workspace',
         },
         {
             reportID: '3',
-            text: 'Alice Johnson',
+            text: 'Slack Team Workspace',
         },
         {
             reportID: '4',
-            text: 'Bob Johnson',
+            text: 'Slack Development Workspace',
         },
         {
             reportID: '5',
-            text: 'Charlie Davis',
+            text: 'Microsoft Teams Workspace',
         },
         {
             reportID: '6',
-            text: 'Emily Brown',
+            text: 'Microsoft Project Workspace',
         },
         {
             reportID: '7',
-            text: 'George Brown',
+            text: 'Notion Design Workspace',
         },
         {
             reportID: '8',
-            text: 'Helen Martinez',
+            text: 'Notion Workspace for Marketing',
         },
         {
             reportID: '9',
-            text: 'Ian Clark',
+            text: 'Asana Task Workspace',
         },
         {
             reportID: '10',
-            text: 'Laura Clark',
+            text: 'Asana Project Management',
         },
     ];
 
@@ -1088,11 +1088,35 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(0);
         });
 
-        it('should return all chats if there are no search terms', () => {
+        it('should return all workspace chats if there are no search terms', () => {
             const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, []);
 
             expect(result).toEqual(WORKSPACE_CHATS);
             expect(result.length).toEqual(WORKSPACE_CHATS.length);
+        });
+
+        it('should filter multiple workspace chats by single search term', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
+
+            expect(result.length).toEqual(2);
+        });
+
+        it('should filter multiple workspace chats by two search terms', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google', 'Workspace']);
+
+            expect(result.length).toEqual(2);
+        });
+
+        it('should filter workspace chat by exact name', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Microsoft', 'Teams', 'Workspace']);
+
+            expect(result.length).toEqual(1);
+        });
+
+        it('should return an empty array if there are no matching workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
+
+            expect(result.length).toEqual(0);
         });
     });
 });
