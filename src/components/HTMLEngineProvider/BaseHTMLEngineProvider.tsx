@@ -49,12 +49,22 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'pre'};
+                    }
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
-                mixedUAStyles: {whiteSpace: 'normal'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'normal'};
+                    }
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
@@ -102,6 +112,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSupporting,
             styles.textLineThrough,
             styles.mutedNormalTextLabel,
+            styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
         ],
     );

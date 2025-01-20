@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
+import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,12 +50,16 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
         OpenWorkspacePlanPage(policyID);
     }, [policyID]);
 
+    useEffect(() => {
+        setCurrentPlan(policy?.type);
+    }, [policy?.type]);
+
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
         .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as Exclude<typeof policyType, 'personal'>}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as Exclude<typeof policyType, 'personal'>}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
         }))
@@ -76,13 +81,18 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
-        if (policy?.type === currentPlan) {
-            Navigation.goBack();
+        if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;
         }
 
-        if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+        if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            return;
+        }
+
+        if (policy?.type === currentPlan) {
+            Navigation.goBack();
         }
     };
 
