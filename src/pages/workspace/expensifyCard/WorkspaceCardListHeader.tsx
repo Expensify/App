@@ -30,10 +30,13 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
         <View style={styles.appBG}>
             <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
                 <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
+                    <View style={styles.flex1}>
+                        <WorkspaceCardsListLabel
+                            type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                            value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+                        />
+                        <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate: 'date'})}</Text>
+                    </View>
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
