@@ -294,6 +294,8 @@ type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
+type WorkspacePriceParams = {price: string};
+
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -712,6 +714,7 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
+    WorkspacePriceParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
