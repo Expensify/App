@@ -1,0 +1,46 @@
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+index bf767c9..c05de52 100644
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -233,7 +233,7 @@ export default class Pdf extends Component {
+                 } else {
+                     if (this._mounted) {
+                        this.setState({
+-                            path: decodeURIComponent(uri.replace(/file:\/\//i, '')),
++                            path: unescape(uri.replace(/file:\/\//i, '')),
+                             isDownloaded: true,
+                         });
+                     }
+@@ -367,17 +367,11 @@ export default class Pdf extends Component {
+                 message[4] = message.splice(4).join('|');
+             }
+             if (message[0] === 'loadComplete') {
+-                let tableContents;
+-                try {
+-                    tableContents = message[4]&&JSON.parse(message[4]);
+-                } catch(e) {
+-                    tableContents = message[4];
+-                }
+                 this.props.onLoadComplete && this.props.onLoadComplete(Number(message[1]), this.state.path, {
+                     width: Number(message[2]),
+                     height: Number(message[3]),
+                 },
+-                tableContents);
++                message[4]&&JSON.parse(message[4]));
+             } else if (message[0] === 'pageChanged') {
+                 this.props.onPageChanged && this.props.onPageChanged(Number(message[1]), Number(message[2]));
+             } else if (message[0] === 'error') {
+diff --git a/node_modules/react-native-pdf/react-native-pdf.podspec b/node_modules/react-native-pdf/react-native-pdf.podspec
+index 63a276d..329d490 100644
+--- a/node_modules/react-native-pdf/react-native-pdf.podspec
++++ b/node_modules/react-native-pdf/react-native-pdf.podspec
+@@ -20,8 +20,8 @@ Pod::Spec.new do |s|
+     s.platforms       = { ios: '11.0', tvos: '11.0' }
+     s.source_files    = 'ios/**/*.{h,m,mm,cpp}'
+     s.requires_arc    = true
+-
+     install_modules_dependencies(s)
++
+   else
+     s.platform       = :ios, '8.0'
+     s.source_files   = 'ios/**/*.{h,m,mm}'
