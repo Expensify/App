@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.86-3",
+  "version": "9.0.87-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -117,7 +117,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.114",
+    "expensify-common": "2.0.115",
     "expo": "52.0.14",
     "expo-asset": "^11.0.1",
     "expo-av": "^15.0.1",

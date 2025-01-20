@@ -69,7 +69,6 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
-    FirstDayTextParams,
     FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
@@ -89,7 +88,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastDayTextParams,
     LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
@@ -165,7 +163,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    TripLengthTextParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
@@ -488,6 +485,7 @@ const translations = {
         destination: 'Destino',
         subrate: 'Subtasa',
         perDiem: 'Per diem',
+        validate: 'Validar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1088,9 +1086,21 @@ const translations = {
         deleteSubrateConfirmation: '¿Estás seguro de que deseas eliminar esta subtasa?',
         quantity: 'Cantidad',
         subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
-        firstDayText: ({hours}: FirstDayTextParams) => `Primer día: ${hours} horas`,
-        lastDayText: ({hours}: LastDayTextParams) => `Último día: ${hours} horas`,
-        tripLengthText: ({days}: TripLengthTextParams) => `Viaje: ${days} días completos`,
+        qty: 'Cant',
+        firstDayText: () => ({
+            one: `Primer día: 1 hora`,
+            other: (count: number) => `Primer día: ${count} horas`,
+        }),
+        lastDayText: () => ({
+            one: `Último día: 1 hora`,
+            other: (count: number) => `Último día: ${count} horas`,
+        }),
+        tripLengthText: () => ({
+            one: `Viaje: 1 día completo`,
+            other: (count: number) => `Viaje: ${count} días completos`,
+        }),
+        dates: 'Fechas',
+        rates: 'Tasas',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1882,7 +1892,10 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar mensajes SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
     },
     welcomeSignUpForm: {
         join: 'Unirse',
@@ -3589,7 +3602,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Gane',
-                subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
+                subtitle: 'Agiliza tus ingresos y recibe pagos más rápido.',
             },
             organizeSection: {
                 title: 'Organizar',
