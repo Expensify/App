@@ -5,7 +5,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
@@ -17,6 +17,7 @@ function CurrencySelectionList({
     selectedCurrencies = [],
     canSelectMultiple = false,
     recentlyUsedCurrencies,
+    excludedCurrencies = [],
 }: CurrencySelectionListProps) {
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [searchValue, setSearchValue] = useState('');
@@ -25,10 +26,10 @@ function CurrencySelectionList({
     const {sections, headerMessage} = useMemo(() => {
         const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
-            if (isSelectedCurrency || !currencyInfo?.retired) {
+            if (!excludedCurrencies.includes(currencyCode) && (isSelectedCurrency || !currencyInfo?.retired)) {
                 acc.push({
                     currencyName: currencyInfo?.name ?? '',
-                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                    text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
                     currencyCode,
                     keyForList: currencyCode,
                     isSelected: isSelectedCurrency,
@@ -43,7 +44,7 @@ function CurrencySelectionList({
                   const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
                   return {
                       currencyName: currencyInfo?.name ?? '',
-                      text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                      text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
                       currencyCode,
                       keyForList: currencyCode,
                       isSelected: isSelectedCurrency,
@@ -86,7 +87,7 @@ function CurrencySelectionList({
         }
 
         return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, recentlyUsedCurrencies]);
+    }, [currencyList, recentlyUsedCurrencies, searchValue, getUnselectedOptions, translate, initiallySelectedCurrencyCode, selectedCurrencies, excludedCurrencies]);
 
     return (
         <SelectionList

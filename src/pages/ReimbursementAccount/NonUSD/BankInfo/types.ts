@@ -1,6 +1,6 @@
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import type CorpayFormFields from '@src/types/onyx/CorpayFields';
+import type {CorpayFields} from '@src/types/onyx/CorpayFields';
 
-type BankInfoSubStepProps = SubStepProps & {corpayFields?: CorpayFormFields; preferredMethod?: string};
+type BankInfoSubStepProps = SubStepProps & {corpayFields?: CorpayFields; preferredMethod?: string};
 
-export type {BankInfoSubStepProps, CorpayFormFields};
+export type {BankInfoSubStepProps, CorpayFields};
