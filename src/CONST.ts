@@ -3111,7 +3111,7 @@ const CONST = {
         SHORT_MENTION: new RegExp(
             // We are ensuring that the short mention is not inside a code block. So we check that the short mention
             // is either not preceded by an open code block or not followed by a backtick on the same line.
-            `(?<!^[^\`\n]*(?:\`+[^\`\n]+\`+[^\`\n]+)*\`+[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
+            `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
             'gim',
         ),
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
