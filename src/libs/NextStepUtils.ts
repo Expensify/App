@@ -11,8 +11,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
-import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
+import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -23,7 +23,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentUserEmail = value?.email ?? '';
     },
 });
@@ -47,7 +47,7 @@ function parseMessage(messages: Message[] | undefined) {
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'Your' : 'You';
+            content = nextPart?.text === `'s` ? 'your' : 'you';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
         } else if (isEmail) {
@@ -69,7 +69,7 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(report: OnyxEntry<Report>) {
     const approverAccountID = getNextApproverAccountID(report);
 
-    return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant(approverAccountID) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 /**
@@ -81,18 +81,18 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>) {
  * @returns nextStep
  */
 function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
-    if (!ReportUtils.isExpenseReport(report)) {
+    if (!isExpenseReport(report)) {
         return null;
     }
 
     const {policyID = '', ownerAccountID = -1} = report ?? {};
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
-    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
-    const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
+    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
+    const ownerDisplayName = getDisplayNameForParticipant(ownerAccountID);
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
-    const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
+    const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
@@ -240,8 +240,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
             if (
-                ReportUtils.isInvoiceReport(report) ||
-                !ReportUtils.isPayer(
+                isInvoiceReport(report) ||
+                !isPayer(
                     {
                         accountID: currentUserAccountID,
                         email: currentUserEmail,
@@ -266,7 +266,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                               text: 'an admin',
                           }
                         : {
-                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
+                              text: getDisplayNameForParticipant(reimburserAccountID),
                               type: 'strong',
                           },
                     {
