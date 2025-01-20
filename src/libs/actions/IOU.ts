@@ -8265,7 +8265,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report, backTo?: Route) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -8408,7 +8408,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal();
+    Navigation.goBack(backTo);
     notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
