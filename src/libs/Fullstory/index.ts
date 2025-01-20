@@ -136,6 +136,7 @@ const FS = {
                     FullStory('shutdown');
                     return;
                 }
+                FullStory('restart');
                 FS.onReady().then(() => {
                     FS.consent(true);
                     const localMetadata = value;
