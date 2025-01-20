@@ -18,12 +18,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {goBackFromPrivateNotes, navigateToDetailsPage} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import variables from '@styles/variables';
-import * as ReportActions from '@userActions/Report';
+import {clearPrivateNotesError, getDraftPrivateNote, handleUserDeletedLinksInHtml, savePrivateNotesDraft, updatePrivateNotes} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +46,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
-        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
+        () => getDraftPrivateNote(report.reportID).trim() || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
     );
 
     /**
@@ -56,7 +56,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     const debouncedSavePrivateNote = useMemo(
         () =>
             lodashDebounce((text: string) => {
-                ReportActions.savePrivateNotesDraft(report.reportID, text);
+                savePrivateNotesDraft(report.reportID, text);
             }, 1000),
         [report.reportID],
     );
@@ -85,8 +85,8 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = ReportActions.handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
-            ReportActions.updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
+            updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
         // We want to delete saved private note draft after saving the note
@@ -94,7 +94,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
         Keyboard.dismiss();
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
-            ReportUtils.navigateToDetailsPage(report, backTo);
+            navigateToDetailsPage(report, backTo);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
@@ -108,7 +108,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, accountID, backTo)}
+                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -130,7 +130,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                     errors={{
                         ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
-                    onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
+                    onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
                 >
                     <InputWrapper
