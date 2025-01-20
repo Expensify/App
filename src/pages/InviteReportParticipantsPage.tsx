@@ -56,10 +56,17 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true)), ...CONST.EXPENSIFY_EMAILS],
-        [report],
-    );
+    const excludedUsers = useMemo(() => {
+        const res = {
+            ...CONST.EXPENSIFY_EMAILS_OBJECT,
+        };
+        const participantsAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true);
+        const loginsByAccountIDs = PersonalDetailsUtils.getLoginsByAccountIDs(participantsAccountIDs);
+        for (const login of loginsByAccountIDs) {
+            res[login] = true;
+        }
+        return res;
+    }, [report]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -185,17 +192,17 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
-        const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
+        const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!inviteOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers.includes(
+            excludedUsers[
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(processedLogin)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(processedLogin))
-                    : processedLogin,
-            )
+                    : processedLogin
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
