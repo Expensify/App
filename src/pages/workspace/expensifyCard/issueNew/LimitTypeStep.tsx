@@ -8,8 +8,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Card from '@userActions/Card';
+import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -25,7 +25,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
@@ -33,7 +33,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
     const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback(() => {
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT,
             data: {limitType: typeSelected},
             isEditing: false,
@@ -43,10 +43,10 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
     }, [isEditing, policyID]);
 
     const data = useMemo(() => {
