@@ -327,7 +327,7 @@ function ReportPreview({
             return convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
-            return translate('iou.receiptScanning', {count: numberOfScanningReceipts});
+            return translate('iou.receiptScanning');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
             return translate('iou.fieldPending');
@@ -363,7 +363,10 @@ function ReportPreview({
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
-            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}`;
+            if (showRTERViolationMessage && totalDisplaySpend) {
+                return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
+            }
+            return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
         }
 
         let payerOrApproverName;
@@ -389,17 +392,19 @@ function ReportPreview({
     }, [
         isScanning,
         isPolicyExpenseChat,
-        policy,
-        chatReport,
         isInvoiceRoom,
-        invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
-        managerID,
         isApproved,
         iouSettled,
         iouReport?.isWaitingOnBankAccount,
         hasNonReimbursableTransactions,
         translate,
+        showRTERViolationMessage,
+        totalDisplaySpend,
+        chatReport,
+        policy,
+        invoiceReceiverPolicy,
+        invoiceReceiverPersonalDetail,
+        managerID,
     ]);
 
     const bankAccountRoute = getBankAccountRoute(chatReport);
@@ -420,7 +425,6 @@ function ReportPreview({
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
-    const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
     const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, allTransactions);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason});
@@ -438,14 +442,8 @@ function ReportPreview({
                 };
             }
         }
-        if (shouldShowPendingSubtitle) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
-        if (shouldShowBrokenConnectionViolation) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
         if (showRTERViolationMessage) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+            return {shouldShow: !isScanning, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
     };
