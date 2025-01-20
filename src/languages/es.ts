@@ -2590,7 +2590,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil del espacio de trabajo',
+            profile: 'Descripción general',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
