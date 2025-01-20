@@ -13,7 +13,6 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
@@ -46,8 +45,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
+    const shouldShowEmptyLHN = data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
