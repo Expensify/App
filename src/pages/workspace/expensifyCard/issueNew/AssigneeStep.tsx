@@ -33,7 +33,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const policyID = policy?.id ?? '-1';
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -53,16 +54,17 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data,
             isEditing: false,
+            policyID,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
         Navigation.goBack();
-        Card.clearIssueNewCardFlow();
+        Card.clearIssueNewCardFlow(policyID);
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
