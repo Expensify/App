@@ -22,7 +22,7 @@ type LimitTypeStepProps = {
 function LimitTypeStep({policy}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -39,7 +39,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             isEditing: false,
             policyID,
         });
-    }, [isEditing, typeSelected]);
+    }, [isEditing, typeSelected, policyID]);
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
@@ -47,7 +47,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             return;
         }
         Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
-    }, [isEditing]);
+    }, [isEditing, policyID]);
 
     const data = useMemo(() => {
         const options = [];

@@ -37,7 +37,7 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 
     /** ID of the policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -388,14 +388,14 @@ function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewC
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
 }
 
-function clearIssueNewCardFlow(policyID: string) {
+function clearIssueNewCardFlow(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
     });
 }
 
-function clearIssueNewCardError(policyID: string) {
+function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 

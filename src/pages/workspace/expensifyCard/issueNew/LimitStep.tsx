@@ -38,7 +38,7 @@ function LimitStep({policyID}: LimitStepProps) {
                 policyID,
             });
         },
-        [isEditing],
+        [isEditing, policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -47,7 +47,7 @@ function LimitStep({policyID}: LimitStepProps) {
             return;
         }
         Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
-    }, [isEditing]);
+    }, [isEditing, policyID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
