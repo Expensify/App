@@ -586,4 +586,5 @@ export type {
     TransactionCollectionDataSet,
     SplitShare,
     SplitShares,
+    TransactionCustomUnit,
 };

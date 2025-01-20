@@ -176,9 +176,9 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Track expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click *Track*.\n' +
+                '4. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -2328,6 +2328,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+        QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -4988,7 +4990,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
+                        '1. Click *Settings*.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
                         `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
@@ -5021,7 +5023,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
+                        '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
@@ -5035,19 +5037,19 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up tags',
                     description: ({workspaceMoreFeaturesLink}) =>
-                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
-                        '4. Click More features.\n' +
-                        '5. Enable tags.\n' +
-                        '6. Navigate to Tags in the workspace editor.\n' +
-                        '7. In Tags, click + Add tag to make your own.\n' +
+                        '4. Click *More features*.\n' +
+                        '5. Enable *Tags*.\n' +
+                        '6. Navigate to *Tags* in the workspace editor.\n' +
+                        '7. Click *+ Add tag* to make your own.\n' +
                         '\n' +
-                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -5058,15 +5060,16 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *More features*.\n' +
                         '5. Enable *Workflows*.\n' +
-                        '6. In *Workflows*, enable *Add approvals*.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                        '6. Navigate to *Workflows* in the workspace editor.\n' +
+                        '7. Enable *Add approvals*.\n' +
+                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
                         '\n' +
-                        `[Take me to enable more features](${workspaceMoreFeaturesLink}).`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'inviteTeam',
@@ -5077,14 +5080,14 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
                         '5. Enter emails or phone numbers. \n' +
-                        '6. Add an invite message if you want.\n' +
+                        '6. Add a custom invite message if you’d like!\n' +
                         '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
+                        `[Take me to workspace members](${workspaceMembersLink}).`,
                 },
                 {
                     type: 'addAccountingIntegration',
@@ -5095,14 +5098,14 @@ const CONST = {
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
-                        '4. Click Accounting.\n' +
+                        '4. Click *Accounting*.\n' +
                         `5. Find ${integrationName}.\n` +
-                        '6. Click Connect.\n' +
+                        '6. Click *Connect*.\n' +
                         '\n' +
-                        `[Take me to Accounting!](${workspaceAccountingLink})`,
+                        `[Take me to accounting](${workspaceAccountingLink}).`,
                 },
             ],
         },
@@ -5144,11 +5147,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Hit the green *+* button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter any email, SMS, or name of who you want to split with.\n' +
-                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
-                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
+                        '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
+                        '5. Create the expense by selecting *Manual*, *Scan* or *Distance*.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
@@ -5180,8 +5183,8 @@ const CONST = {
                     description:
                         "Here's how to review and update your workspace settings:" +
                         '\n' +
-                        '1. Click the settings tab.' +
-                        '2. Click *Workspaces* > [Your workspace].' +
+                        '1. Click *Settings*.' +
+                        '2. Go to *Workspaces* > [Your workspace].' +
                         '\n' +
                         "Make any changes there and we'll track them in the #admins room.",
                 },
