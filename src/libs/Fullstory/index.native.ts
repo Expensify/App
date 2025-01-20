@@ -1,10 +1,10 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
-import { Str } from 'expensify-common';
 
 /**
  * Fullstory React-Native lib adapter

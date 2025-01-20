@@ -1,11 +1,11 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
-import { Str } from 'expensify-common';
 
 /**
  * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
@@ -104,7 +104,7 @@ const FS = {
             if (!isInitialized()) {
                 init({orgId: ''}, resolve);
 
-                // FS init function might have a race condition with the head snippet. If the head snipped is loaded first, 
+                // FS init function might have a race condition with the head snippet. If the head snipped is loaded first,
                 // then the init function will not call the resolve function, and we'll never identify the user logging in,
                 // and we need to call resolve manually. We're adding a 1s timeout to make sure the init function has enough
                 // time to call the resolve function in case it ran successfully.
