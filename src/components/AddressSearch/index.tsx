@@ -65,7 +65,6 @@ function AddressSearch(
         onPress,
         onCountryChange,
         predefinedPlaces = [],
-        preferredLocale,
         renamedInputKeys = {
             street: 'addressStreet',
             street2: 'addressStreet2',
@@ -85,7 +84,7 @@ function AddressSearch(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);

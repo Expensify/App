@@ -85,9 +85,6 @@ type AddressSearchProps = {
     /** Location bias for querying search results. */
     locationBias?: string;
 
-    /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale?: Locale;
-
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
 };
