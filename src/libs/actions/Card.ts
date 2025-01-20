@@ -35,6 +35,9 @@ type IssueNewCardFlowData = {
 
     /** Data required to be sent to issue a new card */
     data?: Partial<IssueNewCardData>;
+
+    /** ID of the policy */
+    policyID: string;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -381,19 +384,19 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step, errors: null});
+function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
 }
 
-function clearIssueNewCardFlow() {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+function clearIssueNewCardFlow(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
     });
 }
 
-function clearIssueNewCardError() {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {errors: null});
+function clearIssueNewCardError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
@@ -735,7 +738,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -747,7 +750,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -758,7 +761,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
