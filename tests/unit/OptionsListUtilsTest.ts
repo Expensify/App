@@ -1038,10 +1038,21 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    it('createOptionList() localization', () => {
+        const reports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+        expect(reports.at(9)?.subtitle).toBe('Workspace');
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+            .then(() => {
+                const newReports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                expect(newReports.at(9)?.subtitle).toBe('Espacio de trabajo');
+            });
+    });
+
     describe('filterReports', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
-            const reports = [{text: 'Álex Timón'} as ReportUtils.OptionData];
-            const searchTerms = ['Alex Timon'];
+            const reports = [{text: "Álex Timón D'artagnan Zo-e"} as ReportUtils.OptionData];
+            const searchTerms = ['Alex Timon Dartagnan Zoe'];
             const filteredReports = OptionsListUtils.filterReports(reports, searchTerms);
 
             expect(filteredReports).toEqual(reports);
