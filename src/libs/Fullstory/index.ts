@@ -1,6 +1,6 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isExpensifyTeam} from '@libs/PolicyUtils';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
@@ -103,6 +103,12 @@ const FS = {
         new Promise((resolve) => {
             if (!isInitialized()) {
                 init({orgId: ''}, resolve);
+
+                // FS init function might have a race condition with the head snippet. If the head snipped is loaded first,
+                // then the init function will not call the resolve function, and we'll never identify the user logging in,
+                // and we need to call resolve manually. We're adding a 1s timeout to make sure the init function has enough
+                // time to call the resolve function in case it ran successfully.
+                setTimeout(resolve, 1000);
             } else {
                 FullStory('observe', {type: 'start', callback: resolve});
             }
@@ -130,9 +136,12 @@ const FS = {
         try {
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyTeam(value?.email)) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
+                    // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
+                    FullStory('shutdown');
                     return;
                 }
+                FullStory('restart');
                 FS.onReady().then(() => {
                     FS.consent(true);
                     const localMetadata = value;
