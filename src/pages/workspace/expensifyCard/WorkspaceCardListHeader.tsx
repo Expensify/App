@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,10 +32,19 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
             <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
                 <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
                     <View style={styles.flex1}>
-                        <WorkspaceCardsListLabel
-                            type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                            value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                        />
+                        <View style={[styles.flex1, styles.flexRow]}>
+                            <WorkspaceCardsListLabel
+                                type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                                value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+                            />
+                            <View style={[]}>
+                                <Button
+                                    onPress={() => {}}
+                                    text={translate('workspace.expensifyCard.settleBalance')}
+                                    style={[styles.mtAuto]}
+                                />
+                            </View>
+                        </View>
                         <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate: 'date'})}</Text>
                     </View>
                     <WorkspaceCardsListLabel
