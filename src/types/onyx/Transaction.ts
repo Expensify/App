@@ -452,7 +452,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         receipt?: Receipt;
 
         /** The iouReportID associated with the transaction */
-        reportID: string;
+        reportID: string | undefined;
 
         /** Existing routes */
         routes?: Routes;

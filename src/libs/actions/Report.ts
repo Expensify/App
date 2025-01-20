@@ -525,7 +525,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsView that a new comment has arrived */
-function notifyNewAction(reportID: string, accountID?: number, reportActionID?: string) {
+function notifyNewAction(reportID: string | undefined, accountID?: number, reportActionID?: string) {
     const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
     if (!actionSubscriber) {
         return;
