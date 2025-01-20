@@ -2718,6 +2718,7 @@ const CONST = {
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
                 NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
                 // s77rt get NSQS sync stages
+                // s77rt translate sync stages
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
