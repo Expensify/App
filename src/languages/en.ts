@@ -610,6 +610,12 @@ const translations = {
             subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             subtitleText3: ' when they become a customer.',
         },
+        default: {
+            title: 'Nothing to Display',
+            subtitleText1: 'There’s currently nothing to display here.',
+            subtitleText2: '',
+            subtitleText3: '',
+        },
     },
     videoChatButtonAndMenu: {
         tooltip: 'Book a call',

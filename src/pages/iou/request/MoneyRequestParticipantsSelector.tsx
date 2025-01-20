@@ -446,7 +446,12 @@ function MoneyRequestParticipantsSelector({
             shouldSingleExecuteRowSelect
             headerContent={headerContent}
             footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            listEmptyContent={
+                <EmptySelectionListContent
+                    contentType={iouType}
+                    shouldShowDefaultContent={iouType === CONST.IOU.TYPE.CREATE}
+                />
+            }
             headerMessage={header}
             showLoadingPlaceholder={showLoadingPlaceholder}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}

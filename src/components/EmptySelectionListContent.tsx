@@ -16,6 +16,9 @@ import TextLink from './TextLink';
 type EmptySelectionListContentProps = {
     /** Type of selection list */
     contentType: string;
+
+    /** Determines whether to show default empty content for invalid contentType */
+    shouldShowDefaultContent?: boolean;
 };
 
 const CONTENT_TYPES = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY];
@@ -25,11 +28,30 @@ function isContentType(contentType: unknown): contentType is ContentType {
     return CONTENT_TYPES.includes(contentType as ContentType);
 }
 
-function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
+function EmptySelectionListContent({contentType, shouldShowDefaultContent}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (!isContentType(contentType)) {
+        if (shouldShowDefaultContent) {
+            return (
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
+                        <BlockingView
+                            icon={Illustrations.ToddWithPhones}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate(`emptyList.default.title`)}
+                            subtitle={translate(`emptyList.default.subtitleText1`)}
+                            subtitleStyle={styles.textSupporting}
+                            containerStyle={styles.pb10}
+                            contentFitImage="contain"
+                        />
+                    </View>
+                </ScrollView>
+            );
+        }
+
         return null;
     }
 
