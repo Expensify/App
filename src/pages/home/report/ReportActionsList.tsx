@@ -59,6 +59,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {setClearIsReportActionLinked} from './clearReportAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -206,7 +207,23 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID;
+    const [linkedReportActionID, setLinkedReportActionID] = useState<string | undefined>(route?.params?.reportActionID);
+
+    const clearIsReportActionLinked = useCallback(() => {
+        setLinkedReportActionID(undefined);
+    }, []);
+
+    useEffect(() => {
+        setClearIsReportActionLinked(clearIsReportActionLinked);
+    }, [clearIsReportActionLinked]);
+
+    useEffect(() => {
+        if (route?.params?.reportActionID) {
+            setLinkedReportActionID(route.params.reportActionID);
+        } else {
+            setLinkedReportActionID(undefined);
+        }
+    }, [route]);
 
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
