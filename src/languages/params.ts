@@ -612,18 +612,6 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
-type FirstDayTextParams = {
-    hours: string;
-};
-
-type LastDayTextParams = {
-    hours: string;
-};
-
-type TripLengthTextParams = {
-    days: number;
-};
-
 type EditDestinationSubtitleParams = {
     destination: string;
 };
