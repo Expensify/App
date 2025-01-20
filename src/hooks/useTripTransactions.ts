@@ -10,8 +10,13 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
                 .map((report) => report?.reportID),
     });
     const [tripTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) =>
-            Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID)),
+        selector: (transactions) => {
+            if (!tripTransactionReportIDs.length) {
+                return [];
+            }
+
+            return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
+        },
     });
 
     return tripTransactions;
