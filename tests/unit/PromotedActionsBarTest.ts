@@ -91,6 +91,7 @@ describe('PromotedActionsBar', () => {
             const searchHash = 2;
             const reportAction: ReportAction<'IOU'> = {
                 ...createRandomReportAction(0),
+                childReportID: '3',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     amount: 100,
