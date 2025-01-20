@@ -35,7 +35,7 @@ index a77e5b4..6c4bbb2 100644
      color: {process: require('../../StyleSheet/processColor').default},
      autoComplete: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
-index 6798059..3c3288c 100644
+index eb314f2..53d9349 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 @@ -85,6 +85,9 @@ const RCTTextInputViewConfig = {
@@ -48,8 +48,8 @@ index 6798059..3c3288c 100644
      topChangeSync: {
        registrationName: 'onChangeSync',
      },
-@@ -154,6 +157,7 @@ const RCTTextInputViewConfig = {
-     lineBreakStrategyIOS: true,
+@@ -155,6 +158,7 @@ const RCTTextInputViewConfig = {
+     lineBreakModeIOS: true,
      smartInsertDelete: true,
      ...ConditionallyIgnoredEventHandlers({
 +      onClear: true,
@@ -57,14 +57,14 @@ index 6798059..3c3288c 100644
        onSelectionChange: true,
        onContentSizeChange: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 75837e3..a5b4a5a 100644
+index e9b4e76..f7074aa 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-@@ -739,6 +739,13 @@ export interface TextInputProps
+@@ -762,6 +762,13 @@ export interface TextInputProps
      | ((e: NativeSyntheticEvent<TextInputFocusEventData>) => void)
      | undefined;
  
-+  /**
++   /**
 +    * Callback that is called when the text input was cleared using the native clear command.
 +    */
 +  onClear?:
@@ -75,10 +75,10 @@ index 75837e3..a5b4a5a 100644
     * Callback that is called when the text input's text changes.
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 28d9036..367ac6e 100644
+index dcf1123..0107e78 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-@@ -1423,6 +1423,11 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1447,6 +1447,11 @@ function InternalTextInput(props: Props): React.Node {
      });
    };
  
@@ -90,7 +90,7 @@ index 28d9036..367ac6e 100644
    const _onFocus = (event: FocusEvent) => {
      TextInputState.focusInput(inputRef.current);
      if (props.onFocus) {
-@@ -1588,6 +1593,7 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1612,6 +1617,7 @@ function InternalTextInput(props: Props): React.Node {
          mostRecentEventCount={mostRecentEventCount}
          nativeID={id ?? props.nativeID}
          onBlur={_onBlur}
@@ -98,7 +98,7 @@ index 28d9036..367ac6e 100644
          onChange={_onChange}
          onContentSizeChange={props.onContentSizeChange}
          onFocus={_onFocus}
-@@ -1654,6 +1660,7 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1678,6 +1684,7 @@ function InternalTextInput(props: Props): React.Node {
          nativeID={id ?? props.nativeID}
          numberOfLines={props.rows ?? props.numberOfLines}
          onBlur={_onBlur}
@@ -107,10 +107,10 @@ index 28d9036..367ac6e 100644
          onFocus={_onFocus}
          /* $FlowFixMe[prop-missing] the types for AndroidTextInput don't match
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-index 20749a6..f58f147 100644
+index 9a010a3..db7c519 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-@@ -62,6 +62,7 @@ @implementation RCTBaseTextInputViewManager {
+@@ -63,6 +63,7 @@ @implementation RCTBaseTextInputViewManager {
  
  RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onKeyPressSync, RCTDirectEventBlock)
@@ -119,10 +119,10 @@ index 20749a6..f58f147 100644
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index e74500f..cca41cd 100644
+index 71433c3..f8358ed 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -496,6 +496,19 @@ - (void)blur
+@@ -521,6 +521,19 @@ - (void)blur
    [_backedTextInputView resignFirstResponder];
  }
  
@@ -233,7 +233,7 @@ index 0000000..0c142a0
 +  }
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
-index c65955f..a013151 100644
+index f18e569..2733e3c 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 @@ -8,6 +8,7 @@
@@ -244,7 +244,7 @@ index c65955f..a013151 100644
  
  import android.content.Context;
  import android.content.res.ColorStateList;
-@@ -268,6 +269,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+@@ -266,6 +267,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
              .put(
                  ScrollEventType.getJSEventName(ScrollEventType.SCROLL),
                  MapBuilder.of("registrationName", "onScroll"))
@@ -254,7 +254,7 @@ index c65955f..a013151 100644
              .build());
      return eventTypeConstants;
    }
-@@ -326,6 +330,26 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+@@ -324,6 +328,26 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
          }
          reactEditText.maybeSetSelection(mostRecentEventCount, start, end);
          break;
@@ -281,11 +281,11 @@ index c65955f..a013151 100644
      }
    }
  
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
-index 6eb58c1..e43e968 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
-@@ -134,6 +134,10 @@ void TextInputEventEmitter::onBlur(const Metrics& textInputMetrics) const {
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
+index 1d130fe..d7dd83d 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
+@@ -136,6 +136,10 @@ void TextInputEventEmitter::onBlur(const Metrics& textInputMetrics) const {
    dispatchTextInputEvent("blur", textInputMetrics);
  }
  
@@ -296,11 +296,11 @@ index 6eb58c1..e43e968 100644
  void TextInputEventEmitter::onChange(const Metrics& textInputMetrics) const {
    dispatchTextInputEvent("change", textInputMetrics);
  }
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
-index 9182dd3..465d303 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
-@@ -36,6 +36,7 @@ class TextInputEventEmitter : public ViewEventEmitter {
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
+index dae4755..33a8b3a 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
+@@ -37,6 +37,7 @@ class TextInputEventEmitter : public ViewEventEmitter {
  
    void onFocus(const Metrics& textInputMetrics) const;
    void onBlur(const Metrics& textInputMetrics) const;

@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
-index ea27b03..8f1d005 100644
+index b70e08b..37db7ba 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
-@@ -1121,16 +1121,7 @@ - (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childCompone
+@@ -1138,16 +1138,7 @@ - (nullable RNSScreenView *)childScreenForTag:(react::Tag)tag
  - (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
  {
    RNSScreenView *screenChildComponent = (RNSScreenView *)childComponentView;
@@ -17,6 +17,6 @@ index ea27b03..8f1d005 100644
 -    [screenChildComponent.controller setViewToSnapshot];
 -  }
 +  [screenChildComponent.controller setViewToSnapshot];
-
+ 
    RCTAssert(
        screenChildComponent.reactSuperview == self,

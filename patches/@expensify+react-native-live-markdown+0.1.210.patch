@@ -1,0 +1,102 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
+index 46c9d27..58be1c1 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
+@@ -12,6 +12,7 @@ import android.text.TextPaint;
+ 
+ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
++import androidx.core.util.Preconditions;
+ 
+ import com.facebook.react.bridge.ReactContext;
+ import com.facebook.react.bridge.ReadableMap;
+@@ -21,6 +22,7 @@ import com.facebook.react.uimanager.PixelUtil;
+ import com.facebook.react.uimanager.ViewManagerRegistry;
+ import com.facebook.react.views.text.TextAttributeProps;
+ import com.facebook.react.views.text.TextLayoutManager;
++import com.facebook.react.views.text.internal.span.ReactTextPaintHolderSpan;
+ import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
+ import com.facebook.yoga.YogaMeasureMode;
+ import com.facebook.yoga.YogaMeasureOutput;
+@@ -30,7 +32,13 @@ import java.lang.reflect.Method;
+ 
+ public class CustomMountingManager extends MountingManager {
+   private static final boolean DEFAULT_INCLUDE_FONT_PADDING = true;
+-  private static final TextPaint sTextPaintInstance = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
++  private static final ThreadLocal<TextPaint> sTextPaintInstance =
++          new ThreadLocal<TextPaint>() {
++            @Override
++            protected TextPaint initialValue() {
++              return new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
++            }
++          };
+ 
+   private MarkdownUtils markdownUtils;
+ 
+@@ -86,15 +94,49 @@ public class CustomMountingManager extends MountingManager {
+       text = sb;
+     }
+ 
+-    Layout.Alignment alignment = TextLayoutManager.getTextAlignment(attributedString, text);
+ 
+-    markdownUtils.applyMarkdownFormatting((SpannableStringBuilder)text);
++    try {
++      Class<TextLayoutManager> textLayoutManagerClass = TextLayoutManager.class;
++
++      Method getTextAlignmentAttrMethod = textLayoutManagerClass.getDeclaredMethod("getTextAlignmentAttr", MapBuffer.class);
++      getTextAlignmentAttrMethod.setAccessible(true);
+ 
+-    BoringLayout.Metrics boring = BoringLayout.isBoring(text, sTextPaintInstance);
++      String textAlignmentAttr = (String)getTextAlignmentAttrMethod.invoke(null, attributedString);
+ 
+-    Class<TextLayoutManager> mapBufferClass = TextLayoutManager.class;
+-    try {
+-      Method createLayoutMethod = mapBufferClass.getDeclaredMethod("createLayout", Spannable.class, BoringLayout.Metrics.class, float.class, YogaMeasureMode.class, boolean.class, int.class, int.class, Layout.Alignment.class);
++      Method getTextAlignmentMethod = textLayoutManagerClass.getDeclaredMethod("getTextAlignment", MapBuffer.class, Spannable.class, String.class);
++      getTextAlignmentMethod.setAccessible(true);
++
++      Layout.Alignment alignment = (Layout.Alignment)getTextAlignmentMethod.invoke(
++              null,
++              attributedString,
++              text,
++              textAlignmentAttr
++      );
++
++      Method getTextJustificationModeMethod = textLayoutManagerClass.getDeclaredMethod("getTextJustificationMode", String.class);
++      getTextJustificationModeMethod.setAccessible(true);
++
++      Integer justificationMode = (Integer) getTextJustificationModeMethod.invoke(null, textAlignmentAttr);
++
++
++      markdownUtils.applyMarkdownFormatting((SpannableStringBuilder)text);
++
++      TextPaint paint;
++      if (attributedString.contains(TextLayoutManager.AS_KEY_CACHE_ID)) {
++        paint = text.getSpans(0, 0, ReactTextPaintHolderSpan.class)[0].getTextPaint();
++      } else {
++        TextAttributeProps baseTextAttributes =
++                TextAttributeProps.fromMapBuffer(attributedString.getMapBuffer(TextLayoutManager.AS_KEY_BASE_ATTRIBUTES));
++        paint = Preconditions.checkNotNull(sTextPaintInstance.get());
++
++        Method updateTextPaintMethod = textLayoutManagerClass.getDeclaredMethod("updateTextPaint", TextPaint.class, TextAttributeProps.class, Context.class);
++        updateTextPaintMethod.setAccessible(true);
++        updateTextPaintMethod.invoke(null, paint, baseTextAttributes, context);
++      }
++
++      BoringLayout.Metrics boring = BoringLayout.isBoring(text, paint);
++
++      Method createLayoutMethod = textLayoutManagerClass.getDeclaredMethod("createLayout", Spannable.class, BoringLayout.Metrics.class, float.class, YogaMeasureMode.class, boolean.class, int.class, int.class, Layout.Alignment.class, int.class, TextPaint.class);
+       createLayoutMethod.setAccessible(true);
+ 
+       Layout layout = (Layout)createLayoutMethod.invoke(
+@@ -106,7 +148,9 @@ public class CustomMountingManager extends MountingManager {
+         includeFontPadding,
+         textBreakStrategy,
+         hyphenationFrequency,
+-        alignment);
++        alignment,
++        justificationMode,
++        paint);
+ 
+       int maximumNumberOfLines =
+         paragraphAttributes.contains(TextLayoutManager.PA_KEY_MAX_NUMBER_OF_LINES)
