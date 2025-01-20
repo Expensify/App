@@ -4776,6 +4776,12 @@ function trackExpense({
         value: recentServerValidatedWaypoints,
     });
 
+    // Type guard that checks if trackedReceipt is of type Receipt
+    function isReceipt(receiptParam: Receipt | Blob): receiptParam is Receipt {
+        return (receiptParam as Receipt).state !== undefined;
+    }
+    const receiptState = isReceipt(trackedReceipt) ? trackedReceipt.state : undefined;
+    
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
@@ -4866,7 +4872,7 @@ function trackExpense({
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
-                receiptState: trackedReceipt?.state,
+                receiptState,
                 category,
                 tag,
                 taxCode,
