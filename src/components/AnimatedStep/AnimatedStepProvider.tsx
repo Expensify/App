@@ -42,10 +42,10 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
             const previousStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
 
             currentTranslateX.set(currentStepPosition);
-            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
+            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
 
             prevTranslateX.set(0);
-            prevTranslateX.set(withTiming(previousStepPosition, {duration: CONST.ANIMATED_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
+            prevTranslateX.set(withTiming(previousStepPosition, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
         },
         [currentStep, previousStep, isSmallScreenWidth, windowWidth, currentTranslateX, prevTranslateX],
     );
