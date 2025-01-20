@@ -67,7 +67,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
             return getUrlWithBackToParam(baseRoute, backTo);
         },
