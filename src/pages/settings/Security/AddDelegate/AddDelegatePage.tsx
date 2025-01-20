@@ -25,7 +25,15 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
+    const existingDelegates = useMemo(
+        () =>
+            account?.delegatedAccess?.delegates?.reduce((prev, {email}) => {
+                // eslint-disable-next-line no-param-reassign
+                prev[email] = true;
+                return prev;
+            }, {} as Record<string, boolean>),
+        [account?.delegatedAccess?.delegates],
+    );
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
@@ -35,7 +43,7 @@ function useOptions() {
             },
             {
                 betas,
-                excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
+                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             },
         );
 
@@ -57,7 +65,7 @@ function useOptions() {
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
+            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(

@@ -164,7 +164,7 @@ function SearchRouterList(
                 personalDetails: options.personalDetails,
             },
             {
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelfDM: true,
                 showChatPreviewLine: true,
                 shouldBoldTitleByDefault: false,

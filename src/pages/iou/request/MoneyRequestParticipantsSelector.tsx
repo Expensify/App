@@ -113,7 +113,7 @@ function MoneyRequestParticipantsSelector({
             {
                 betas,
                 selectedOptions: participants as Participant[],
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
@@ -148,7 +148,7 @@ function MoneyRequestParticipantsSelector({
         const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
