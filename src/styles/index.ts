@@ -3693,6 +3693,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
+            zIndex: 11,
         },
 
         searchTableHeaderActive: {
@@ -3707,7 +3708,16 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
+            position: 'relative',
+            flex: 1,
+        },
+
+        narrowSearchRouterActiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
