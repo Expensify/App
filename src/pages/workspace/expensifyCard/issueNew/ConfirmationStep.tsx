@@ -37,7 +37,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const validateError = ErrorUtils.getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
@@ -59,7 +59,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
-        Card.clearIssueNewCardFlow();
+        Card.clearIssueNewCardFlow(policyID);
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
@@ -69,11 +69,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const errorMessage = ErrorUtils.getLatestErrorMessage(issueNewCard);
 
     const editStep = (step: IssueNewCardStep) => {
-        Card.setIssueNewCardStepAndData({step, isEditing: true});
+        Card.setIssueNewCardStepAndData({step, isEditing: true, policyID});
     };
 
     const handleBackButtonPress = () => {
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME});
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME, policyID});
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
@@ -143,7 +143,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     sendValidateCode={() => User.requestValidateCodeAction()}
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
-                    clearError={() => Card.clearIssueNewCardError()}
+                    clearError={() => Card.clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
