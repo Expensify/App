@@ -31,7 +31,7 @@ import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/Repor
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionUtil,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getAddWorkspaceRoomOrChatReportErrors,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
@@ -40,13 +40,13 @@ import {
     isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
-    isSettled as isSettledUtil,
+    isSettled as isSettledReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
-    didReceiptScanSucceed as didReceiptScanSucceedUtil,
+    didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     getBillable,
     getCardName,
     getDescription,
@@ -55,13 +55,13 @@ import {
     getTaxName,
     getTransactionViolations,
     hasMissingSmartscanFields,
-    hasReceipt as hasReceiptUtil,
+    hasReceipt as hasReceiptTransactionUtils,
     hasReservationList,
-    hasRoute as hasRouteUtil,
-    isCardTransaction as isCardTransactionUtil,
-    isDistanceRequest as isDistanceRequestUtil,
-    isReceiptBeingScanned as isReceiptBeingScannedUtil,
-    shouldShowAttendees as shouldShowAttendeesUtil,
+    hasRoute as hasRouteTransactionUtils,
+    isCardTransaction as isCardTransactionTransactionUtils,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
@@ -154,11 +154,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         postedDate: transactionPostedDate,
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isDistanceRequest = isDistanceRequestUtil(transaction);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const formattedTransactionAmount = transactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedPerAttendeeAmount = transactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isCardTransaction = isCardTransactionUtil(transaction);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCardName(transaction);
     const shouldShowCard = isCardTransaction && cardProgramName;
     const isApproved = isReportApproved(moneyRequestReport);
@@ -172,12 +172,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
-    const isSettled = isSettledUtil(moneyRequestReport?.reportID);
+    const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
-    const canUserPerformWriteAction = !!canUserPerformWriteActionUtil(report) && !readonly;
+    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -185,9 +185,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const hasReceipt = hasReceiptUtil(updatedTransaction ?? transaction);
-    const isReceiptBeingScanned = hasReceipt && isReceiptBeingScannedUtil(updatedTransaction ?? transaction);
-    const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedUtil(transaction);
+    const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
+    const isReceiptBeingScanned = hasReceipt && isReceiptBeingScannedTransactionUtils(updatedTransaction ?? transaction);
+    const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const canEditDistance = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
     const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
@@ -213,7 +213,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
-    const shouldShowAttendees = useMemo(() => shouldShowAttendeesUtil(iouType, policy), [iouType, policy]);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
@@ -229,7 +229,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const hasRoute = hasRouteUtil(transactionBackup ?? transaction, isDistanceRequest);
+    const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
@@ -237,7 +237,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
-    if (hasReceiptUtil(transaction) && isReceiptBeingScannedUtil(transaction)) {
+    if (hasReceiptTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }

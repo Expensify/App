@@ -959,6 +959,10 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
     if (!transactionID) {
         return false;
     }
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
@@ -974,6 +978,10 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
     if (!transactionID) {
         return false;
     }
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
@@ -987,6 +995,10 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
  */
 function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
     if (!transactionID) {
+        return false;
+    }
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
     }
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
