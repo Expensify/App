@@ -7,7 +7,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
@@ -63,7 +63,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {keyboardHeight} = useKeyboardState();
+    const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
     const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
@@ -72,7 +72,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             return () => {};
         }
         container.onpointerdown = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
+            if (hasHoverSupport()) {
                 return;
             }
             e.preventDefault();
@@ -83,7 +83,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const suggestionsLength = props.suggestions.length;
 
     useEffect(() => {
-        if (!measureParentContainerAndReportCursor) {
+        if (!measureParentContainerAndReportCursor || isKeyboardAnimatingRef.current) {
             return;
         }
 
@@ -137,7 +137,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 cursorCoordinates,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
 
     if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
         return null;
