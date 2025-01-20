@@ -1794,6 +1794,22 @@ describe('ReportUtils', () => {
 
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
+        it('should return true if preventSelfApproval is false', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
     });
 
     describe('getApprovalChain', () => {
