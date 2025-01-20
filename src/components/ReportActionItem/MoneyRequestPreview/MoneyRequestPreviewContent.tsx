@@ -358,7 +358,7 @@ function MoneyRequestPreviewContent({
     };
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, action, currentUserPersonalDetails.accountID) && !hasReceipt;
+    const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, action, transaction, currentUserPersonalDetails.accountID) && !hasReceipt;
 
     const childContainer = (
         <View>
