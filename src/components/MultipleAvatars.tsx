@@ -37,6 +37,9 @@ type MultipleAvatarsProps = {
     /** Whether the avatars are hovered */
     isHovered?: boolean;
 
+    /** Whether the avatars are actived */
+    isActive?: boolean;
+
     /** Whether the avatars are in an element being pressed */
     isPressed?: boolean;
 
@@ -76,6 +79,7 @@ function MultipleAvatars({
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,
+    isActive = false,
     isPressed = false,
     isFocusMode = false,
     isInReportAction = false,
@@ -173,7 +177,6 @@ function MultipleAvatars({
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / overlapDivider;
-
     if (shouldStackHorizontally) {
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
@@ -206,6 +209,7 @@ function MultipleAvatars({
                                         isPressed,
                                         isInReportAction,
                                         shouldUseCardBackground,
+                                        isActive,
                                     }),
                                     StyleUtils.getAvatarBorderWidth(size),
                                 ]}

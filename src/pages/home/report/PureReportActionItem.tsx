@@ -970,6 +970,7 @@ function PureReportActionItem({
                             isHovered={hovered}
                             icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
+                            isActive={!!isReportActionLinked}
                         />
                     </View>
                 )}
@@ -1002,6 +1003,7 @@ function PureReportActionItem({
                     report={report}
                     iouReport={iouReport}
                     isHovered={hovered}
+                    isActive={!!isReportActionLinked}
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
                         !ReportActionsUtils.isPendingRemove(action)
