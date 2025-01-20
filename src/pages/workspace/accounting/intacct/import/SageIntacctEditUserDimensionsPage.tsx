@@ -74,6 +74,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.flex1}
             shouldUseScrollView={false}
+            shouldIncludeSafeAreaPaddingBottom
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
