@@ -1206,11 +1206,7 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
-function getAdminsPrivateEmailDomains(policyID?: string) {
-    if (!policyID) {
-        return [];
-    }
-    const policy = getPolicy(policyID);
+function getAdminsPrivateEmailDomains(policy?: Policy) {
     if (!policy) {
         return [];
     }
@@ -1227,8 +1223,7 @@ function getAdminsPrivateEmailDomains(policyID?: string) {
     return [...new Set([...adminDomains, ownerDomain])].filter((domain) => !isPublicDomain(domain));
 }
 
-function getMostFrequentEmailDomain(policyID: string, acceptedDomains: string[]) {
-    const policy = getPolicy(policyID);
+function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
     if (!policy) {
         return undefined;
     }

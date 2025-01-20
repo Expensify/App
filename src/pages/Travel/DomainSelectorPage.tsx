@@ -18,10 +18,11 @@ function DomainSelectorPage() {
     const {translate} = useLocalize();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? 0}`);
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
-    const domains = useMemo(() => getAdminsPrivateEmailDomains(activePolicyID), [activePolicyID]);
-    const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(activePolicyID ?? '', domains), [activePolicyID, domains]);
+    const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
+    const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(domains, policy), [policy, domains]);
 
     const data: DomainItem[] = useMemo(() => {
         return domains.map((domain) => {
