@@ -273,15 +273,11 @@ function IOURequestStepScan({
             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                 IOU.trackExpense({
                     report,
-                    amount: 0,
                     currency: transaction?.currency ?? 'USD',
                     created: transaction?.created ?? '',
-                    merchant: '',
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,
                     participant,
-                    comment: '',
-                    isDraftPolicy: false,
                     receipt,
                 });
             } else {
@@ -362,24 +358,13 @@ function IOURequestStepScan({
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                 IOU.trackExpense({
                                     report,
-                                    amount: 0,
                                     currency: transaction?.currency ?? 'USD',
                                     created: transaction?.created ?? '',
-                                    merchant: '',
                                     payeeEmail: currentUserPersonalDetails.login,
                                     payeeAccountID: currentUserPersonalDetails.accountID,
                                     participant,
-                                    comment: '',
-                                    isDraftPolicy: false,
                                     receipt,
-                                    category: '',
-                                    tag: '',
-                                    taxCode: '',
-                                    taxAmount: 0,
-                                    billable: false,
                                     policy,
-                                    policyTagList: {},
-                                    policyCategories: {},
                                     gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,

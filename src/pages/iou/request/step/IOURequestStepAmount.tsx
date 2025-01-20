@@ -217,8 +217,6 @@ function IOURequestStepAmount({
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant: participants.at(0) ?? {},
-                        comment: '',
-                        isDraftPolicy: false,
                     });
                     return;
                 }

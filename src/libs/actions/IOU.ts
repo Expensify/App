@@ -460,15 +460,15 @@ type StartSplitBilActionParams = {
 
 type TrackExpense = {
     report: OnyxTypes.Report;
-    amount: number;
+    amount?: number;
     currency: string;
     created: string;
-    merchant: string;
+    merchant?: string;
     payeeEmail: string | undefined;
     payeeAccountID: number;
     participant: Participant;
-    comment: string;
-    isDraftPolicy: boolean;
+    comment?: string;
+    isDraftPolicy?: boolean;
     receipt?: Receipt;
     category?: string;
     tag?: string;
@@ -4664,21 +4664,21 @@ function sendInvoice(
  */
 function trackExpense({
     report,
-    amount,
+    amount = 0,
     currency,
     created,
-    merchant,
+    merchant = '',
     payeeEmail,
     payeeAccountID,
     participant,
-    comment,
-    isDraftPolicy,
-    receipt,
-    category,
-    tag,
+    comment = '',
+    isDraftPolicy = false,
+    receipt = {},
+    category = '',
+    tag = '',
     taxCode = '',
     taxAmount = 0,
-    billable,
+    billable = false,
     policy,
     policyTagList,
     policyCategories,
