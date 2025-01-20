@@ -17,6 +17,7 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import { setDraftValues } from "@userActions/FormActions";
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -53,21 +54,15 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         setUploadedID((prev) => [...prev, ...files]);
     };
 
-    const handleRemoveIDFile = (fileUri: string) => {
-        const newUploadedIDs = uploadedIDs.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: newUploadedIDs});
-        setUploadedID(newUploadedIDs);
-    };
-
     const handleSelectProofOfAddressFile = (files: FileObject[]) => {
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: [...uploadedProofsOfAddress, ...files]});
         setUploadedProofOfAddress((prev) => [...prev, ...files]);
     };
 
-    const handleRemoveProofOfAddressFile = (fileUri: string) => {
-        const newUploadedProofsOfAddress = uploadedProofsOfAddress.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: newUploadedProofsOfAddress});
-        setUploadedProofOfAddress(newUploadedProofsOfAddress);
+    const handleRemoveFile = (fileName: string, uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
+        const newUploadedIDs = uploadedFiles.filter((file) => file.name !== fileName);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: newUploadedIDs});
+        setFiles(newUploadedIDs);
     };
 
     // TODO: check if this is necessary
@@ -92,7 +87,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     buttonText={translate('signerInfoStep.chooseFile')}
                     uploadedFiles={uploadedIDs}
                     onUpload={handleSelectIDFile}
-                    onRemove={handleRemoveIDFile}
+                    onRemove={(fileName) => {
+                        handleRemoveFile(fileName, uploadedIDs, SIGNER_COPY_OF_ID, setUploadedID);
+                    }}
                     acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                     value={uploadedIDs}
                     inputID={SIGNER_COPY_OF_ID}
@@ -104,7 +101,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     buttonText={translate('signerInfoStep.chooseFile')}
                     uploadedFiles={uploadedProofsOfAddress}
                     onUpload={handleSelectProofOfAddressFile}
-                    onRemove={handleRemoveProofOfAddressFile}
+                    onRemove={(fileName) => {
+                        handleRemoveFile(fileName, uploadedProofsOfAddress, SIGNER_ADDRESS_PROOF, setUploadedProofOfAddress);
+                    }}
                     acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                     value={uploadedProofsOfAddress}
                     inputID={SIGNER_ADDRESS_PROOF}
