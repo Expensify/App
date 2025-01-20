@@ -127,13 +127,15 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
     } else {
         const adminDomains = PolicyUtils.getAdminsPrivateEmailDomains(activePolicyID);
+        let routeToNavigateTo;
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;
         } else if (adminDomains.length === 1) {
-            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(adminDomains[0]));
+            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains[0]);
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+            routeToNavigateTo = ROUTES.TRAVEL_DOMAIN_SELECTOR;
         }
+        Navigation.navigate(routeToNavigateTo);
     }
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
