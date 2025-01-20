@@ -131,7 +131,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
                         buttonRef.current = el ?? null;
                     }
                 }}
-                style={{verticalAlign: 'bottom'}}
+                style={(styles.floatingActionButtonEmoji, Platform.OS !== 'web' && {height: '5%'})}
                 accessibilityLabel={accessibilityLabel}
                 onPress={toggleFabAction}
                 onLongPress={() => {}}
@@ -140,6 +140,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
             >
                 <ImageSVG
                     src={GlobalCreateIcon}
+                    width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                 />
             </PressableWithoutFeedback>
