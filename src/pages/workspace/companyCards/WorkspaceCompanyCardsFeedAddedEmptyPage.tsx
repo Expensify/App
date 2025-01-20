@@ -4,6 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -19,6 +20,7 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
 function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     return (
         <EmptyStateComponent
@@ -36,7 +38,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
                     buttonAction: handleAssignCard,
                     icon: Expensicons.Plus,
                     success: true,
-                    isDisabled: isDisabledAssignCardButton,
+                    isDisabled: isDisabledAssignCardButton ?? isOffline,
                 },
             ]}
         />
