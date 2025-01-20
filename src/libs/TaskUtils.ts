@@ -22,7 +22,11 @@ Onyx.connect({
 /**
  * Check if the active route belongs to task edit flow.
  */
-function isActiveTaskEditRoute(reportID: string): boolean {
+function isActiveTaskEditRoute(reportID: string | undefined): boolean {
+    if (!reportID) {
+        return false;
+    }
+
     return [ROUTES.TASK_TITLE, ROUTES.TASK_ASSIGNEE, ROUTES.REPORT_DESCRIPTION].map((route) => route.getRoute(reportID)).some(Navigation.isActiveRoute);
 }
 

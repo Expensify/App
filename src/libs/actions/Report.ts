@@ -2068,7 +2068,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
-function clearReportFieldKeyErrors(reportID: string, fieldKey: string) {
+function clearReportFieldKeyErrors(reportID: string | undefined, fieldKey: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: {
             [fieldKey]: null,
@@ -2486,12 +2486,17 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string, shouldDeleteChildReports = false) {
+function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
     };
+
+    if (!reportID) {
+        Log.warn('[Report] deleteReport called with no reportID');
+        return;
+    }
 
     // Delete linked transactions
     const reportActionsForReport = allReportActions?.[reportID];
@@ -2524,7 +2529,7 @@ function deleteReport(reportID: string, shouldDeleteChildReports = false) {
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
@@ -2731,7 +2736,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
-function clearIOUError(reportID: string) {
+function clearIOUError(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
@@ -4312,9 +4317,13 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+function resolveActionableMentionWhisper(
+    reportId: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
+) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction) {
+    if (!message || !reportAction || !reportId) {
         return;
     }
 
@@ -4389,11 +4398,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 function resolveActionableReportMentionWhisper(
-    reportId: string,
+    reportId: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
 ) {
-    if (!reportAction) {
+    if (!reportAction || !reportId) {
         return;
     }
 
@@ -4460,10 +4469,10 @@ function resolveActionableReportMentionWhisper(
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
+function dismissTrackExpenseActionableWhisper(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): void {
     const isArrayMessage = Array.isArray(reportAction?.message);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction) {
+    if (!message || !reportAction || !reportID) {
         return;
     }
 

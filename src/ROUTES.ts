@@ -416,7 +416,12 @@ const ROUTES = {
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the TASK_ASSIGNEE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo);
+        },
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',

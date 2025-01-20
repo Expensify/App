@@ -17,7 +17,7 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
     /** The id of the report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** The id of the policy */
     // eslint-disable-next-line react/no-unused-prop-types
