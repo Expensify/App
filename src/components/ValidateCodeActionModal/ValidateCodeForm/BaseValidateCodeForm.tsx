@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -16,10 +16,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as User from '@userActions/User';
+import {isMobileSafari} from '@libs/Browser';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +101,7 @@ function BaseValidateCodeForm({
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
+    const [canShowError, setCanShowError] = useState<boolean>(false);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -131,7 +132,7 @@ function BaseValidateCodeForm({
             }
 
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!Browser.isMobileSafari()) {
+            if (!isMobileSafari()) {
                 focusTimeoutRef.current = setTimeout(() => {
                     inputValidateCodeRef.current?.focusLastSelected();
                 }, CONST.ANIMATED_TRANSITION);
@@ -185,7 +186,7 @@ function BaseValidateCodeForm({
 
             if (!isEmptyObject(validateError)) {
                 clearError();
-                User.clearValidateCodeActionError('actionVerified');
+                clearValidateCodeActionError('actionVerified');
             }
         },
         [validateError, clearError],
@@ -195,12 +196,13 @@ function BaseValidateCodeForm({
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        setCanShowError(true);
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
@@ -208,6 +210,16 @@ function BaseValidateCodeForm({
         setFormError({});
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
+
+    const errorText = useMemo(() => {
+        if (!canShowError) {
+            return '';
+        }
+        if (formError?.validateCode) {
+            return translate(formError?.validateCode);
+        }
+        return getLatestErrorMessage(account ?? {});
+    }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
     return (
@@ -218,8 +230,8 @@ function BaseValidateCodeForm({
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
-                hasError={!isEmptyObject(validateError)}
+                errorText={errorText}
+                hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
@@ -231,9 +243,9 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
+                errors={getLatestErrorField(validateCodeAction, 'actionVerified')}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearValidateCodeActionError('actionVerified')}
+                onClose={() => clearValidateCodeActionError('actionVerified')}
             >
                 {!shouldShowTimer && (
                     <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
@@ -263,7 +275,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={validateError}
+                errors={canShowError ? validateError : undefined}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearError()}
                 style={buttonStyles}
