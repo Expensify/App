@@ -1,11 +1,11 @@
 import type {ForwardedRef} from 'react';
-import {forwardRef, useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-// eslint-disable-next-line no-restricted-imports
 import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
