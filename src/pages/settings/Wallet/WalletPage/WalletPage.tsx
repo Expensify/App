@@ -194,9 +194,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         setMenuPosition();
     };
 
-    /**
-     * Display the delete/default menu, or the add payment method menu
-     */
     const assignedCardPressed = (nativeEvent?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
