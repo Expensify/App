@@ -2,6 +2,7 @@
 import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
@@ -50,6 +51,7 @@ declare module 'react-native' {
         RNNavBarManager: RNNavBarManagerModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
+        ShareActionHandler: ShareActionHandlerModule;
     }
 
     namespace Animated {

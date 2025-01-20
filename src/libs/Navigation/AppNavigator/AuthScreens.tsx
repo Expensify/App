@@ -65,6 +65,7 @@ import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
+import {ShareModalStackNavigator} from './ModalStackNavigators';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
@@ -545,6 +546,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                         options={rootNavigatorOptions.fullScreen}
                         component={DesktopSignInRedirectPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
+                        options={rootNavigatorOptions.fullScreen}
+                        component={ShareModalStackNavigator}
+                        listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}

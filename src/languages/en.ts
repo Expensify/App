@@ -1104,6 +1104,10 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
     },
+    share: {
+        shareToExpensify: 'Share to Expensify',
+        messageInputLabel: 'Message',
+    },
     notificationPreferencesPage: {
         header: 'Notification preferences',
         label: 'Notify me about new messages',
