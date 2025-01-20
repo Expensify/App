@@ -120,6 +120,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
+        listItemTitleContainerStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -334,7 +335,10 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
-    const selectedItemIndex = useMemo(() => flattenedSections.allOptions.findIndex((option) => option.isSelected), [flattenedSections.allOptions]);
+    const selectedItemIndex = useMemo(
+        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
+        [flattenedSections.allOptions, initiallyFocusedOptionKey],
+    );
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
@@ -549,6 +553,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
+                    titleContainerStyles={listItemTitleContainerStyles}
                 />
             </View>
         );

@@ -21,6 +21,12 @@ const POINTER_HEIGHT = 4;
 /** The width of a tooltip pointer */
 const POINTER_WIDTH = 12;
 
+/** The height of a education tooltip pointer */
+const EDUCATION_POINTER_HEIGHT = 8;
+
+/** The width of a education tooltip pointer */
+const EDUCATION_POINTER_WIDTH = 16;
+
 type TooltipStyles = {
     rootWrapperStyle: ViewStyle;
     textStyle: TextStyle;
@@ -44,6 +50,7 @@ type TooltipParams = {
     wrapperStyle: StyleProp<ViewStyle>;
     anchorAlignment?: TooltipAnchorAlignment;
     shouldAddHorizontalPadding?: boolean;
+    isEducationTooltip?: boolean;
 };
 
 type TooltipAnimationProps = {
@@ -98,7 +105,10 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         },
         wrapperStyle = {},
+        isEducationTooltip = false,
     }) => {
+        const pointerWidth = isEducationTooltip ? EDUCATION_POINTER_WIDTH : POINTER_WIDTH;
+        const pointerHeight = isEducationTooltip ? EDUCATION_POINTER_HEIGHT : POINTER_HEIGHT;
         const customWrapperStyle = StyleSheet.flatten(wrapperStyle);
         const tooltipVerticalPadding = spacing.pv1;
         const tooltipHorizontalPadding = shouldAddHorizontalPadding ? spacing.ph2.paddingHorizontal * 2 : 0;
@@ -128,7 +138,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // we'll display it beneath its wrapped component rather than above it as usual.
             shouldShowBelow =
                 shouldForceRenderingBelow ||
-                yOffset - tooltipHeight - POINTER_HEIGHT < GUTTER_WIDTH + titleBarHeight ||
+                yOffset - tooltipHeight - pointerHeight < GUTTER_WIDTH + titleBarHeight ||
                 !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight)) ||
                 anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
 
@@ -142,9 +152,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // To shift the tooltip up, we'll give `top` a negative value.
             rootWrapperTop = shouldShowBelow
                 ? // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                  yOffset + tooltipTargetHeight + POINTER_HEIGHT + manualShiftVertical
+                  yOffset + tooltipTargetHeight + pointerHeight + manualShiftVertical
                 : // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                  yOffset - (tooltipHeight + POINTER_HEIGHT) + manualShiftVertical;
+                  yOffset - (tooltipHeight + pointerHeight) + manualShiftVertical;
 
             // By default, the pointer's top-left will align with the top-left of the tooltip wrapper.
             //
@@ -154,7 +164,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             //
             //   OR if the pointer should be above the tooltip wrapper, then the pointer up (-) by the pointer's height
             //   so that the bottom of the pointer lines up with the top of the tooltip
-            pointerWrapperTop = shouldShowBelow ? -POINTER_HEIGHT : tooltipHeight;
+            pointerWrapperTop = shouldShowBelow ? -pointerHeight : tooltipHeight;
 
             // Horizontal tooltip position:
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -184,15 +194,15 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             rootWrapperLeft = xOffset + manualShiftHorizontal;
             switch (anchorAlignment.horizontal) {
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
-                    pointerWrapperLeft = POINTER_WIDTH / 2;
+                    pointerWrapperLeft = pointerWidth / 2;
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                    pointerWrapperLeft = tooltipWidth - POINTER_WIDTH * 1.5;
+                    pointerWrapperLeft = tooltipWidth - pointerWidth * 1.5;
                     rootWrapperLeft += tooltipTargetWidth - tooltipWidth;
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 default:
-                    pointerWrapperLeft = tooltipWidth / 2 - POINTER_WIDTH / 2;
+                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2;
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
 
@@ -207,8 +217,8 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // and shift it to left a bit if the tooltip is positioned on the extreme right.
             horizontalShiftPointer =
                 horizontalShift > 0
-                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
-                    : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall);
+                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + pointerWidth / 2 + variables.componentBorderRadiusSmall)
+                    : Math.min(-horizontalShift, tooltipWidth / 2 - pointerWidth / 2 - variables.componentBorderRadiusSmall);
 
             // Horizontally align left: No need for shifting.
             pointerWrapperLeft += anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? 0 : horizontalShiftPointer;
@@ -256,9 +266,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 height: 0,
                 backgroundColor: theme.transparent,
                 borderStyle: 'solid',
-                borderLeftWidth: POINTER_WIDTH / 2,
-                borderRightWidth: POINTER_WIDTH / 2,
-                borderTopWidth: POINTER_HEIGHT,
+                borderLeftWidth: pointerWidth / 2,
+                borderRightWidth: pointerWidth / 2,
+                borderTopWidth: pointerHeight,
                 borderLeftColor: theme.transparent,
                 borderRightColor: theme.transparent,
                 borderTopColor: customWrapperStyle.backgroundColor ?? theme.heading,
