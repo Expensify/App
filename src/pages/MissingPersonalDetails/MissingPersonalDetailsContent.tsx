@@ -7,12 +7,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -26,6 +24,7 @@ import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CustomSubStepProps} from './types';
 import {getInitialSubstep, getSubstepValues} from './utils';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -81,7 +80,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
-    const handleValidateCodeEntered = useCallback(
+    const handleSubmitForm = useCallback(
         (validateCode: string) => {
             PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
             FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
@@ -89,14 +88,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         },
         [values],
     );
-
-    const sendValidateCode = () => {
-        if (validateCodeAction?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
@@ -132,15 +123,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 personalDetailsValues={values}
             />
 
-            <ValidateCodeActionModal
-                handleSubmitForm={handleValidateCodeEntered}
-                sendValidateCode={sendValidateCode}
-                clearError={() => {}}
+            <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                hasMagicCodeBeenSent={!!validateCodeAction?.validateCodeSent}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );
