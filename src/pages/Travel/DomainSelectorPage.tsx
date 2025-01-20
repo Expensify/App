@@ -18,7 +18,7 @@ function DomainSelectorPage() {
     const {translate} = useLocalize();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [selectedDomain, setSelectedDomain] = useState('');
+    const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(activePolicyID), [activePolicyID]);
     const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(activePolicyID ?? '', domains), [activePolicyID, domains]);
@@ -53,11 +53,13 @@ function DomainSelectorPage() {
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
                 footerContent={<Button
-                    isDisabled={selectedDomain.length <= 0}
+                    isDisabled={!selectedDomain}
                     success
                     large
                     style={[styles.w100]}
-                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain))}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? ''));
+                    }}
                     text={translate('common.continue')}
                 />}
             />
