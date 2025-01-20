@@ -86,7 +86,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, isOffline]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
