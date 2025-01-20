@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -30,34 +31,53 @@ type TabSelectorItemProps = {
 
     /** Whether this tab is active */
     isActive?: boolean;
+
+    /** Whether to show the label when the tab is inactive */
+    shouldShowLabelWhenInactive?: boolean;
 };
 
-function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
+function TabSelectorItem({
+    icon,
+    title = '',
+    onPress = () => {},
+    backgroundColor = '',
+    activeOpacity = 0,
+    inactiveOpacity = 1,
+    isActive = false,
+    shouldShowLabelWhenInactive = true,
+}: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-        <AnimatedPressableWithFeedback
-            accessibilityLabel={title}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flex1]}
-            onPress={onPress}
-            onHoverIn={() => setIsHovered(true)}
-            onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        <Tooltip
+            shouldRender={!shouldShowLabelWhenInactive && !isActive}
+            text={title}
         >
-            <TabIcon
-                icon={icon}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-            />
-            <TabLabel
-                title={title}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-            />
-        </AnimatedPressableWithFeedback>
+            <AnimatedPressableWithFeedback
+                accessibilityLabel={title}
+                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+                wrapperStyle={[styles.flexGrow1]}
+                onPress={onPress}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
+                role={CONST.ROLE.BUTTON}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <TabIcon
+                    icon={icon}
+                    activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                    inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                />
+                {(shouldShowLabelWhenInactive || isActive) && (
+                    <TabLabel
+                        title={title}
+                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    />
+                )}
+            </AnimatedPressableWithFeedback>
+        </Tooltip>
     );
 }
 

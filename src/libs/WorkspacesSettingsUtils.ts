@@ -10,7 +10,7 @@ import type {Beta, Policy, PriorityMode, ReimbursementAccount, Report, ReportAct
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
+import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -37,6 +37,15 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let reportsCollection: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        reportsCollection = value;
     },
 });
 
@@ -74,7 +83,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     }
 
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+        const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
         if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -102,30 +111,36 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConn
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
     const errorCheckingMethods: CheckingMethod[] = [
-        () => Object.values(cleanPolicies).some(hasPolicyError),
-        () => Object.values(cleanPolicies).some(hasCustomUnitsError),
-        () => Object.values(cleanPolicies).some(hasTaxRateError),
-        () => Object.values(cleanPolicies).some(hasEmployeeListError),
+        () => Object.values(cleanPolicies).some(shouldShowPolicyError),
+        () => Object.values(cleanPolicies).some(shouldShowCustomUnitsError),
+        () => Object.values(cleanPolicies).some(shouldShowTaxRateError),
+        () => Object.values(cleanPolicies).some(shouldShowEmployeeListError),
         () =>
             Object.values(cleanPolicies).some((cleanPolicy) =>
-                hasSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
+                shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
             ),
-        () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
+        () => Object.values(cleanPolicies).some((cleanPolicy) => isPolicyAdmin(cleanPolicy) && Object.keys(reimbursementAccount?.errors ?? {}).length > 0),
     ];
 
     return errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = hasEmployeeListError(policy);
-    const taxRateError = hasTaxRateError(policy);
+    const policyMemberError = shouldShowEmployeeListError(policy);
+    const taxRateError = shouldShowTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
+    return (
+        (isPolicyAdmin(policy) && Object.keys(reimbursementAccount?.errors ?? {}).length > 0) ||
+        shouldShowPolicyError(policy) ||
+        shouldShowCustomUnitsError(policy) ||
+        policyMemberError ||
+        taxRateError
+    );
 }
 
 function getChatTabBrickRoadReport(
     policyID: string | undefined,
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
@@ -167,7 +182,7 @@ function getChatTabBrickRoadReport(
 
 function getChatTabBrickRoad(
     policyID: string | undefined,
-    currentReportId: string | null,
+    currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,

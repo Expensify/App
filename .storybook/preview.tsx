@@ -1,8 +1,8 @@
 import {PortalProvider} from '@gorhom/portal';
-import type {Parameters} from '@storybook/types';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import type {Parameters} from 'storybook/internal/types';
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';

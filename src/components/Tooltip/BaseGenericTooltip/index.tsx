@@ -1,7 +1,8 @@
 /* eslint-disable react-compiler/react-compiler */
 import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import {Animated, View} from 'react-native';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,6 +16,7 @@ import type {BaseGenericTooltipProps} from './types';
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
+
 function BaseGenericTooltip({
     animation,
     windowWidth,
@@ -36,6 +38,7 @@ function BaseGenericTooltip({
     },
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    isEducationTooltip = false,
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -64,11 +67,10 @@ function BaseGenericTooltip({
         }
     }, []);
 
-    const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+    const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
                 tooltip: rootWrapper.current,
-                currentSize: animation,
                 windowWidth,
                 xOffset,
                 yOffset,
@@ -82,10 +84,10 @@ function BaseGenericTooltip({
                 shouldForceRenderingBelow,
                 anchorAlignment,
                 wrapperStyle,
+                isEducationTooltip,
             }),
         [
             StyleUtils,
-            animation,
             windowWidth,
             xOffset,
             yOffset,
@@ -99,8 +101,13 @@ function BaseGenericTooltip({
             shouldForceRenderingBelow,
             anchorAlignment,
             wrapperStyle,
+            isEducationTooltip,
         ],
     );
+
+    const animationStyle = useAnimatedStyle(() => {
+        return StyleUtils.getTooltipAnimatedStyles({tooltipContentWidth: contentMeasuredWidth, tooltipWrapperHeight: wrapperMeasuredHeight, currentSize: animation});
+    });
 
     let content;
     if (renderTooltipContent) {

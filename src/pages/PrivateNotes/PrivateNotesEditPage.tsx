@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -13,10 +12,10 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -34,7 +33,7 @@ import type {Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
-    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
         /** The report currently being looked at */
         report: Report;
     };
@@ -65,8 +64,6 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     // To focus on the input field when the page loads
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useHtmlPaste(privateNotesInput);
 
     useFocusEffect(
         useCallback(() => {
@@ -99,14 +96,14 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report, backTo);
         } else {
-            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
     };
 
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={PrivateNotesEditPage.displayName}
         >
             <HeaderWithBackButton

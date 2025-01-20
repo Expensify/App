@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/core';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -31,6 +32,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -72,10 +74,10 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [fileResize, setFileResize] = useState<null | FileObject>(null);
     const [fileSource, setFileSource] = useState('');
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
@@ -97,7 +99,8 @@ function IOURequestStepScan({
         }
 
         return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+            !ReportUtils.isArchivedReport(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
@@ -124,8 +127,8 @@ function IOURequestStepScan({
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.value,
-        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+        opacity: focusIndicatorOpacity.get(),
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
     const focusCamera = (point: Point) => {
@@ -147,11 +150,10 @@ function IOURequestStepScan({
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
-            focusIndicatorScale.value = 2;
-            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
-            focusIndicatorPosition.value = point;
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
 
             runOnJS(focusCamera)(point);
         });
@@ -197,7 +199,10 @@ function IOURequestStepScan({
         }
 
         if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            Alert.alert(
+                translate('attachmentPicker.attachmentTooLarge'),
+                translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
+            );
             return false;
         }
 
@@ -255,19 +260,22 @@ function IOURequestStepScan({
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
+                IOU.requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -291,7 +299,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? -1;
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -304,10 +312,10 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? -1,
+                        existingSplitChatReportID: reportID,
                         billable: false,
                         category: '',
                         tag: '',
@@ -352,31 +360,30 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
+                                IOU.requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {
@@ -496,49 +503,68 @@ function IOURequestStepScan({
 
         setDidCapturePhoto(true);
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-            })
-            .then((photo: PhotoFile) => {
-                // Store the receipt on the transaction object in Onyx
-                const source = getPhotoSource(photo.path);
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+        const path = getReceiptsUploadFolderPath();
 
-                FileUtils.readFileAsync(
-                    source,
-                    photo.path,
-                    (file) => {
-                        if (isEditing) {
-                            updateScanAndNavigate(file, source);
-                            return;
-                        }
-                        if (shouldSkipConfirmation) {
-                            setFileResize(file);
-                            setFileSource(source);
-                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                            if (gpsRequired) {
-                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                                if (shouldStartLocationPermissionFlow) {
-                                    setStartLocationPermissionFlow(true);
-                                    return;
-                                }
-                            }
-                        }
-                        navigateToConfirmationStep(file, source, false);
-                    },
-                    () => {
-                        setDidCapturePhoto(false);
-                        showCameraAlert();
-                        Log.warn('Error reading photo');
-                    },
-                );
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the directory', error);
+                });
             })
             .catch((error: string) => {
-                setDidCapturePhoto(false);
-                showCameraAlert();
-                Log.warn('Error taking photo', error);
+                Log.warn('Error checking if the directory exists', error);
+            })
+            .then(() => {
+                camera?.current
+                    ?.takePhoto({
+                        flash: flash && hasFlash ? 'on' : 'off',
+                        enableShutterSound: !isPlatformMuted,
+                        path,
+                    })
+                    .then((photo: PhotoFile) => {
+                        // Store the receipt on the transaction object in Onyx
+                        const source = getPhotoSource(photo.path);
+                        IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+
+                        FileUtils.readFileAsync(
+                            source,
+                            photo.path,
+                            (file) => {
+                                if (isEditing) {
+                                    updateScanAndNavigate(file, source);
+                                    return;
+                                }
+                                if (shouldSkipConfirmation) {
+                                    setFileResize(file);
+                                    setFileSource(source);
+                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                                    if (gpsRequired) {
+                                        const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                        if (shouldStartLocationPermissionFlow) {
+                                            setStartLocationPermissionFlow(true);
+                                            return;
+                                        }
+                                    }
+                                }
+                                navigateToConfirmationStep(file, source, false);
+                            },
+                            () => {
+                                setDidCapturePhoto(false);
+                                showCameraAlert();
+                                Log.warn('Error reading photo');
+                            },
+                        );
+                    })
+                    .catch((error: string) => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error taking photo', error);
+                    });
             });
     }, [
         cameraPermissionStatus,
@@ -631,7 +657,6 @@ function IOURequestStepScan({
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
-                                orientation="portrait"
                             />
                             <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                         </View>
@@ -684,8 +709,8 @@ function IOURequestStepScan({
                         <Icon
                             height={32}
                             width={32}
-                            src={Expensicons.Bolt}
-                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
                         />
                     </PressableWithFeedback>
                 )}

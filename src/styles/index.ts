@@ -2,14 +2,15 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
-import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
+import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import * as Browser from '@libs/Browser';
+import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -91,9 +92,9 @@ type Styles = Record<
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -525,10 +526,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        colorReversed: {
-            color: theme.textReversed,
-        },
-
         colorMutedReversed: {
             color: theme.textMutedReversed,
         },
@@ -539,10 +536,6 @@ const styles = (theme: ThemeColors) =>
 
         bgTransparent: {
             backgroundColor: 'transparent',
-        },
-
-        bgDark: {
-            backgroundColor: theme.inverse,
         },
 
         opacity0: {
@@ -618,7 +611,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
-            height: 64,
+            minHeight: 64,
         },
 
         buttonSmall: {
@@ -997,7 +990,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.borderLighter,
             // Adding browser specefic style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       WebkitTextFillColor: theme.textSupporting,
                       WebkitOpacity: 1,
@@ -1081,6 +1074,11 @@ const styles = (theme: ThemeColors) =>
 
         headerGap: {
             height: CONST.DESKTOP_HEADER_PADDING,
+        },
+
+        searchHeaderGap: {
+            zIndex: variables.searchTopBarZIndex + 1,
+            backgroundColor: theme.appBG,
         },
 
         reportOptions: {
@@ -1221,10 +1219,13 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: AnimatableNumericValue, scale: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}, {scale}],
-            } satisfies TextStyle),
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) => {
+            'worklet';
+
+            return {
+                transform: [{translateY: translateY.get()}, {scale: scale.get()}],
+            } satisfies TextStyle;
+        },
 
         baseTextInput: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1676,6 +1677,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
+            ...spacing.pt3,
             paddingBottom: 4,
         },
 
@@ -1735,10 +1737,6 @@ const styles = (theme: ThemeColors) =>
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
             } satisfies ViewStyle),
-
-        welcomeVideoNarrowLayout: {
-            width: variables.onboardingModalWidth,
-        },
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
@@ -2596,6 +2594,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        searchResultsHeaderBar: {
+            display: 'flex',
+            height: variables.contentHeaderDesktopHeight,
+            zIndex: variables.popoverzIndex,
+            position: 'relative',
+            paddingHorizontal: 20,
+        },
+
         headerBarDesktopHeight: {
             height: variables.contentHeaderDesktopHeight,
         },
@@ -3128,7 +3134,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
             padding: 15,
-            backgroundColor: theme.success,
         },
 
         switchInactive: {
@@ -3145,11 +3150,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.appBG,
         },
-
-        switchThumbTransformation: (translateX: AnimatableNumericValue) =>
-            ({
-                transform: [{translateX}],
-            } satisfies ViewStyle),
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
@@ -3188,7 +3188,7 @@ const styles = (theme: ThemeColors) =>
         inputTransparent: {
             color: 'transparent',
             // These properties are available in browser only
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       caretColor: 'transparent',
                       WebkitTextFillColor: 'transparent',
@@ -3377,10 +3377,13 @@ const styles = (theme: ThemeColors) =>
             ...positioning.pFixed,
         },
 
-        growlNotificationTranslateY: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
+        growlNotificationTranslateY: (translateY: SharedValue<number>) => {
+            'worklet';
+
+            return {
+                transform: [{translateY: translateY.get()}],
+            };
+        },
 
         makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
             ({
@@ -3708,7 +3711,7 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             position: 'absolute',
-            zIndex: 9,
+            zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
 
@@ -3743,7 +3746,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
-            backgroundColor: theme.inverse,
+            backgroundColor: theme.appBG,
             flex: 1,
         },
 
@@ -3993,25 +3996,15 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        reportActionComposeTooltipWrapper: {
+        productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
-            paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        quickActionTooltipWrapper: {
-            backgroundColor: theme.tooltipHighlightBG,
-        },
-
-        quickActionTooltipTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.tooltipHighlightText,
-        },
-
-        quickActionTooltipSubtitle: {
-            fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
+            lineHeight: variables.lineHeightLarge,
         },
 
         quickReactionsContainer: {
@@ -4545,17 +4538,9 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
         },
 
-        assignedCardsIconContainer: {
-            height: variables.bankCardHeight,
-            width: variables.bankCardWidth,
-            borderRadius: 4,
-            overflow: 'hidden',
-            alignSelf: 'center',
-        },
-
         bankIconContainer: {
-            height: variables.bankCardWidth,
-            width: variables.bankCardWidth,
+            height: variables.cardIconWidth,
+            width: variables.cardIconWidth,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
@@ -4576,10 +4561,10 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
-            ...(Browser.getBrowser() &&
-                Browser.isSafari() &&
-                !Browser.isMobile() && {
+            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() &&
+                isSafari() &&
+                !isMobile() && {
                     transform: 'scale(0.7)',
                     fontSize: 13,
                     lineHeight: 15,
@@ -4659,6 +4644,21 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
             borderWidth: 1,
+        },
+
+        moneyRequestAttachReceiptThumbnail: {
+            backgroundColor: theme.hoverComponentBG,
+            width: '100%',
+            borderWidth: 0,
+        },
+
+        moneyRequestAttachReceiptThumbnailIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+            borderRadius: '50%',
         },
 
         mapViewContainer: {
@@ -4763,6 +4763,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        cardItemSecondaryIconStyle: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderWidth: 2,
+            borderRadius: 2,
+            backgroundColor: theme.componentBG,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -4827,7 +4836,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
@@ -5219,7 +5228,12 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
-            height: variables.cardIconHeight,
+            alignSelf: 'center',
+        },
+
+        cardMiniature: {
+            overflow: 'hidden',
+            borderRadius: variables.cardMiniatureBorderRadius,
             alignSelf: 'center',
         },
 

@@ -15,14 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TextSelectorModalProps} from './types';
-import usePaddingStyle from './usePaddingStyle';
 
 function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [currentValue, setValue] = useState(value);
-    const paddingStyle = usePaddingStyle();
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const inputValueRef = useRef(value);
@@ -81,11 +79,10 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
-                includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includePaddingTop
+                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
-                style={paddingStyle}
             >
                 <HeaderWithBackButton
                     title={description}

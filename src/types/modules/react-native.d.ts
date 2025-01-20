@@ -8,12 +8,16 @@ import type StartupTimer from '@libs/StartupTimer/types';
 type HybridAppModule = {
     closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
     completeOnboarding: (status: boolean) => void;
-    switchAccount: (newDotCurrentAccount: string) => void;
+    switchAccount: (newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string) => void;
     exitApp: () => void;
 };
 
 type RNTextInputResetModule = {
     resetKeyboardInput: (nodeHandle: number | null) => void;
+};
+
+type RNNavBarManagerModule = {
+    setButtonStyle: (style: 'light' | 'dark') => void;
 };
 
 declare module 'react-native' {
@@ -43,6 +47,7 @@ declare module 'react-native' {
         HybridAppModule: HybridAppModule;
         StartupTimer: StartupTimer;
         RNTextInputReset: RNTextInputResetModule;
+        RNNavBarManager: RNNavBarManagerModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
     }

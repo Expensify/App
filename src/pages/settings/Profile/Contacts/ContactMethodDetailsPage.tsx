@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
@@ -15,15 +14,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import * as Modal from '@userActions/Modal';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,9 +34,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
+type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -147,9 +151,23 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
 
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
+
+    const getThreeDotsMenuItems = useCallback(() => {
+        const menuItems = [];
+        if (isValidateCodeActionModalVisible && !isDefaultContactMethod) {
+            menuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('common.remove'),
+                onSelected: () => Modal.close(() => toggleDeleteModal(true)),
+            });
+        }
+        return menuItems;
+    }, [isValidateCodeActionModalVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -173,6 +191,24 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
+
+    const getDeleteConfirmationModal = () => (
+        <ConfirmModal
+            title={translate('contacts.removeContactMethod')}
+            onConfirm={confirmDeleteAndHideModal}
+            onCancel={() => toggleDeleteModal(false)}
+            onModalHide={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    validateCodeFormRef.current?.focusLastSelected?.();
+                });
+            }}
+            prompt={translate('contacts.removeAreYouSure')}
+            confirmText={translate('common.yesContinue')}
+            cancelText={translate('common.cancel')}
+            isVisible={isDeleteModalOpen && !isDefaultContactMethod}
+            danger
+        />
+    );
 
     const getMenuItems = () => (
         <>
@@ -213,22 +249,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
-
-            <ConfirmModal
-                title={translate('contacts.removeContactMethod')}
-                onConfirm={confirmDeleteAndHideModal}
-                onCancel={() => toggleDeleteModal(false)}
-                onModalHide={() => {
-                    InteractionManager.runAfterInteractions(() => {
-                        validateCodeFormRef.current?.focusLastSelected?.();
-                    });
-                }}
-                prompt={translate('contacts.removeAreYouSure')}
-                confirmText={translate('common.yesContinue')}
-                cancelText={translate('common.cancel')}
-                isVisible={isDeleteModalOpen && !isDefaultContactMethod}
-                danger
-            />
+            {getDeleteConfirmationModal()}
         </>
     );
 
@@ -269,7 +290,15 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                    onThreeDotsButtonPress={() => {
+                        // Hide the keyboard when the user clicks the three-dot menu.
+                        // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                        blurActiveElement();
+                        KeyboardUtils.dismiss();
+                    }}
+                    threeDotsMenuItems={getThreeDotsMenuItems()}
+                    footer={getDeleteConfirmationModal}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}

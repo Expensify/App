@@ -36,7 +36,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy?.id ?? '-1',
+            id: policy?.id ?? CONST.DEFAULT_NUMBER_ID,
         };
     }, [policy]);
 
@@ -47,6 +47,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
+                testID="WorkspaceSwitcherButton"
                 onPress={() => {
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {

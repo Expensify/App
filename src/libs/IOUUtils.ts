@@ -48,7 +48,7 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
     const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
-    const totalInCurrencySubunit = Math.round((total / 100) * currencyUnit);
+    const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
     let finalAmount = amountPerPerson;
@@ -76,6 +76,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     currency: string,
     isDeleting = false,
     isUpdating = false,
+    isOnhold = false,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -87,11 +88,18 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
+    iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
+        if (!isOnhold) {
+            iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
+        }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
+        if (!isOnhold) {
+            iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
+        }
     }
 
     if (iouReportUpdate.total < 0) {
@@ -99,6 +107,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.ownerAccountID = iouReport.managerID;
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
+        iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
     }
 
     return iouReportUpdate;

@@ -48,8 +48,8 @@ function IAcceptTheLabel() {
     return (
         <Text>
             {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
-            <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
         </Text>
     );
 }
@@ -166,7 +166,7 @@ function PaymentCardForm({
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
+            errors.addressZipCode = translate('bankAccount.error.zipCode');
         }
 
         if (!values.acceptTerms) {
@@ -283,10 +283,9 @@ function PaymentCardForm({
                     InputComponent={TextInput}
                     defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zip')}
-                    aria-label={translate('common.zip')}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />

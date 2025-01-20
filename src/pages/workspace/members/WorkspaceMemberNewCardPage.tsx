@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -11,16 +10,17 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPolicy, getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setIssueNewCardStepAndData} from '@userActions/Card';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,12 +33,12 @@ type CardFeedListItem = ListItem & {
     value: string;
 };
 
-type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
+type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
-    const policy = PolicyUtils.getPolicy(policyID);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const policy = getPolicy(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,10 +49,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
-    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -60,7 +61,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             return;
         }
         if (selectedFeed === CONST.EXPENSIFY_CARD.NAME) {
-            Card.setIssueNewCardStepAndData({
+            setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
                 data: {
                     assigneeEmail: memberLogin,
@@ -76,12 +77,15 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
 
-            if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+            if (hasOnlyOneCardToAssign(filteredCardList)) {
                 currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
                 data.cardNumber = Object.keys(filteredCardList).at(0);
                 data.encryptedCardNumber = Object.values(filteredCardList).at(0);
             }
-            CompanyCards.setAssignCardStepAndData({
+            if (isFeedExpired) {
+                currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+            }
+            setAssignCardStepAndData({
                 currentStep,
                 data,
                 isEditing: false,
@@ -97,17 +101,19 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
+        text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
         keyForList: key,
+        isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: companyFeeds[key]?.pendingAction,
         isSelected: selectedFeed === key,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                src={getCardFeedIcon(key)}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
@@ -146,7 +152,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList

@@ -1,4 +1,5 @@
 import type React from 'react';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
@@ -41,8 +42,17 @@ type ValidateCodeActionModalProps = {
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
 
-    /** Wheather the form is loading or not */
+    /** Whether the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
+
+    /** List of menu items for more(three dots) menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** Method to trigger when pressing more options button of the header */
+    onThreeDotsButtonPress?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

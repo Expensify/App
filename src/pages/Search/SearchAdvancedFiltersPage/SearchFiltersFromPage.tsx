@@ -20,7 +20,7 @@ function SearchFiltersFromPage() {
     return (
         <ScreenWrapper
             testID={SearchFiltersFromPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight

@@ -465,7 +465,7 @@ function clearAvatarErrors() {
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) {
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
@@ -477,6 +477,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
         addressCountry: values.country,
         addressState: values.state.trim(),
         dob: values.dob,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {

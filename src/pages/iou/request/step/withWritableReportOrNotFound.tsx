@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
@@ -41,11 +41,13 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
-    | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES;
+    | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES
+    | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
+    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE;
 
-type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
-
-type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & {route: Route<T>};
+type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
@@ -54,9 +56,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))

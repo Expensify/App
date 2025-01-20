@@ -18,10 +18,10 @@ function TransactionListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onCheckboxPress,
-    onDismissError,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    isLoading,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -64,8 +64,6 @@ function TransactionListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onDismissError={onDismissError}
-            errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -85,7 +83,7 @@ function TransactionListItem<TItem extends ListItem>({
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
-                isLoading={transactionItem.isActionLoading}
+                isLoading={isLoading ?? transactionItem.isActionLoading}
             />
         </BaseListItem>
     );

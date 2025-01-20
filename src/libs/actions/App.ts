@@ -15,8 +15,8 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as SessionUtils from '@libs/SessionUtils';
+import {getMostRecentReportActionLastModified} from '@libs/ReportActionsUtils';
+import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,10 +26,10 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import * as PersistedRequests from './PersistedRequests';
-import * as Policy from './Policy/Policy';
+import {getAll, save} from './PersistedRequests';
+import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
-import * as Session from './Session';
+import {isAnonymousUser} from './Session';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -89,6 +89,22 @@ Onyx.connect({
     },
 });
 
+let preservedUserSession: OnyxTypes.Session | undefined;
+Onyx.connect({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
+    },
+});
+
+let preservedShouldUseStagingServer: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (value) => {
+        preservedShouldUseStagingServer = value?.shouldUseStagingServer;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -102,6 +118,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
+    ONYXKEYS.PRESERVED_USER_SESSION,
 ];
 
 Onyx.connect({
@@ -279,7 +296,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
         Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
@@ -310,7 +327,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
         Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // It is SUPER BAD FORM to return promises from action methods.
@@ -369,8 +386,8 @@ function endSignOnTransition() {
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
-    const policyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
+    const policyID = generatePolicyID();
+    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -393,7 +410,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**
@@ -418,10 +435,11 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
+        endSignOnTransition();
         return;
     }
 
-    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo') as Route | null;
 
@@ -445,6 +463,8 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
+    } else {
+        endSignOnTransition();
     }
 }
 
@@ -468,7 +488,7 @@ function redirectThirdPartyDesktopSignIn() {
  */
 function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
-    if (Session.isAnonymousUser()) {
+    if (isAnonymousUser()) {
         return;
     }
 
@@ -521,10 +541,15 @@ function setIsUsingImportedState(usingImportedState: boolean) {
     Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, usingImportedState);
 }
 
+function setPreservedUserSession(session: OnyxTypes.Session) {
+    Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
+}
+
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
-    const sequentialQueue = PersistedRequests.getAll();
+    const shouldUseStagingServer = preservedShouldUseStagingServer;
+    const sequentialQueue = getAll();
     Onyx.clear(KEYS_TO_PRESERVE).then(() => {
         // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
         if (isStateImported) {
@@ -533,6 +558,15 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
 
         if (shouldNavigateToHomepage) {
             Navigation.navigate(ROUTES.HOME);
+        }
+
+        if (preservedUserSession) {
+            Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+            Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+        }
+
+        if (shouldUseStagingServer) {
+            Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
         }
 
         // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
@@ -544,7 +578,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             sequentialQueue.forEach((request) => {
-                PersistedRequests.save(request);
+                save(request);
             });
         });
     });
@@ -571,5 +605,6 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };

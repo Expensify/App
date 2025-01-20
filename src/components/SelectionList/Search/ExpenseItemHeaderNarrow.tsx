@@ -7,7 +7,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -24,6 +24,7 @@ type ExpenseItemHeaderNarrowProps = {
     containerStyle?: StyleProp<ViewStyle>;
     onButtonPress: () => void;
     canSelectMultiple?: boolean;
+    shouldUseSuccessStyle?: boolean;
     isSelected?: boolean;
     isDisabled?: boolean | null;
     isDisabledCheckbox?: boolean;
@@ -41,6 +42,7 @@ function ExpenseItemHeaderNarrow({
     canSelectMultiple,
     containerStyle,
     isDisabledCheckbox,
+    shouldUseSuccessStyle = true,
     isSelected,
     isDisabled,
     handleCheckboxPress,
@@ -52,7 +54,7 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
-    const shouldDisplayArrowIcon = SearchUIUtils.isCorrectSearchUserName(participantFromDisplayName) && SearchUIUtils.isCorrectSearchUserName(participantToDisplayName);
+    const shouldDisplayArrowIcon = isCorrectSearchUserName(participantFromDisplayName) && isCorrectSearchUserName(participantToDisplayName);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
@@ -101,6 +103,7 @@ function ExpenseItemHeaderNarrow({
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     action={action}
+                    shouldUseSuccessStyle={shouldUseSuccessStyle}
                     goToItem={onButtonPress}
                     isLargeScreenWidth={false}
                     isSelected={isSelected}

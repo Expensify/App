@@ -56,9 +56,9 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
-    const policyID = report?.policyID ?? '-1';
+    const policyID = report?.policyID;
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
@@ -76,12 +76,12 @@ function IOURequestStepAmount({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (isSplitBill || !skipConfirmation || !report?.reportID) {
             return false;
         }
 
-        return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+        return !(ReportUtils.isArchivedReport(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
+    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -108,7 +108,7 @@ function IOURequestStepAmount({
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -169,36 +169,15 @@ function IOURequestStepAmount({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !ReportUtils.isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? -1;
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
-                if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                    playSound(SOUNDS.DONE);
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: backendAmount,
-                        comment: '',
-                        currency,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        tag: '',
-                        category: '',
-                        created: transaction?.created ?? '',
-                        billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
-
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
@@ -210,19 +189,21 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     playSound(SOUNDS.DONE);
-                    IOU.requestMoney(
+                    IOU.requestMoney({
                         report,
-                        backendAmount,
-                        transaction?.attendees,
-                        currency,
-                        transaction?.created ?? '',
-                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants.at(0) ?? {},
-                        '',
-                        {},
-                    );
+                        participantParams: {
+                            participant: participants.at(0) ?? {},
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency,
+                            created: transaction?.created ?? '',
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            attendees: transaction?.attendees,
+                        },
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
@@ -307,7 +288,7 @@ function IOURequestStepAmount({
                 amount={Math.abs(transactionAmount)}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
-                policyID={policy?.id ?? '-1'}
+                policyID={policy?.id}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
