@@ -164,9 +164,9 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     },
-                    tooltipShiftHorizontal: -32,
-                    tooltipShiftVertical: 15,
-                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                    tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
+                    tooltipShiftVertical: variables.savedSearchShiftVertical,
+                    tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
                     renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
@@ -177,7 +177,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             hash,
             getOverflowMenu,
             styles.alignItemsCenter,
-            styles.bgPaleGreen,
             styles.mh4,
             styles.pv2,
             personalDetails,
@@ -186,6 +185,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
+            styles.productTrainingTooltipWrapper,
         ],
     );
 

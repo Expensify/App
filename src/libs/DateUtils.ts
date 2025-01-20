@@ -855,21 +855,21 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
-function getFormattedDurationBetweenDates(localTranslate: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
         return;
     }
 
-    return `${hours ? `${hours}${localTranslate('common.hourAbbreviation')} ` : ''}${minutes}${localTranslate('common.minuteAbbreviation')}`;
+    return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
-function getFormattedDuration(localTranslate: LocaleContextProps['translate'], durationInSeconds: number): string {
+function getFormattedDuration(translateParam: LocaleContextProps['translate'], durationInSeconds: number): string {
     const hours = Math.floor(durationInSeconds / 3600);
     const minutes = Math.floor((durationInSeconds % 3600) / 60);
 
-    return `${hours ? `${hours}${localTranslate('common.hourAbbreviation')} ` : ''}${minutes}${localTranslate('common.minuteAbbreviation')}`;
+    return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -907,6 +907,10 @@ function getDifferenceInDaysFromNow(date: Date) {
 function isValidDateString(dateString: string) {
     const date = new Date(dateString);
     return !Number.isNaN(date.getTime());
+}
+
+function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
+    return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
 }
 
 const DateUtils = {
@@ -963,6 +967,7 @@ const DateUtils = {
     getFormattedDurationBetweenDates,
     getFormattedDuration,
     isFutureDate,
+    getFormattedDateRangeForPerDiem,
 };
 
 export default DateUtils;
