@@ -1,7 +1,9 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -46,6 +48,9 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
 
+    /** Used to apply styles to the Accordion */
+    accordionStyle?: StyleProp<ViewStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
 
@@ -81,6 +86,7 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -98,6 +104,12 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const isExpanded = useSharedValue(isActive);
+    const isToggleTriggered = useSharedValue(false);
+
+    useEffect(() => {
+        isExpanded.set(isActive);
+    }, [isExpanded, isActive]);
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -171,14 +183,23 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
+                        onToggle={(isOn) => {
+                            isToggleTriggered.set(true);
+                            onToggle(isOn);
+                        }}
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
+                <Accordion
+                    isExpanded={isExpanded}
+                    style={accordionStyle}
+                    isToggleTriggered={isToggleTriggered}
+                >
+                    {subMenuItems}
+                </Accordion>
             </View>
         </OfflineWithFeedback>
     );
