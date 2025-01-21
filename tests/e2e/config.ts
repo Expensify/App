@@ -26,6 +26,7 @@ export default {
 
     MAIN_APP_PATH: './app-e2eRelease.apk',
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
+    FLAG: '',
 
     BRANCH_MAIN: 'main',
     BRANCH_DELTA: 'delta',

@@ -463,6 +463,8 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
+3. The first time you build the app you will need to build YAPL (OldDot javascript logic). Simply run `npm run grunt:build:shared` from the `Mobile-Expensify` submodule
+    - The following runtime error often indicates that YAPL has not been built correctly: `undefined is not an object (evaluating'Store.ReportHistory.bindCacheClearingEvents')`
 
 At this point, the default behavior of some `npm` scripts will change to target HybridApp:
 - `npm run android` - build HybridApp for Android
@@ -472,7 +474,7 @@ At this point, the default behavior of some `npm` scripts will change to target 
 - `npm run pod-install` - install pods for HybridApp
 - `npm run clean` - clean native code of HybridApp
 
-If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). 
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
 
 ## Working with HybridApp
 Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
@@ -500,7 +502,7 @@ It's important to emphasise that a git submodule is just a **regular git reposit
 > #### For external contributors
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
-> 
+>
 > `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
 >
 > This way, you'll attach the submodule to your fork repository.

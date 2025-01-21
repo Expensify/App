@@ -8,10 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Policy from '@userActions/Policy/Policy';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
@@ -31,9 +31,9 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
+            updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
         [policy],
     );
@@ -43,12 +43,12 @@ function WorkspaceNamePage({policy}: Props) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
             const name = values.name.trim();
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
+            if (!isRequiredFulfilled(name)) {
                 errors.name = translate('workspace.editor.nameIsRequiredError');
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -58,16 +58,16 @@ function WorkspaceNamePage({policy}: Props) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? '-1'}
+            policyID={policy?.id}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={WorkspaceNamePage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.editor.nameInputLabel')}
+                    title={translate('workspace.common.workspaceName')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
 
@@ -85,11 +85,12 @@ function WorkspaceNamePage({policy}: Props) {
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            label={translate('workspace.common.workspaceName')}
+                            accessibilityLabel={translate('workspace.common.workspaceName')}
                             defaultValue={policy?.name}
                             spellCheck={false}
                             autoFocus
+                            shouldDelayFocus
                         />
                     </View>
                 </FormProvider>

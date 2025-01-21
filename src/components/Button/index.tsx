@@ -366,6 +366,10 @@ function Button(
                     if (shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
+
+                    if (isDisabled || isLoading) {
+                        return; // Prevent the onPress from being triggered when the button is disabled or in a loading state
+                    }
                     return onPress(event);
                 }}
                 onLongPress={(event) => {

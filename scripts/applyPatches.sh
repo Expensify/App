@@ -11,13 +11,24 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 function patchPackage {
   # See if we're in the HybridApp repo
   IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
+  NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
   OS="$(uname)"
   if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
-    npx patch-package --error-on-fail --color=always
-    if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
-      npx patch-package --patch-dir 'Mobile-Expensify/patches' --error-on-fail --color=always
+    if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+      TEMP_PATCH_DIR=$(mktemp -d ./tmp-patches-XXX)
+      cp -r ./patches/* "$TEMP_PATCH_DIR"
+      cp -r ./Mobile-Expensify/patches/* "$TEMP_PATCH_DIR"
+
+      npx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always
+      EXIT_CODE=$?
+
+      rm -rf "$TEMP_PATCH_DIR"
+    else
+      npx patch-package --error-on-fail --color=always
+      EXIT_CODE=$?
     fi
+    exit $EXIT_CODE
   else
     error "Unsupported OS: $OS"
     exit 1
