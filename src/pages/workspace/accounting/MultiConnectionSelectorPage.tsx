@@ -1,5 +1,6 @@
 import {title} from 'process';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -38,7 +39,6 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // s77rt: set popoverAnchorRefs
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
     const integrations = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[multiConnectionName] ?? [];
@@ -65,6 +65,14 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                                 //shouldDisconnectIntegrationBeforeConnecting: true,
                             });
                         },
+                        ref: (ref) => {
+                            if (!popoverAnchorRefs?.current) {
+                                return;
+                            }
+
+                            // eslint-disable-next-line react-compiler/react-compiler
+                            popoverAnchorRefs.current[integration].current = ref;
+                        },
                     };
 
                     return connectionsMenuItem;
@@ -88,11 +96,13 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton title={translate(`workspace.multiConnectionSelector.title`, {connectionName: multiConnectionName})} />
-                <Text style={[styles.ph5, styles.pt3, styles.mb5]}>{translate(`workspace.multiConnectionSelector.description`, {connectionName: multiConnectionName})}</Text>
-                <MenuItemList
-                    menuItems={connectionsMenuItems}
-                    shouldUseSingleExecution
-                />
+                <View style={[styles.flexGrow1]}>
+                    <Text style={[styles.mb5, styles.ph5, styles.pt3]}>{translate(`workspace.multiConnectionSelector.description`, {connectionName: multiConnectionName})}</Text>
+                    <MenuItemList
+                        menuItems={connectionsMenuItems}
+                        shouldUseSingleExecution
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

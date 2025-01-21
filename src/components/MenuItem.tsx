@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode} from 'react';
+import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
@@ -60,6 +60,9 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
+    /* View ref  */
+    ref?: Ref<View>;
+
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
