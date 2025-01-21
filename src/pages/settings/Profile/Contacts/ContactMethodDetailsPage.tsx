@@ -26,6 +26,7 @@ import {
     clearUnvalidatedNewContactMethodAction,
     deleteContactMethod,
     requestContactMethodValidateCode,
+    resetContactMethodValidateCodeSentState,
     setContactMethodAsDefault,
     validateSecondaryLogin,
 } from '@libs/actions/User';
@@ -164,6 +165,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
+
+    useEffect(() => {
+        resetContactMethodValidateCodeSentState(contactMethod);
+    }, [contactMethod]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
