@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {Linking, NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,6 +14,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {buildTravelDotURL} from '@libs/actions/Link';
 import {acceptSpotnanaTerms} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -30,15 +31,18 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const {canUseSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const isLoading = travelSettings?.isLoading;
-    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
-
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const isLoading = travelProvisioning?.isLoading;
+    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED) {
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+            Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
+        }
+        if (travelProvisioning?.spotnanaToken) {
+            Linking.openURL(buildTravelDotURL(travelProvisioning?.spotnanaToken));
+            Navigation.goBack();
             Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
         }
     }, [travelProvisioning, domain]);
@@ -111,9 +115,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                         setErrorMessage('');
                                     }
 
-                                    acceptSpotnanaTerms(domain)
-                                        .then(() => Navigation.goBack())
-                                        .catch(() => setErrorMessage(translate('travel.errorMessage')));
+                                    acceptSpotnanaTerms(domain);
                                 }}
                                 message={errorMessage}
                                 isAlertVisible={!!errorMessage}
