@@ -660,6 +660,7 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NSQS: 'nsqs',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
