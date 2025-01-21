@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
 
 type MapViewProps = {
     // Public access token to be used to fetch map data from Mapbox.

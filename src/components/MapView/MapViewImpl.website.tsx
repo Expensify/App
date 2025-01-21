@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import * as UserLocation from '@userActions/UserLocation';
+import {clearUserLocation, setUserLocation} from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -91,7 +91,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                 if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
-                UserLocation.clearUserLocation();
+                clearUserLocation();
             },
             [initialLocation],
         );
@@ -115,7 +115,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    UserLocation.setUserLocation(currentCoords);
+                    setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );

@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
@@ -13,22 +13,17 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import { getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MapboxAccessToken, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 const MAX_WAYPOINTS = 25;
 
-type DistanceRequestFooterOnyxProps = {
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
-};
-
-type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
+type DistanceRequestFooterProps = {
     /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
@@ -42,19 +37,20 @@ type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
     policy: OnyxEntry<Policy>;
 };
 
-function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = getPolicy(activePolicyID);
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
     const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy ?? activePolicy);
     const policyCurrency = (policy ?? activePolicy)?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
 
     const getMarkerComponent = useCallback(
@@ -77,7 +73,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         return;
                     }
 
-                    const index = TransactionUtils.getWaypointIndex(key);
+                    const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -125,7 +121,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={TransactionUtils.getDistanceInMeters(transaction, undefined)}
+                    distanceInMeters={getDistanceInMeters(transaction, undefined)}
                     unit={unit}
                 />
             </View>
@@ -135,8 +131,4 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
 
 DistanceRequestFooter.displayName = 'DistanceRequestFooter';
 
-export default withOnyx<DistanceRequestFooterProps, DistanceRequestFooterOnyxProps>({
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
-})(DistanceRequestFooter);
+export default DistanceRequestFooter;

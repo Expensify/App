@@ -10,7 +10,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserLocation from '@libs/actions/UserLocation';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
@@ -72,7 +72,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                 if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
-                UserLocation.clearUserLocation();
+                clearUserLocation();
             },
             [initialLocation],
         );
@@ -96,7 +96,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    UserLocation.setUserLocation(currentCoords);
+                    setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
