@@ -32,6 +32,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import DebugTabView from './DebugTabView';
+import clearSelectedText from "@libs/clearSelectedText";
 
 type BottomTabBarProps = {
     selectedTab: string | undefined;
@@ -107,6 +108,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
             return;
         }
+        clearSelectedText();
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState() as State<RootStackParamList>;
             const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);

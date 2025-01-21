@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import clearSelectedText from '@libs/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -36,6 +37,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
+        clearSelectedText();
         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
     }, [isCreateMenuOpen]);
 
