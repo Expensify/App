@@ -38,7 +38,7 @@ function NamePage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [name, setName] = useState(() => Parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
+    const [name, setName] = useState(currentTaxRate?.name ?? '');
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
 
