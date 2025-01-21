@@ -157,46 +157,68 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const activePolicyID = 'DEF456';
+
     const WORKSPACE_CHATS: ReportUtils.OptionData[] = [
         {
             reportID: '1',
             text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
         },
         {
             reportID: '2',
             text: 'Google Drive Workspace',
+            policyID: '22',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '3',
             text: 'Slack Team Workspace',
+            policyID: '33',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '4',
             text: 'Slack Development Workspace',
+            policyID: '44',
+            isPolicyExpenseChat: true,
         },
         {
             reportID: '5',
             text: 'Microsoft Teams Workspace',
+            policyID: '55',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '6',
             text: 'Microsoft Project Workspace',
+            policyID: '66',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '7',
             text: 'Notion Design Workspace',
+            policyID: '77',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '8',
             text: 'Notion Workspace for Marketing',
+            policyID: activePolicyID,
+            isPolicyExpenseChat: true,
         },
         {
             reportID: '9',
             text: 'Asana Task Workspace',
+            policyID: '99',
+            isPolicyExpenseChat: false,
         },
         {
             reportID: '10',
             text: 'Asana Project Management',
+            policyID: '1010',
+            isPolicyExpenseChat: true,
         },
     ];
 
@@ -423,6 +445,7 @@ describe('OptionsListUtils', () => {
                     total: 1000,
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
             },
         });
         Onyx.registerLogger(() => {});
@@ -1117,6 +1140,14 @@ describe('OptionsListUtils', () => {
             const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
 
             expect(result.length).toEqual(0);
+        });
+    });
+
+    describe('orderWorkspaceOptions', () => {
+        it('should put the default workspace on top of the list', () => {
+            const result = OptionsListUtils.orderWorkspaceOptions(WORKSPACE_CHATS);
+
+            expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
         });
     });
 });
