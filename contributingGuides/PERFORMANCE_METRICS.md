@@ -24,6 +24,7 @@ Project is using Firebase for tracking these metrics. However, not all of them a
 | `open_report_from_preview`   | ✅ | Time taken to open a report from preview.<br><br>(previously `switch_report_from_preview`)<br><br>**Platforms:** All     | Starts when the user presses the Report Preview.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `open_report_thread`   | ✅ | Time taken to open a thread in a report.<br><br>**Platforms:** All      | Starts when user presses Report Action Item.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `send_message`    | ✅ | Time taken to send a message.<br><br>**Platforms:** All      | Starts when the new message is sent.     | Stops when the message is being rendered in the chat.     |
+| `pusher_ping_pong`    | ✅ | The time it takes to receive a PONG event through Pusher.<br><br>**Platforms:** All      | Starts every minute and repeats on the minute.     | Stops when the event is received from the server.     |
 
 ## Documentation Maintenance
 

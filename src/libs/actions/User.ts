@@ -51,6 +51,7 @@ import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Performance from '../Performance';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
@@ -920,6 +921,7 @@ function subscribeToPusherPong() {
 
         // Remove the event from the map
         delete pingIDsAndTimestamps[pongEvent.pingID];
+        Performance.markEnd(CONST.TIMING.PUSHER_PING_PONG);
     });
 }
 
@@ -955,6 +957,7 @@ function pingPusher() {
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
+    Performance.markStart(CONST.TIMING.PUSHER_PING_PONG);
 }
 
 function checkforMissingPongEvents() {
