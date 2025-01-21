@@ -1,4 +1,5 @@
 import {isBefore} from 'date-fns';
+import {Network} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -28,8 +29,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {setOfflineStatus} from '@libs/NetworkConnection';
+import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -894,7 +896,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 // Holds a map of all the PINGs that have been sent to the server and when they were sent
 // Once a PONG is received, the event data will be removed from this map.
 type PingPongTimestampMap = Record<string, number>;
-const pingIDsAndTimestamps: PingPongTimestampMap = {};
+let pingIDsAndTimestamps: PingPongTimestampMap = {};
 
 function subscribeToPusherPong() {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
@@ -923,16 +925,20 @@ function subscribeToPusherPong() {
 }
 
 // Specify how long between each PING event to the server
-const PING_INTERVAL_LENGTH_IN_SECONDS = 5;
+const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 
 // Specify how long between each check for missing PONG events
-const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 5;
+const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
 // Specifiy how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
 const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 let lastTimestamp = Date.now();
 function pingPusher() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping ping because the client is offline');
+        return;
+    }
     // Send a PING event to the server with a specific ID and timestamp
     // The server will respond with a PONG event with the same ID and timestamp
     // Then we can calculate the latency between the client and the server (or if the server never replies)
@@ -965,7 +971,11 @@ function checkforMissingPongEvents() {
     // This means that the server never replied to the PING event.
     if (ageOfEventInMS > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
         Log.info(`[Pusher PINGPONG] The server has not replied to the PING event ${eventID} in ${ageOfEventInMS} ms so going offline`);
-        setOfflineStatus(true, 'The client never got a Pusher PONG event after sending a Pusher PING event');
+        NetworkConnection.setOfflineStatus(true, 'The client never got a Pusher PONG event after sending a Pusher PING event');
+
+        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
+        lastTimestamp = Date.now();
+        pingIDsAndTimestamps = {};
     }
 }
 
