@@ -455,6 +455,7 @@ const translations = {
         drafts: 'Drafts',
         finished: 'Finished',
         upgrade: 'Upgrade',
+        downgradeWorkspace: 'Downgrade workspace',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
@@ -489,6 +490,10 @@ const translations = {
         skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
+        destination: 'Destination',
+        subrate: 'Subrate',
+        perDiem: 'Per diem',
+        validate: 'Validate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -516,6 +521,7 @@ const translations = {
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Attachment size is larger than ${maxUploadSizeInMB} MB limit`,
         attachmentTooSmall: 'Attachment is too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Invalid file type',
@@ -567,6 +573,7 @@ const translations = {
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: "Here's your magic code",
         description: 'Please enter the code from the device\nwhere it was originally requested',
+        doNotShare: 'Do not share your code with anyone.\nExpensify will never ask you for it!',
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
@@ -656,10 +663,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -834,22 +837,18 @@ const translations = {
     quickAction: {
         scanReceipt: 'Scan receipt',
         recordDistance: 'Record distance',
-        requestMoney: 'Submit expense',
+        requestMoney: 'Create expense',
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
-        trackManual: 'Track expense',
-        trackScan: 'Track receipt',
+        trackManual: 'Create expense',
+        trackScan: 'Create expense for receipt',
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -867,10 +866,9 @@ const translations = {
         categorize: 'Categorize',
         share: 'Share',
         participants: 'Participants',
-        submitExpense: 'Submit expense',
         createExpense: 'Create expense',
-        trackExpense: 'Track expense',
         chooseRecipient: 'Choose recipient',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -884,7 +882,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
-        receiptScanning: 'Receipt scanning...',
+        receiptScanning: () => ({
+            one: 'Receipt scanning...',
+            other: 'Receipts scanning...',
+        }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({
@@ -1018,6 +1019,9 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
             atLeastOneAttendee: 'At least one attendee must be selected',
+            invalidQuantity: 'Please enter a valid quantity.',
+            quantityGreaterThanZero: 'Quantity must be greater than zero.',
+            invalidSubrateLength: 'There must be at least one subrate.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -1050,13 +1054,11 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This expense is on',
-        whatIsHoldTitle: 'What is hold?',
-        whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
-        holdIsTemporaryTitle: 'Hold is usually temporary',
-        holdIsTemporaryExplain: "Hold is used to clear up confusion or clarify an important detail before payment. Don't worry, it's not permanent!",
-        deleteHoldTitle: "Delete whatever won't be paid",
-        deleteHoldExplain: "In the rare case where something's put on hold and won't be paid, it's on the person requesting payment to delete it.",
+        holdEducationalTitle: 'This request is on',
+        holdEducationalText: 'hold',
+        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
+        holdIsLeftBehind: 'Held expenses are left behind even if you approve an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to approve or pay.",
         set: 'set',
         changed: 'changed',
         removed: 'removed',
@@ -1076,6 +1078,30 @@ const translations = {
         attendees: 'Attendees',
         paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
+        time: 'Time',
+        startDate: 'Start date',
+        endDate: 'End date',
+        startTime: 'Start time',
+        endTime: 'End time',
+        deleteSubrate: 'Delete subrate',
+        deleteSubrateConfirmation: 'Are you sure you want to delete this subrate?',
+        quantity: 'Quantity',
+        subrateSelection: 'Select a subrate and enter a quantity.',
+        qty: 'Qty',
+        firstDayText: () => ({
+            one: `First day: 1 hour`,
+            other: (count: number) => `First day: ${count.toFixed(2)} hours`,
+        }),
+        lastDayText: () => ({
+            one: `Last day: 1 hour`,
+            other: (count: number) => `Last day: ${count.toFixed(2)} hours`,
+        }),
+        tripLengthText: () => ({
+            one: `Trip: 1 full day`,
+            other: (count: number) => `Trip: ${count} full days`,
+        }),
+        dates: 'Dates',
+        rates: 'Rates',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1258,6 +1284,7 @@ const translations = {
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
+            invalidateWithDelay: 'Invalidate with delay',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1760,6 +1787,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
+        welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
@@ -1858,7 +1886,10 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
+        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -1943,7 +1974,7 @@ const translations = {
         chooseAnAccountBelow: 'Choose an account below',
         addBankAccount: 'Add bank account',
         chooseAnAccount: 'Choose an account',
-        connectOnlineWithPlaid: 'Connect via Plaid',
+        connectOnlineWithPlaid: 'Log into your bank',
         connectManually: 'Connect manually',
         desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
@@ -2485,6 +2516,7 @@ const translations = {
             carType: 'Car type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            freeCancellation: 'Free cancellation',
             confirmation: 'Confirmation number',
         },
         train: 'Rail',
@@ -2536,8 +2568,7 @@ const translations = {
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
-            profile: 'Profile',
-            perDiem: 'Per diem',
+            profile: 'Workspace profile',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -2548,6 +2579,8 @@ const translations = {
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
+            setAsDefault: 'Set as default workspace',
+            defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
@@ -2555,6 +2588,7 @@ const translations = {
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             goToWorkspace: 'Go to workspace',
+            goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
@@ -2609,8 +2643,6 @@ const translations = {
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
-            destination: 'Destination',
-            subrate: 'Subrate',
             amount: 'Amount',
             deleteRates: () => ({
                 one: 'Delete rate',
@@ -2630,6 +2662,7 @@ const translations = {
             },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
+            editPerDiemRates: 'Edit per diem rates',
             editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this destination will change it for all ${destination} per diem subrates.`,
             editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this currency will change it for all ${destination} per diem subrates.`,
         },
@@ -3339,8 +3372,8 @@ const translations = {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
-                customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
-                directFeedDetails: 'Connect now using your master credentials. This is most common.',
+                customFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
@@ -3527,7 +3560,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Earn',
-                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+                subtitle: 'Streamline your revenue and get paid faster.',
             },
             organizeSection: {
                 title: 'Organize',
@@ -3553,7 +3586,7 @@ const translations = {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
-                    subTitle: 'Streamline your business with the Expensify Card.',
+                    subTitle: 'Streamline your business expenses and save up to 50% on your Expensify bill, plus:',
                     features: {
                         cashBack: 'Cash back on every US purchase',
                         unlimited: 'Unlimited virtual cards',
@@ -3581,7 +3614,8 @@ const translations = {
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported.`,
+                integrationExportTitlePart: 'Select a different',
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
                 lastUpdated: 'Last updated',
@@ -3783,7 +3817,7 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more -- all at the speed of chat.',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more — all at the speed of chat.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -3801,6 +3835,7 @@ const translations = {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
+            confirmWorkspace: 'Confirm Workspace',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
@@ -4155,7 +4190,7 @@ const translations = {
             from: 'from',
         },
         inviteMessage: {
-            inviteMessageTitle: 'Add message',
+            confirmDetails: 'Confirm details',
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
@@ -4343,8 +4378,6 @@ const translations = {
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
-                collect: '$5 ',
-                amount: '$9 ',
                 perActiveMember: 'per active member per month.',
             },
             note: {
@@ -4365,7 +4398,8 @@ const translations = {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
+                    startsAt: 'The Control plan starts at ',
+                    perMember: 'per active member per month.',
                     learnMore: 'Learn more',
                     pricing: 'about our plans and pricing.',
                     benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
@@ -4373,6 +4407,27 @@ const translations = {
                     benefit3: 'Multi-level approval workflows',
                     benefit4: 'Enhanced security controls',
                 },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Downgrade to the Collect plan',
+                note: 'If you downgrade, you’ll lose access to these features and more:',
+                benefits: {
+                    note: 'For a full comparison of our plans, check out our',
+                    pricingPage: 'pricing page',
+                    confirm: 'Are you sure you want to downgrade and remove your configurations?',
+                    warning: 'This cannot be undone.',
+                    benefit1: 'Accounting connections (except QuickBooks Online and Xero)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
+            completed: {
+                headline: 'Your workspace has been downgraded',
+                description: 'You have other workspaces on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                gotIt: 'Got it, thanks',
             },
         },
         restrictedAction: {
@@ -4503,6 +4558,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
+        scheduleADemo: 'Schedule a demo',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
@@ -4565,6 +4621,8 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        downgradedWorkspace: 'downgraded this workspace to the Collect plan',
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -4650,7 +4708,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -4681,6 +4738,13 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
+            },
+            card: {
+                expensify: 'Expensify',
+                individualCards: 'Individual cards',
+                cardFeeds: 'Card feeds',
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             current: 'Current',
             past: 'Past',
@@ -5551,6 +5615,49 @@ const translations = {
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
         },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
+        },
+        workspaceChatTooltip: {
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
+        },
+        globalCreateTooltip: {
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
+        },
+    },
+    discardChangesConfirmation: {
+        title: 'Discard changes?',
+        body: 'Are you sure you want to discard the changes you made?',
+        confirmText: 'Discard changes',
     },
 };
 
