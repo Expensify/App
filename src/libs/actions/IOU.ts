@@ -4635,7 +4635,7 @@ function trackExpense(
                 return;
             }
             const transactionParams = {
-                transactionID: transaction?.transactionID ?? '-1',
+                transactionID: transaction?.transactionID,
                 amount,
                 currency,
                 comment,
@@ -4649,17 +4649,17 @@ function trackExpense(
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
             };
             const policyParams = {
-                policyID: chatReport?.policyID ?? '-1',
+                policyID: chatReport?.policyID,
             };
             const reportInformation = {
-                moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
-                moneyRequestReportID: iouReport?.reportID ?? '-1',
-                moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID,
+                moneyRequestReportID: iouReport?.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
                 actionableWhisperReportActionID,
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID,
-                transactionThreadReportID: transactionThreadReportID ?? '-1',
-                reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
+                transactionThreadReportID,
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
             };
             const trackedExpenseParams = {
                 onyxData,
