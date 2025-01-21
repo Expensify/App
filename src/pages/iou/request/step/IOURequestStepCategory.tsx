@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';

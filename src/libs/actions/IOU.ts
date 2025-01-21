@@ -3942,7 +3942,7 @@ function updateMoneyRequestCategory(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    hash: number,
+    hash?: number,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
