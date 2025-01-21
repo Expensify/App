@@ -358,7 +358,6 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
-            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -494,6 +493,7 @@ const translations = {
         destination: 'Destination',
         subrate: 'Subrate',
         perDiem: 'Per diem',
+        validate: 'Validate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1886,7 +1886,10 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
+        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -2536,6 +2539,7 @@ const translations = {
             carType: 'Car type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            freeCancellation: 'Free cancellation',
             confirmation: 'Confirmation number',
         },
         train: 'Rail',
@@ -3579,7 +3583,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Earn',
-                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+                subtitle: 'Streamline your revenue and get paid faster.',
             },
             organizeSection: {
                 title: 'Organize',
@@ -3836,7 +3840,7 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more -- all at the speed of chat.',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more — all at the speed of chat.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -3854,6 +3858,7 @@ const translations = {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
+            confirmWorkspace: 'Confirm Workspace',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
@@ -4576,6 +4581,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
+        scheduleADemo: 'Schedule a demo',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
