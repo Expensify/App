@@ -18,7 +18,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearCardListErrors, clearReportVirtualCardFraudForm, reportVirtualExpensifyCardFraud} from '@userActions/Card';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -65,22 +64,18 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        if (latestIssuedVirtualCardID) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
-        }
-    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors, latestIssuedVirtualCardID]);
         // if we switch from loading to not loading, show the confirmation modal
-    //    setIsConfirmationModalVisible(true);
-    //}, [formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+        setIsConfirmationModalVisible(true);
+    }, [formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
             if (!virtualCard) {
                 return;
             }
+
             reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-            setIsValidateCodeActionModalVisible(false);
-        //    reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+            // setIsValidateCodeActionModalVisible(false);
         },
         [virtualCard],
     );
@@ -98,7 +93,6 @@ function ReportVirtualCardFraudPage({
     }, [setIsValidateCodeActionModalVisible]);
 
     if (isEmptyObject(virtualCard) && isEmptyObject(prevVirtualCard)) {
-    //if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;
     }
 
@@ -126,7 +120,6 @@ function ReportVirtualCardFraudPage({
                             return;
                         }
                         clearCardListErrors(virtualCard.cardID);
-                    //    clearCardListErrors(virtualCard?.cardID ?? CONST.DEFAULT_NUMBER_ID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
@@ -142,7 +135,10 @@ function ReportVirtualCardFraudPage({
                     onClose={() => {
                         setIsValidateCodeActionModalVisible(false);
                         setIsConfirmationModalVisible(false);
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+
+                        if (latestIssuedVirtualCardID) {
+                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
+                        }
                     }}
                 />
             </View>
