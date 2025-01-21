@@ -12,6 +12,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
     isApprovedAnimationRunning: boolean;
+    isSubmitAnimationRunning: boolean;
     canIOUBePaid: boolean;
 };
 
@@ -21,6 +22,7 @@ function AnimatedSettlementButton({
     isApprovedAnimationRunning,
     isDisabled,
     canIOUBePaid,
+    isSubmitAnimationRunning,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
@@ -48,7 +50,7 @@ function AnimatedSettlementButton({
         marginTop: buttonMarginTop.get(),
     }));
     const buttonDisabledStyle =
-        isPaidAnimationRunning || isApprovedAnimationRunning
+        isPaidAnimationRunning || isApprovedAnimationRunning || isSubmitAnimationRunning
             ? {
                   opacity: 1,
                   ...styles.cursorDefault,
@@ -65,7 +67,7 @@ function AnimatedSettlementButton({
     }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
 
     useEffect(() => {
-        if (!isApprovedAnimationRunning && !isPaidAnimationRunning) {
+        if (!isApprovedAnimationRunning && !isPaidAnimationRunning && !isSubmitAnimationRunning) {
             resetAnimation();
             return;
         }
@@ -88,6 +90,7 @@ function AnimatedSettlementButton({
     }, [
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
+        isSubmitAnimationRunning,
         onAnimationFinish,
         buttonOpacity,
         buttonScale,

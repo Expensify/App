@@ -173,6 +173,7 @@ function ReportPreview({
 
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
+    const [isSubmitAnimationRunning, setIsSubmitAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -246,7 +247,7 @@ function ReportPreview({
 
     const isArchived = isArchivedReport(iouReport);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations) || isSubmitAnimationRunning;
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
@@ -262,6 +263,7 @@ function ReportPreview({
     const stopAnimation = useCallback(() => {
         setIsPaidAnimationRunning(false);
         setIsApprovedAnimationRunning(false);
+        setIsSubmitAnimationRunning(false);
     }, []);
     const startAnimation = useCallback(() => {
         setIsPaidAnimationRunning(true);
@@ -269,6 +271,10 @@ function ReportPreview({
     }, []);
     const startApprovedAnimation = useCallback(() => {
         setIsApprovedAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
+    const startSubmitAnimation = useCallback(() => {
+        setIsSubmitAnimationRunning(true);
         HapticFeedback.longPress();
     }, []);
 
@@ -404,7 +410,7 @@ function ReportPreview({
 
     const bankAccountRoute = getBankAccountRoute(chatReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation && !isSubmitAnimationRunning;
 
     const shouldPromptUserToAddBankAccount = (hasMissingPaymentMethod(userWallet, iouReportID) || hasMissingInvoiceBankAccount(iouReportID)) && !isSettled(iouReportID);
     const shouldShowRBR = hasErrors && !iouSettled;
@@ -622,6 +628,7 @@ function ReportPreview({
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                        isSubmitAnimationRunning={isSubmitAnimationRunning}
                                         canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
