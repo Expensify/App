@@ -5348,7 +5348,6 @@ const styles = (theme: ThemeColors) =>
             height: 2,
             width: '100%',
             backgroundColor: theme.transparent,
-            borderRadius: 2,
             overflow: 'hidden',
             marginBottom: -1,
         },
