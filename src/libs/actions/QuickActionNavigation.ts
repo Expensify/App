@@ -2,10 +2,11 @@ import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import * as IOU from './IOU';
-import * as Task from './Task';
+import {startMoneyRequest} from './IOU';
+import type {IOURequestType} from './IOU';
+import {startOutCreateTaskQuickAction} from './Task';
 
-function getQuickActionRequestType(action: QuickActionName | undefined): IOU.IOURequestType | undefined {
+function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
     if (!action) {
         return;
     }
@@ -35,23 +36,23 @@ function navigateToQuickAction(
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
             return;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true), true);
             return;
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             return;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : undefined, quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
+            selectOption(() => startOutCreateTaskQuickAction(isValidReport ? reportID : undefined, quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         default:
     }

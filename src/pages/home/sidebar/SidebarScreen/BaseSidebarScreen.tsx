@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -45,7 +45,7 @@ function BaseSidebarScreen() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
+            style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}, styles.pb0]}
             testID={BaseSidebarScreen.displayName}
             includePaddingTop={false}
         >
