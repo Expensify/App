@@ -1,28 +1,19 @@
-import {title} from 'process';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
-import SCREENS from '@src/SCREENS';
 import AccessOrNotFoundWrapper from '../AccessOrNotFoundWrapper';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
-import {AccountingIntegration, MenuItemData} from './types';
+import {MenuItemData} from './types';
 import {getAccountingIntegrationData} from './utils';
 
 type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
