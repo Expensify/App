@@ -138,6 +138,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
+    const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
@@ -431,43 +432,48 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean => {
+            if (shouldShowNotFoundLinkedAction) {
+                return true;
+            }
 
-        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
-        if (isLoadingApp !== false) {
-            return false;
-        }
+            // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+            if (isLoadingApp !== false) {
+                return false;
+            }
 
-        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
-        // showing the Not Found page
-        if (finishedLoadingApp) {
-            return false;
-        }
+            // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+            // showing the Not Found page
+            if (finishedLoadingApp) {
+                return false;
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
             // eslint-disable-next-line react-compiler/react-compiler
-            return true;
-        }
+            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                return true;
+            }
 
-        if (shouldHideReport) {
-            return true;
-        }
-        return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-    }, [
-        shouldShowNotFoundLinkedAction,
-        isLoadingApp,
-        finishedLoadingApp,
-        reportID,
-        isOptimisticDelete,
-        reportMetadata?.isLoadingInitialReportActions,
-        userLeavingStatus,
-        shouldHideReport,
-        currentReportIDFormRoute,
-    ]);
+            if (shouldHideReport) {
+                return true;
+            }
+            return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            isLoadingApp,
+            finishedLoadingApp,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            shouldHideReport,
+            currentReportIDFormRoute,
+        ],
+    );
 
     const fetchReport = useCallback(() => {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -600,6 +606,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // We don't want this effect to run on the first render.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
+            setFirstRender(false);
             return;
         }
 
