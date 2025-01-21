@@ -123,6 +123,8 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
     };
 
     if (isEmoji) {
+        const positionFix = Platform.OS !== 'web' && {height: '5%'};
+        const floatingStyles = {...styles.floatingActionButtonEmoji, ...positionFix};
         return (
             <PressableWithoutFeedback
                 ref={(el) => {
@@ -131,7 +133,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isEm
                         buttonRef.current = el ?? null;
                     }
                 }}
-                style={(styles.floatingActionButtonEmoji, Platform.OS !== 'web' && {height: '5%'})}
+                style={floatingStyles}
                 accessibilityLabel={accessibilityLabel}
                 onPress={toggleFabAction}
                 onLongPress={() => {}}
