@@ -56,6 +56,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
@@ -89,7 +90,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     };
 
     // TODO: add a proper condition to display the settle balance button
-    const isSettleBalanceButtonDisplayed = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+    const isSettleBalanceButtonDisplayed = !!cardManualBilling && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+    const isSettleDateTextDisplayed = !!cardManualBilling && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
 
     return (
         <View style={[styles.flex1]}>
@@ -126,6 +128,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     </View>
                 )}
             </View>
+            {isSettleDateTextDisplayed && (
+                <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate: 'date'})}</Text>
+            )}
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}
