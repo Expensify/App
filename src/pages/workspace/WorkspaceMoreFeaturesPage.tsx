@@ -400,7 +400,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     key="section-filler-col"
                     aria-hidden
                     accessibilityElementsHidden
-                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.m0, styles.visibilityHidden, styles.bgTransparent]}
+                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.mt0, styles.visibilityHidden, styles.bgTransparent]}
                 />
             );
         },
