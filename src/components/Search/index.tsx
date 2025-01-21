@@ -29,9 +29,9 @@ import {
     getSortedSections,
     isReportActionListItemType,
     isReportListItemType,
-    isSearchResultsEmpty,
+    isSearchResultsEmpty as isSearchResultsEmptyUtils,
     isTransactionListItemType,
-    shouldShowYear,
+    shouldShowYear as shouldShowYearUtils,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -238,8 +238,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const isCurrentSearchResultsEmpty = !searchResults?.data || isSearchResultsEmpty(searchResults);
-    const isPrevSearchResultEmpty = usePrevious(isCurrentSearchResultsEmpty);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtils(searchResults);
+    const isPrevSearchResultsEmpty = usePrevious(isSearchResultsEmpty);
 
     const data = useMemo(() => {
         if (searchResults === undefined) {
@@ -306,11 +306,11 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     }, [data, setSelectedTransactions]);
 
     useEffect(() => {
-        if (!isCurrentSearchResultsEmpty || isPrevSearchResultEmpty) {
+        if (!isSearchResultsEmpty || isPrevSearchResultsEmpty) {
             return;
         }
         turnOffMobileSelectionMode();
-    }, [isCurrentSearchResultsEmpty, isPrevSearchResultEmpty]);
+    }, [isSearchResultsEmpty, isPrevSearchResultsEmpty]);
 
     useEffect(
         () => () => {
@@ -359,7 +359,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = isCurrentSearchResultsEmpty || !isDataLoaded;
+    const shouldShowEmptyState = isSearchResultsEmpty || !isDataLoaded;
 
     if (shouldShowEmptyState) {
         return (
@@ -463,6 +463,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
 
+    const shouldShowYear = shouldShowYearUtils(searchResults?.data);
+
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
             ref={handleSelectionListScroll(sortedSelectedData)}
@@ -479,7 +481,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                         onSortPress={onSortPress}
                         sortOrder={sortOrder}
                         sortBy={sortBy}
-                        shouldShowYear={shouldShowYear(searchResults?.data)}
+                        shouldShowYear={shouldShowYear}
                         shouldShowSorting={shouldShowSorting}
                     />
                 )
