@@ -413,7 +413,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             >
                 <Section
                     containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent]}
-                    childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap5]}
+                    childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
                     title={translate(section.titleTranslationKey)}
                     titleStyles={styles.textStrong}
                     subtitleMuted
@@ -457,7 +457,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
+                    <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
                     {sections.map(renderSection)}
                 </ScrollView>
 
