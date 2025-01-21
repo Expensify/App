@@ -59,6 +59,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
@@ -220,8 +221,8 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -233,6 +234,10 @@ function AuthScreens() {
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
+    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
+    const isLastOpenedPublicRoomIDLoadedRef = useRef(false);
+    const isInitialLastUpdateIDAppliedToClientLoadedRef = useRef(false);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -259,6 +264,37 @@ function AuthScreens() {
     }, [theme]);
 
     useEffect(() => {
+        if (isLastOpenedPublicRoomIDLoading || isLastOpenedPublicRoomIDLoadedRef.current) {
+            return;
+        }
+
+        isLastOpenedPublicRoomIDLoadedRef.current = true;
+        if (lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
+        }
+    }, [isLastOpenedPublicRoomIDLoading, lastOpenedPublicRoomID]);
+
+    useEffect(() => {
+        if (isInitialLastUpdateIDAppliedToClientLoading || isInitialLastUpdateIDAppliedToClientLoadedRef.current) {
+            return;
+        }
+
+        isInitialLastUpdateIDAppliedToClientLoadedRef.current = true;
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!NativeModules.HybridAppModule) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+            if (SessionUtils.didUserLogInDuringSession()) {
+                App.openApp();
+            } else {
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+            }
+        }
+    }, [initialLastUpdateIDAppliedToClient, isInitialLastUpdateIDAppliedToClientLoading]);
+
+    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
@@ -278,28 +314,12 @@ function AuthScreens() {
         PusherConnectionManager.init();
         initializePusher();
 
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!NativeModules.HybridAppModule) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-            if (SessionUtils.didUserLogInDuringSession()) {
-                App.openApp();
-            } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
-            }
-        }
-
         PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
 
-        if (lastOpenedPublicRoomID) {
-            // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
-        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({
