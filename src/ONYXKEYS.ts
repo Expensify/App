@@ -115,6 +115,9 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
+    /** Whether the user is a member of a policy other than their personal */
+    HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -555,6 +558,8 @@ const ONYXKEYS = {
         ADD_PAYMENT_CARD_FORM_DRAFT: 'addPaymentCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
+        WORKSPACE_CONFIRMATION_FORM: 'workspaceConfirmationForm',
+        WORKSPACE_CONFIRMATION_FORM_DRAFT: 'workspaceConfirmationFormDraft',
         WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
         WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM: 'workspaceCategoryDescriptionHintForm',
         WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM_DRAFT: 'workspaceCategoryDescriptionHintFormDraft',
@@ -740,6 +745,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM]: FormTypes.AddPaymentCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
@@ -944,6 +950,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
