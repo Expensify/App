@@ -3200,6 +3200,7 @@ function getUpdateMoneyRequestParams(
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
+    hash?: number,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3492,21 +3493,40 @@ function getUpdateMoneyRequestParams(
 
     if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                policy,
-                policyTagList ?? {},
-                policyCategories ?? {},
-                hasDependentTags(policy, policyTagList ?? {}),
-            ),
+        const violationsOnyxdata = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            policy,
+            policyTagList ?? {},
+            policyCategories ?? {},
+            hasDependentTags(policy, policyTagList ?? {}),
         );
+        optimisticData.push(violationsOnyxdata);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
         });
+        if (hash) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxdata.value,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
+                    },
+                },
+            });
+        }
     }
 
     // Reset the transaction thread to its original state
@@ -3922,12 +3942,13 @@ function updateMoneyRequestCategory(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    hash: number,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
     };
 
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, undefined, hash);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 

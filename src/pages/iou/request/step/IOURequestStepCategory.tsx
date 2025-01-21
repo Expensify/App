@@ -63,6 +63,7 @@ function IOURequestStepCategory({
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const {currentSearchHash} = useSearchContext();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -120,7 +121,7 @@ function IOURequestStepCategory({
             }
 
             if (isEditing && report) {
-                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
+                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories, currentSearchHash);
                 navigateBack();
                 return;
             }
