@@ -14,8 +14,14 @@ type DomainItem = ListItem & {
     value: string;
     isRecommended: boolean;
 };
+type DomainItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    
+    isRecommended: boolean;
 
-function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus, shouldHighlightSelectedItem}: ListItemProps<DomainItem>) {
+    value: string;
+};
+
+function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus, shouldHighlightSelectedItem}: DomainItemProps<DomainItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
