@@ -66,7 +66,7 @@ import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeM
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
-import useRootNavigatorOptions from './useRootNavigatorOptions';
+import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -205,7 +205,7 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const rootNavigatorOptions = useRootNavigatorOptions();
+    const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
@@ -371,7 +371,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
         if (!shouldUseNarrowLayout) {
-            return rootNavigatorOptions.splitNavigator;
+            return rootNavigatorScreenOptions.splitNavigator;
         }
 
         // On the narrow screen, we want to animate this navigator if it is opened from the settings split.
@@ -381,7 +381,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const animationEnabled = !workspaceSplitsWithoutEnteringAnimation.has(route.key);
 
         return {
-            ...rootNavigatorOptions.splitNavigator,
+            ...rootNavigatorScreenOptions.splitNavigator,
 
             // Allow swipe to go back from this split navigator to the settings navigator.
             gestureEnabled: true,
@@ -418,21 +418,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
-            <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
+            <RootStack.Navigator>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    options={rootNavigatorOptions.splitNavigator}
+                    options={rootNavigatorScreenOptions.splitNavigator}
                     getComponent={loadReportSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    options={rootNavigatorOptions.splitNavigator}
+                    options={rootNavigatorScreenOptions.splitNavigator}
                     getComponent={loadSettingsSplitNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.SEARCH.ROOT}
-                    options={rootNavigatorOptions.fullScreen}
+                    options={rootNavigatorScreenOptions.fullScreen}
                     getComponent={loadSearchPage}
                     initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                 />
@@ -444,7 +444,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}
                     options={{
-                        ...rootNavigatorOptions.fullScreen,
+                        ...rootNavigatorScreenOptions.fullScreen,
                         headerShown: false,
                         title: 'New Expensify',
                     }}
@@ -509,51 +509,51 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
-                    options={rootNavigatorOptions.fullScreen}
+                    options={rootNavigatorScreenOptions.fullScreen}
                     component={NotFoundPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.rightModalNavigator}
+                    options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
                     listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.leftModalNavigator}
+                    options={rootNavigatorScreenOptions.leftModalNavigator}
                     component={LeftModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={rootNavigatorOptions.fullScreen}
+                    options={rootNavigatorScreenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.basicModalNavigator}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={ExplanationModalNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.basicModalNavigator}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={MigratedUserWelcomeModalNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.basicModalNavigator}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                    options={rootNavigatorOptions.basicModalNavigator}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={WelcomeVideoModalNavigator}
                 />
                 {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                        options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
+                        options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
                         component={OnboardingModalNavigator}
                         listeners={{
                             focus: () => {
@@ -582,12 +582,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.CONNECTION_COMPLETE}
-                    options={rootNavigatorOptions.fullScreen}
+                    options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
                 />
                 <RootStack.Screen
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
-                    options={rootNavigatorOptions.fullScreen}
+                    options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
                 />
             </RootStack.Navigator>

@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
+import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -27,7 +27,7 @@ const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
     const route = useRoute();
-    const rootNavigatorOptions = useRootNavigatorOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     return (
         <FocusTrapForScreens>
@@ -35,12 +35,12 @@ function SettingsSplitNavigator() {
                 sidebarScreen={SCREENS.SETTINGS.ROOT}
                 defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
                 parentRoute={route}
-                screenOptions={rootNavigatorOptions.centralPaneNavigator}
+                screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     getComponent={loadInitialSettingsPage}
-                    options={rootNavigatorOptions.homeScreen}
+                    options={splitNavigatorScreenOptions.sidebarScreen}
                 />
                 {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
                     return (

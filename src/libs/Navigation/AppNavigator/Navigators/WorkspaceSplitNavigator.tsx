@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
+import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -35,7 +35,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
-    const rootNavigatorOptions = useRootNavigatorOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -60,12 +60,12 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
                 parentRoute={route}
-                screenOptions={rootNavigatorOptions.centralPaneNavigator}
+                screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     getComponent={loadWorkspaceInitialPage}
-                    options={rootNavigatorOptions.homeScreen}
+                    options={splitNavigatorScreenOptions.sidebarScreen}
                 />
                 {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
                     <Split.Screen
