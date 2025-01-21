@@ -45,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
                     <>
                         <SearchPageHeader queryJSON={queryJSON} />
                         <SearchStatusBar queryJSON={queryJSON} />
-                        <Search queryJSON={queryJSON} />
+                        <Search key={queryJSON.hash} queryJSON={queryJSON} />
                     </>
                 )}
             </FullPageNotFoundView>
