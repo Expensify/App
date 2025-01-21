@@ -47,7 +47,7 @@ type EventData<EventName extends string> = {chunk?: string; id?: string; index?:
     ? PusherEventMap[EventName]
     : OnyxUpdatesFromServer);
 
-type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
+type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number; message?: string}};
 
 type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
 
