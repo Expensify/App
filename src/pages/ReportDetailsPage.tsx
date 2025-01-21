@@ -121,6 +121,7 @@ import {
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameModule,
+    shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getAllReportTransactions} from '@libs/TransactionUtils';
@@ -196,7 +197,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isPolicyAdmin = useMemo(() => isPolicyAdminModule(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeModule(report?.policyID, policies), [report?.policyID, policies]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatModule(report), [report]);
-    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplayModule(report), [report]);
+    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => isChatRoomModule(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomModule(report), [report]);
     const isDefaultRoom = useMemo(() => isDefaultRoomModule(report), [report]);
@@ -1116,136 +1117,3 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 ReportDetailsPage.displayName = 'ReportDetailsPage';
 
 export default withReportOrNotFound()(ReportDetailsPage);
-function shouldUseFullTitleToDisplayModule(
-    report: {
-        avatarUrl?: string | undefined;
-        chatType?: any;
-        hasOutstandingChildRequest?: boolean | undefined;
-        hasOutstandingChildTask?: boolean | undefined;
-        isOwnPolicyExpenseChat?: boolean | undefined;
-        isPinned?: boolean | undefined;
-        lastMessageText?: string | undefined;
-        lastVisibleActionCreated?: string | undefined;
-        lastReadTime?: string | undefined;
-        lastReadSequenceNumber?: number | undefined;
-        lastMentionedTime?: string | null | undefined;
-        policyAvatar?: string | null | undefined;
-        policyName?: string | null | undefined;
-        oldPolicyName?: string | undefined;
-        hasParentAccess?: boolean | undefined;
-        description?: string | undefined;
-        isDeletedParentAction?: boolean | undefined;
-        policyID?: string | undefined;
-        reportName?: string | undefined;
-        reportID: string;
-        chatReportID?: string | undefined;
-        stateNum?: any;
-        statusNum?: any;
-        writeCapability?: any;
-        type?: string | undefined;
-        visibility?: any;
-        invoiceReceiver?: import('@src/types/onyx/Report').InvoiceReceiver | undefined;
-        parentReportID?: string | undefined;
-        parentReportActionID?: string | undefined;
-        managerID?: number | undefined;
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-        lastVisibleActionLastModified?: string | undefined;
-        lastMessageHtml?: string | undefined;
-        lastActorAccountID?: number | undefined;
-        lastActionType?: any;
-        ownerAccountID?: number | undefined;
-        participants?: import('@src/types/onyx/Report').Participants | undefined;
-        total?: number | undefined;
-        unheldTotal?: number | undefined;
-        unheldNonReimbursableTotal?: number | undefined;
-        currency?: string | undefined;
-        errorFields?: import('@src/types/onyx/OnyxCommon').ErrorFields | undefined;
-        errors?: import('@src/types/onyx/OnyxCommon').Errors | undefined;
-        isWaitingOnBankAccount?: boolean | undefined;
-        isCancelledIOU?: boolean | undefined;
-        iouReportID?: string | undefined;
-        preexistingReportID?: string | undefined;
-        nonReimbursableTotal?: number | undefined;
-        privateNotes?:
-            | Record<
-                  number,
-                  {note: string; errors?: import('@src/types/onyx/OnyxCommon').Errors | undefined} & {
-                      pendingAction?: any;
-                      pendingFields?: import('@src/types/onyx/OnyxCommon').PendingFields<'errors' | 'note'> | undefined;
-                  }
-              >
-            | undefined;
-        fieldList?: Record<string, OnyxTypes.PolicyReportField> | undefined;
-        permissions?: ValueOf<{readonly READ: 'read'; readonly WRITE: 'write'; readonly SHARE: 'share'; readonly OWN: 'own'; readonly AUDITOR: 'auditor'}>[] | undefined;
-        tripData?: {startDate: string; endDate: string; tripID: string} | undefined;
-        private_isArchived?: string | undefined;
-        welcomeMessage?: string | undefined;
-    } & {
-        pendingAction?: any;
-        pendingFields?:
-            | import('@src/types/onyx/OnyxCommon').PendingFields<
-                  | 'description'
-                  | 'avatar'
-                  | 'privateNotes'
-                  | 'currency'
-                  | 'type'
-                  | 'policyID'
-                  | 'reportID'
-                  | 'preview'
-                  | 'parentReportID'
-                  | 'errors'
-                  | 'policyName'
-                  | 'total'
-                  | 'errorFields'
-                  | 'reportName'
-                  | 'writeCapability'
-                  | 'participants'
-                  | 'visibility'
-                  | 'addWorkspaceRoom'
-                  | 'ownerAccountID'
-                  | 'fieldList'
-                  | 'createChat'
-                  | 'partial'
-                  | 'reimbursed'
-                  | 'avatarUrl'
-                  | 'chatType'
-                  | 'hasOutstandingChildRequest'
-                  | 'hasOutstandingChildTask'
-                  | 'isOwnPolicyExpenseChat'
-                  | 'isPinned'
-                  | 'lastMessageText'
-                  | 'lastVisibleActionCreated'
-                  | 'lastReadTime'
-                  | 'lastReadSequenceNumber'
-                  | 'lastMentionedTime'
-                  | 'policyAvatar'
-                  | 'oldPolicyName'
-                  | 'hasParentAccess'
-                  | 'isDeletedParentAction'
-                  | 'chatReportID'
-                  | 'stateNum'
-                  | 'statusNum'
-                  | 'invoiceReceiver'
-                  | 'parentReportActionID'
-                  | 'managerID'
-                  | 'lastVisibleActionLastModified'
-                  | 'lastMessageHtml'
-                  | 'lastActorAccountID'
-                  | 'lastActionType'
-                  | 'unheldTotal'
-                  | 'unheldNonReimbursableTotal'
-                  | 'isWaitingOnBankAccount'
-                  | 'isCancelledIOU'
-                  | 'iouReportID'
-                  | 'preexistingReportID'
-                  | 'nonReimbursableTotal'
-                  | 'permissions'
-                  | 'tripData'
-                  | 'private_isArchived'
-                  | 'welcomeMessage'
-              >
-            | undefined;
-    },
-): any {
-    throw new Error('Function not implemented.');
-}
