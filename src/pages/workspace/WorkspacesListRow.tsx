@@ -149,6 +149,7 @@ function WorkspacesListRow({
                 <Tooltip
                     maxWidth={variables.w184}
                     text={translate('workspace.common.defaultNote')}
+                    numberOfLines={4}
                 >
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
