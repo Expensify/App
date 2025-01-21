@@ -87,27 +87,39 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     return (
         <View style={styles.flex1}>
-            <View
-                ref={anchorRef}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
-            >
-                <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
-                <PressableWithFeedback
-                    accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    onPress={() => setVisible(true)}
-                >
-                    <Icon
-                        src={Expensicons.Info}
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
+            <View style={[styles.flex1, styles.flexRow]}>
+                <View style={[styles.flexShrink0, styles.mr2]}>
+                    <View
+                        ref={anchorRef}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
+                    >
+                        <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
+                        <PressableWithFeedback
+                            accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            onPress={() => setVisible(true)}
+                        >
+                            <Icon
+                                src={Expensicons.Info}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                                fill={theme.icon}
+                            />
+                        </PressableWithFeedback>
+                    </View>
+                    <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(value, policyCurrency)}</Text>
+                </View>
+                {type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE && (
+                    <View style={[styles.flex2, styles.alignItemsStart, styles.justifyContentEnd]}>
+                        <Button
+                            onPress={() => {}}
+                            text={translate('workspace.expensifyCard.settleBalance')}
+                            innerStyles={[styles.buttonSmall]}
+                            textStyles={[styles.buttonSmallText]}
+                        />
+                    </View>
+                )}
             </View>
-
-            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(value, policyCurrency)}</Text>
-
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}
