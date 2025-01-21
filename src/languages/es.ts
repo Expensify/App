@@ -1613,9 +1613,9 @@ const translations = {
         reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
     },
     reportFraudConfirmationPage: {
-        title: 'Card fraud reported',
-        description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
-        buttonText: 'Got it, thanks!',
+        title: 'Fraude con tarjeta reportado',
+        description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
         activateCard: 'Activar tarjeta',
