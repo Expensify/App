@@ -147,10 +147,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasHeldExpenses = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
-        return !transactions?.some((t) => {
-            const isTransactionPending = isExpensifyCardTransaction(t) && isPending(t);
-            return !isTransactionPending;
-        });
+        return transactions?.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
