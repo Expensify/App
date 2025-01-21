@@ -39,8 +39,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
 
     const connectPolicy = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
-            // s77rt use formValues
-            connectPolicyToNSQS(policyID);
+            connectPolicyToNSQS(policyID, formValues[INPUT_IDS.NSQS_ACCOUNT_ID]);
             Navigation.dismissModal();
         },
         [policyID],

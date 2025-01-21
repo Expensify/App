@@ -5017,7 +5017,6 @@ const CONST = {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
         netsuite: 'NetSuite',
-        // s77rt: Do I need to add NSQS here?
         intacct: 'Sage Intacct',
         quickbooksDesktop: 'QuickBooks Desktop',
     },

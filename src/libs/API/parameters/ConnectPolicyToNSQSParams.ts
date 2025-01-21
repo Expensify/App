@@ -1,6 +1,6 @@
 type ConnectPolicyToNSQSParams = {
     policyID: string;
-    // s77rt: ask for the connect params
+    netSuiteAccountID: string;
 };
 
 export default ConnectPolicyToNSQSParams;

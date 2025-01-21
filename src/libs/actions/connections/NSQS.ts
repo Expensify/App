@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Connections} from '@src/types/onyx/Policy';
 
-function connectPolicyToNSQS(policyID: string) {
+function connectPolicyToNSQS(policyID: string, nsqsAccountID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -23,6 +23,7 @@ function connectPolicyToNSQS(policyID: string) {
 
     const params: ConnectPolicyToNSQSParams = {
         policyID,
+        netSuiteAccountID: nsqsAccountID,
     };
 
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NSQS, params, {optimisticData});
