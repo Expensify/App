@@ -14,6 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import clearSelectedText from '@libs/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,7 +33,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import DebugTabView from './DebugTabView';
-import clearSelectedText from "@libs/clearSelectedText";
 
 type BottomTabBarProps = {
     selectedTab: string | undefined;
