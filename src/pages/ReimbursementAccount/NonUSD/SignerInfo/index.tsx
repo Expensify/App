@@ -105,8 +105,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     copyOfID: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
                     addressProof: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
                     // TODO: uncomment when codiceProof is added to the form
-                    // codiceProof: onyxValues[INPUT_KEYS.SIGNER_CODICE_PROOF],
-                    pdsAndFSG: onyxValues[INPUT_KEYS.SIGNER_PDS_AND_FSG],
+                    codiceProof: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
+                    pdsAndFSG: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
                 },
                 bankAccountID,
             );
