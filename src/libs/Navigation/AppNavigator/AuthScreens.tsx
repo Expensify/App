@@ -1,7 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef} from 'react';
-import {NativeModules, View} from 'react-native';
+import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
@@ -17,7 +17,6 @@ import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -205,7 +204,6 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -420,183 +418,181 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
-            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
-                <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
-                    {/* This has to be the first navigator in auth screens. */}
+            <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
+                {/* This has to be the first navigator in auth screens. */}
+                <RootStack.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    options={rootNavigatorOptions.splitNavigator}
+                    getComponent={loadReportSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    options={rootNavigatorOptions.splitNavigator}
+                    getComponent={loadSettingsSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.SEARCH.ROOT}
+                    options={rootNavigatorOptions.fullScreen}
+                    getComponent={loadSearchPage}
+                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                    options={getWorkspaceSplitNavigatorOptions}
+                    getComponent={loadWorkspaceSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN}
+                    options={{
+                        ...rootNavigatorOptions.fullScreen,
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    getComponent={loadValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
+                    options={defaultScreenOptions}
+                    getComponent={loadLogOutPreviousUserPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.CONCIERGE}
+                    options={defaultScreenOptions}
+                    getComponent={loadConciergePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRACK_EXPENSE}
+                    options={defaultScreenOptions}
+                    getComponent={loadTrackExpensePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.SUBMIT_EXPENSE}
+                    options={defaultScreenOptions}
+                    getComponent={loadSubmitExpensePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.ATTACHMENTS}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReportAttachments}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.PROFILE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                        animation: Animations.NONE,
+                    }}
+                    getComponent={loadProfileAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadWorkspaceAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReportAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.NOT_FOUND}
+                    options={rootNavigatorOptions.fullScreen}
+                    component={NotFoundPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.rightModalNavigator}
+                    component={RightModalNavigator}
+                    listeners={modalScreenListenersWithCancelSearch}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
+                    options={rootNavigatorOptions.fullScreen}
+                    component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.basicModalNavigator}
+                    component={ExplanationModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.basicModalNavigator}
+                    component={MigratedUserWelcomeModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.basicModalNavigator}
+                    component={FeatureTrainingModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
+                    options={rootNavigatorOptions.basicModalNavigator}
+                    component={WelcomeVideoModalNavigator}
+                />
+                {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                     <RootStack.Screen
-                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.splitNavigator}
-                        getComponent={loadReportSplitNavigator}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.splitNavigator}
-                        getComponent={loadSettingsSplitNavigator}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.SEARCH.ROOT}
-                        options={rootNavigatorOptions.fullScreen}
-                        getComponent={loadSearchPage}
-                        initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                        options={getWorkspaceSplitNavigatorOptions}
-                        getComponent={loadWorkspaceSplitNavigator}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.VALIDATE_LOGIN}
-                        options={{
-                            ...rootNavigatorOptions.fullScreen,
-                            headerShown: false,
-                            title: 'New Expensify',
+                        name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                        options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
+                        component={OnboardingModalNavigator}
+                        listeners={{
+                            focus: () => {
+                                Modal.setDisableDismissOnEscape(true);
+                            },
+                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
                         }}
-                        getComponent={loadValidateLoginPage}
                     />
-                    <RootStack.Screen
-                        name={SCREENS.TRANSITION_BETWEEN_APPS}
-                        options={defaultScreenOptions}
-                        getComponent={loadLogOutPreviousUserPage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.CONCIERGE}
-                        options={defaultScreenOptions}
-                        getComponent={loadConciergePage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.TRACK_EXPENSE}
-                        options={defaultScreenOptions}
-                        getComponent={loadTrackExpensePage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.SUBMIT_EXPENSE}
-                        options={defaultScreenOptions}
-                        getComponent={loadSubmitExpensePage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.ATTACHMENTS}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadReportAttachments}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.PROFILE_AVATAR}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                            animation: Animations.NONE,
-                        }}
-                        getComponent={loadProfileAvatar}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.WORKSPACE_AVATAR}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadWorkspaceAvatar}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.REPORT_AVATAR}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadReportAvatar}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.NOT_FOUND}
-                        options={rootNavigatorOptions.fullScreen}
-                        component={NotFoundPage}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.rightModalNavigator}
-                        component={RightModalNavigator}
-                        listeners={modalScreenListenersWithCancelSearch}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.leftModalNavigator}
-                        component={LeftModalNavigator}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                        options={rootNavigatorOptions.fullScreen}
-                        component={DesktopSignInRedirectPage}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.basicModalNavigator}
-                        component={ExplanationModalNavigator}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.basicModalNavigator}
-                        component={MigratedUserWelcomeModalNavigator}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.basicModalNavigator}
-                        component={FeatureTrainingModalNavigator}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.basicModalNavigator}
-                        component={WelcomeVideoModalNavigator}
-                    />
-                    {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
-                        <RootStack.Screen
-                            name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
-                            component={OnboardingModalNavigator}
-                            listeners={{
-                                focus: () => {
-                                    Modal.setDisableDismissOnEscape(true);
-                                },
-                                beforeRemove: () => Modal.setDisableDismissOnEscape(false),
-                            }}
-                        />
-                    )}
-                    <RootStack.Screen
-                        name={SCREENS.WORKSPACE_JOIN_USER}
-                        options={{
-                            headerShown: false,
-                        }}
-                        listeners={modalScreenListeners}
-                        getComponent={loadWorkspaceJoinUser}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.TRANSACTION_RECEIPT}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadReceiptView}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.CONNECTION_COMPLETE}
-                        options={rootNavigatorOptions.fullScreen}
-                        component={ConnectionCompletePage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.BANK_CONNECTION_COMPLETE}
-                        options={rootNavigatorOptions.fullScreen}
-                        component={ConnectionCompletePage}
-                    />
-                </RootStack.Navigator>
-                <TestToolsModal />
-                <SearchRouterModal />
-            </View>
+                )}
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_JOIN_USER}
+                    options={{
+                        headerShown: false,
+                    }}
+                    listeners={modalScreenListeners}
+                    getComponent={loadWorkspaceJoinUser}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.CONNECTION_COMPLETE}
+                    options={rootNavigatorOptions.fullScreen}
+                    component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.BANK_CONNECTION_COMPLETE}
+                    options={rootNavigatorOptions.fullScreen}
+                    component={ConnectionCompletePage}
+                />
+            </RootStack.Navigator>
+            <TestToolsModal />
+            <SearchRouterModal />
             <ActiveGuidesEventListener />
         </ComposeProviders>
     );
