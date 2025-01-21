@@ -11,6 +11,7 @@ import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import {ConnectionName} from '@src/types/onyx/Policy';
 import AccessOrNotFoundWrapper from '../AccessOrNotFoundWrapper';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import {MenuItemData} from './types';
@@ -20,13 +21,19 @@ type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
             connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
+            integrationToDisconnect?: ConnectionName;
+            shouldDisconnectIntegrationBeforeConnecting?: boolean;
         };
     };
 };
 
 function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPageProps) {
     const policyID = policy?.id ?? '-1';
+
     const multiConnectionName = getConnectionNameFromRouteParam(route.params.connection);
+    const integrationToDisconnect = route.params.integrationToDisconnect;
+    const shouldDisconnectIntegrationBeforeConnecting = route.params.shouldDisconnectIntegrationBeforeConnecting;
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -51,9 +58,8 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                         onPress: () => {
                             startIntegrationFlow({
                                 name: integration,
-                                // s77rt
-                                //integrationToDisconnect: connectedIntegration,
-                                //shouldDisconnectIntegrationBeforeConnecting: true,
+                                integrationToDisconnect,
+                                shouldDisconnectIntegrationBeforeConnecting,
                             });
                         },
                         ref: (ref) => {

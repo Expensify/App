@@ -456,14 +456,22 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     rightComponent: (
                         <Button
                             onPress={() => {
+                                const shouldDisconnect = true;
                                 if (shouldUseMultiConnectionSelector) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)));
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(
+                                            policyID,
+                                            getRouteParamForConnection(designatedDisplayConnection),
+                                            connectedIntegration,
+                                            shouldDisconnect,
+                                        ),
+                                    );
                                     return;
                                 }
                                 startIntegrationFlow({
                                     name: integration,
                                     integrationToDisconnect: connectedIntegration,
-                                    shouldDisconnectIntegrationBeforeConnecting: true,
+                                    shouldDisconnectIntegrationBeforeConnecting: shouldDisconnect,
                                 });
                             }}
                             text={translate('workspace.accounting.setup')}

@@ -42,6 +42,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            // s77rt use beta
             Navigation.goBack(
                 ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]),
             );
