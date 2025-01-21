@@ -1921,7 +1921,7 @@ const translations = {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'Ups, no deberías estar aquí',
-        noAccess: 'No tienes acceso a este chat',
+        noAccess: 'El chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrarlo.',
         goBackHome: 'Volver a la página principal',
     },
     setPasswordPage: {
