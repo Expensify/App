@@ -19,6 +19,9 @@ jobs:
     name: Create comment
     runs-on: ubuntu-latest
     steps: 
+      - name: Checkout
+        uses: actions/checkout@v4
+        
       - name: Comment
         run: |
           gh pr comment ${{ github.event.number }} --body \
