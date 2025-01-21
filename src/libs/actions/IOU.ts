@@ -142,6 +142,7 @@ import {
     getTransaction,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
+    isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
     isOnHold,
@@ -4597,6 +4598,7 @@ function trackExpense(
     });
 
     const waypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? '' : customUnitRateID;
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
@@ -4617,7 +4619,7 @@ function trackExpense(
                 billable,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
                 waypoints,
-                customUnitRateID,
+                customUnitRateID: mileageRate,
             };
             const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
@@ -4673,7 +4675,7 @@ function trackExpense(
                 trackedReceipt,
                 createdWorkspaceParams,
                 waypoints,
-                customUnitRateID,
+                mileageRate,
             );
             break;
         }
