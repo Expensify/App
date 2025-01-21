@@ -4918,6 +4918,19 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        workspaceSectionMoreFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            minWidth: 350,
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+            marginTop: 20,
+        },
+
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {

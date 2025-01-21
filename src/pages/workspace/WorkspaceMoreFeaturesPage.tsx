@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -73,6 +74,7 @@ type SectionObject = {
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
@@ -364,7 +366,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         (item: Item) => (
             <View
                 key={item.titleTranslationKey}
-                style={styles.mt7}
+                style={styles.workspaceSectionMoreFeaturesItem}
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
@@ -386,24 +388,44 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [styles, translate],
     );
 
+    /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
+    const sectionRowFillerItem = useCallback(
+        (section: SectionObject) => {
+            if (section.items.length % 2 === 0) {
+                return null;
+            }
+
+            return (
+                <View
+                    key="section-filler-col"
+                    aria-hidden
+                    accessibilityElementsHidden
+                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.m0, styles.visibilityHidden, styles.bgTransparent]}
+                />
+            );
+        },
+        [styles],
+    );
+
     const renderSection = useCallback(
         (section: SectionObject) => (
             <View
                 key={section.titleTranslationKey}
-                style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}
             >
                 <Section
-                    containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                    containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent]}
+                    childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap5]}
                     title={translate(section.titleTranslationKey)}
                     titleStyles={styles.textStrong}
-                    subtitle={translate(section.subtitleTranslationKey)}
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}
+                    {sectionRowFillerItem(section)}
                 </Section>
             </View>
         ),
-        [shouldUseNarrowLayout, styles, renderItem, translate],
+        [shouldUseNarrowLayout, styles, renderItem, translate, sectionRowFillerItem],
     );
 
     const fetchFeatures = useCallback(() => {
@@ -437,9 +459,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {translate('workspace.moreFeatures.subtitle')}
-                    </Text>
+                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
                     {sections.map(renderSection)}
                 </ScrollView>
 
