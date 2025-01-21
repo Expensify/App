@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasXeroConnection} from '@libs/PolicyUtils';
+import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import CONST from '@src/CONST';
@@ -39,7 +39,7 @@ function EnabledStep() {
                         {
                             title: translate('twoFactorAuth.disableTwoFactorAuth'),
                             onPress: () => {
-                                if (hasXeroConnection(currentUserLogin)) {
+                                if (hasPolicyWithXeroConnection(currentUserLogin)) {
                                     setIsVisible(true);
                                     return;
                                 }
