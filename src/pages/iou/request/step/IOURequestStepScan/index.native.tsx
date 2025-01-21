@@ -28,22 +28,30 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import * as IOUUtils from '@libs/IOUUtils';
+import {shouldStartLocationPermissionFlow as shouldStartLocationPermissionFlowIOUUtils} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import * as IOU from '@userActions/IOU';
+import {
+    replaceReceipt,
+    requestMoney,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReceipt,
+    startSplitBill,
+    trackExpense,
+    updateLastLocationPermissionPrompt,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,7 +95,7 @@ function IOURequestStepScan({
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
@@ -98,10 +106,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        return (
-            !ReportUtils.isArchivedReport(report, reportNameValuePairs) &&
-            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
-        );
+        return !isArchivedReport(report, reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     const {translate} = useLocalize();
@@ -114,7 +119,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert();
+                    showCameraPermissionsAlert();
                 }
             })
             .catch(() => {
@@ -188,7 +193,7 @@ function IOURequestStepScan({
     );
 
     const validateReceipt = (file: FileObject) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         if (
             !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
                 fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
@@ -246,7 +251,7 @@ function IOURequestStepScan({
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                IOU.trackExpense({
+                trackExpense({
                     report,
                     currency: transaction?.currency ?? 'USD',
                     created: transaction?.created ?? '',
@@ -256,7 +261,7 @@ function IOURequestStepScan({
                     receipt,
                 });
             } else {
-                IOU.requestMoney({
+                requestMoney({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -293,10 +298,10 @@ function IOURequestStepScan({
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
             });
 
             if (shouldSkipConfirmation) {
@@ -305,7 +310,7 @@ function IOURequestStepScan({
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     playSound(SOUNDS.DONE);
-                    IOU.startSplitBill({
+                    startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -330,7 +335,7 @@ function IOURequestStepScan({
                         (successData) => {
                             playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                IOU.trackExpense({
+                                trackExpense({
                                     report,
                                     currency: transaction?.currency ?? 'USD',
                                     created: transaction?.created ?? '',
@@ -345,7 +350,7 @@ function IOURequestStepScan({
                                     },
                                 });
                             } else {
-                                IOU.requestMoney({
+                                requestMoney({
                                     report,
                                     participantParams: {
                                         payeeEmail: currentUserPersonalDetails.login,
@@ -416,7 +421,7 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             navigateBack();
-            IOU.replaceReceipt({transactionID, file: file as File, source});
+            replaceReceipt({transactionID, file: file as File, source});
         },
         [transactionID],
     );
@@ -440,12 +445,12 @@ function IOURequestStepScan({
         if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsLoadingReceipt(true);
         }
-        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+        resizeImageIfNeeded(originalFile).then((file) => {
             setIsLoadingReceipt(false);
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
-            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
 
             if (isEditing) {
                 updateScanAndNavigate(file, file?.uri ?? '');
@@ -457,7 +462,7 @@ function IOURequestStepScan({
                 const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
                 if (gpsRequired) {
-                    const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                    const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowIOUUtils();
                     if (shouldStartLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;
@@ -514,9 +519,9 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+                        setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
-                        FileUtils.readFileAsync(
+                        readFileAsync(
                             source,
                             photo.path,
                             (file) => {
@@ -529,7 +534,7 @@ function IOURequestStepScan({
                                     setFileSource(source);
                                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                                     if (gpsRequired) {
-                                        const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                        const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowIOUUtils();
                                         if (shouldStartLocationPermissionFlow) {
                                             setStartLocationPermissionFlow(true);
                                             return;
@@ -706,7 +711,7 @@ function IOURequestStepScan({
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                     onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
                     onDeny={() => {
-                        IOU.updateLastLocationPermissionPrompt();
+                        updateLastLocationPermissionPrompt();
                         navigateToConfirmationStep(fileResize, fileSource, false);
                     }}
                 />

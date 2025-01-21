@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler/index';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -71,24 +71,24 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         key={index}
                         style={styles.offlineFeedback.text}
                     >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.receiptFailureMessage')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
                         >
-                            {Localize.translateLocal('iou.error.tryAgainMessage')}
+                            {translateLocal('iou.error.tryAgainMessage')}
                         </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('common.or')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('common.or')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => {
                                 fileDownload(message.source, message.filename).finally(() => dismissError());
                             }}
                         >
-                            {Localize.translateLocal('iou.error.saveFileMessage')}
+                            {translateLocal('iou.error.saveFileMessage')}
                         </TextLink>
 
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.uploadLaterMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.uploadLaterMessage')}</Text>
                     </Text>
 
                     <ConfirmModal
@@ -110,17 +110,17 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                     key={index}
                     style={styles.offlineFeedback.text}
                 >
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                         onPress={() => {
                             // TODO: re-navigate the user to the bank’s website to re-authenticate https://github.com/Expensify/App/issues/50448
                         }}
                     >
-                        {Localize.translateLocal('workspace.companyCards.brokenConnectionErrorLink')}
+                        {translateLocal('workspace.companyCards.brokenConnectionErrorLink')}
                     </TextLink>
 
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
                 </Text>
             );
         }
