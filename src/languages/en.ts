@@ -310,7 +310,7 @@ const translations = {
         addressLine: ({lineNumber}: AddressLineParams) => `Address line ${lineNumber}`,
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
-        noPO: 'PO boxes and mail drop addresses are not allowed',
+        noPO: 'No PO boxes or mail-drop addresses, please.',
         city: 'City',
         state: 'State',
         streetAddress: 'Street address',
@@ -358,7 +358,6 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
-            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -846,7 +845,7 @@ const translations = {
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Create expense',
-        trackScan: 'Create expense for receipt',
+        trackScan: 'Scan receipt',
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
@@ -1078,7 +1077,6 @@ const translations = {
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
         paymentComplete: 'Payment complete',
-        justTrackIt: 'Just track it (don’t submit it)',
         time: 'Time',
         startDate: 'Start date',
         endDate: 'End date',
@@ -2214,7 +2212,6 @@ const translations = {
         whatsYourLegalName: 'What’s your legal name?',
         whatsYourDOB: 'What’s your date of birth?',
         whatsYourAddress: 'What’s your address?',
-        noPOBoxesPlease: 'No PO boxes or mail-drop addresses, please.',
         whatsYourSSN: 'What are the last four digits of your Social Security Number?',
         noPersonalChecks: 'Don’t worry, no personal credit checks here!',
         whatsYourPhoneNumber: 'What’s your phone number?',
@@ -2517,6 +2514,7 @@ const translations = {
             carType: 'Car type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            freeCancellation: 'Free cancellation',
             confirmation: 'Confirmation number',
         },
         train: 'Rail',
@@ -3560,7 +3558,7 @@ const translations = {
             },
             earnSection: {
                 title: 'Earn',
-                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+                subtitle: 'Streamline your revenue and get paid faster.',
             },
             organizeSection: {
                 title: 'Organize',
@@ -3817,7 +3815,7 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more -- all at the speed of chat.',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more — all at the speed of chat.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -3835,6 +3833,7 @@ const translations = {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
+            confirmWorkspace: 'Confirm Workspace',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
@@ -4557,6 +4556,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
+        scheduleADemo: 'Schedule a demo',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
