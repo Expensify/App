@@ -28,7 +28,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
     const submit = () => {
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
 
     const {
