@@ -14,7 +14,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -74,7 +73,6 @@ type SectionObject = {
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
