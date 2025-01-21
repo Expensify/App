@@ -823,20 +823,11 @@ function clearSignInData() {
 }
 
 /**
- * Reset all current params of the Home route
+ * Reset navigation state after logout
  */
-function resetHomeRouteParams() {
+function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState()?.routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
-        });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        navigationRef.resetRoot(navigationRef.getRootState());
     });
 }
 
@@ -855,7 +846,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetHomeRouteParams();
+    resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
