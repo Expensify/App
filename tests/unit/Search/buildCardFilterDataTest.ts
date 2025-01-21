@@ -6,8 +6,10 @@ import {buildCardFeedsData, buildIndividualCardsData} from '@pages/Search/Search
 import type {CardList, WorkspaceCardsList} from '@src/types/onyx';
 
 jest.mock('@libs/PolicyUtils', () => {
+    const actualPolicyUtils = jest.requireActual('@libs/PolicyUtils');
     return {
-        getPolicy(policyID: string) {
+        ...actualPolicyUtils,
+        getPolicy: (policyID: string) => {
             switch (policyID) {
                 case '1':
                     return {name: ''};
