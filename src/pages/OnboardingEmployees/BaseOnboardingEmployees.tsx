@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
@@ -85,7 +86,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
 
                     // For MICRO companies (1-10 employees), we want to remain on NewDot.
-                    if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
                     }
@@ -105,7 +106,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    if (NativeModules.HybridAppModule) {
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    } else {
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    }
                 }}
                 pressOnEnter
             />
