@@ -44,7 +44,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -53,9 +53,12 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const anchorRef = useRef(null);
 
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
+
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+
+    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const isConnectedWithPlaid = useMemo(() => {
         const bankAccountData = bankAccountList?.[paymentBankAccountID ?? 0]?.accountData;
@@ -85,10 +88,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         Report.navigateToConciergeChat();
     };
 
+    // TODO: add a proper condition to display the settle balance button
+    const isSettleBalanceButtonDisplayed = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+
     return (
-        <View style={styles.flex1}>
-            <View style={[styles.flex1, styles.flexRow]}>
-                <View style={[styles.flexShrink0, styles.mr2]}>
+        <View style={[styles.flex1]}>
+            <View style={[styles.flexGrow1, styles.flexWrap, !isLessThanMediumScreen && styles.flexRow]}>
+                <View style={[isLessThanMediumScreen ? styles.flex1 : styles.flexShrink0, isSettleBalanceButtonDisplayed && styles.mr2]}>
                     <View
                         ref={anchorRef}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
@@ -109,8 +115,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     </View>
                     <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(value, policyCurrency)}</Text>
                 </View>
-                {type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE && (
-                    <View style={[styles.flex2, styles.alignItemsStart, styles.justifyContentEnd]}>
+                {isSettleBalanceButtonDisplayed && (
+                    <View style={[styles.flexBasisAuto, styles.alignItemsStart, styles.justifyContentEnd, styles.mt2, styles.mr2]}>
                         <Button
                             onPress={() => {}}
                             text={translate('workspace.expensifyCard.settleBalance')}
