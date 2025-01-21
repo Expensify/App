@@ -905,7 +905,7 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData): Op
 /**
  * Searches for a match when provided with a value
  */
-function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoomParam = false): boolean {
+function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoom = false): boolean {
     const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
     const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
@@ -915,7 +915,7 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
             return;
         }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoomParam && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoom && participantNames.has(word));
     });
     return matching;
 }
@@ -1699,8 +1699,8 @@ function formatSectionsFromSearchTerm(
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
-                          const isOptionPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isOptionPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -1724,8 +1724,8 @@ function formatSectionsFromSearchTerm(
             title: undefined,
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isOptionPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isOptionPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
