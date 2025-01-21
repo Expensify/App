@@ -223,6 +223,8 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
+                pendingFields: policy?.connections?.nsqs?.config?.pendingFields,
+                errorFields: policy?.connections?.nsqs?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {

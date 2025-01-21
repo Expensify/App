@@ -263,9 +263,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     if (!integrationData) {
                         return undefined;
                     }
-                    const multiConnectionMapping = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-                    const shouldUseMultiConnectionSelector = !!multiConnectionMapping;
-                    if (shouldUseMultiConnectionSelector && multiConnectionMapping != integration) {
+                    const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
+                    const shouldUseMultiConnectionSelector = !!designatedDisplayConnection;
+                    if (shouldUseMultiConnectionSelector && designatedDisplayConnection != integration) {
                         return;
                     }
 
@@ -281,7 +281,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             <Button
                                 onPress={() => {
                                     if (shouldUseMultiConnectionSelector) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionMapping)));
+                                        Navigation.navigate(
+                                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)),
+                                        );
                                         return;
                                     }
                                     startIntegrationFlow({name: integration});
@@ -437,10 +439,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return undefined;
                 }
 
-                // s77rt: if NetSuite Legacy is the current connection, should we display NSQS in other integrations? (and vice-versa)
-                const multiConnectionMapping = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-                const shouldUseMultiConnectionSelector = !!multiConnectionMapping;
-                if (shouldUseMultiConnectionSelector && multiConnectionMapping != integration) {
+                const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
+                const otherLinkedConnections = designatedDisplayConnection
+                    ? CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[designatedDisplayConnection]?.filter((connection) => connection != connectedIntegration) ?? []
+                    : [];
+                const shouldUseMultiConnectionSelector = !!designatedDisplayConnection && otherLinkedConnections.length > 1;
+                if (shouldUseMultiConnectionSelector && designatedDisplayConnection != integration) {
                     return;
                 }
 
@@ -453,7 +457,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         <Button
                             onPress={() => {
                                 if (shouldUseMultiConnectionSelector) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionMapping)));
+                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)));
                                     return;
                                 }
                                 startIntegrationFlow({
