@@ -89,11 +89,9 @@ function WorkspaceSwitcherPage() {
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             Navigation.goBack();
-            if (newPolicyID !== activeWorkspaceID) {
-                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
-                // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
-                switchPolicyAfterInteractions(newPolicyID, () => setActiveWorkspaceID(newPolicyID));
-            }
+            // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
+            // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
+            switchPolicyAfterInteractions(newPolicyID, () => setActiveWorkspaceID(newPolicyID));
         },
         [activeWorkspaceID, setActiveWorkspaceID, isFocused],
     );
