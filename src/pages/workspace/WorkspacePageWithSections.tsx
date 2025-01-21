@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -124,7 +123,6 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
-    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -151,8 +149,8 @@ function WorkspacePageWithSections({
         }, [policyID, shouldSkipVBBACall]),
     );
 
-    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
@@ -170,6 +168,7 @@ function WorkspacePageWithSections({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={testID ?? WorkspacePageWithSections.displayName}
+            shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView

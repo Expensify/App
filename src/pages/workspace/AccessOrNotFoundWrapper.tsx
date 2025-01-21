@@ -97,6 +97,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
+            shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
                     Navigation.dismissModal();
@@ -128,7 +129,6 @@ function AccessOrNotFoundWrapper({
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
 
     useEffect(() => {
@@ -154,7 +154,7 @@ function AccessOrNotFoundWrapper({
     }, true);
 
     const isPolicyNotAccessible = !PolicyUtils.isPolicyAccessible(policy);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
+    const shouldShowNotFoundPage = (!isMoneyRequest && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
 
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.

@@ -211,17 +211,17 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 
 /**
  * Check if the policy can be displayed
- * If offline, always show the policy pending deletion.
- * If online, show the policy pending deletion only if there is an error.
+ * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
+ * If shouldShowPendingDeletePolicy is false, show the policy pending deletion only if there is an error.
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
             policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
 }
@@ -496,7 +496,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
 }
 
 /** Get a tax with given ID from policy */
@@ -1170,7 +1170,9 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
-    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+    return (
+        !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {

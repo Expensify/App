@@ -438,14 +438,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    if (!isLoading && (isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+    if ((!isLoading && (isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy))) || PolicyUtils.isPendingDeletePolicy(policy)) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    subtitleKey={isEmptyObject(policy) || PolicyUtils.isPendingDeletePolicy(policy) ? undefined : 'workspace.common.notAuthorized'}
                 />
             </ScreenWrapper>
         );
