@@ -47,10 +47,10 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                 return showContextMenuForReport(
                                     event,
                                     anchor,
-                                    report?.reportID ?? '-1',
+                                    report?.reportID,
                                     action,
                                     checkIfContextMenuActive,
-                                    ReportUtils.isArchivedRoom(report, reportNameValuePairs),
+                                    ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
                                 );
                             });
                         }}

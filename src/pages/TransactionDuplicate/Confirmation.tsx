@@ -25,6 +25,7 @@ import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
+import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -53,6 +54,9 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
+        if (!reportAction?.childReportID) {
+            return;
+        }
         IOU.mergeDuplicates(transactionsMergeParams);
         if (!reportAction?.childReportID) {
             return;
@@ -79,7 +83,7 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = report?.reportID ? TransactionUtils.getTransactionID(report.reportID) : undefined;
+    const reportTransactionID = report?.reportID ? getTransactionID(report.reportID) : undefined;
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
