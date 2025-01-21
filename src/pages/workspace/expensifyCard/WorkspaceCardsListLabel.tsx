@@ -89,9 +89,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         Report.navigateToConciergeChat();
     };
 
-    // TODO: add a proper condition to display the settle balance button
-    const isSettleBalanceButtonDisplayed = !!cardManualBilling && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
-    const isSettleDateTextDisplayed = !!cardManualBilling && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+    const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+    const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
+    const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
 
     return (
         <View style={[styles.flex1]}>
