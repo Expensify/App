@@ -902,16 +902,18 @@ function subscribeToPusherPong() {
     }
 
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+        Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         const pongEvent = pushJSON as Pusher.PingPongEvent;
         // First, check to see if the PONG event is in the pingIDsAndTimestamps map
-        const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.id];
+        const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.pingID];
         if (!pingEventTimestamp) {
-            Log.info(`[Pusher PINGPONG] Received a PONG event from the server with an ID that wasn't sent by the client: ${pongEvent.id}`);
+            Log.info(`[Pusher PINGPONG] Received a PONG event from the server with an ID that wasn't sent by the client: ${pongEvent.pingID}`);
             return;
         }
 
         // Calculate the latency between the client and the server
         const latency = Date.now() - Number(pingEventTimestamp);
+        Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
         // TODO implement a way to tell the client it's offline
     });
@@ -922,15 +924,15 @@ function pingPusher() {
     // The server will response with a PONG event with the same ID and timestamp
     // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
-    const timestamp = Date.now();
-    pingIDsAndTimestamps[pingID] = timestamp;
-    const parameters: PusherPingParams = {id: pingID, timestamp};
+    const pingTimestamp = Date.now();
+    pingIDsAndTimestamps[pingID] = pingTimestamp;
+    const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
-    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${timestamp}`);
+    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
 }
 
 // Specify how long between each PING event to the server
-const PING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60000;
+const PING_PONG_INTERVAL_LENGTH_IN_SECONDS = 5;
 let pingPongStarted = false;
 function initializePusherPingPong() {
     // Ignore any additional calls to initialize the ping pong if it's already been started
@@ -940,7 +942,7 @@ function initializePusherPingPong() {
 
     Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_PONG_INTERVAL_LENGTH_IN_SECONDS} seconds`);
     subscribeToPusherPong();
-    setInterval(pingPusher, PING_PONG_INTERVAL_LENGTH_IN_SECONDS);
+    setInterval(pingPusher, PING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
 
     pingPongStarted = true;
 }

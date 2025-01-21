@@ -1,6 +1,6 @@
 type PusherPingParams = {
-    id: string;
-    timestamp: number;
+    pingID: string;
+    pingTimestamp: number;
 };
 
 export default PusherPingParams;
