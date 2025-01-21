@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
-import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
@@ -9,7 +9,7 @@ import TwoFactorAuthContext from './TwoFactorAuthContext';
 function TwoFactorAuthSteps() {
     const {renderStep, setStep} = useAnimatedStepContext();
 
-    useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
+    useEffect(() => () => clearTwoFactorAuthData(), []);
 
     const contextValue = useMemo(
         () => ({

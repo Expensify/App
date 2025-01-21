@@ -14,11 +14,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import * as UserUtils from '@libs/UserUtils';
+import {getContactMethod} from '@libs/UserUtils';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
-import * as Session from '@userActions/Session';
+import {clearAccountMessages} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,16 +27,16 @@ const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/
 function VerifyStep() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const contactMethod = UserUtils.getContactMethod();
+    const contactMethod = getContactMethod();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
-        Session.clearAccountMessages();
+        clearAccountMessages();
         return () => {
-            Session.clearAccountMessages();
+            clearAccountMessages();
         };
     }, []);
 

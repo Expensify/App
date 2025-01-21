@@ -20,14 +20,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import * as Session from '@userActions/Session';
-import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import * as User from '@userActions/User';
+import {toggleTwoFactorAuth} from '@userActions/Session';
+import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
+import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -55,7 +55,7 @@ function CodesStep({backTo}: CodesStepProps) {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const hasMagicCodeBeenSent = !!validateCodeAction?.validateCodeSent;
 
     const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
@@ -68,7 +68,7 @@ function CodesStep({backTo}: CodesStepProps) {
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
-        Session.toggleTwoFactorAuth(true);
+        toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata]);
 
@@ -86,7 +86,7 @@ function CodesStep({backTo}: CodesStepProps) {
             }}
             // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
             // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
-            onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : backTo)}
+            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
@@ -126,7 +126,7 @@ function CodesStep({backTo}: CodesStepProps) {
                                             onPress={() => {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
-                                                TwoFactorAuthActions.setCodesAreCopied();
+                                                setCodesAreCopied();
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
@@ -140,7 +140,7 @@ function CodesStep({backTo}: CodesStepProps) {
                                             onPress={() => {
                                                 localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
                                                 setError('');
-                                                TwoFactorAuthActions.setCodesAreCopied();
+                                                setCodesAreCopied();
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -185,14 +185,14 @@ function CodesStep({backTo}: CodesStepProps) {
                 isVisible={isValidateModalVisible}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                sendValidateCode={() => User.requestValidateCodeAction()}
-                handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
-                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                sendValidateCode={() => requestValidateCodeAction()}
+                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
+                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                 onModalHide={() => {}}
                 onClose={() => {
                     setIsValidateModalVisible(false);
-                    TwoFactorAuthActions.quitAndNavigateBack(backTo);
+                    quitAndNavigateBack(backTo);
                 }}
             />
         </AnimatedStep>

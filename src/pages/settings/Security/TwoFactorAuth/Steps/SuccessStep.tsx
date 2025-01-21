@@ -6,8 +6,8 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import * as Link from '@userActions/Link';
-import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import {openLink} from '@userActions/Link';
+import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
@@ -38,13 +38,13 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
-                    TwoFactorAuthActions.clearTwoFactorAuthData();
+                    clearTwoFactorAuthData();
                     setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
                     if (backTo) {
                         Navigation.navigate(backTo);
                     }
                     if (forwardTo) {
-                        Link.openLink(forwardTo, environmentURL);
+                        openLink(forwardTo, environmentURL);
                     }
                 }}
             />

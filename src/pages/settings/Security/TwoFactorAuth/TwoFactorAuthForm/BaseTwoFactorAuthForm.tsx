@@ -4,9 +4,9 @@ import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Session from '@userActions/Session';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidTwoFactorCode} from '@libs/ValidationUtils';
+import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
 
@@ -35,7 +35,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             setFormError({});
 
             if (account?.errors) {
-                Session.clearAccountMessages();
+                clearAccountMessages();
             }
         },
         [account?.errors],
@@ -53,7 +53,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             return;
         }
 
-        if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+        if (!isValidTwoFactorCode(twoFactorAuthCode)) {
             setFormError({twoFactorAuthCode: translate('twoFactorAuthForm.error.incorrect2fa')});
             return;
         }
@@ -61,10 +61,10 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
         setFormError({});
 
         if (validateInsteadOfDisable !== false) {
-            Session.validateTwoFactorAuth(twoFactorAuthCode, shouldClearData);
+            validateTwoFactorAuth(twoFactorAuthCode, shouldClearData);
             return;
         }
-        Session.toggleTwoFactorAuth(false, twoFactorAuthCode);
+        toggleTwoFactorAuth(false, twoFactorAuthCode);
     }, [twoFactorAuthCode, validateInsteadOfDisable, translate, shouldClearData]);
 
     useImperativeHandle(ref, () => ({
@@ -86,7 +86,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ?? ErrorUtils.getLatestErrorMessage(account)}
+            errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
             autoFocus={false}
         />

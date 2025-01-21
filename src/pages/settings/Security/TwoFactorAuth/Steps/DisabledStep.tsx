@@ -7,7 +7,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 
 function DisabledStep() {
@@ -31,7 +31,7 @@ function DisabledStep() {
                     success
                     large
                     text={translate('common.buttonConfirm')}
-                    onPress={() => TwoFactorAuthActions.quitAndNavigateBack()}
+                    onPress={() => quitAndNavigateBack()}
                 />
             </FixedFooter>
         </AnimatedStep>
