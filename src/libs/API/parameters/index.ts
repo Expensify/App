@@ -235,6 +235,7 @@ export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
+export type {default as AddTrackedExpenseToPolicyParams} from './AddTrackedExpenseToPolicyParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
 export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';

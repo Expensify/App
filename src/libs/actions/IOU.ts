@@ -120,7 +120,7 @@ import {
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isSelfDM,
     isSettled,
@@ -4052,6 +4052,34 @@ const getConvertTrackedExpenseInformation = (
     return {optimisticData, successData, failureData, modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID};
 };
 
+type ConvertTrackedWorkspaceParams = {
+    receipt: Receipt | undefined;
+    category: string | undefined;
+    tag: string | undefined;
+    taxCode: string;
+    taxAmount: number;
+    billable: boolean | undefined;
+    linkedTrackedExpenseReportID: string;
+    policyID: string | undefined;
+};
+
+type AddTrackedExpenseToPolicyParam = {
+    amount: number;
+    currency: string;
+    comment: string;
+    created: string;
+    merchant: string;
+    chatReportID: string;
+    transactionID: string;
+    actionableWhisperReportActionID: string;
+    moneyRequestReportID: string;
+    reportPreviewReportActionID: string;
+} & ConvertTrackedWorkspaceParams;
+
+function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
+    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
+}
+
 function convertTrackedExpenseToRequest(
     payerAccountID: number,
     payerEmail: string,
@@ -4073,6 +4101,7 @@ function convertTrackedExpenseToRequest(
     merchant: string,
     created: string,
     attendees?: Attendee[],
+    workspaceParams?: ConvertTrackedWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -4094,6 +4123,29 @@ function convertTrackedExpenseToRequest(
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
+
+    if (workspaceParams) {
+        const params = {
+            amount,
+            currency,
+            comment,
+            created,
+            merchant,
+            chatReportID,
+            transactionID,
+            actionableWhisperReportActionID,
+            moneyRequestReportID,
+            moneyRequestCreatedReportActionID,
+            moneyRequestPreviewReportActionID,
+            transactionThreadReportID,
+            modifiedExpenseReportActionID,
+            reportPreviewReportActionID,
+            ...workspaceParams,
+        };
+
+        addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
+        return;
+    }
 
     const parameters = {
         attendees,
@@ -4299,7 +4351,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-
+            const workspaceParams = isPolicyExpenseChatReportUtil(chatReport)
+                ? {
+                      receipt,
+                      category,
+                      tag,
+                      taxCode,
+                      taxAmount,
+                      billable,
+                      linkedTrackedExpenseReportID,
+                      policyID: chatReport.policyID,
+                  }
+                : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
                 payerEmail,
@@ -4321,6 +4384,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 merchant,
                 created,
                 attendees,
+                workspaceParams,
             );
             break;
         }
@@ -4972,7 +5036,7 @@ function createSplitsAndOnyxData(
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
-        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
         const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false);
 
@@ -5598,7 +5662,7 @@ function startSplitBill({
     });
 
     participants.forEach((participant) => {
-        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         if (!isPolicyExpenseChat) {
             return;
         }
@@ -7169,7 +7233,7 @@ function getReportFromHoldRequestsOnyxData(
     const newParentReportActionID = rand64();
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
     const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
     const optimisticExpenseReport = isPolicyExpenseChat
@@ -7735,7 +7799,7 @@ function canIOUBePaid(
     invoiceReceiverPolicy?: SearchPolicy,
     shouldCheckApprovedState = true,
 ) {
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
     const isChatReportArchived = isArchivedReport(chatReport, reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
@@ -8645,8 +8709,8 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChatReportUtils(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtils(chatReport), selected: true}];
+    if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
