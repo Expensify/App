@@ -6,7 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -19,7 +19,7 @@ import {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
 } from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
@@ -46,8 +46,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 isActive: !!autoSync?.enabled,
                 onToggle: (enabled: boolean) => updateSageIntacctAutoSync(policyID, enabled),
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED],
-                error: ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
-                onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
+                error: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
+                onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
             },
             {
                 label: translate('workspace.sageIntacct.inviteEmployees'),
@@ -58,12 +58,10 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     updateSageIntacctApprovalMode(policyID, enabled);
                 },
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE],
-                error:
-                    ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES) ??
-                    ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE),
+                error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES) ?? getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE),
                 onCloseError: () => {
-                    Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES);
-                    Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE);
+                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES);
+                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE);
                 },
             },
             {
@@ -79,9 +77,9 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     }
                 },
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS],
-                error: ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS),
+                error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS),
                 onCloseError: () => {
-                    Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS);
+                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS);
                 },
             },
         ],

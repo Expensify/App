@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
-import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
@@ -18,7 +18,6 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
-import useAccordionAnimation from "@hooks/useAccordionAnimation";
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -49,8 +48,6 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         }
         updateQuickbooksOnlineSyncLocations(CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD);
     }, [qboConfig, updateQuickbooksOnlineSyncLocations]);
-
-
 
     return (
         <ConnectionLayout

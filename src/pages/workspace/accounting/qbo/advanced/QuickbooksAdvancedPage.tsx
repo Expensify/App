@@ -1,6 +1,5 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';

@@ -6,7 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getSageIntacctNonReimbursableActiveDefaultVendor, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/intacct/types';
@@ -14,7 +14,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {getDefaultVendorName} from './utils';
@@ -86,9 +86,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 isAccordionExpanded.set(enabled);
                 shouldAnimateAccordionSection.set(true);
             },
-            onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
+            onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
+            errors: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
             shouldHide: config?.export.nonReimbursable !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
         },
         {

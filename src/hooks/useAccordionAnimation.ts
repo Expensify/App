@@ -1,7 +1,12 @@
 import {useEffect} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
-const useAccordionAnimation = (isExpanded: boolean) => {
+/**
+ * @returns two values: isExpanded, which manages the expansion of the accordion component,
+ * and shouldAnimateAccordionSection, which determines whether we should animate
+ * the expanding and collapsing of the accordion based on changes in isExpanded.
+ */
+function useAccordionAnimation(isExpanded: boolean) {
     const isAccordionExpanded = useSharedValue(isExpanded);
     const shouldAnimateAccordionSection = useSharedValue(false);
     const hasMounted = useSharedValue(false);
@@ -16,6 +21,6 @@ const useAccordionAnimation = (isExpanded: boolean) => {
     }, [hasMounted, isAccordionExpanded, isExpanded, shouldAnimateAccordionSection]);
 
     return {isAccordionExpanded, shouldAnimateAccordionSection};
-};
+}
 
 export default useAccordionAnimation;
