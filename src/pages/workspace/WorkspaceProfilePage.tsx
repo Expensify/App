@@ -179,6 +179,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                 Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
             }
         }
+        PolicyUtils.goBackFromInvalidPolicy();
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
     return (
