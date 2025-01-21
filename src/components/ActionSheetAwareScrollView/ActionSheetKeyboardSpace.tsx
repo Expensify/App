@@ -1,9 +1,7 @@
-import React, {useContext, useEffect, useLayoutEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import type {SharedValue} from 'react-native-reanimated';
-import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
-import {withSequence} from 'react-native-reanimated';
+import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,16 +68,10 @@ const useSafeAreaPaddings = () => {
     return {top: paddingTop, bottom: paddingBottom};
 };
 
-type ActionSheetKeyboardSpaceProps = ViewProps & {
-    /** scroll offset of the parent ScrollView */
-    position?: SharedValue<number>;
-};
-
-function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
+function ActionSheetKeyboardSpace(props: ViewProps) {
     const styles = useThemeStyles();
     const safeArea = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
-    const {position} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
