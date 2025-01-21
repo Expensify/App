@@ -157,6 +157,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
+    useEffect(() => {
+        User.resetContactMethodValidateCodeSentState(contactMethod);
+    }, [contactMethod]);
+
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
         if (isValidateCodeActionModalVisible && !isDefaultContactMethod) {
