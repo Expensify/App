@@ -467,6 +467,9 @@ const ONYXKEYS = {
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
 
+    /** Information about travel provisioning process */
+    TRAVEL_PROVISIONING: 'travelProvisioning',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1048,6 +1051,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
+    [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

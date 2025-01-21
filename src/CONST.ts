@@ -6463,6 +6463,9 @@ const CONST = {
     SMART_BANNER_HEIGHT: 152,
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
+        PROVISIONING: {
+            ERROR_PERMISSION_DENIED: 'permissionDenied',
+        },
     },
 } as const;
 

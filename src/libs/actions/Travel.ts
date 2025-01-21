@@ -1,4 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -40,6 +41,9 @@ function acceptSpotnanaTerms(domain?: string) {
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, finallyData})
                 .then((response) => {
+                    if (response?.onyxData) {
+                        Onyx.update(response?.onyxData);
+                    }
                     if (!response?.spotnanaToken) {
                         reject(error);
                         throw error;

@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
@@ -32,6 +33,15 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const isLoading = travelSettings?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+
+    useEffect(() => {
+        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED) {
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+            Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
+        }
+    }, [travelProvisioning, domain]);
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);

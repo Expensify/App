@@ -2554,7 +2554,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Get started with Expensify Travel',
-            message: 'To use Expensify Travel, you must use your work email address (e.g., admin@company.com), not a personal email (e.g., admin@gmail.com).',
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
     },
     workspace: {
