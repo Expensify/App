@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, Platform, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -404,6 +404,7 @@ function Button(
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                     link && styles.bgTransparent,
+                    Platform.OS === 'web' && styles.cursorPointer,
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -415,7 +416,7 @@ function Button(
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
-                role={CONST.ROLE.BUTTON}
+                role={Platform.OS === 'web' ? CONST.ROLE.PRESENTATION : CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
