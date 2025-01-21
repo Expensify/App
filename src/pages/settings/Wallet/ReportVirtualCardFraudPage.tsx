@@ -43,7 +43,6 @@ function ReportVirtualCardFraudPage({
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
     const virtualCardError = getLatestErrorMessage(virtualCard);
     const validateError = getLatestErrorMessageField(virtualCard);
-    const prevVirtualCard = usePrevious(virtualCard);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
@@ -91,7 +90,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard) && isEmptyObject(prevVirtualCard)) {
+    if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;
     }
 
