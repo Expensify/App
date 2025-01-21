@@ -29,6 +29,7 @@ import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {setOfflineStatus} from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -905,9 +906,10 @@ function subscribeToPusherPong() {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         const pongEvent = pushJSON as Pusher.PingPongEvent;
         // First, check to see if the PONG event is in the pingIDsAndTimestamps map
+        // It's OK if it doesn't exist. The client was maybe refreshed while still waiting for a PONG event, in which case it might
+        // receive the PONG event but has already lost it's memory of the PING.
         const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.pingID];
         if (!pingEventTimestamp) {
-            Log.info(`[Pusher PINGPONG] Received a PONG event from the server with an ID that wasn't sent by the client: ${pongEvent.pingID}`);
             return;
         }
 
@@ -926,6 +928,9 @@ const PING_INTERVAL_LENGTH_IN_SECONDS = 5;
 // Specify how long between each check for missing PONG events
 const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 5;
 
+// Specifiy how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
+const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+
 let lastTimestamp = Date.now();
 function pingPusher() {
     // Send a PING event to the server with a specific ID and timestamp
@@ -934,22 +939,44 @@ function pingPusher() {
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
 
+    // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
+    // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
     if (pingTimestamp - lastTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] Skipping PING event because the last event was sent too recently ${pingTimestamp - lastTimestamp} ${PING_INTERVAL_LENGTH_IN_SECONDS * 1000}`);
         return;
     }
+    lastTimestamp = pingTimestamp;
 
     pingIDsAndTimestamps[pingID] = pingTimestamp;
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-    lastTimestamp = pingTimestamp;
 }
 
-function checkforMissingPongEvents() {}
+function checkforMissingPongEvents() {
+    Log.info(`[Pusher PINGPONG] Checking for missing PONG events`);
+    // Get the oldest PING timestamp that is left in the event map
+    const oldestPingTimestamp = Math.min(...Object.values(pingIDsAndTimestamps));
+    const ageOfEventInMS = Date.now() - oldestPingTimestamp;
+
+    // Get the eventID of that timestamp
+    const eventID = Object.keys(pingIDsAndTimestamps).find((key) => pingIDsAndTimestamps[key] === oldestPingTimestamp);
+
+    // If the oldest timestamp is older than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then log a message to the console.
+    // This means that the server never replied to the PING event.
+    if (ageOfEventInMS > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event ${eventID} in ${ageOfEventInMS} ms so going offline`);
+        setOfflineStatus(true, 'The client never got a Pusher PONG event after sending a Pusher PING event');
+    }
+}
 
 let pingPongStarted = false;
 function initializePusherPingPong() {
+    // Only run the ping pong from the leader client
+    if (!ActiveClientManager.isClientTheLeader()) {
+        Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
+        return;
+    }
+
     // Ignore any additional calls to initialize the ping pong if it's already been started
     if (pingPongStarted) {
         return;
