@@ -71,6 +71,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
                 <View style={[styles.mhn5]}>
                     <CurrencyPicker
+                        label={translate('common.currency')}
                         value={formValues.bankCurrency}
                         onInputChange={onCurrencySelected}
                         headerContent={currencyHeaderContent}

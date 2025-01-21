@@ -14,6 +14,9 @@ import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 
 type CurrencyPickerProps = {
+    /** Label for the input */
+    label: string;
+
     /** Current value of the selected item */
     value?: string;
 
@@ -36,7 +39,7 @@ type CurrencyPickerProps = {
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -57,7 +60,7 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, int
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={value ? `${value} - ${getCurrencySymbol(value)}` : undefined}
-                description={translate('common.currency')}
+                description={label}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
@@ -79,7 +82,7 @@ function CurrencyPicker({value, errorText, headerContent, excludeCurrencies, int
                     testID={CurrencyPicker.displayName}
                 >
                     <HeaderWithBackButton
-                        title={translate('common.currency')}
+                        title={label}
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />
