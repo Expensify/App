@@ -35,7 +35,7 @@ function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 
-const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
+const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
     useCustomEffects,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
@@ -43,10 +43,10 @@ const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent
     NavigationContentWrapper: SidebarSpacerWrapper,
 });
 
-function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
-    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigatorComponent>(
-        CustomFullScreenNavigatorComponent,
+function createSplitNavigator<ParamList extends ParamListBase>() {
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof SplitNavigatorComponent>(
+        SplitNavigatorComponent,
     )<ParamList>();
 }
 
-export default createCustomFullScreenNavigator;
+export default createSplitNavigator;
