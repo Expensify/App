@@ -260,7 +260,7 @@ function shouldShowDiscountBanner(): boolean {
         return false;
     }
 
-    return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY;
+    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION * CONST.DATE.SECONDS_PER_DAY;
 }
 
 function getEarlyDiscountInfo(): DiscountInfo | null {
@@ -283,8 +283,8 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
     }
 
     return {
-        days: Math.floor(timeLeftInSeconds / 86400),
-        hours: Math.floor((timeLeftInSeconds % 86400) / 3600),
+        days: Math.floor(timeLeftInSeconds / CONST.DATE.SECONDS_PER_DAY),
+        hours: Math.floor((timeLeftInSeconds % CONST.DATE.SECONDS_PER_DAY) / 3600),
         minutes: Math.floor((timeLeftInSeconds % 3600) / 60),
         seconds: Math.floor(timeLeftInSeconds % 60),
         discountType: timeLeft24 > 0 ? 50 : 25,
