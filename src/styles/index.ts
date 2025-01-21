@@ -3693,7 +3693,6 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
-            zIndex: 11,
         },
 
         searchTableHeaderActive: {

@@ -45,9 +45,6 @@ type SearchRouterInputProps = {
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Any additional styles to apply when input is focused */
-    wrapperFocusedStyle?: StyleProp<ViewStyle>;
-
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -72,7 +69,6 @@ function SearchRouterInput(
         onBlur,
         caretHidden = false,
         wrapperStyle,
-        wrapperFocusedStyle,
         outerWrapperStyle,
         rightComponent,
         isSearchingForReports,
@@ -89,7 +85,7 @@ function SearchRouterInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && styles.searchRouterInputResultsFocused]}>
                 <View style={styles.flex1}>
                     <TextInput
                         testID="search-router-text-input"

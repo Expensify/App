@@ -121,7 +121,6 @@ function SearchPageBottomTab() {
                                 shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                                 narrowSearchRouterActive={narrowSearchRouterActive}
                                 deactivateNarrowSearchRouter={() => {
-                                    topBarOffset.set(StyleUtils.searchHeaderHeight);
                                     setNarrowSearchRouterActive(false);
                                 }}
                             />
@@ -138,6 +137,7 @@ function SearchPageBottomTab() {
                                     queryJSON={queryJSON}
                                     narrowSearchRouterActive={narrowSearchRouterActive}
                                     activateNarrowSearchRouter={() => {
+                                        topBarOffset.set(StyleUtils.searchHeaderHeight);
                                         setNarrowSearchRouterActive(true);
                                     }}
                                 />

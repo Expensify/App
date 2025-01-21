@@ -69,6 +69,16 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
 
+    // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
+    useEffect(() => {
+        if (!shouldUseNarrowLayout || !!narrowSearchRouterActive || !textInputRef.current || !textInputRef.current.isFocused()) {
+            return;
+        }
+        textInputRef.current.blur();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [narrowSearchRouterActive]);
+
     useEffect(() => {
         if (shouldUseNarrowLayout || !isFocused || !textInputRef.current) {
             return;
@@ -79,6 +89,7 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
 
     useEffect(() => {
         setTextInputValue(isCannedQuery ? '' : queryText);
+        setAutocompleteQueryValue(isCannedQuery ? '' : queryText);
     }, [isCannedQuery, queryText]);
 
     useEffect(() => {
@@ -212,8 +223,6 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                                     activateNarrowSearchRouter?.();
                                 }}
                                 wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                                wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                                outerWrapperStyle={[]}
                                 rightComponent={children}
                                 routerListRef={listRef}
                                 ref={textInputRef}
@@ -274,7 +283,6 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                    wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={children}
                     routerListRef={listRef}
