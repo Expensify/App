@@ -47,6 +47,7 @@ export type {default as OpenReimbursementAccountPageParams} from './OpenReimburs
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
+export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';

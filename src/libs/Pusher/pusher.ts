@@ -39,7 +39,6 @@ type PingPongEvent = Record<string, string | number> & {
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
-    [TYPE.PING]: PingPongEvent;
     [TYPE.PONG]: PingPongEvent;
 };
 

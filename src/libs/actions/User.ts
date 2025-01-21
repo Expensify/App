@@ -9,6 +9,7 @@ import type {
     CloseAccountParams,
     DeleteContactMethodParams,
     GetStatementPDFParams,
+    PusherPingParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -891,7 +892,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
 // Holds a map of all the PINGs that have been sent to the server and when they were sent
 // Once a PONG is received, the event data will be removed from this map.
-type PingPongTimestampMap = Record<string, Pusher.PingPongEvent>;
+type PingPongTimestampMap = Record<string, number>;
 const pingIDsAndTimestamps: PingPongTimestampMap = {};
 
 function subscribeToPusherPong() {
@@ -903,14 +904,16 @@ function subscribeToPusherPong() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
         const pongEvent = pushJSON as Pusher.PingPongEvent;
         // First, check to see if the PONG event is in the pingIDsAndTimestamps map
-        const pingEvent = pingIDsAndTimestamps[pongEvent.id];
-        if (!pingEvent) {
+        const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.id];
+        if (!pingEventTimestamp) {
             Log.info(`[Pusher PINGPONG] Received a PONG event from the server with an ID that wasn't sent by the client: ${pongEvent.id}`);
             return;
         }
 
         // Calculate the latency between the client and the server
-        const latency = Date.now() - Number(pingEvent.timestamp);
+        const latency = Date.now() - Number(pingEventTimestamp);
+
+        // TODO implement a way to tell the client it's offline
     });
 }
 
@@ -920,12 +923,9 @@ function pingPusher() {
     // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const timestamp = Date.now();
-    const eventPayload: Pusher.PingPongEvent = {
-        id: pingID,
-        timestamp,
-    };
-    Pusher.sendEvent(PusherUtils.getUserChannelName(currentUserAccountID.toString()), Pusher.TYPE.PING, eventPayload);
     pingIDsAndTimestamps[pingID] = timestamp;
+    const parameters: PusherPingParams = {id: pingID, timestamp};
+    API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${timestamp}`);
 }
 
@@ -938,6 +938,7 @@ function initializePusherPingPong() {
         return;
     }
 
+    Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_PONG_INTERVAL_LENGTH_IN_SECONDS} seconds`);
     subscribeToPusherPong();
     setInterval(pingPusher, PING_PONG_INTERVAL_LENGTH_IN_SECONDS);
 
@@ -1004,6 +1005,8 @@ function subscribeToUserEvents() {
         App.reconnectApp();
         return Promise.resolve();
     });
+
+    initializePusherPingPong();
 }
 
 /**
