@@ -915,36 +915,62 @@ function subscribeToPusherPong() {
         const latency = Date.now() - Number(pingEventTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
-        // TODO implement a way to tell the client it's offline
+        // Remove the event from the map
+        delete pingIDsAndTimestamps[pongEvent.pingID];
     });
 }
 
+// Specify how long between each PING event to the server
+const PING_INTERVAL_LENGTH_IN_SECONDS = 5;
+
+// Specify how long between each check for missing PONG events
+const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 5;
+
+let lastTimestamp = Date.now();
 function pingPusher() {
     // Send a PING event to the server with a specific ID and timestamp
-    // The server will response with a PONG event with the same ID and timestamp
+    // The server will respond with a PONG event with the same ID and timestamp
     // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
+
+    if (pingTimestamp - lastTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] Skipping PING event because the last event was sent too recently ${pingTimestamp - lastTimestamp} ${PING_INTERVAL_LENGTH_IN_SECONDS * 1000}`);
+        return;
+    }
+
     pingIDsAndTimestamps[pingID] = pingTimestamp;
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
+    lastTimestamp = pingTimestamp;
 }
 
-// Specify how long between each PING event to the server
-const PING_PONG_INTERVAL_LENGTH_IN_SECONDS = 5;
+function checkforMissingPongEvents() {}
+
 let pingPongStarted = false;
 function initializePusherPingPong() {
     // Ignore any additional calls to initialize the ping pong if it's already been started
     if (pingPongStarted) {
         return;
     }
-
-    Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_PONG_INTERVAL_LENGTH_IN_SECONDS} seconds`);
-    subscribeToPusherPong();
-    setInterval(pingPusher, PING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
-
     pingPongStarted = true;
+
+    Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+
+    // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
+    // so there could be a little delay before the client is actually listening to this event.
+    subscribeToPusherPong();
+
+    // Send a ping to pusher on a regular interval
+    setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
+
+    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
+    // events to be sent and received
+    setTimeout(() => {
+        // Check for any missing pong events on a regular interval
+        setInterval(checkforMissingPongEvents, CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
 /**
