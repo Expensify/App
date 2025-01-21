@@ -1745,7 +1745,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
             // When the user split bill on the workspace
-            IOU.splitBill({
+            splitBill({
                 participants: [{reportID: workspaceReportID}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1760,7 +1760,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then the workspace chat lastVisibleActionCreated should be updated to the report preview action created
-            const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction>>((resolve) => {
+            const reportPreviewAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
                     callback: (reportActions) => {
@@ -1770,7 +1770,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+            await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`,
                     callback: (report) => {
