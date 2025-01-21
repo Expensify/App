@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {getCurrency} from '@libs/CurrencyUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
