@@ -4619,6 +4619,14 @@ const translations = {
             public_announce: 'Public Announce',
         },
     },
+    workspaceApprovalModes: {
+        submitAndClose: 'Submit and Close',
+        submitAndApprove: 'Submit and Approve',
+        advanced: 'ADVANCED',
+        dynamictExternal: 'DYNAMIC_EXTERNAL',
+        smartReport: 'SMARTREPORT',
+        billcom: 'BILLCOM',
+    },
     workspaceActions: {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,

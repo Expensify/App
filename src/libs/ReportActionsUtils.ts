@@ -1926,15 +1926,13 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     const {newValue, oldValue, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD>) ?? {};
 
-    if (
-        updatedField &&
-        updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE &&
-        CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] &&
-        CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES]
-    ) {
+    const newValueTranslationKey = CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS];
+    const oldValueTranslationKey = CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS];
+
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && oldValueTranslationKey && newValueTranslationKey) {
         return translateLocal('workspaceActions.updateApprovalMode', {
-            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
-            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
+            newValue: translateLocal(`workspaceApprovalModes.${newValueTranslationKey}` as TranslationPaths),
+            oldValue: translateLocal(`workspaceApprovalModes.${oldValueTranslationKey}` as TranslationPaths),
             fieldName: updatedField,
         });
     }

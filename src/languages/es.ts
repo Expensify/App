@@ -4667,6 +4667,14 @@ const translations = {
             public_announce: 'Anuncio Público',
         },
     },
+    workspaceApprovalModes: {
+        submitAndClose: 'Enviar y Cerrar',
+        submitAndApprove: 'Enviar y Aprobar',
+        advanced: 'AVANZADO',
+        dynamictExternal: 'DINÁMICO_EXTERNO',
+        smartReport: 'INFORME_INTELIGENTE',
+        billcom: 'BILLCOM',
+    },
     workspaceActions: {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `agregó la categoría "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
