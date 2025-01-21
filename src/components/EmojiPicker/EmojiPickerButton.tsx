@@ -10,7 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
+import type {OnEmojiSelected, OnModalHideValue} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonProps = {
@@ -26,9 +27,9 @@ type EmojiPickerButtonProps = {
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
 
-    onModalHide: EmojiPickerAction.OnModalHideValue;
+    onModalHide: OnModalHideValue;
 
-    onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
+    onEmojiSelected: OnEmojiSelected;
 };
 
 function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
@@ -48,8 +49,8 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
             type: ActionSheetAwareScrollView.Actions.CLOSE_KEYBOARD,
         });
 
-        if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
-            EmojiPickerAction.showEmojiPicker(
+        if (!emojiPickerRef?.current?.isEmojiPickerVisible) {
+            showEmojiPicker(
                 onModalHide,
                 onEmojiSelected,
                 emojiPopoverAnchor,
@@ -62,12 +63,12 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 emojiPickerID,
             );
         } else {
-            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+            emojiPickerRef.current.hideEmojiPicker();
         }
         onPress?.(e);
     };
 
-    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+    useEffect(() => resetEmojiPopoverAnchor, []);
 
     return (
         <Tooltip text={translate('reportActionCompose.emoji')}>

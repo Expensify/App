@@ -6,7 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
@@ -44,14 +44,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                 if (isDisabled) {
                                     return;
                                 }
-                                return showContextMenuForReport(
-                                    event,
-                                    anchor,
-                                    report?.reportID,
-                                    action,
-                                    checkIfContextMenuActive,
-                                    ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
-                                );
+                                return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
                             });
                         }}
                         shouldUseHapticsOnLongPress
