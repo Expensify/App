@@ -53,6 +53,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
@@ -60,7 +61,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => PolicyUtils.isPaidGroupPolicy(policy) && PolicyUtils.isPolicyAdmin(policy, session?.email));
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!isVsb || paidGroupPolicy || isLoadingOnyxValue(allPoliciesResult)) {
