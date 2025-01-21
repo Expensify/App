@@ -22,6 +22,7 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     CONNECTION_COMPLETE: 'ConnectionComplete',
+    BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
@@ -158,6 +159,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -324,6 +326,8 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
+
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
