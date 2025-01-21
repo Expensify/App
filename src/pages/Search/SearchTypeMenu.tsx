@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -24,33 +24,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import type {SavedSearchMenuItem, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
-
-type SavedSearchMenuItem = MenuItemWithLink & {
-    key: string;
-    hash: string;
-    query: string;
-    styles?: Array<ViewStyle | TextStyle>;
-};
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-};
-
-type SearchTypeMenuItem = {
-    translationPath: TranslationPaths;
-    type: SearchDataTypes;
-    icon: IconAsset;
-    getRoute: (policyID?: string) => Route;
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
@@ -75,7 +58,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
 
-    const typeMenuItems: SearchTypeMenuItem[] = createTypeMenuItems(allPolicies, session?.email);
+    const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
@@ -217,5 +200,3 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;
-export type {SearchTypeMenuItem, SavedSearchMenuItem, SaveSearchItem};
-export {createBaseSavedSearchMenuItem, createTypeMenuItems};

@@ -1,19 +1,23 @@
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import type {SavedSearchMenuItem, SaveSearchItem, SearchTypeMenuItem} from '@pages/Search/SearchTypeMenu';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {clearAllFilters} from './actions/Search';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -64,6 +68,20 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type SavedSearchMenuItem = MenuItemWithLink & {
+    key: string;
+    hash: string;
+    query: string;
+    styles?: Array<ViewStyle | TextStyle>;
+};
+
+type SearchTypeMenuItem = {
+    translationPath: TranslationPaths;
+    type: SearchDataTypes;
+    icon: IconAsset;
+    getRoute: (policyID?: string) => Route;
+};
 
 /**
  * @private
@@ -674,7 +692,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
-    const baseMenuItem: SavedSearchMenuItem = {
+    return {
         key,
         title,
         hash: key,
@@ -689,7 +707,6 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,
     };
-    return baseMenuItem;
 }
 
 export {
@@ -710,3 +727,4 @@ export {
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
 };
+export type {SavedSearchMenuItem, SearchTypeMenuItem};

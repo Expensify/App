@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -41,7 +40,7 @@ type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
 };
 
-function SearchTypeMenuButton({queryJSON}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -66,7 +65,7 @@ function SearchTypeMenuButton({queryJSON}: SearchTypeMenuNarrowProps) {
     }, []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
-    const typeMenuItems = createTypeMenuItems(allPolicies, session?.email);
+    const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     const isSearchNameModified = searchParams?.name === searchParams?.q;
@@ -160,20 +159,23 @@ function SearchTypeMenuButton({queryJSON}: SearchTypeMenuNarrowProps) {
         return items;
     }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu]);
 
-    const allMenuItems = [];
-    allMenuItems.push(...popoverMenuItems);
+    const allMenuItems = useMemo(() => {
+        const items = [];
+        items.push(...popoverMenuItems);
 
-    if (savedSearchItems.length > 0) {
-        allMenuItems.push({
-            text: translate('search.savedSearchesMenuItemTitle'),
-            styles: [styles.textSupporting],
-            disabled: true,
-        });
-        allMenuItems.push(...savedSearchItems);
-    }
+        if (savedSearchItems.length > 0) {
+            items.push({
+                text: translate('search.savedSearchesMenuItemTitle'),
+                styles: [styles.textSupporting],
+                disabled: true,
+            });
+            items.push(...savedSearchItems);
+        }
+        return items;
+    }, [popoverMenuItems, savedSearchItems, styles.textSupporting, translate]);
 
     return (
-        <View>
+        <>
             <Button
                 innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
                 icon={Expensicons.Bookmark}
@@ -191,10 +193,10 @@ function SearchTypeMenuButton({queryJSON}: SearchTypeMenuNarrowProps) {
                 innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
             />
             <DeleteConfirmModal />
-        </View>
+        </>
     );
 }
 
-SearchTypeMenuButton.displayName = 'SearchTypeMenuNarrow';
+SearchTypeMenuPopover.displayName = 'SearchTypeMenuPopover';
 
-export default SearchTypeMenuButton;
+export default SearchTypeMenuPopover;

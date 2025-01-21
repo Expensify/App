@@ -31,21 +31,23 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchTypeMenuButton from './SearchTypeMenuButton';
+import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
 
+const ANIMATION_DURATION = 300;
+
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
-    narrowSearchRouterActive?: boolean;
-    activateNarrowSearchRouter?: () => void;
+    searchRouterListVisible?: boolean;
+    onSearchRouterFocus?: () => void;
     children: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNarrowSearchRouter, children}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, children}: SearchPageHeaderInputProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
@@ -71,21 +73,21 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !!narrowSearchRouterActive || !textInputRef.current || !textInputRef.current.isFocused()) {
+        if (!displayNarrowHeader || !!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
             return;
         }
         textInputRef.current.blur();
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [narrowSearchRouterActive]);
+    }, [searchRouterListVisible]);
 
     useEffect(() => {
-        if (shouldUseNarrowLayout || !isFocused || !textInputRef.current) {
+        if (displayNarrowHeader || !isFocused || !textInputRef.current) {
             return;
         }
 
         registerSearchPageInput(textInputRef.current);
-    }, [isCannedQuery, isFocused, registerSearchPageInput, shouldUseNarrowLayout]);
+    }, [isCannedQuery, isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
         setTextInputValue(isCannedQuery ? '' : queryText);
@@ -188,15 +190,15 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
 
     const inputRowWidth = useSharedValue(0);
     const animatedPadding = useDerivedValue(() => {
-        return withTiming(narrowSearchRouterActive ? 0 : 52, {duration: 300});
-    }, [narrowSearchRouterActive]);
+        return withTiming(searchRouterListVisible ? 0 : 52, {duration: ANIMATION_DURATION});
+    }, [searchRouterListVisible]);
     const inputWrapperStyleTest = useAnimatedStyle(() => {
         return {
             marginRight: animatedPadding.value,
         };
     });
 
-    if (shouldUseNarrowLayout) {
+    if (displayNarrowHeader) {
         return (
             <View
                 dataSet={{dragArea: false}}
@@ -220,19 +222,20 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                                 autoFocus={false}
                                 onFocus={() => {
                                     listRef.current?.updateAndScrollToFocusedIndex(0);
-                                    activateNarrowSearchRouter?.();
+                                    onSearchRouterFocus?.();
                                 }}
                                 wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                                wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                                 rightComponent={children}
                                 routerListRef={listRef}
                                 ref={textInputRef}
                             />
                         </Animated.View>
                         <View style={[styles.pAbsolute, {right: 0}]}>
-                            <SearchTypeMenuButton queryJSON={queryJSON} />
+                            <SearchTypeMenuPopover queryJSON={queryJSON} />
                         </View>
                     </View>
-                    <View style={[styles.flex1, !narrowSearchRouterActive && styles.dNone]}>
+                    <View style={[styles.flex1, !searchRouterListVisible && styles.dNone]}>
                         <SearchRouterList
                             autocompleteQueryValue={autocompleteQueryValue}
                             searchQueryItem={searchQueryItem}
@@ -283,6 +286,7 @@ function SearchPageHeaderInput({queryJSON, narrowSearchRouterActive, activateNar
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                    wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={children}
                     routerListRef={listRef}

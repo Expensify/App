@@ -38,11 +38,11 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; narrowSearchRouterActive?: boolean; activateNarrowSearchRouter?: () => void};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchRouterListVisible?: boolean; onSearchRouterFocus?: () => void};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, narrowSearchRouterActive, activateNarrowSearchRouter}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFocus}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -354,8 +354,8 @@ function SearchPageHeader({queryJSON, narrowSearchRouterActive, activateNarrowSe
     return (
         <>
             <SearchPageHeaderInput
-                narrowSearchRouterActive={narrowSearchRouterActive}
-                activateNarrowSearchRouter={activateNarrowSearchRouter}
+                searchRouterListVisible={searchRouterListVisible}
+                onSearchRouterFocus={onSearchRouterFocus}
                 queryJSON={queryJSON}
             >
                 {headerButtonsOptions.length > 0 ? (
