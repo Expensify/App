@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -100,6 +101,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const {setInitialURL} = useContext(InitialURLContext);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -243,6 +245,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                                   setInitialURL(undefined);
+                                  setRootStatusBarEnabled(false);
                               },
                           }
                         : {
@@ -285,7 +288,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall, isActingAsDelegate]);
+    }, [styles.pt4, setInitialURL, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
