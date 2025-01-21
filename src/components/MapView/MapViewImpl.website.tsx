@@ -12,6 +12,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +44,8 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
-            distance,
+            distanceInMeters,
+            unit,
         },
         ref,
     ) => {
@@ -51,6 +53,19 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
 
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
+        const [distanceUnit, setDistanceUnit] = useState(unit);
+        useEffect(() => {
+            if (!unit || distanceUnit) {
+                return;
+            }
+            setDistanceUnit(unit);
+        }, [unit, distanceUnit]);
+
+        const toggleDistanceUnit = useCallback(() => {
+            setDistanceUnit((currentUnit) =>
+                currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+        }, []);
 
         const theme = useTheme();
         const styles = useThemeStyles();
@@ -273,18 +288,22 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                             <View style={styles.currentPositionDot} />
                         </Marker>
                     )}
-                    {!!distanceSymbolCoorinate && !!distance && (
+                    {!!distanceSymbolCoorinate && !!distanceInMeters && !!distanceUnit && (
                         <Marker
                             key="distance"
                             longitude={distanceSymbolCoorinate.at(0) ?? 0}
                             latitude={distanceSymbolCoorinate.at(1) ?? 0}
                         >
-                            <View style={{marginRight: 100}}>
+                            <PressableWithoutFeedback
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
+                                onPress={toggleDistanceUnit}
+                                style={{marginRight: 100}}
+                            >
                                 <View style={styles.distanceLabelWrapper}>
-                                    <View> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)}</View>
-                                    <View> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}</View>
+                                    <View style={styles.distanceLabelText}> {DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}</View>
                                 </View>
-                            </View>
+                            </PressableWithoutFeedback>
                         </Marker>
                     )}
                     {waypoints?.map(({coordinate, markerComponent, id}) => {

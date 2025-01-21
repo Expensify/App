@@ -4007,6 +4007,8 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
             borderRadius: 4,
             textAlign: 'center',
+        },
+        distanceLabelText: {
             fontSize: 13,
             fontWeight: FontUtils.fontWeight.bold,
             color: colors.productLight100,

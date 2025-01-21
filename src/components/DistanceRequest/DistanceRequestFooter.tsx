@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
@@ -11,10 +11,12 @@ import type {WayPoint} from '@components/MapView/MapViewTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MapboxAccessToken} from '@src/types/onyx';
+import type {MapboxAccessToken, Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -35,16 +37,25 @@ type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
 
     /** The transaction being interacted with */
     transaction: OnyxEntry<Transaction>;
+
+    /** The policy */
+    policy: OnyxEntry<Policy>;
 };
 
-function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = getPolicy(activePolicyID);
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
+    const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy ?? activePolicy);
+    const policyCurrency = (policy ?? activePolicy)?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
+    const {unit} = mileageRate ?? {};
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -114,7 +125,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distance={TransactionUtils.getDistanceInMeters(transaction, 'km')}
+                    distanceInMeters={TransactionUtils.getDistanceInMeters(transaction, undefined)}
+                    unit={unit}
                 />
             </View>
         </>
