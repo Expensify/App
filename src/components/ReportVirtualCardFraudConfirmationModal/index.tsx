@@ -7,6 +7,7 @@ import ImageSVG from '@components/ImageSVG';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ import type {ReportVirtualCardFraudConfirmationModalProps} from './types';
 
 function ReportVirtualCardFraudConfirmationModal({title, isVisible, onClose, onModalHide}: ReportVirtualCardFraudConfirmationModalProps) {
     const themeStyles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const hide = useCallback(() => {
         onClose?.();
@@ -53,14 +55,14 @@ function ReportVirtualCardFraudConfirmationModal({title, isVisible, onClose, onM
                             height={290}
                         />
 
-                        <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>Card fraud reported</Text>
+                        <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>{translate('reportFraudConfirmationPage.title')}</Text>
                         <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
-                            We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.
+                            {translate('reportFraudConfirmationPage.description')}
                         </Text>
                     </View>
 
                     <Button
-                        text="Got it, thanks!"
+                        text={translate('reportFraudConfirmationPage.buttonText')}
                         onPress={hide}
                         style={themeStyles.justifyContentEnd}
                         success

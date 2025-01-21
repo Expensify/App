@@ -1610,6 +1610,11 @@ const translations = {
         deactivateCard: 'Deactivate card',
         reportVirtualCardFraud: 'Report virtual card fraud',
     },
+    reportFraudConfirmationPage: {
+        title: 'Card fraud reported',
+        description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
+        buttonText: 'Got it, thanks!',
+    },
     activateCardPage: {
         activateCard: 'Activate card',
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
