@@ -253,14 +253,14 @@ function shouldShowDiscountBanner(): boolean {
         return false;
     }
 
-    const dateNow = Date.now() / 1000;
+    const dateNow = Math.floor(Date.now() / 1000);
     const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
     const lastDayTimestamp = fromZonedTime(`${lastDayFreeTrial}`, 'UTC').getTime() / 1000;
     if (dateNow > lastDayTimestamp) {
         return false;
     }
 
-    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION * CONST.DATE.SECONDS_PER_DAY;
+    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
 }
 
 function getEarlyDiscountInfo(): DiscountInfo | null {
@@ -275,7 +275,7 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
     if (timeLeft24 > 0) {
         timeLeftInSeconds = timeLeft24;
     } else {
-        timeLeftInSeconds = firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY - dateNow;
+        timeLeftInSeconds = firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY - dateNow;
     }
 
     if (timeLeftInSeconds <= 0) {
