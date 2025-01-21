@@ -1,12 +1,13 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {PartialDeep, ValueOf} from 'type-fest';
+import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {PartialDeep, ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import {ConnectPolicyToNSQSParams} from '@libs/API/parameters';
+import type {ConnectPolicyToNSQSParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Connections} from '@src/types/onyx/Policy';
+import type {Connections} from '@src/types/onyx/Policy';
 
 function connectPolicyToNSQS(policyID: string, nsqsAccountID: string) {
     const optimisticData: OnyxUpdate[] = [

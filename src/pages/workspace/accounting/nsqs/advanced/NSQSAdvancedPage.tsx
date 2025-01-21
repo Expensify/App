@@ -6,16 +6,16 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNSQSAutoSync} from '@libs/actions/connections/NSQS';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {NSQSAccount} from '@src/types/onyx/Policy';
+import type {NSQSAccount} from '@src/types/onyx/Policy';
 
 function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -25,7 +25,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
     const nsqsData = policy?.connections?.nsqs?.data;
-    const payableList = nsqsData?.payableList ?? [];
+    const payableList: NSQSAccount[] = useMemo(() => nsqsData?.payableList ?? [], [nsqsData?.payableList]);
 
     const defaultApprovalAccount: NSQSAccount = useMemo(
         () => ({
@@ -61,8 +61,8 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                     isActive={isAutoSyncEnabled}
                     onToggle={toggleAutoSync}
                     pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.AUTO_SYNC], nsqsConfig?.pendingFields)}
-                    errors={ErrorUtils.getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.AUTO_SYNC)}
-                    onCloseError={() => Policy.clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.AUTO_SYNC)}
+                    errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.AUTO_SYNC)}
+                    onCloseError={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.AUTO_SYNC)}
                 />
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}>
                     <MenuItemWithTopDescription

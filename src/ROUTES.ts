@@ -1069,7 +1069,7 @@ const ROUTES = {
                 searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
             }
 
-            const queryParams = searchParams.size ? `?${searchParams}` : '';
+            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
 
             return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
         },

@@ -3,7 +3,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPolicy} from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
@@ -142,7 +142,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (

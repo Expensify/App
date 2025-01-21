@@ -1,21 +1,23 @@
 import React, {useCallback, useMemo} from 'react';
+import {TupleToUnion} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNSQSExportDate} from '@libs/actions/connections/NSQS';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 const Options = Object.values(CONST.NSQS_EXPORT_DATE);
-type Option = (typeof Options)[number];
+type Option = TupleToUnion<typeof Options>;
 
 function NSQSDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -24,7 +26,7 @@ function NSQSDatePage({policy}: WithPolicyProps) {
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const exportDate = nsqsConfig?.exportDate ?? CONST.NSQS_EXPORT_DATE.LAST_EXPENSE;
 
-    const sectionData: SelectorType<Option>[] = Options.map((option) => ({
+    const sectionData: Array<SelectorType<Option>> = Options.map((option) => ({
         keyForList: option,
         text: translate(`workspace.nsqs.export.exportDate.values.${option}.label`),
         alternateText: translate(`workspace.nsqs.export.exportDate.values.${option}.description`),
@@ -57,11 +59,11 @@ function NSQSDatePage({policy}: WithPolicyProps) {
             onSelectRow={updateExportDate}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID))}
-            title={`common.date`}
+            title="common.date"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.EXPORT_DATE], nsqsConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORT_DATE)}
+            errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORT_DATE)}
+            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORT_DATE)}
         />
     );
 }

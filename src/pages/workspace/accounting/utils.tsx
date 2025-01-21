@@ -11,7 +11,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -338,7 +338,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
+    const syncError = translateLocal('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {

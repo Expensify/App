@@ -1,20 +1,22 @@
 import React, {useCallback} from 'react';
+import {TupleToUnion} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNSQSCustomersMapping} from '@libs/actions/connections/NSQS';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 const Options = [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] as const;
-type Option = (typeof Options)[number];
+type Option = TupleToUnion<typeof Options>;
 
 function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -23,7 +25,7 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const importType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
-    const sectionData: SelectorType<Option>[] = Options.map((option) => ({
+    const sectionData: Array<SelectorType<Option>> = Options.map((option) => ({
         keyForList: option,
         text: translate(`workspace.nsqs.import.importTypes.${option}.label`),
         alternateText: translate(`workspace.nsqs.import.importTypes.${option}.description`),
@@ -55,9 +57,9 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID))}
             title={`workspace.common.displayedAs`}
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS], nsqsConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+            errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
         />
     );
 }

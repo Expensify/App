@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNSQS} from '@libs/actions/connections/NSQS';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -33,7 +33,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM> = {};
             if (!values[INPUT_IDS.NSQS_ACCOUNT_ID]) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.NSQS_ACCOUNT_ID, translate('common.error.fieldRequired'));
+                addErrorMessage(errors, INPUT_IDS.NSQS_ACCOUNT_ID, translate('common.error.fieldRequired'));
             }
             return errors;
         },

@@ -1,18 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNSQSExporter} from '@libs/actions/connections/NSQS';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminEmployees, settingsPendingAction} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isExpensifyTeam} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -34,7 +35,7 @@ function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
                 }
 
                 // Don't show guides if the current user is not a guide themselves or an Expensify employee
-                if (PolicyUtils.isExpensifyTeam(option.email) && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                if (isExpensifyTeam(option.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
                     return options;
                 }
 
@@ -84,11 +85,11 @@ function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
             onSelectRow={updateExporter}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID))}
-            title={`workspace.accounting.preferredExporter`}
+            title="workspace.accounting.preferredExporter"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.EXPORTER], nsqsConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORTER)}
+            errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORTER)}
+            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORTER)}
         />
     );
 }

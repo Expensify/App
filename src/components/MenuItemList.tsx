@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
+import mergeRefs from '@libs/mergeRefs';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -71,7 +72,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         <>
-            {menuItems.map(({key, ...menuItemProps}) => (
+            {menuItems.map(({key, ref, ...menuItemProps}) => (
                 <OfflineWithFeedback
                     key={key ?? menuItemProps.title}
                     pendingAction={menuItemProps.pendingAction}
@@ -83,7 +84,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                         key={key ?? menuItemProps.title}
                         wrapperStyle={wrapperStyle}
                         onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                        ref={popoverAnchor}
+                        ref={mergeRefs(ref, popoverAnchor)}
                         shouldBlockSelection={!!menuItemProps.link}
                         icon={icon}
                         iconWidth={iconWidth}

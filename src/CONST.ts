@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
-import {Dictionary} from 'lodash';
+// eslint-disable-next-line lodash/import-scope
+import type {Dictionary} from 'lodash';
 import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
@@ -2740,7 +2741,7 @@ const CONST = {
                 };
             },
             get MULTI_CONNECTIONS_MAPPING_INVERTED() {
-                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<ValueOf<typeof this.NAME>[] | undefined>;
+                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<Array<ValueOf<typeof this.NAME>> | undefined>;
             },
         },
         ACCESS_VARIANTS: {

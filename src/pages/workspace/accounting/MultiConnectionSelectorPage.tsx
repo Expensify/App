@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,13 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import {ConnectionName} from '@src/types/onyx/Policy';
-import AccessOrNotFoundWrapper from '../AccessOrNotFoundWrapper';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
-import {MenuItemData} from './types';
+import type {MenuItemData} from './types';
 import {getAccountingIntegrationData} from './utils';
 
 type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
@@ -29,7 +29,7 @@ type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
 };
 
 function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPageProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {canUseNSQS} = usePermissions();
     const multiConnectionName = getConnectionNameFromRouteParam(route.params.connection);
@@ -45,39 +45,41 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
 
     const connectionsMenuItems: MenuItemData[] = useMemo(
         () =>
-            integrations
-                .map((integration) => {
-                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-                    if (!integrationData) {
-                        return undefined;
-                    }
+            policyID
+                ? (integrations
+                      .map((integration) => {
+                          const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                          if (!integrationData) {
+                              return undefined;
+                          }
 
-                    const connectionsMenuItem: MenuItemData = {
-                        title: integrationData.title,
-                        icon: integrationData.icon,
-                        iconType: CONST.ICON_TYPE_AVATAR,
-                        shouldShowRightIcon: true,
-                        onPress: () => {
-                            startIntegrationFlow({
-                                name: integration,
-                                integrationToDisconnect,
-                                shouldDisconnectIntegrationBeforeConnecting,
-                            });
-                        },
-                        ref: (ref) => {
-                            if (!popoverAnchorRefs?.current) {
-                                return;
-                            }
+                          const connectionsMenuItem: MenuItemData = {
+                              title: integrationData.title,
+                              icon: integrationData.icon,
+                              iconType: CONST.ICON_TYPE_AVATAR,
+                              shouldShowRightIcon: true,
+                              onPress: () => {
+                                  startIntegrationFlow({
+                                      name: integration,
+                                      integrationToDisconnect,
+                                      shouldDisconnectIntegrationBeforeConnecting,
+                                  });
+                              },
+                              ref: (ref) => {
+                                  if (!popoverAnchorRefs?.current) {
+                                      return;
+                                  }
 
-                            // eslint-disable-next-line react-compiler/react-compiler
-                            popoverAnchorRefs.current[integration].current = ref;
-                        },
-                    };
+                                  // eslint-disable-next-line react-compiler/react-compiler
+                                  popoverAnchorRefs.current[integration].current = ref;
+                              },
+                          };
 
-                    return connectionsMenuItem;
-                })
-                .filter(Boolean) as MenuItemData[],
-        [integrations],
+                          return connectionsMenuItem;
+                      })
+                      .filter(Boolean) as MenuItemData[])
+                : [],
+        [integrations, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policyID, startIntegrationFlow, popoverAnchorRefs, translate],
     );
 
     // The multi connector is currently only used for NSQS (which is behind beta)
