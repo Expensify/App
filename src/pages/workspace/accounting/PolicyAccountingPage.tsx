@@ -71,7 +71,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {canUseNetSuiteUSATax, canUseNSQS} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -90,7 +90,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames);
+    const accountingIntegrations = Object.values(connectionNames).filter((integration) => {
+        if (integration === CONST.POLICY.CONNECTIONS.NAME.NSQS && !canUseNSQS) {
+            return false;
+        }
+        return true;
+    });
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
@@ -263,8 +268,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     if (!integrationData) {
                         return undefined;
                     }
+
                     const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-                    const shouldUseMultiConnectionSelector = !!designatedDisplayConnection;
+
+                    // The multi connector is currently only used for NSQS (which is behind beta)
+                    const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection;
                     if (shouldUseMultiConnectionSelector && designatedDisplayConnection != integration) {
                         return;
                     }
@@ -423,6 +431,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         canUseNetSuiteUSATax,
         shouldShowCardReconciliationOption,
+        canUseNSQS,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -443,7 +452,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 const otherLinkedConnections = designatedDisplayConnection
                     ? CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[designatedDisplayConnection]?.filter((connection) => connection != connectedIntegration) ?? []
                     : [];
-                const shouldUseMultiConnectionSelector = !!designatedDisplayConnection && otherLinkedConnections.length > 1;
+
+                // The multi connector is currently only used for NSQS (which is behind beta)
+                const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection && otherLinkedConnections.length > 1;
                 if (shouldUseMultiConnectionSelector && designatedDisplayConnection != integration) {
                     return;
                 }
@@ -505,6 +516,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
+        canUseNSQS,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {

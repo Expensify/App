@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNSQS} from '@libs/actions/connections/NSQS';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -25,6 +27,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {canUseNSQS} = usePermissions();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
@@ -51,37 +54,39 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
             shouldEnableMaxHeight
             testID={NSQSSetupPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.nsqs.setup.title')}
-                onBackButtonPress={() =>
-                    Navigation.goBack(
-                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
-                    )
-                }
-            />
-            <View style={[styles.flexGrow1, styles.ph5, styles.pt3]}>
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.NSQS_OAUTH2_FORM}
-                    style={styles.flexGrow1}
-                    validate={validate}
-                    onSubmit={connectPolicy}
-                    submitButtonText={translate('workspace.accounting.setup')}
-                    enabledWhenOffline
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
-                >
-                    <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.nsqs.setup.description')}</Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.NSQS_ACCOUNT_ID}
-                        ref={inputCallbackRef}
-                        label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
-                        aria-label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
-                        role={CONST.ROLE.PRESENTATION}
-                        spellCheck={false}
-                    />
-                </FormProvider>
-            </View>
+            <FullPageNotFoundView shouldShow={!canUseNSQS}>
+                <HeaderWithBackButton
+                    title={translate('workspace.nsqs.setup.title')}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(
+                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
+                        )
+                    }
+                />
+                <View style={[styles.flexGrow1, styles.ph5, styles.pt3]}>
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.NSQS_OAUTH2_FORM}
+                        style={styles.flexGrow1}
+                        validate={validate}
+                        onSubmit={connectPolicy}
+                        submitButtonText={translate('workspace.accounting.setup')}
+                        enabledWhenOffline
+                        shouldValidateOnBlur
+                        shouldValidateOnChange
+                    >
+                        <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.nsqs.setup.description')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.NSQS_ACCOUNT_ID}
+                            ref={inputCallbackRef}
+                            label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
+                            aria-label={translate('workspace.nsqs.setup.formInputs.netSuiteAccountID')}
+                            role={CONST.ROLE.PRESENTATION}
+                            spellCheck={false}
+                        />
+                    </FormProvider>
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

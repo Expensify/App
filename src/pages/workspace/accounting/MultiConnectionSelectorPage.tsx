@@ -6,6 +6,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -30,6 +31,7 @@ type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
 function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPageProps) {
     const policyID = policy?.id ?? '-1';
 
+    const {canUseNSQS} = usePermissions();
     const multiConnectionName = getConnectionNameFromRouteParam(route.params.connection);
     const integrationToDisconnect = route.params.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = route.params.shouldDisconnectIntegrationBeforeConnecting;
@@ -78,7 +80,8 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
         [integrations],
     );
 
-    const shouldBeBlocked = !connectionsMenuItems.length;
+    // The multi connector is currently only used for NSQS (which is behind beta)
+    const shouldBeBlocked = !canUseNSQS || !connectionsMenuItems.length;
 
     return (
         <AccessOrNotFoundWrapper

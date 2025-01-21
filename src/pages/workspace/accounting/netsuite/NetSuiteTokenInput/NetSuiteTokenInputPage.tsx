@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
+import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,6 +27,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const {canUseNSQS} = usePermissions();
 
     const submit = () => {
         Navigation.dismissModal();
@@ -42,10 +44,13 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            // s77rt use beta
-            Navigation.goBack(
-                ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]),
-            );
+            if (canUseNSQS) {
+                Navigation.goBack(
+                    ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]),
+                );
+                return;
+            }
+            Navigation.goBack();
             return;
         }
         ref.current?.movePrevious();
