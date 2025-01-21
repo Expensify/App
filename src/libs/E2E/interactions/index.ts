@@ -1,8 +1,15 @@
+import type {GestureResponderEvent} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
 import Performance from '@libs/Performance';
 
 const waitForElement = (testID: string) => {
+    console.debug(`[E2E] waitForElement: ${testID}`);
+
+    if (E2EGenericPressableWrapper.getPressableProps(testID)) {
+        return Promise.resolve();
+    }
+
     return new Promise((resolve) => {
         const subscription = DeviceEventEmitter.addListener('onBecameVisible', (_testID: string) => {
             if (_testID !== testID) {
@@ -41,7 +48,9 @@ const waitForEvent = (eventName: string): Promise<PerformanceEntry> => {
 };
 
 const tap = (testID: string) => {
-    E2EGenericPressableWrapper.getPressableProps(testID)?.onPress?.();
+    console.debug(`[E2E] Press on: ${testID}`);
+
+    E2EGenericPressableWrapper.getPressableProps(testID)?.onPress?.({} as unknown as GestureResponderEvent);
 };
 
 export {waitForElement, tap, waitForEvent, waitForTextInputValue};

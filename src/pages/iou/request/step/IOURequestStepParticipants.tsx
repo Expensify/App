@@ -161,6 +161,7 @@ function IOURequestStepParticipants({
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
+        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
         handleNavigation(route);
     }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 

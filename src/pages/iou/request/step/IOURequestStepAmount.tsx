@@ -10,6 +10,7 @@ import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -122,6 +123,8 @@ function IOURequestStepAmount({
     };
 
     const navigateToParticipantPage = () => {
+        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));

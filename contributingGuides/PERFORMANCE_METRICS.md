@@ -24,6 +24,9 @@ Project is using Firebase for tracking these metrics. However, not all of them a
 | `open_report_from_preview`   | ✅ | Time taken to open a report from preview.<br><br>(previously `switch_report_from_preview`)<br><br>**Platforms:** All     | Starts when the user presses the Report Preview.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `open_report_thread`   | ✅ | Time taken to open a thread in a report.<br><br>**Platforms:** All      | Starts when user presses Report Action Item.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `send_message`    | ✅ | Time taken to send a message.<br><br>**Platforms:** All      | Starts when the new message is sent.     | Stops when the message is being rendered in the chat.     |
+| `open_submit_expense`    | ❌ | Time taken to open "Submit expense" screen.<br><br>**Platforms:** All      | Starts when the `Create expense` is pressed.     | Stops when the `IOURequestStartPage` finishes laying out.     |
+| `open_submit_expense_contact`    | ❌ | Time taken to Submit expense screen.<br><br>**Platforms:** All      | Starts when the `Next` button on `Create expense` screen is pressed.     | Stops when the `IOURequestStepParticipants` finishes laying out.     |
+| `open_submit_expense_approve`    | ❌ | Time taken to Submit expense screen.<br><br>**Platforms:** All      | Starts when the `Contact` on `Choose recipient` screen is selected.     | Stops when the `IOURequestStepConfirmation` finishes laying out.     |
 
 ## Documentation Maintenance
 
@@ -36,7 +39,6 @@ To ensure this documentation remains accurate and useful, please adhere to the f
 3. **Metric Removal**: If a metric is no longer used, don't delete its entry. Instead, mark it as deprecated in the table and provide a brief explanation.
 
 4. **Code Location Changes**: If the placement of a metric in the code changes, update the "Start time" and "End time" columns to reflect the new location.
-
 
 ## Additional Resources
 

@@ -419,7 +419,6 @@ function Button(
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
-                testID={testID}
             >
                 {renderContent()}
                 {isLoading && (
