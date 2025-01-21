@@ -21,11 +21,7 @@ module.exports = {
     },
     overrides: [
         {
-            files: [
-                'src/libs/actions/IOU.ts',
-                'src/libs/actions/Report.ts',
-                'src/pages/home/report/PureReportActionItem.tsx',
-            ],
+            files: ['src/libs/actions/IOU.ts', 'src/libs/actions/Report.ts', 'src/pages/home/report/PureReportActionItem.tsx'],
             rules: {
                 'rulesdir/no-default-id-values': 'off',
             },
