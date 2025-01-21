@@ -967,8 +967,7 @@ function checkforMissingPongEvents() {
     // Get the eventID of that timestamp
     const eventID = Object.keys(pingIDsAndTimestamps).find((key) => pingIDsAndTimestamps[key] === oldestPingTimestamp);
 
-    // If the oldest timestamp is older than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then log a message to the console.
-    // This means that the server never replied to the PING event.
+    // If the oldest timestamp is older than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then set the network status to offline
     if (ageOfEventInMS > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
         Log.info(`[Pusher PINGPONG] The server has not replied to the PING event ${eventID} in ${ageOfEventInMS} ms so going offline`);
         NetworkConnection.setOfflineStatus(true, 'The client never got a Pusher PONG event after sending a Pusher PING event');
