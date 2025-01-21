@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import {InteractionManager, type NativeSyntheticEvent, type StyleProp, type TextInputSubmitEditingEventData, type ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {useInputBlurContext} from '@components/InputBlurContext';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
@@ -375,7 +375,9 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                     if (Browser.isSafari()) {
-                        setIsBlurred(true);
+                        InteractionManager.runAfterInteractions(() => {
+                            setIsBlurred(true);
+                        });
                     }
                 },
                 onInputChange: (value, key) => {
