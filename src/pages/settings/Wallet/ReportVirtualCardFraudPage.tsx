@@ -75,7 +75,6 @@ function ReportVirtualCardFraudPage({
             }
 
             reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-            // setIsValidateCodeActionModalVisible(false);
         },
         [virtualCard],
     );
