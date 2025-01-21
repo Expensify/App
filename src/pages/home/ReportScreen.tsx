@@ -28,16 +28,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import {setShouldShowComposeInput} from '@libs/actions/Composer';
-import {
-    clearDeleteTransactionNavigateBackUrl,
-    navigateToConciergeChat,
-    openReport,
-    readNewestAction,
-    subscribeToReportLeavingEvents,
-    unsubscribeFromLeavingRoomReportChannel,
-    updateLastVisitTime,
-} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,7 +41,7 @@ import {
     isActionOfType,
     isCreatedAction,
     isDeletedAction,
-    isDeletedParentAction as isDeletedParentActionUtil,
+    isDeletedParentAction,
     isMoneyRequestAction,
     isWhisperAction,
     shouldReportActionBeVisible,
@@ -82,6 +72,16 @@ import {
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
+import {setShouldShowComposeInput} from '@userActions/Composer';
+import {
+    clearDeleteTransactionNavigateBackUrl,
+    navigateToConciergeChat,
+    openReport,
+    readNewestAction,
+    subscribeToReportLeavingEvents,
+    unsubscribeFromLeavingRoomReportChannel,
+    updateLastVisitTime,
+} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -164,8 +164,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const wasLoadingApp = usePrevious(isLoadingApp);
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
-    const isDeletedParentAction = isDeletedParentActionUtil(parentReportAction);
-    const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
+    const deletedParentAction = isDeletedParentAction(parentReportAction);
+    const prevDeletedParentAction = usePrevious(deletedParentAction);
+
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
@@ -289,8 +290,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const isPendingActionExist = !!reportActions.at(0)?.pendingAction;
-    const doesCreatedActionExists = useCallback(() => !!sortedAllReportActions?.findLast((action) => isCreatedAction(action)), [sortedAllReportActions]);
-    const isLinkedMessageAvailable = useMemo(() => indexOfLinkedMessage > -1, [indexOfLinkedMessage]);
+    const doesCreatedActionExists = useCallback(() => !!reportActions?.findLast((action) => isCreatedAction(action)), [reportActions]);
+    const isLinkedMessageAvailable = indexOfLinkedMessage > -1;
 
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
@@ -617,7 +618,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             didReportClose ||
             isRemovalExpectedForReportType ||
             isClosedTopLevelPolicyRoom ||
-            (prevIsDeletedParentAction && !isDeletedParentAction)
+            (prevDeletedParentAction && !deletedParentAction)
         ) {
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
@@ -668,8 +669,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportIDFromRoute,
         lastReportIDFromRoute,
         isFocused,
-        isDeletedParentAction,
-        prevIsDeletedParentAction,
+        deletedParentAction,
+        prevDeletedParentAction,
     ]);
 
     useEffect(() => {
