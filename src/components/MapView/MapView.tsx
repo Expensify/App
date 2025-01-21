@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -241,12 +241,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             return directionCoordinates.at(middleIndex);
         }, [directionCoordinates]);
 
-        console.log('>>>>>>>>>>');
-        console.log('>>>>>>>>>>');
-        console.log('>>>>>>>>>>');
-        console.log('>>>>>>>>>>');
-        console.log('>>>>>>>>>>', DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit));
-
         return !isOffline && isAccessTokenSet && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
@@ -322,12 +316,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                             coordinate={distanceSymbolCoorinate}
                             id="distance-label"
                             key="distance-label"
-                            onTouchStart={toggleDistanceUnit}
-                            onAccessibilityTap={toggleDistanceUnit}
                         >
                             <View style={{zIndex: 1}}>
                                 <PressableWithoutFeedback
-                                    accessible
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel="distance-label"
                                     onPress={toggleDistanceUnit}
