@@ -4162,6 +4162,7 @@ const translations = {
                         case 'netSuiteSyncData':
                             return 'Importing data into Expensify';
                         case 'netSuiteSyncAccounts':
+                        case 'nsqsSyncAccounts':
                             return 'Syncing accounts';
                         case 'netSuiteSyncCurrencies':
                             return 'Syncing currencies';
@@ -4188,6 +4189,16 @@ const translations = {
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importing vendors';
+                        case 'nsqsSyncConnection':
+                            return 'Initializing connection to NSQS';
+                        case 'nsqsSyncEmployees':
+                            return 'Syncing employees';
+                        case 'nsqsSyncCustomers':
+                            return 'Syncing customers';
+                        case 'nsqsSyncProjects':
+                            return 'Syncing projects';
+                        case 'nsqsSyncCurrency':
+                            return 'Syncing currency';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
                         case 'intacctImportDimensions':

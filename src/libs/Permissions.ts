@@ -42,6 +42,7 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
+    return true; // s77rt: remove this line
     return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
 }
 

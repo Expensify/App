@@ -2651,7 +2651,6 @@ const CONST = {
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
-                // s77rt: do we have a link for nsqs?
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2717,8 +2716,11 @@ const CONST = {
                 NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
                 NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
-                // s77rt get NSQS sync stages
-                // s77rt translate sync stages
+                NSQS_SYNC_ACCOUNTS: 'nsqsSyncAccounts',
+                NSQS_SYNC_EMPLOYEES: 'nsqsSyncEmployees',
+                NSQS_SYNC_CUSTOMERS: 'nsqsSyncCustomers',
+                NSQS_SYNC_PROJECTS: 'nsqsSyncProjects',
+                NSQS_SYNC_CURRENCY: 'nsqsSyncCurrency',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
