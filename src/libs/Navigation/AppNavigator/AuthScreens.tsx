@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
@@ -643,4 +643,4 @@ function AuthScreens() {
 
 AuthScreens.displayName = 'AuthScreens';
 
-export default memo(AuthScreens, () => true);
+export default AuthScreens;
