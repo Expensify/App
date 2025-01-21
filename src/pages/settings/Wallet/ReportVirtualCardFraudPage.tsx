@@ -128,8 +128,8 @@ function ReportVirtualCardFraudPage({
                 />
                 <ReportVirtualCardFraudConfirmationModal
                     isVisible={isConfirmationModalVisible}
-                    title="Card fraud reported"
-                    descriptionPrimary="Some description"
+                    title={translate('reportFraudConfirmationPage.title')}
+                    descriptionPrimary=""
                     onClose={() => {
                         setIsValidateCodeActionModalVisible(false);
                         setIsConfirmationModalVisible(false);
