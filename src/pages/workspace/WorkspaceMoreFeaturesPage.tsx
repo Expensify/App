@@ -341,6 +341,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             items: spendItems,
         },
         {
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
+            items: organizeItems,
+        },
+        {
             titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
             items: manageItems,
@@ -349,16 +359,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.earnSection.subtitle',
             items: earnItems,
-        },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
-            items: organizeItems,
-        },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-            items: integrateItems,
         },
     ];
 
