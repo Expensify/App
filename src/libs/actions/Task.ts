@@ -910,7 +910,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
 /**
  * Start out create task action quick action step
  */
-function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number) {
+function startOutCreateTaskQuickAction(reportID: string | undefined, targetAccountID: number) {
     // The second parameter of clearOutTaskInfoAndNavigate is the chat report or DM report
     // between the user and the person to whom the task is assigned.
     // Since chatReportID isn't stored in NVP_QUICK_ACTION_GLOBAL_CREATE, we set
