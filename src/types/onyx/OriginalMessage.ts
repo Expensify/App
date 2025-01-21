@@ -389,6 +389,15 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
+
+    /** Default value of a report field */
+    defaultValue?: string;
+
+    /** field ID of a report field */
+    fieldID?: string;
+
+    /**  update type of a report field */
+    updateType?: string;
 };
 
 /** Model of `join policy changelog` report action */

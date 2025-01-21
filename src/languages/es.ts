@@ -4,8 +4,8 @@ import type en from './en';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
-    AddedPolicyReportFieldParams,
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -177,6 +177,7 @@ import type {
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
@@ -4690,7 +4691,10 @@ const translations = {
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        addedReportField: ({fieldType, fieldName}: AddedPolicyReportFieldParams) => `agregó el Campo de Informe ${fieldType} "${fieldName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `agregó el Campo de Informe ${fieldType} "${fieldName}"`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
+            `actualizó el campo del informe "${fieldName}"; estableció el valor predeterminado como "${defaultValue}"`,
+        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `agregó una nueva tasa de "${rateName}" para "${customUnitName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `actualizó "Evitar la autoaprobación" de "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}"`,

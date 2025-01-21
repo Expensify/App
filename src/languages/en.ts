@@ -5,8 +5,8 @@ import type {Country} from '@src/CONST';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
-    AddedPolicyReportFieldParams,
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -178,6 +178,7 @@ import type {
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
@@ -4643,7 +4644,10 @@ const translations = {
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
         addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
-        addedReportField: ({fieldType, fieldName}: AddedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
+            `updated Report Field "${fieldName}"; set the default value to be "${defaultValue}"`,
+        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent Self-Approval" from "${oldValue === 'true' ? 'Enabled' : 'Disabled'}" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}"`,
         updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
