@@ -15,9 +15,9 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,10 +50,10 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     const {report, action, transactionThreadReport} = contextValue;
 
-    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report?.policyID ?? '-1');
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
+    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report?.policyID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transactionCurrency = getCurrency(transaction);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -73,10 +73,10 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
 
-    if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-        const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
+    if (isTransactionThread(parentReportAction)) {
+        const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
 
-        if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
+        if (isMessageDeleted(parentReportAction) || isReversedTransaction) {
             let message: TranslationPaths;
 
             if (isReversedTransaction) {
@@ -117,8 +117,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         );
     }
 
-    if (ReportUtils.isTaskReport(report)) {
-        if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
+    if (isTaskReport(report)) {
+        if (isCanceledTaskReport(report, parentReportAction)) {
             return (
                 <View style={[styles.pRelative]}>
                     <AnimatedEmptyStateBackground />
@@ -147,7 +147,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         );
     }
 
-    if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
+    if (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 {!isEmptyObject(transactionThreadReport?.reportID) ? (

@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
@@ -36,18 +36,18 @@ function isActiveTaskEditRoute(reportID: string | undefined): boolean {
 function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Message, 'text' | 'html'> {
     switch (action?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED:
-            return {text: Localize.translateLocal('task.messages.completed')};
+            return {text: translateLocal('task.messages.completed')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED:
-            return {text: Localize.translateLocal('task.messages.canceled')};
+            return {text: translateLocal('task.messages.canceled')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED:
-            return {text: Localize.translateLocal('task.messages.reopened')};
+            return {text: translateLocal('task.messages.reopened')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_EDITED:
             return {
                 text: getReportActionText(action),
                 html: getReportActionHtml(action),
             };
         default:
-            return {text: Localize.translateLocal('task.task')};
+            return {text: translateLocal('task.task')};
     }
 }
 
@@ -58,15 +58,15 @@ function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '
     return taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
 }
 
-function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
+function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): string {
     const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
     return getTaskTitleFromReport(taskReport, fallbackTitle);
 }
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
-    const taskReportID = reportAction?.childReportID ?? '-1';
+    const taskReportID = reportAction?.childReportID;
     const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
-    return taskTitle ? Localize.translateLocal('task.messages.created', {title: taskTitle}) : '';
+    return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 
 export {isActiveTaskEditRoute, getTaskReportActionMessage, getTaskTitle, getTaskTitleFromReport, getTaskCreatedMessage};
