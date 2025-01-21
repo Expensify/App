@@ -585,7 +585,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
 }
 
-function openWorkspaceView(policyID: string) {
+function openWorkspaceView(policyID: string | undefined) {
     API.read(
         READ_COMMANDS.OPEN_WORKSPACE_VIEW,
         {
