@@ -1,5 +1,4 @@
 import {isBefore} from 'date-fns';
-import {Network} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -47,16 +46,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as App from './App';
+import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
-import * as Link from './Link';
-import * as Report from './Report';
-import * as Session from './Session';
+import {openOldDotLink} from './Link';
+import {showReportActionNotification} from './Report';
+import {resendValidateCode as sessionResendValidateCode} from './Session';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -121,7 +120,7 @@ function closeAccount(reason: string) {
  * Resends a validation link to a given login
  */
 function resendValidateCode(login: string) {
-    Session.resendValidateCode(login);
+    sessionResendValidateCode(login);
 }
 
 /**
@@ -789,7 +788,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && Report.showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
     });
 }
 
@@ -1022,6 +1021,7 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+        const pushEventData = pushJSON as OnyxUpdatesFromServer;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
             Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
@@ -1031,8 +1031,8 @@ function subscribeToUserEvents() {
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-            lastUpdateID: Number(pushJSON.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            updates: pushJSON.updates ?? [],
+            lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
+            updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         applyOnyxUpdatesReliably(updates);
@@ -1066,7 +1066,7 @@ function subscribeToUserEvents() {
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        App.reconnectApp();
+        reconnectApp();
         return Promise.resolve();
     });
 
@@ -1176,7 +1176,7 @@ function clearScreenShareRequest() {
  * @param roomName Name of the screen share room to join
  */
 function joinScreenShare(accessToken: string, roomName: string) {
-    Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
+    openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
     clearScreenShareRequest();
 }
 

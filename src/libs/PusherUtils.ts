@@ -4,7 +4,8 @@ import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
-import * as Pusher from './Pusher/pusher';
+import {subscribe} from './Pusher/pusher';
+import type {PingPongEvent} from './Pusher/pusher';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
@@ -30,10 +31,10 @@ function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promis
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | PingPongEvent) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) {
+    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -41,7 +42,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    function onEventPush(pushJSON: OnyxUpdatesFromServer | Pusher.PingPongEvent) {
+    function onEventPush(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }
@@ -49,7 +50,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     function onSubscriptionFailed(error: Error) {
         Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
+    subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
 export default {
