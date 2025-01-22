@@ -49,10 +49,7 @@ function DomainSelectorPage() {
             shouldEnableMaxHeight
             testID={DomainSelectorPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('travel.domainSelector.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('travel.domainSelector.title')} />
             <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}

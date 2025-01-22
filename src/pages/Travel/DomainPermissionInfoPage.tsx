@@ -24,10 +24,7 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
             shouldEnableMaxHeight
             testID={DomainPermissionInfoPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('travel.domainPermissionInfo.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('travel.domainPermissionInfo.title')} />
             <View style={[styles.flex1]}>
                 <View style={[styles.mt3, styles.mr5, styles.ml5]}>
                     <RenderHTML html={translate('travel.domainPermissionInfo.restriction', {domain: route.params.domain})} />
