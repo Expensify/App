@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
+import {setFullscreenVisibility} from '@libs/FullscreenVisibility';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -217,6 +218,15 @@ const modalScreenListeners = {
     beforeRemove: () => {
         Modal.setModalVisibility(false);
         Modal.willAlertModalBecomeVisible(false);
+    },
+};
+
+const fullScreenListeners = {
+    focus: () => {
+        setFullscreenVisibility(true);
+    },
+    beforeRemove: () => {
+        setFullscreenVisibility(false);
     },
 };
 
@@ -460,6 +470,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             headerShown: false,
                             title: 'New Expensify',
                         }}
+                        listeners={fullScreenListeners}
                         getComponent={loadValidateLoginPage}
                     />
                     <RootStack.Screen
@@ -523,6 +534,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.NOT_FOUND}
                         options={rootNavigatorOptions.fullScreen}
                         component={NotFoundPage}
+                        listeners={fullScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
