@@ -347,7 +347,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
                     oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
                     policyName: '',
                 }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: currentTime,
             },
         });
@@ -413,7 +412,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: null,
             },
         });

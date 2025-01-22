@@ -442,7 +442,10 @@ const ROUTES = {
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, role?: string, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
+            }
             const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
             return getUrlWithBackToParam(route, backTo);
         },
@@ -662,8 +665,12 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_SCAN route');
+            }
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo);
+        },
     },
     MONEY_REQUEST_STEP_TAG: {
         route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
@@ -751,7 +758,12 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INITIAL route');
+            }
+            return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
+        },
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
@@ -772,7 +784,12 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
+        },
     },
     WORKSPACE_PROFILE_PLAN: {
         route: 'settings/workspaces/:policyID/profile/plan',
