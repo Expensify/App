@@ -4536,7 +4536,7 @@ function completeShortMention(text: string): string {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, isAllowCustomEmoji?: boolean): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
@@ -4552,16 +4552,9 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, isAllow
 
     const textWithMention = completeShortMention(text);
 
-    let result =
-        text.length <= CONST.MAX_MARKUP_LENGTH
-            ? Parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
-            : lodashEscape(text);
-
-    if (isAllowCustomEmoji) {
-        result = result.replace(/&lt;custom-emoji emoji=&quot;/g, '<custom-emoji emoji="').replace(/&quot; \/&gt;/g, '" />');
-    }
-
-    return result;
+    return text.length <= CONST.MAX_MARKUP_LENGTH
+        ? Parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
+        : lodashEscape(text);
 }
 
 function getUploadingAttachmentHtml(file?: FileObject): string {
@@ -6363,7 +6356,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    isAllowCustomEmoji?: boolean,
+    shouldEscapeText?: boolean,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6378,7 +6371,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description: getParsedComment(description ?? '', undefined, isAllowCustomEmoji),
+        description: getParsedComment(description ?? '', {shouldEscapeText}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,

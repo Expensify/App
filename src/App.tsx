@@ -12,6 +12,7 @@ import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import FABPopoverProvider from './components/FABPopoverProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import KeyboardProvider from './components/KeyboardProvider';
@@ -98,6 +99,7 @@ function App({url}: AppProps) {
                                 KeyboardProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
+                                FABPopoverProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

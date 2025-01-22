@@ -1658,7 +1658,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        floatingActionButtonEmoji: {
+        customEmoji: {
             alignItems: 'center',
             justifyContent: 'center',
             verticalAlign: 'bottom',
