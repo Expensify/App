@@ -563,11 +563,20 @@ const styles = (theme: ThemeColors) =>
         },
 
         topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
-            position: 'absolute',
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
-            transform: [{translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth}],
+            transform: [
+                {translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth},
+
+                // This conditional style is here to hide the bottom tab bar when it's not needed.
+                shouldDisplayTopLevelBottomTabBar ? {translateY: 0} : {translateY: bottomSafeAreaOffset + variables.bottomTabHeight},
+            ],
             paddingBottom: bottomSafeAreaOffset,
-            bottom: shouldDisplayTopLevelBottomTabBar ? 0 : -(bottomSafeAreaOffset + variables.bottomTabHeight),
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
             borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
             borderColor: theme.border,
         }),
