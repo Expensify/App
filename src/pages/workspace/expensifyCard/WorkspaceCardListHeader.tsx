@@ -29,20 +29,20 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     return (
         <View style={styles.appBG}>
             <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
-                <View style={[styles.flexRow, !isLessThanMediumScreen && styles.flex1, isLessThanMediumScreen && styles.mb5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+                />
+                <View style={[styles.flexRow, !isLessThanMediumScreen && styles.flex2, isLessThanMediumScreen && styles.mt5]}>
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                     />
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                    />
                 </View>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                />
             </View>
 
             <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4]}>

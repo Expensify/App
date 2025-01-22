@@ -95,8 +95,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flexGrow1, styles.flexWrap, !isLessThanMediumScreen && styles.flexRow]}>
-                <View style={[isLessThanMediumScreen ? styles.flex1 : styles.flexShrink0, isSettleBalanceButtonDisplayed && styles.mr2]}>
+            <View style={[styles.flex1, styles.flexRow, styles.flexWrap]}>
+                <View style={[styles.flexShrink0, isSettleBalanceButtonDisplayed && styles.mr2]}>
                     <View
                         ref={anchorRef}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
