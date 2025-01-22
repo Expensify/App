@@ -1969,8 +1969,6 @@ describe('ReportUtils', () => {
                             const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
-
-                        waitForBatchedUpdates();
                     });
                 });
             });
