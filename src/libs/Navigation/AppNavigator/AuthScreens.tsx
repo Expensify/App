@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
@@ -643,4 +643,5 @@ function AuthScreens() {
 
 AuthScreens.displayName = 'AuthScreens';
 
-export default AuthScreens;
+// This memo is needed because <AuthScreens> is one of the main components in the app and navigation root and is relevant for the app performance.
+export default memo(AuthScreens);
