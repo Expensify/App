@@ -119,7 +119,7 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-        task: "bundleRelease"
+        task: "bundleDebug"
       )
       setGradleOutputsInEnv()
     end

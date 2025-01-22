@@ -43,14 +43,6 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
-        with:
-          bundler-cache: true
-
-      - name: Install New Expensify Gems
-        run: bundle install
-
       - name: Run grunt build
         run: |
           cd Mobile-Expensify
@@ -126,9 +118,9 @@ jobs:
           max_attempts: 5
           command: npm run pod-install
 
-      - name: Build for iOS Simulator
+      - name: Build iOS HybridApp
         run: |
-          # Build the app for the iOS simulator without signing
+          set -o pipefail
           xcodebuild \
             -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
             -scheme Expensify \
@@ -138,7 +130,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build | xcpretty
 
           if [ $? -eq 0 ]; then
             echo "✅ iOS simulator build succeeded!"
