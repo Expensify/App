@@ -4492,7 +4492,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             borderRadius: 12,
             overflow: 'hidden',
-            height: variables.reportActionImagesSingleImageHeight,
         },
 
         reportActionItemImage: {
