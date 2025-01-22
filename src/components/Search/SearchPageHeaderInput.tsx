@@ -126,8 +126,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
             if (updatedUserQuery || textInputValue.length > 0) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-            } else {
-                listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
@@ -148,6 +146,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
+            } else {
+                setTextInputValue(queryText);
+                setAutocompleteQueryValue(queryText);
             }
         },
         [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
@@ -257,10 +258,18 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             <View style={[styles.appBG, ...autocompleteInputStyle]}>
                 <SearchRouterInput
                     value={textInputValue}
-                    onSearchQueryChange={onSearchQueryChange}
+                    onSearchQueryChange={(userQuery) => {
+                        onSearchQueryChange(userQuery);
+                        if (!userQuery) {
+                            listRef.current?.updateAndScrollToFocusedIndex(-1);
+                        }
+                    }}
                     isFullWidth
                     onSubmit={() => {
-                        submitSearch(textInputValue);
+                        const focusedOption = listRef.current?.getFocusedOption();
+                        if (!focusedOption) {
+                            submitSearch(textInputValue);
+                        }
                     }}
                     autoFocus={false}
                     onFocus={showAutocompleteList}
