@@ -1,5 +1,5 @@
 ---
-title: Dispute Expensify Card Transaction
+title: Disputing Expensify Card Transactions
 description: Step-by-step guide to disputing fraudulent or service-related charges on your Expensify Visa® Commercial Card
 ---
 <div id="new-expensify" markdown="1">
