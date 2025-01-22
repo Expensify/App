@@ -43,12 +43,12 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
-    const isComercialFeed = isCustomFeed(selectedFeed);
+    const isCommercialFeed = isCustomFeed(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
 
     return (
-        <OfflineWithFeedback
+        <OfflineWithFeedbackg
             errors={currentFeedData?.errors}
             canDismissError={false}
             errorRowStyles={styles.ph5}
@@ -77,7 +77,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                                 />
                             )}
                         </View>
-                        <Text style={styles.textLabelSupporting}>{translate(isComercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
                     </View>
                 </PressableWithFeedback>
 
@@ -100,7 +100,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     />
                 </View>
             </View>
-        </OfflineWithFeedback>
+        </OfflineWithFeedbackg>
     );
 }
 
