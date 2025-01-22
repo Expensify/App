@@ -2675,6 +2675,7 @@ const translations = {
             planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
+            viewTransactions: 'View transactions',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
