@@ -20,11 +20,11 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -33,9 +33,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
-import * as Member from '@userActions/Policy/Member';
+import {setIssueNewCardStepAndData} from '@userActions/Card';
+import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +55,7 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
@@ -72,20 +72,20 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
+    const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
+    const hasMultipleFeeds = Object.values(getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
 
-    const workspaceCards = CardUtils.getAllCardsForWorkspace(workspaceAccountID);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID);
     const hasWorkspaceCardsAssigned = !!workspaceCards && !!Object.values(workspaceCards).length;
 
     useEffect(() => {
-        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
@@ -96,7 +96,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = Member.isApprover(policy, accountID);
+        const isApprover = isApproverUserAction(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
@@ -145,7 +145,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = useCallback(() => {
-        Member.removeMembers([accountID], policyID);
+        removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
     }, [accountID, policyID]);
 
@@ -171,7 +171,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
         const activeRoute = Navigation.getActiveRoute();
 
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
                 assigneeEmail: memberLogin,
@@ -188,14 +188,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            Member.updateWorkspaceMembersRole(policyID, [accountID], value);
+            updateWorkspaceMembersRole(policyID, [accountID], value);
         },
         [accountID, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
-        Member.clearWorkspaceOwnerChangeFlow(policyID);
-        Member.requestWorkspaceOwnerChange(policyID);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
     }, [accountID, policyID]);
 
@@ -313,13 +313,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     >
                                                         <MenuItem
                                                             key={memberCard.cardID}
-                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                             badgeText={
-                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK
-                                                                    ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
-                                                                    : ''
+                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''
                                                             }
-                                                            icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
+                                                            icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
                                                             iconWidth={variables.cardIconWidth}
