@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/TravelDomainListItem';
-import type {DomainItem} from '@components/SelectionList/TravelDomainListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -14,6 +14,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+type DomainItem = ListItem & {
+    value: string;
+    isRecommended: boolean;
+};
 
 function DomainSelectorPage() {
     const styles = useThemeStyles();

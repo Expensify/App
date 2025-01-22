@@ -27,6 +27,7 @@ function acceptSpotnanaTerms(domain?: string) {
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
     ];

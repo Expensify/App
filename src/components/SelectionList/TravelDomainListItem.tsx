@@ -8,14 +8,26 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ListItem, ListItemProps} from './types';
+import type {BaseListItemProps, ListItem} from './types';
 
-type DomainItem = ListItem & {
-    value: string;
-    isRecommended: boolean;
+type AdditionalDomainItemProps = {
+    value?: string;
+    isRecommended?: boolean;
 };
 
-function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus, shouldHighlightSelectedItem}: ListItemProps<DomainItem>) {
+type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps> & {shouldHighlightSelectedItem?: boolean};
+
+function TravelDomainListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onCheckboxPress,
+    onFocus,
+    shouldSyncFocus,
+    shouldHighlightSelectedItem,
+}: DomainItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -26,6 +38,7 @@ function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelec
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+    const showRecommendedTag = item.isRecommended ?? false;
 
     return (
         <BaseListItem
@@ -68,7 +81,7 @@ function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelec
                         />
                     </View>
                 </View>
-                {item.isRecommended && <Badge text={translate('travel.domainSelector.recommended')} />}
+                {showRecommendedTag && <Badge text={translate('travel.domainSelector.recommended')} />}
             </>
         </BaseListItem>
     );
@@ -77,4 +90,3 @@ function TravelDomainListItem({item, isFocused, showTooltip, isDisabled, onSelec
 TravelDomainListItem.displayName = 'TravelDomainListItem';
 
 export default TravelDomainListItem;
-export type {DomainItem};
