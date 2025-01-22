@@ -1,5 +1,6 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
+import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 type SubstitutionMap = Record<string, string>;
 
@@ -31,11 +32,12 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
 
     for (const range of searchAutocompleteQueryRanges) {
         const itemKey = getSubstitutionMapKey(range.key, range.value);
-        const substitutionEntry = substitutions[itemKey];
+        let substitutionEntry = substitutions[itemKey];
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;
             const substitutionEnd = range.start + range.length;
+            substitutionEntry = sanitizeSearchValue(substitutionEntry);
 
             // generate new query but substituting "user-typed" value with the entity id/email from substitutions
             resultQuery = resultQuery.slice(0, substitutionStart) + substitutionEntry + changedQuery.slice(substitutionEnd);
