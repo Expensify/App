@@ -65,7 +65,7 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string; reservationIndex: number};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
@@ -105,6 +105,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     }
     const policy = getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         return;
     }
