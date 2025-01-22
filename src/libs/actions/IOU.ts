@@ -143,9 +143,13 @@ import {
     getTransaction,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
+    isAmountMissing,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPartialMerchant,
+    isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -7844,21 +7848,25 @@ function canIOUBePaid(
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
-    transactionIDList: string[],
+    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isArchived = isArchivedReport(report);
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
     const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+
+    const hasOnlyPendingCardOrScanFailTransactions =
+        transactions.length > 0 &&
+        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
         isOpenExpenseReport &&
         !isArchived &&
-        reimbursableSpend !== 0 &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         !hasBrokenConnectionViolation &&
         (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
