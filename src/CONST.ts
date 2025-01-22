@@ -638,6 +638,8 @@ const CONST = {
                 COPY_OF_ID: 'copyOfID',
                 ADDRESS_PROOF: 'addressProof',
                 CODICE_FISCALE: 'codiceFisacle',
+                FULL_NAME: 'fullName',
+                RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
             CURRENT_USER_KEY: 'currentUser',
         },

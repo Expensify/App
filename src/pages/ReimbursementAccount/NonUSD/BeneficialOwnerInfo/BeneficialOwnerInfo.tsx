@@ -12,6 +12,7 @@ import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpa
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
@@ -31,8 +32,25 @@ type BeneficialOwnerInfoProps = {
 };
 
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} =
-    CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {
+    FIRST_NAME,
+    LAST_NAME,
+    OWNERSHIP_PERCENTAGE,
+    DOB,
+    SSN_LAST_4,
+    STREET,
+    CITY,
+    STATE,
+    ZIP_CODE,
+    COUNTRY,
+    PROOF_OF_OWNERSHIP,
+    COPY_OF_ID,
+    ADDRESS_PROOF,
+    CODICE_FISCALE,
+    RESIDENTIAL_ADDRESS,
+    FULL_NAME,
+    PREFIX,
+} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 
 type BeneficialOwnerDetailsFormProps = SubStepProps & {
@@ -66,24 +84,58 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
     const submit = () => {
-        const ownerFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
-        const owners = ownerKeys.map((ownerKey) =>
-            ownerFields.reduce((acc, fieldName) => {
-                acc[`${PREFIX}_${ownerKey}_${fieldName}`] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
-                return acc;
-            }, {} as Record<string, string | FileObject[] | undefined>),
-        );
+        const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
+        const ownerFilesFields = [PROOF_OF_OWNERSHIP, COPY_OF_ID, ADDRESS_PROOF, CODICE_FISCALE];
+
+        const ownerDetails: Record<BeneficialOwnerDataKey, string | FileObject[]> = {};
+        const ownerFiles: Record<BeneficialOwnerDataKey, string | FileObject[]> = {};
+
+        ownerKeys.forEach((ownerKey) => {
+            ownerDetailsFields.forEach((fieldName) => {
+                const key = `${PREFIX}_${ownerKey}_${fieldName}` as const;
+                const fullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
+                const residentialAddressKey = `${PREFIX}_${ownerKey}_${RESIDENTIAL_ADDRESS}` as const;
+
+                if (!reimbursementAccountDraft?.[key]) {
+                    return;
+                }
+
+                if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
+                    ownerDetails[fullNameKey] = ownerDetails[fullNameKey] ? `${String(ownerDetails[fullNameKey])} ${String(reimbursementAccountDraft[key])}` : reimbursementAccountDraft[key];
+                    return;
+                }
+
+                if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE || fieldName === COUNTRY) {
+                    ownerDetails[residentialAddressKey] = ownerDetails[residentialAddressKey]
+                        ? `${String(ownerDetails[residentialAddressKey])} ${String(reimbursementAccountDraft[key])}`
+                        : reimbursementAccountDraft[key];
+                    return;
+                }
+
+                ownerDetails[key] = reimbursementAccountDraft?.[key];
+            });
+
+            ownerFilesFields.forEach((fieldName) => {
+                const key = `${PREFIX}_${ownerKey}_${fieldName}` as const;
+
+                if (!reimbursementAccountDraft?.[key]) {
+                    return;
+                }
+
+                ownerFiles[key] = reimbursementAccountDraft?.[key];
+            });
+        });
 
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
             [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
             [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
-            [BENEFICIAL_OWNERS]: JSON.stringify(owners),
+            [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
         saveCorpayOnboardingBeneficialOwners({
-            inputs: JSON.stringify(owners),
-            isUserBeneficialOwner: isUserOwner,
-            beneficialOwners: ownerKeys,
+            inputs: JSON.stringify(ownerDetails),
+            files: JSON.stringify(ownerFiles),
+            beneficialOwnerIDs: ownerKeys,
             bankAccountID,
         });
     };

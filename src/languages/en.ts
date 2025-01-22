@@ -2346,17 +2346,18 @@ const translations = {
         address: 'Address',
         chooseFile: 'Choose file',
         uploadDocuments: 'Upload additional documentation',
-        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as an owner of 25% or more of the business.',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a direct or indirect owner of 25% or more of the business entity.',
         acceptedFiles: 'Accepted file formats: PDF, PNG, JPEG. Total file size for each section cannot exceed 5 MB.',
         proofOfBeneficialOwner: 'Proof of beneficial owner',
         proofOfBeneficialOwnerDescription:
-            'Please include an org chart and an independent attestation by a notary, lawyer or public accountant confirming direct or indirect ownership of 25% or more.',
+            "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
         copyOfID: 'Copy of ID for beneficial owner',
         copyOfIDDescription: "Examples: Passport, driver's license, etc.",
         proofOfAddress: 'Address proof for beneficial owner',
         proofOfAddressDescription: 'Examples: Utility bill, rental agreement, etc.',
         codiceFiscale: 'Codice fiscale/Tax ID',
-        codiceFiscaleDescription: 'This is for Italy only',
+        codiceFiscaleDescription:
+            'Please upload a video of a site visit or a recorded call with the signing officer. The officer must provide: full name, date of birth, company name, registered number, fiscal code number, registered address, nature of business and purpose of account.',
     },
     validationStep: {
         headerTitle: 'Validate bank account',
