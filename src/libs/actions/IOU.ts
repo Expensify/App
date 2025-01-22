@@ -148,9 +148,11 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
+    isUnknowOrPartialMerchant,
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
