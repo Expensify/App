@@ -61,6 +61,9 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+const cardHiddenFromSearchStates: number[] = [2, 4];
+
 const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
@@ -119,7 +122,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 'Here’s how to submit an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Submit expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
                 '\n' +
@@ -173,9 +176,9 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 'Here’s how to track an expense:\n' +
                 '\n' +
                 '1. Click the green *+* button.\n' +
-                '2. Choose *Track expense*.\n' +
+                '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click *Track*.\n' +
+                '4. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -269,6 +272,30 @@ type OnboardingMessage = {
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
+
+const EMAIL = {
+    ACCOUNTING: 'accounting@expensify.com',
+    ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
+    ADMIN: 'admin@expensify.com',
+    BILLS: 'bills@expensify.com',
+    CHRONOS: 'chronos@expensify.com',
+    CONCIERGE: 'concierge@expensify.com',
+    CONTRIBUTORS: 'contributors@expensify.com',
+    FIRST_RESPONDER: 'firstresponders@expensify.com',
+    GUIDES_DOMAIN: 'team.expensify.com',
+    QA_DOMAIN: 'applause.expensifail.com',
+    HELP: 'help@expensify.com',
+    INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+    NOTIFICATIONS: 'notifications@expensify.com',
+    PAYROLL: 'payroll@expensify.com',
+    QA: 'qa@expensify.com',
+    QA_TRAVIS: 'qa+travisreceipts@expensify.com',
+    RECEIPTS: 'receipts@expensify.com',
+    STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+    SVFG: 'svfg@expensify.com',
+    EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+    EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+};
 
 const CONST = {
     HEIC_SIGNATURES: [
@@ -591,6 +618,7 @@ const CONST = {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 10,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
+        PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -599,6 +627,15 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
+        },
+        BUSINESS_INFO_STEP: {
+            PICKLIST: {
+                ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
+                APPLICANT_TYPE: 'ApplicantType',
+                NATURE_OF_BUSINESS: 'NatureOfBusiness',
+                PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
+                TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+            },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -657,6 +694,8 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
+        NSQS: 'nsqs',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -916,6 +955,7 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
+    ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1655,29 +1695,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
-    EMAIL: {
-        ACCOUNTING: 'accounting@expensify.com',
-        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
-        ADMIN: 'admin@expensify.com',
-        BILLS: 'bills@expensify.com',
-        CHRONOS: 'chronos@expensify.com',
-        CONCIERGE: 'concierge@expensify.com',
-        CONTRIBUTORS: 'contributors@expensify.com',
-        FIRST_RESPONDER: 'firstresponders@expensify.com',
-        GUIDES_DOMAIN: 'team.expensify.com',
-        QA_DOMAIN: 'applause.expensifail.com',
-        HELP: 'help@expensify.com',
-        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
-        NOTIFICATIONS: 'notifications@expensify.com',
-        PAYROLL: 'payroll@expensify.com',
-        QA: 'qa@expensify.com',
-        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
-        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
-        SVFG: 'svfg@expensify.com',
-        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
-        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
-    },
+    EMAIL,
 
     FULL_STORY: {
         MASK: 'fs-mask',
@@ -2325,6 +2343,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+        QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -2802,6 +2822,7 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        HIDDEN_FROM_SEARCH_STATES: cardHiddenFromSearchStates,
         LIMIT_TYPES: {
             SMART: 'smart',
             MONTHLY: 'monthly',
@@ -3138,27 +3159,30 @@ const CONST = {
         WORKSPACE_FEATURES: 'WorkspaceFeatures',
         WORKSPACE_RULES: 'WorkspaceRules',
     },
-    get EXPENSIFY_EMAILS() {
-        return [
-            this.EMAIL.ACCOUNTING,
-            this.EMAIL.ACCOUNTS_PAYABLE,
-            this.EMAIL.ADMIN,
-            this.EMAIL.BILLS,
-            this.EMAIL.CHRONOS,
-            this.EMAIL.CONCIERGE,
-            this.EMAIL.CONTRIBUTORS,
-            this.EMAIL.FIRST_RESPONDER,
-            this.EMAIL.HELP,
-            this.EMAIL.INTEGRATION_TESTING_CREDS,
-            this.EMAIL.NOTIFICATIONS,
-            this.EMAIL.PAYROLL,
-            this.EMAIL.QA,
-            this.EMAIL.QA_TRAVIS,
-            this.EMAIL.RECEIPTS,
-            this.EMAIL.STUDENT_AMBASSADOR,
-            this.EMAIL.SVFG,
-        ];
-    },
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
+        // eslint-disable-next-line no-param-reassign
+        prev[email] = true;
+        return prev;
+    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS: [
+        EMAIL.ACCOUNTING,
+        EMAIL.ACCOUNTS_PAYABLE,
+        EMAIL.ADMIN,
+        EMAIL.BILLS,
+        EMAIL.CHRONOS,
+        EMAIL.CONCIERGE,
+        EMAIL.CONTRIBUTORS,
+        EMAIL.FIRST_RESPONDER,
+        EMAIL.HELP,
+        EMAIL.INTEGRATION_TESTING_CREDS,
+        EMAIL.NOTIFICATIONS,
+        EMAIL.PAYROLL,
+        EMAIL.QA,
+        EMAIL.QA_TRAVIS,
+        EMAIL.RECEIPTS,
+        EMAIL.STUDENT_AMBASSADOR,
+        EMAIL.SVFG,
+    ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
@@ -4506,6 +4530,7 @@ const CONST = {
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
     TRIP_ID_PATH: (tripID?: string) => (tripID ? `trips/${tripID}` : undefined),
+    TRIP_SUPPORT: '/support',
     SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
     STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
@@ -4954,45 +4979,6 @@ const CONST = {
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
-    ONBOARDING_CONCIERGE: {
-        [onboardingChoices.EMPLOYER]:
-            '# Expensify is the fastest way to get paid back!\n' +
-            '\n' +
-            'To submit expenses for reimbursement:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
-            '\n' +
-            "That'll send a request to get you paid back. Let me know if you have any questions!",
-        [onboardingChoices.MANAGE_TEAM]:
-            "# Let's start managing your team's expenses!\n" +
-            '\n' +
-            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
-            '\n' +
-            'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
-        [onboardingChoices.PERSONAL_SPEND]:
-            "# Let's start tracking your expenses! \n" +
-            '\n' +
-            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "My expenses").\n' +
-            '\n' +
-            'Then, add expenses to your workspace:\n' +
-            '1. Find your workspace using the search field.\n' +
-            '2. Click the gray + button next to the message field.\n' +
-            '3. Click Request money, then add your expense type.\n' +
-            '\n' +
-            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
-        [onboardingChoices.CHAT_SPLIT]:
-            '# Splitting the bill is as easy as a conversation!\n' +
-            '\n' +
-            'To split an expense:\n' +
-            '1. From the home screen, click the green + button > *Request money*.\n' +
-            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
-            '\n' +
-            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
-    },
     ONBOARDING_ACCOUNTING_MAPPING: {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
@@ -5017,15 +5003,15 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    description:
+                    description: ({workspaceSettingsLink}) =>
                         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
+                        '1. Click *Settings*.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
-                        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
+                        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
                 },
                 selfGuidedTourTask,
                 {
@@ -5055,7 +5041,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
+                        '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
@@ -5069,19 +5055,19 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up tags',
                     description: ({workspaceMoreFeaturesLink}) =>
-                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
-                        '4. Click More features.\n' +
-                        '5. Enable tags.\n' +
-                        '6. Navigate to Tags in the workspace editor.\n' +
-                        '7. In Tags, click + Add tag to make your own.\n' +
+                        '4. Click *More features*.\n' +
+                        '5. Enable *Tags*.\n' +
+                        '6. Navigate to *Tags* in the workspace editor.\n' +
+                        '7. Click *+ Add tag* to make your own.\n' +
                         '\n' +
-                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -5092,15 +5078,16 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *More features*.\n' +
                         '5. Enable *Workflows*.\n' +
-                        '6. In *Workflows*, enable *Add approvals*.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                        '6. Navigate to *Workflows* in the workspace editor.\n' +
+                        '7. Enable *Add approvals*.\n' +
+                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
                         '\n' +
-                        `[Take me to enable more features](${workspaceMoreFeaturesLink}).`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'inviteTeam',
@@ -5111,14 +5098,14 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
                         '5. Enter emails or phone numbers. \n' +
-                        '6. Add an invite message if you want.\n' +
+                        '6. Add a custom invite message if you’d like!\n' +
                         '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
+                        `[Take me to workspace members](${workspaceMembersLink}).`,
                 },
                 {
                     type: 'addAccountingIntegration',
@@ -5129,14 +5116,14 @@ const CONST = {
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
-                        '1. Click the settings tab.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
-                        '4. Click Accounting.\n' +
+                        '4. Click *Accounting*.\n' +
                         `5. Find ${integrationName}.\n` +
-                        '6. Click Connect.\n' +
+                        '6. Click *Connect*.\n' +
                         '\n' +
-                        `[Take me to Accounting!](${workspaceAccountingLink})`,
+                        `[Take me to accounting](${workspaceAccountingLink}).`,
                 },
             ],
         },
@@ -5178,11 +5165,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Hit the green *+* button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter any email, SMS, or name of who you want to split with.\n' +
-                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
-                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
+                        '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
+                        '5. Create the expense by selecting *Manual*, *Scan* or *Distance*.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
@@ -5214,8 +5201,8 @@ const CONST = {
                     description:
                         "Here's how to review and update your workspace settings:" +
                         '\n' +
-                        '1. Click the settings tab.' +
-                        '2. Click *Workspaces* > [Your workspace].' +
+                        '1. Click *Settings*.' +
+                        '2. Go to *Workspaces* > [Your workspace].' +
                         '\n' +
                         "Make any changes there and we'll track them in the #admins room.",
                 },
@@ -5229,7 +5216,7 @@ const CONST = {
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green *+* button.\n' +
-                        '2. Choose *Submit expense*.\n' +
+                        '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
                         '\n' +
@@ -6469,6 +6456,53 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
+        },
+    },
+
+    CORPAY_FIELDS: {
+        EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
+        EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
+        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
+        ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
+        ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
+        BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
+        ACCOUNT_HOLDER_FIELDS: [
+            'accountHolderName',
+            'accountHolderAddress1',
+            'accountHolderAddress2',
+            'accountHolderCity',
+            'accountHolderRegion',
+            'accountHolderCountry',
+            'accountHolderPostal',
+            'accountHolderPhoneNumber',
+            'accountHolderEmail',
+            'ContactName',
+            'BeneficiaryCPF',
+            'BeneficiaryRUT',
+            'BeneficiaryCedulaID',
+            'BeneficiaryTaxID',
+        ] as string[],
+        SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
+        SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
+        STEPS_NAME: {
+            COUNTRY_SELECTOR: 'CountrySelector',
+            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
+            ACCOUNT_TYPE: 'AccountType',
+            BANK_INFORMATION: 'BankInformation',
+            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
+            CONFIRMATION: 'Confirmation',
+            SUCCESS: 'Success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
+            },
         },
     },
 

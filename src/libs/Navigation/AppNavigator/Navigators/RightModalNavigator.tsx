@@ -139,6 +139,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
+                        component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />
@@ -186,10 +190,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                         options={hideKeyboardOnSwipe}
-                    />
-                    <Stack.Screen
-                        name="ProcessMoneyRequestHold"
-                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}

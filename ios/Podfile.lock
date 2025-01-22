@@ -35,6 +35,27 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
+  - expensify-react-native-background-task (0.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Expo (52.0.14):
     - ExpoModulesCore
   - ExpoAsset (11.0.1):
@@ -146,7 +167,7 @@ PODS:
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (9.1.0)
   - FullStory (1.52.0)
-  - fullstory_react-native (1.7.1):
+  - fullstory_react-native (1.7.2):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -2813,6 +2834,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
+  - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -2982,6 +3004,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-av/ios"
   EXImageLoader:
     :path: "../node_modules/expo-image-loader/ios"
+  expensify-react-native-background-task:
+    :path: "../node_modules/@expensify/react-native-background-task"
   Expo:
     :path: "../node_modules/expo"
   ExpoAsset:
@@ -3228,6 +3252,7 @@ SPEC CHECKSUMS:
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
+  expensify-react-native-background-task: 6f797cf470b627912c246514b1631a205794775d
   Expo: 0e7b52be71a24a38d5e919e3040d8f51a8739cd0
   ExpoAsset: 8138f2a9ec55ae1ad7c3871448379f7d97692d15
   ExpoFont: 7522d869d84ee2ee8093ee997fef5b86f85d856b
@@ -3246,7 +3271,7 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
-  fullstory_react-native: 44dc2c85a6316df2713e6cb0048ce5719c3b0bab
+  fullstory_react-native: 63a803cca04b0447a71daa73e4df3f7b56e1919d
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
