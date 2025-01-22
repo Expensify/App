@@ -576,7 +576,7 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
 
-            // There is lacking border right on the wide layout
+            // There is a missing border right on the wide layout
             borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
             borderColor: theme.border,
         }),
