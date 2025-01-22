@@ -7,27 +7,36 @@ import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Star, Trashcan} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import ValidateCodeActionWithoutModal from '@components/ValidateCodeActionWithoutModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import * as Modal from '@userActions/Modal';
-import * as User from '@userActions/User';
+import {close} from '@userActions/Modal';
+import {
+    clearContactMethod,
+    clearContactMethodErrors,
+    clearUnvalidatedNewContactMethodAction,
+    deleteContactMethod,
+    requestContactMethodValidateCode,
+    setContactMethodAsDefault,
+    validateSecondaryLogin,
+} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +61,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -80,13 +90,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
 
     /**
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        User.setContactMethodAsDefault(contactMethod, backTo);
+        setContactMethodAsDefault(contactMethod, backTo);
     }, [contactMethod, backTo]);
 
     /**
@@ -136,7 +146,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const confirmDeleteAndHideModal = useCallback(() => {
         toggleDeleteModal(false);
-        User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+        deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
@@ -161,9 +171,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         const menuItems = [];
         if (isValidateCodeActionModalVisible && !isDefaultContactMethod) {
             menuItems.push({
-                icon: Expensicons.Trashcan,
+                icon: Trashcan,
                 text: translate('common.remove'),
-                onSelected: () => Modal.close(() => toggleDeleteModal(true)),
+                onSelected: () => close(() => toggleDeleteModal(true)),
             });
         }
         return menuItems;
@@ -214,13 +224,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <>
             {canChangeDefaultContactMethod ? (
                 <OfflineWithFeedback
-                    errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                    errors={getLatestErrorField(loginData, 'defaultLogin')}
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
-                    onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                    onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
-                        icon={Expensicons.Star}
+                        icon={Star}
                         onPress={setAsDefault}
                     />
                 </OfflineWithFeedback>
@@ -228,22 +238,22 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             {isDefaultContactMethod ? (
                 <OfflineWithFeedback
                     pendingAction={loginData.pendingFields?.defaultLogin}
-                    errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+                    errors={getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
-                    onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+                    onClose={() => clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                 >
                     <Text style={[themeStyles.ph5, themeStyles.mv3]}>{translate('contacts.yourDefaultContactMethod')}</Text>
                 </OfflineWithFeedback>
             ) : (
                 <OfflineWithFeedback
                     pendingAction={loginData.pendingFields?.deletedLogin}
-                    errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
+                    errors={getLatestErrorField(loginData, 'deletedLogin')}
                     errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
-                    onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
+                    onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
                     <MenuItem
                         title={translate('common.remove')}
-                        icon={Expensicons.Trashcan}
+                        icon={Trashcan}
                         iconFill={theme.danger}
                         onPress={() => toggleDeleteModal(true)}
                     />
@@ -257,51 +267,74 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
             testID={ContactMethodDetailsPage.displayName}
+            focusTrapSettings={{
+                focusTrapOptions: {
+                    checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
+                        return new Promise<void>((resolve) => {
+                            const interval = setInterval(() => {
+                                const trapContainer = trapContainers.at(0) as HTMLElement | SVGElement;
+                                if (getComputedStyle(trapContainer).visibility !== 'hidden') {
+                                    resolve();
+                                    clearInterval(interval);
+                                }
+                            }, 5);
+                        });
+                    },
+                },
+            }}
         >
             <HeaderWithBackButton
                 title={formattedContactMethod}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                threeDotsMenuItems={getThreeDotsMenuItems()}
+                shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
+                shouldOverlayDots
+                threeDotsAnchorPosition={themeStyles.threeDotsPopoverOffset(windowWidth)}
+                onThreeDotsButtonPress={() => {
+                    // Hide the keyboard when the user clicks the three-dot menu.
+                    // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                    blurActiveElement();
+                    KeyboardUtils.dismiss();
+                }}
             />
-            <ScrollView keyboardShouldPersistTaps="handled">
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={themeStyles.flex1}
+            >
                 {isFailedAddContactMethod && (
                     <ErrorMessageRow
-                        errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                        errors={getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
                         onClose={() => {
-                            User.clearContactMethod(contactMethod);
-                            User.clearUnvalidatedNewContactMethodAction();
+                            clearContactMethod(contactMethod);
+                            clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
                         canDismissError
                     />
                 )}
 
-                <ValidateCodeActionModal
-                    title={formattedContactMethod}
-                    onModalHide={() => {}}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
-                    validatePendingAction={loginData.pendingFields?.validateCodeSent}
-                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                    onClose={() => {
-                        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-                        setIsValidateCodeActionModalVisible(false);
-                    }}
-                    sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                    onThreeDotsButtonPress={() => {
-                        // Hide the keyboard when the user clicks the three-dot menu.
-                        // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
-                        blurActiveElement();
-                        KeyboardUtils.dismiss();
-                    }}
-                    threeDotsMenuItems={getThreeDotsMenuItems()}
-                    footer={getDeleteConfirmationModal}
-                />
+                {!loginData?.validatedDate && (
+                    <ValidateCodeActionWithoutModal
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
+                        validatePendingAction={loginData.pendingFields?.validateCodeSent}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                        validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                        clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                        sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
+                        descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                        onThreeDotsButtonPress={() => {
+                            // Hide the keyboard when the user clicks the three-dot menu.
+                            // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                            blurActiveElement();
+                            KeyboardUtils.dismiss();
+                        }}
+                        threeDotsMenuItems={getThreeDotsMenuItems()}
+                        forwardedRef={validateCodeFormRef}
+                    />
+                )}
 
-                {!isValidateCodeActionModalVisible && getMenuItems()}
+                {!isValidateCodeActionModalVisible && loginData?.validatedDate && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );

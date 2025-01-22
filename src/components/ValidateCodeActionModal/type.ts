@@ -7,7 +7,7 @@ type ValidateCodeActionModalProps = {
     isVisible: boolean;
 
     /** Title of the modal */
-    title: string;
+    title?: string;
 
     /** Primary description of the modal */
     descriptionPrimary: string;
