@@ -89,7 +89,6 @@ jobs:
   getOldDotBranchRef:
       runs-on: ubuntu-latest
       needs: getOldDotPR
-      if: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
       outputs:
         OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
       steps:
@@ -100,7 +99,11 @@ jobs:
           id: getHeadRef
           run: |
             set -e
-            echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R 'Expensify/Mobile-Expensify' --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            if [[ ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} == '' ]]; then
+              echo "REF=" >> "$GITHUB_OUTPUT"
+            else
+              echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            fi
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
