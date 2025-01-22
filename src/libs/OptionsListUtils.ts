@@ -192,19 +192,21 @@ type GetValidReportsConfig = {
     includeMoneyRequests?: boolean;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
-    optionsToExclude?: Array<Partial<OptionData>>;
+    loginsToExclude?: Record<string, boolean>;
 } & GetValidOptionsSharedConfig;
 
 type GetOptionsConfig = {
-    excludeLogins?: string[];
+    excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
-    optionsToExclude?: Array<Partial<OptionData>>;
+    loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     shouldAcceptName?: boolean;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
@@ -230,13 +232,15 @@ type Options = {
     personalDetails: OptionData[];
     userToInvite: OptionData | null;
     currentUserOption: OptionData | null | undefined;
+    workspaceChats?: OptionData[];
+    selfDMChat?: OptionData | undefined;
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
-    excludeLogins?: string[];
+    excludeLogins?: Record<string, boolean>;
 };
 
 type OrderOptionsConfig =
@@ -257,7 +261,7 @@ type OrderReportOptionsConfig = {
     preferRecentExpenseReports?: boolean;
 };
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -1104,6 +1108,22 @@ function orderReportOptionsWithSearch(
     );
 }
 
+function orderWorkspaceOptions(options: OptionData[]): OptionData[] {
+    return options.sort((a, b) => {
+        // Check if `a` is the default workspace
+        if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
+            return -1;
+        }
+
+        // Check if `b` is the default workspace
+        if (b.isPolicyExpenseChat && b.policyID === activePolicyID) {
+            return 1;
+        }
+
+        return 0;
+    });
+}
+
 function sortComparatorReportOptionByArchivedStatus(option: OptionData) {
     return option.private_isArchived ? 1 : 0;
 }
@@ -1131,10 +1151,12 @@ function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: str
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
+    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? []);
 
     return {
         recentReports: orderedReportOptions,
         personalDetails: orderedPersonalDetailsOptions,
+        workspaceChats: orderedWorkspaceChats,
     };
 }
 
@@ -1167,7 +1189,7 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    optionsToExclude = [],
+    loginsToExclude = {},
     selectedOptions = [],
     reportActions = {},
     showChatPreviewLine = false,
@@ -1182,8 +1204,7 @@ function getUserToInviteOption({
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+    const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
 
     if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
@@ -1240,7 +1261,7 @@ function getValidReports(
         includeP2P = true,
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
-        optionsToExclude = [],
+        loginsToExclude = {},
     }: GetValidReportsConfig,
 ) {
     const topmostReportId = Navigation.getTopmostReportId();
@@ -1335,7 +1356,7 @@ function getValidReports(
         }
 
         // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-        if (!includeThreads && (!!option.login || option.reportID) && optionsToExclude.some((x) => x.login === option.login || x.reportID === option.reportID)) {
+        if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
             continue;
         }
 
@@ -1388,19 +1409,33 @@ function getValidReports(
  */
 function getValidOptions(
     options: OptionList,
-    {excludeLogins = [], includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
+    {
+        excludeLogins = {},
+        includeSelectedOptions = false,
+        includeRecentReports = true,
+        recentAttendees,
+        selectedOptions = [],
+        shouldSeparateSelfDMChat = false,
+        shouldSeparateWorkspaceChat = false,
+        ...config
+    }: GetOptionsConfig = {},
 ): Options {
     // Gather shared configs:
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const loginsToExclude: Record<string, boolean> = {
+        [CONST.EMAIL.NOTIFICATIONS]: true,
+        ...excludeLogins,
+    };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
-        optionsToExclude.push(...selectedOptions);
+        selectedOptions.forEach((option) => {
+            if (!option.login) {
+                return;
+            }
+            loginsToExclude[option.login] = true;
+        });
     }
-    excludeLogins.forEach((login) => {
-        optionsToExclude.push({login});
-    });
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
     // Get valid recent reports:
@@ -1411,11 +1446,19 @@ function getValidOptions(
             includeP2P,
             includeDomainEmail,
             selectedOptions,
-            optionsToExclude,
+            loginsToExclude,
             shouldBoldTitleByDefault,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentAttendees.filter((attendee) => {
+            const login = attendee.login ?? attendee.displayName;
+            if (login) {
+                loginsToExclude[login] = true;
+                return true;
+            }
+
+            return false;
+        });
         recentReportOptions = recentAttendees as OptionData[];
     }
 
@@ -1423,7 +1466,13 @@ function getValidOptions(
     const personalDetailsOptions: OptionData[] = [];
     let currentUserOption: OptionData | undefined;
     if (includeP2P) {
-        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+        let personalDetailLoginsToExclude = loginsToExclude;
+        if (currentUserLogin) {
+            personalDetailLoginsToExclude = {
+                ...loginsToExclude,
+                [currentUserLogin]: true,
+            };
+        }
         for (let i = 0; i < options.personalDetails.length; i++) {
             // eslint-disable-next-line rulesdir/prefer-at
             const detail = options.personalDetails[i];
@@ -1435,7 +1484,7 @@ function getValidOptions(
                 currentUserOption = detail;
             }
 
-            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === detail.login)) {
+            if (personalDetailLoginsToExclude[detail.login]) {
                 continue;
             }
 
@@ -1445,6 +1494,22 @@ function getValidOptions(
         }
     }
 
+    let workspaceChats: OptionData[] = [];
+
+    if (shouldSeparateWorkspaceChat) {
+        workspaceChats = recentReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
+    }
+
+    let selfDMChat: OptionData | undefined;
+
+    if (shouldSeparateWorkspaceChat) {
+        recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
+    }
+    if (shouldSeparateSelfDMChat) {
+        selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
+        recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1452,6 +1517,8 @@ function getValidOptions(
         // User to invite is generated by the search input of a user.
         // As this function isn't concerned with any search input yet, this is null (will be set when using filterOptions).
         userToInvite: null,
+        workspaceChats,
+        selfDMChat,
     };
 }
 
@@ -1535,7 +1602,7 @@ function getAttendeeOptions(
         {
             betas,
             selectedOptions: attendees,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
@@ -1557,7 +1624,7 @@ function getShareDestinationOptions(
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
     selectedOptions: Array<Partial<OptionData>> = [],
-    excludeLogins: string[] = [],
+    excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
 ) {
     return getValidOptions(
@@ -1610,7 +1677,7 @@ function formatMemberForList(member: OptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     betas: Beta[] = [],
-    excludeLogins: string[] = [],
+    excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
@@ -1691,6 +1758,7 @@ function formatSectionsFromSearchTerm(
     filteredPersonalDetails: OptionData[],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
+    filteredWorkspaceChats: OptionData[] = [],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -1716,8 +1784,9 @@ function formatSectionsFromSearchTerm(
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
         const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm);
-        const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID);
+        const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
+
         return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
     });
 
@@ -1803,6 +1872,23 @@ function filterReports(reports: OptionData[], searchTerms: string[]): OptionData
     return filteredReports;
 }
 
+function filterWorkspaceChats(reports: OptionData[], searchTerms: string[]): OptionData[] {
+    const filteredReports = searchTerms.reduceRight(
+        (items, term) =>
+            filterArrayByMatch(items, term, (item) => {
+                const values: string[] = [];
+                if (item.text) {
+                    values.push(item.text);
+                }
+                return uniqFast(values);
+            }),
+        // We start from all unfiltered reports:
+        reports,
+    );
+
+    return filteredReports;
+}
+
 function filterPersonalDetails(personalDetails: OptionData[], searchTerms: string[]): OptionData[] {
     return searchTerms.reduceRight(
         (items, term) =>
@@ -1826,7 +1912,7 @@ function filterCurrentUserOption(currentUserOption: OptionData | null | undefine
 }
 
 function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): OptionData | null {
-    const {canInviteUser = true, excludeLogins = []} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
     }
@@ -1842,16 +1928,43 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         return null;
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-    excludeLogins.forEach((login) => {
-        optionsToExclude.push({login});
-    });
-
+    const loginsToExclude: Record<string, boolean> = {
+        [CONST.EMAIL.NOTIFICATIONS]: true,
+        ...excludeLogins,
+    };
     return getUserToInviteOption({
         searchValue,
-        optionsToExclude,
+        loginsToExclude,
         ...config,
     });
+}
+
+function filterSelfDMChat(report: OptionData, searchTerms: string[]): OptionData | undefined {
+    const isMatch = searchTerms.every((term) => {
+        const values: string[] = [];
+
+        if (report.text) {
+            values.push(report.text);
+        }
+        if (report.login) {
+            values.push(report.login);
+            values.push(report.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+        }
+        if (report.isThread) {
+            if (report.alternateText) {
+                values.push(report.alternateText);
+            }
+        } else if (!!report.isChatRoom || !!report.isPolicyExpenseChat) {
+            if (report.subtitle) {
+                values.push(report.subtitle);
+            }
+        }
+
+        // Remove duplicate values and check if the term matches any value
+        return uniqFast(values).some((value) => value.includes(term));
+    });
+
+    return isMatch ? report : undefined;
 }
 
 function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
@@ -1871,12 +1984,17 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         searchValue,
         config,
     );
+    const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
+
+    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms) : undefined;
 
     return {
         personalDetails,
         recentReports,
         userToInvite,
         currentUserOption,
+        workspaceChats,
+        selfDMChat,
     };
 }
 
