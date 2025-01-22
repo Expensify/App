@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
-import {setFullscreenVisibility} from '@libs/FullscreenVisibility';
+import {setFullscreenVisibility} from '@libs/actions/FullscreenVisibility';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
