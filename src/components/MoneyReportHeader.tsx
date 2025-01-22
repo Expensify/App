@@ -147,7 +147,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasHeldExpenses = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
-        return transactions?.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+        return transactions?.every((t) => isExpensifyCardTransaction(t) && isPending(t)) ?? false;
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
@@ -205,7 +205,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep ?? shouldShowStatusBar ?? (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
