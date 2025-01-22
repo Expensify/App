@@ -8,8 +8,15 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {
+    updateNetSuiteAutoCreateEntities,
+    updateNetSuiteCustomFormIDOptionsEnabled,
+    updateNetSuiteEnableNewCategories,
+    updateNetSuiteSyncPeople,
+    updateNetSuiteSyncReimbursedReports,
+} from '@libs/actions/connections/NetSuiteCommands';
+import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
@@ -30,7 +37,6 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +44,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -111,10 +117,10 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             isActive: !!config?.syncOptions.syncReimbursedReports,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
             shouldPlaceSubtitleBelowSwitch: true,
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
-            onToggle: (isEnabled) => Connections.updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
+            onToggle: (isEnabled) => updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             shouldHide: shouldHideReimbursedReportsSection(config),
         },
         {
@@ -146,20 +152,20 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
-            onToggle: (isEnabled) => Connections.updateNetSuiteSyncPeople(policyID, isEnabled),
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
+            onToggle: (isEnabled) => updateNetSuiteSyncPeople(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
         },
         {
             type: 'toggle',
             title: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
             isActive: !!config?.autoCreateEntities,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
-            onToggle: (isEnabled) => Connections.updateNetSuiteAutoCreateEntities(policyID, isEnabled),
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
+            onToggle: (isEnabled) => updateNetSuiteAutoCreateEntities(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
         },
         {
             type: 'divider',
@@ -170,10 +176,10 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.enableCategories'),
             isActive: !!config?.syncOptions.enableNewCategories,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.enableCategories'),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
-            onToggle: (isEnabled) => Connections.updateNetSuiteEnableNewCategories(policyID, isEnabled),
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
+            onToggle: (isEnabled) => updateNetSuiteEnableNewCategories(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
         },
         {
             type: 'divider',
@@ -221,14 +227,14 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             isActive: !!config?.customFormIDOptions?.enabled,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
             shouldPlaceSubtitleBelowSwitch: true,
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
             onToggle: (isEnabled) => {
-                Connections.updateNetSuiteCustomFormIDOptionsEnabled(policyID, isEnabled);
+                updateNetSuiteCustomFormIDOptionsEnabled(policyID, isEnabled);
                 shouldShowCustomFormIDOptions.set(isEnabled);
                 shouldAnimateAccordionSection.set(true);
             },
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
         },
         {
             type: 'accordion',
@@ -258,6 +264,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            shouldIncludeSafeAreaPaddingBottom
             displayName={NetSuiteAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}
