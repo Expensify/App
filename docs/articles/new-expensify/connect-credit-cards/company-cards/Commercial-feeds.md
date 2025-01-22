@@ -82,7 +82,7 @@ Change the card name.
 Select a card-specific export account (if connected to accounting software like QuickBooks, NetSuite, Xero, etc.).
 Update the card to pull recent transactions.
 Unassign the card (note: unassigning deletes unsubmitted expenses on draft reports in the cardholder’s account).
-![Manage the card on the card details page]({{site.url}}/assets/commfeed/commfeed-07.png){:width="100%"}
+![Manage the card on the card details page]({{site.url}}/assets/images/commfeed/commfeed-07.png){:width="100%"}
 
 {% include faq-begin.md %}
 
