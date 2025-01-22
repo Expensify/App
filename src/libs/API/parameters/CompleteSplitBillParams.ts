@@ -1,5 +1,5 @@
 type CompleteSplitBillParams = {
-    transactionID: string | undefined;
+    transactionID: string;
     amount?: number;
     currency?: string;
     created?: string;

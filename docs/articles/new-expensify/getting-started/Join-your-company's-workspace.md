@@ -16,7 +16,7 @@ Get started by downloading Expensify mobile or desktop apps and ensure you’re 
 - **Mobile Devices:** Download the Expensify app for [Android](https://play.google.com/store/apps/details?id=com.expensify.chat) or [iOS](https://apps.apple.com/us/app/expensify-cash/id1530278510).
 - **Desktop Devices:** Download the Expensify app for [macOS](https://new.expensify.com/NewExpensify.dmg).
 
-## Use Expensify on the web: 
+## Use Expensify on the Web: 
 
 Expensify is also accessible via the web and supports the following browsers: 
 
@@ -76,9 +76,9 @@ By using a compatible device or browser, you’ll ensure the best experience wit
 # 3. Meet Concierge
 
 Concierge is your personal assistant that walks you through setting up your account and also provides:
-- Reminders to do things like submit your expenses.
-- Alerts when more information is needed on an expense report.
-- Updates on new and improved account features.
+- Reminders to do things like submit your expenses
+- Alerts when more information is needed on an expense report
+- Updates on new and improved account features
 
 You can get support any time by locating your chat with Concierge in your chat inbox. You can ask questions and receive direct support in this thread.
 
@@ -92,7 +92,7 @@ You can create an expense by SmartScanning a receipt to automatically capture th
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click the + icon in the bottom left menu and select <b>Create Expense</b>.</li>
+   <li>Click the + icon in the bottom left menu and select <b>Submit Expense</b>.</li>
    <li>Click <b>Scan</b>.</li>
    <li>Drag and drop the receipt into Expensify, or click <b>Choose File</b> to select it from your saved files. <i>Note: The SmartScan process will auto-populate the merchant, date, and amount.</i></li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>
@@ -104,7 +104,7 @@ You can create an expense by SmartScanning a receipt to automatically capture th
 
 {% include option.html value="mobile" %}
 <ol type="a">
-   <li>Tap the + icon at the bottom of the screen and select <b>Create Expense</b>.</li>
+   <li>Tap the + icon at the bottom of the screen and select <b>Submit Expense</b>.</li>
    <li>Tap <b>Scan</b>.</li>
    <li>Tap the green button to take a photo of a receipt, or tap the Image icon to the left of it to upload a receipt from your phone. <i>Note: The SmartScan process will auto-populate the merchant, date, and amount</i>.</li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>

@@ -272,9 +272,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 [ONYXKEYS.SESSION]: stashedSession,
             };
         }
-        if (isSupportal && !shouldStashSession && !hasStashedSession()) {
-            Log.info('No stashed session found for supportal access, clearing the session');
-        }
         redirectToSignIn().then(() => {
             Onyx.multiSet(onyxSetParams);
         });

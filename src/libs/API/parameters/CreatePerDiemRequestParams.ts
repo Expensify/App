@@ -14,11 +14,11 @@ type CreatePerDiemRequestParams = {
     chatReportID: string;
     transactionID: string;
     reportActionID: string;
-    createdChatReportActionID?: string;
-    createdIOUReportActionID?: string;
+    createdChatReportActionID: string;
+    createdIOUReportActionID: string;
     reportPreviewReportActionID: string;
     transactionThreadReportID: string;
-    createdReportActionIDForThread: string | undefined;
+    createdReportActionIDForThread: string;
 };
 
 export default CreatePerDiemRequestParams;

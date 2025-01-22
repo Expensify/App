@@ -1,7 +1,7 @@
 type CreateDistanceRequestParams = {
     transactionID: string;
     chatReportID: string;
-    createdChatReportActionID?: string;
+    createdChatReportActionID: string;
     reportActionID: string;
     waypoints: string;
     customUnitRateID: string;

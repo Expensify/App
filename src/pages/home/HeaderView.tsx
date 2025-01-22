@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useEffect} from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import {BackArrow, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -24,8 +24,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
-import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -102,7 +100,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -129,14 +126,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyName = getPolicyName(report, true);
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
-    const policyID = report?.policyID;
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        getAssignedSupportData(policyID);
-    }, [policyID]);
-
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
@@ -149,8 +138,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         }
         return true;
     };
-
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = checkIfActionIsAllowed(() => joinRoom(report));
 
@@ -189,25 +176,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
-
-    const guideBookingButton = (
-        <Button
-            success
-            text={translate('getAssistancePage.scheduleADemo')}
-            onPress={() => {
-                openExternalLink(account?.guideDetails?.calendarLink ?? '');
-            }}
-            style={!shouldUseNarrowLayout && isChatUsedForOnboarding && styles.mr2}
-            icon={CalendarSolid}
-        />
-    );
-
-    const getGuideBookButtonStyles = () => {
-        if (isChatUsedForOnboarding) {
-            return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
-        }
-        return [styles.pb3, styles.ph5];
-    };
 
     return (
         <View
@@ -321,13 +289,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
-                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && (
-                                    <FreeTrial
-                                        pressable
-                                        success={!shouldShowGuideBooking}
-                                    />
-                                )}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
                                 {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -351,17 +313,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 )}
             </View>
             {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-            <View style={isChatUsedForOnboarding && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
-                {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>}
-                {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
-                    <FreeTrial
-                        pressable
-                        addSpacing
-                        success={!shouldShowGuideBooking}
-                        inARow={shouldShowGuideBooking}
-                    />
-                )}
-            </View>
+            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                <FreeTrial
+                    pressable
+                    addSpacing
+                />
+            )}
             {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                 <View style={[styles.appBG, styles.pl0]}>
                     <View style={[styles.ph5, styles.pb3]}>

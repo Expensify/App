@@ -139,10 +139,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
-                        component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
-                    />
-                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />

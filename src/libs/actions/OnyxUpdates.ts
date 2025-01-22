@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {queueOnyxUpdates} from './QueuedOnyxUpdates';
+import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -30,7 +30,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
@@ -114,10 +114,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
-        Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
-            lastUpdateID,
-            lastUpdateIDAppliedToClient,
-        });
+        Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData');
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request

@@ -2,7 +2,7 @@ import type {RequireAtLeastOne} from 'type-fest';
 
 type SendInvoiceParams = RequireAtLeastOne<
     {
-        senderWorkspaceID: string | undefined;
+        senderWorkspaceID: string;
         accountID: number;
         receiverEmail?: string;
         receiverInvoiceRoomID?: string;
@@ -21,7 +21,7 @@ type SendInvoiceParams = RequireAtLeastOne<
         companyName?: string;
         companyWebsite?: string;
         createdIOUReportActionID: string;
-        createdReportActionIDForThread: string | undefined;
+        createdReportActionIDForThread: string;
         reportActionID: string;
     },
     'receiverEmail' | 'receiverInvoiceRoomID'

@@ -25,22 +25,13 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option, Section} from '@libs/OptionsListUtils';
-import {
-    filterAndOrderOptions,
-    formatSectionsFromSearchTerm,
-    getFirstKeyForList,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,7 +51,7 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = getValidOptions(
+        const filteredOptions = OptionsListUtils.getValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
@@ -75,7 +66,7 @@ function useOptions() {
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -84,11 +75,11 @@ function useOptions() {
     }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
-        return getHeaderMessage(
+        return OptionsListUtils.getHeaderMessage(
             options.personalDetails.length + options.recentReports.length !== 0,
             !!options.userToInvite,
             debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
     }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
@@ -97,7 +88,7 @@ function useOptions() {
             return;
         }
 
-        searchInServer(debouncedSearchTerm);
+        Report.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     useEffect(() => {
@@ -111,7 +102,7 @@ function useOptions() {
             }
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
-                participantOption = getUserToInviteOption({
+                participantOption = OptionsListUtils.getUserToInviteOption({
                     searchValue: participant?.login,
                 });
             }
@@ -155,23 +146,23 @@ function NewChatPage() {
         useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
-        const sectionsList: Section[] = [];
+        const sectionsList: OptionsListUtils.Section[] = [];
         let firstKey = '';
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
-            firstKey = getFirstKeyForList(formatResults.section.data);
+            firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
         }
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
+            data: recentReports,
             shouldShow: !isEmpty(recentReports),
         });
         if (!firstKey) {
-            firstKey = getFirstKeyForList(recentReports);
+            firstKey = OptionsListUtils.getFirstKeyForList(recentReports);
         }
 
         sectionsList.push({
@@ -180,7 +171,7 @@ function NewChatPage() {
             shouldShow: !isEmpty(personalDetails),
         });
         if (!firstKey) {
-            firstKey = getFirstKeyForList(personalDetails);
+            firstKey = OptionsListUtils.getFirstKeyForList(personalDetails);
         }
 
         if (userToInvite) {
@@ -190,7 +181,7 @@ function NewChatPage() {
                 shouldShow: true,
             });
             if (!firstKey) {
-                firstKey = getFirstKeyForList([userToInvite]);
+                firstKey = OptionsListUtils.getFirstKeyForList([userToInvite]);
             }
         }
 
@@ -198,44 +189,15 @@ function NewChatPage() {
     }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
 
     /**
-     * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     */
-    const toggleOption = useCallback(
-        (option: ListItem & Partial<OptionData>) => {
-            const isOptionInList = !!option.isSelected;
-
-            let newSelectedOptions;
-
-            if (isOptionInList) {
-                newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
-            }
-
-            selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
-            selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
-            setSelectedOptions(newSelectedOptions);
-        },
-        [selectedOptions, setSelectedOptions],
-    );
-
-    /**
-     * If there are selected options already then it will toggle the option otherwise
-     * creates a new 1:1 chat with the option and the current user,
+     * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const selectOption = useCallback(
-        (option?: Option) => {
+    const createChat = useCallback(
+        (option?: OptionsListUtils.Option) => {
             if (option?.isSelfDM) {
                 Navigation.dismissModal(option.reportID);
                 return;
             }
-            if (selectedOptions.length && option) {
-                toggleOption(option);
-                return;
-            }
-
             let login = '';
 
             if (option?.login) {
@@ -247,15 +209,36 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            navigateToAndOpenReport([login]);
+            Report.navigateToAndOpenReport([login]);
         },
-        [selectedOptions, toggleOption],
+        [selectedOptions],
     );
 
     const itemRightSideComponent = useCallback(
-        (item: ListItem & Option, isFocused?: boolean) => {
+        (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
             if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
                 return null;
+            }
+            /**
+             * Removes a selected option from list if already selected. If not already selected add this option to the list.
+             * @param  option
+             */
+            function toggleOption(option: ListItem & Partial<OptionData>) {
+                const isOptionInList = !!option.isSelected;
+
+                let newSelectedOptions;
+
+                if (isOptionInList) {
+                    newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+                } else {
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+                }
+
+                selectionListRef?.current?.clearInputAfterSelect?.();
+
+                selectionListRef.current?.focusTextInput();
+                selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
+                setSelectedOptions(newSelectedOptions);
             }
 
             if (item.isSelected) {
@@ -285,7 +268,7 @@ function NewChatPage() {
                 />
             );
         },
-        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [selectedOptions, setSelectedOptions, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
@@ -297,7 +280,7 @@ function NewChatPage() {
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        setGroupDraft({participants: logins});
+        Report.setGroupDraft({participants: logins});
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     }, [selectedOptions, personalData]);
@@ -344,7 +327,7 @@ function NewChatPage() {
                 // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                 keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             >
-                <SelectionList<Option & ListItem>
+                <SelectionList<OptionsListUtils.Option & ListItem>
                     ref={selectionListRef}
                     ListItem={UserListItem}
                     sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
@@ -353,13 +336,13 @@ function NewChatPage() {
                     onChangeText={setSearchTerm}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
-                    onSelectRow={selectOption}
+                    onSelectRow={createChat}
                     shouldSingleExecuteRowSelect
-                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
+                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
                     showLoadingPlaceholder={!areOptionsInitialized}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe

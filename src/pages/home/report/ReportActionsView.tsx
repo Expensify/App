@@ -243,10 +243,8 @@ function ReportActionsView({
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const lastActionCreated = visibleReportActions.at(0)?.created;
-    const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
-        actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
-    const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
+    const hasNewestReportAction =
+        visibleReportActions.at(0)?.created === report.lastVisibleActionCreated || visibleReportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {

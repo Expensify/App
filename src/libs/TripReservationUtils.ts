@@ -13,10 +13,10 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {openTravelDotLink} from './actions/Link';
+import * as Link from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import {getPolicy} from './PolicyUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -65,7 +65,7 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string; reservationIndex: number};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
@@ -100,9 +100,9 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    const policy = getPolicy(activePolicyID);
+    const policy = PolicyUtils.getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;
     }
     if (!travelSettings?.hasAcceptedTerms) {
@@ -112,7 +112,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     if (ctaErrorMessage) {
         setCtaErrorMessage('');
     }
-    openTravelDotLink(activePolicyID)
+    Link.openTravelDotLink(activePolicyID)
         ?.then(() => {
             if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                 return;

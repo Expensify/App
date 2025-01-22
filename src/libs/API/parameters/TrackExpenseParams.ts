@@ -9,10 +9,10 @@ type TrackExpenseParams = {
     created: string;
     merchant: string;
     iouReportID?: string;
-    chatReportID: string | undefined;
-    transactionID: string | undefined;
-    reportActionID: string | undefined;
-    createdChatReportActionID?: string;
+    chatReportID: string;
+    transactionID: string;
+    reportActionID: string;
+    createdChatReportActionID: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
     receipt?: Receipt;
@@ -23,8 +23,8 @@ type TrackExpenseParams = {
     taxAmount: number;
     billable?: boolean;
     receiptGpsPoints?: string;
-    transactionThreadReportID: string | undefined;
-    createdReportActionIDForThread: string | undefined;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string;
     waypoints?: string;
     actionableWhisperReportActionID?: string;
     customUnitRateID?: string;

@@ -8,9 +8,9 @@ type ConvertTrackedExpenseToRequestParams = {
     chatReportID: string;
     transactionID: string;
     actionableWhisperReportActionID: string;
-    createdChatReportActionID?: string;
+    createdChatReportActionID: string;
     moneyRequestReportID: string;
-    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestCreatedReportActionID: string;
     moneyRequestPreviewReportActionID: string;
     reportPreviewReportActionID: string;
 };

@@ -5,24 +5,16 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
-import {isMobileSafari as isMobileSafariUtil} from '@libs/Browser';
+import * as Browser from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
-import {isMovingTransactionFromTrackExpense, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {createDraftWorkspaceAndNavigateToConfirmationScreen, findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
-import {
-    navigateToStartStepIfScanFileCannotBeRead,
-    setCustomUnitRateID,
-    setMoneyRequestCategory,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTag,
-    setSplitShares,
-} from '@userActions/IOU';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -54,7 +46,7 @@ function IOURequestStepParticipants({
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
-    const iouRequestType = getRequestType(transaction);
+    const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -75,58 +67,38 @@ function IOURequestStepParticipants({
         return translate('iou.chooseRecipient');
     }, [iouType, translate, isSplitRequest, action]);
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
-    const isMobileSafari = isMobileSafariUtil();
+    const isMobileSafari = Browser.isMobileSafari();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        if (isMovingTransactionFromTrackExpense(action)) {
+        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
             return;
         }
-        navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
-
-    const trackExpense = useCallback(() => {
-        // If coming from the combined submit/track flow and the user proceeds to just track the expense,
-        // we will use the track IOU type in the confirmation flow.
-        if (!selfDMReportID) {
-            return;
-        }
-
-        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
-        setCustomUnitRateID(transactionID, rateID);
-        setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-        Navigation.navigate(iouConfirmationPageRoute);
-    }, [action, selfDMReport, selfDMReportID, transactionID]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-            const firstParticipant = val.at(0);
-
-            if (firstParticipant?.isSelfDM) {
-                trackExpense();
-                return;
-            }
-
             const firstParticipantReportID = val.at(0)?.reportID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
 
-            setMoneyRequestParticipants(transactionID, val);
-            setCustomUnitRateID(transactionID, rateID);
+            IOU.setMoneyRequestParticipants(transactionID, val);
+            IOU.setCustomUnitRateID(transactionID, rateID);
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
@@ -138,7 +110,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID ?? reportID;
         },
-        [iouType, reportID, trackExpense, transactionID],
+        [iouType, reportID, transactionID],
     );
 
     const handleNavigation = useCallback(
@@ -161,13 +133,13 @@ function IOURequestStepParticipants({
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
             const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
+            IOU.setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
         }
 
-        setMoneyRequestTag(transactionID, '');
-        setMoneyRequestCategory(transactionID, '');
+        IOU.setMoneyRequestTag(transactionID, '');
+        IOU.setMoneyRequestCategory(transactionID, '');
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-            createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
+            ReportUtils.createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
             return;
         }
 
@@ -188,14 +160,29 @@ function IOURequestStepParticipants({
     }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 
     const navigateBack = useCallback(() => {
-        navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
     }, [iouRequestType, iouType, transactionID, reportID, action]);
+
+    const trackExpense = () => {
+        // If coming from the combined submit/track flow and the user proceeds to just track the expense,
+        // we will use the track IOU type in the confirmation flow.
+        if (!selfDMReportID) {
+            return;
+        }
+
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        IOU.setCustomUnitRateID(transactionID, rateID);
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
+
+        handleNavigation(iouConfirmationPageRoute);
+    };
 
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
-            setMoneyRequestParticipants(transactionID, []);
+            IOU.setMoneyRequestParticipants(transactionID, []);
             numberOfParticipants.current = 0;
         }
     }, [isFocused, action, transactionID]);
@@ -219,8 +206,10 @@ function IOURequestStepParticipants({
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
+                onTrackExpensePress={trackExpense}
                 iouType={iouType}
                 action={action}
+                shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />
         </StepScreenWrapper>
     );

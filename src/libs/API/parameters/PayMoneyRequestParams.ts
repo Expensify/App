@@ -1,7 +1,7 @@
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type PayMoneyRequestParams = {
-    iouReportID: string | undefined;
+    iouReportID: string;
     chatReportID: string;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;

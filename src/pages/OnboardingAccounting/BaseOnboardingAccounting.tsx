@@ -18,13 +18,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,7 +53,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
@@ -61,16 +60,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!isVsb || paidGroupPolicy || isLoadingOnyxValue(allPoliciesResult)) {
             return;
         }
 
-        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        setOnboardingAdminsChatReportID(adminsChatReportID);
-        setOnboardingPolicyID(policyID);
+        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+        Welcome.setOnboardingPolicyID(policyID);
     }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
@@ -78,8 +77,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         if (!paidGroupPolicy || onboardingPolicyID) {
             return;
         }
-        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
-        setOnboardingPolicyID(paidGroupPolicy.id);
+        Welcome.setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
+        Welcome.setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
@@ -167,7 +166,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    completeOnboarding(
+                    Report.completeOnboarding(
                         onboardingPurposeSelected,
                         CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                         undefined,
@@ -180,8 +179,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     );
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
-                        setOnboardingAdminsChatReportID();
-                        setOnboardingPolicyID();
+                        Welcome.setOnboardingAdminsChatReportID();
+                        Welcome.setOnboardingPolicyID();
                     });
                     navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
                 }}

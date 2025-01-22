@@ -3,7 +3,6 @@ import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -331,21 +330,6 @@ const resizeImageIfNeeded = (file: FileObject) => {
     }
     return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
-
-const createFile = (file: File): FileObject => {
-    if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-        return {
-            uri: file.uri,
-            name: file.name,
-            type: file.type,
-        };
-    }
-    return new File([file], file.name, {
-        type: file.type,
-        lastModified: file.lastModified,
-    });
-};
-
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -366,5 +350,4 @@ export {
     verifyFileFormat,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
-    createFile,
 };

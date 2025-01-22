@@ -8,10 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
@@ -31,7 +31,7 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
+            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
@@ -43,12 +43,12 @@ function WorkspaceNamePage({policy}: Props) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
             const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
+            if (!ValidationUtils.isRequiredFulfilled(name)) {
                 errors.name = translate('workspace.editor.nameIsRequiredError');
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -62,7 +62,7 @@ function WorkspaceNamePage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={WorkspaceNamePage.displayName}
             >

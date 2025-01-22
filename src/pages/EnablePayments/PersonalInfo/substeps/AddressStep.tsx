@@ -43,7 +43,7 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
             formTitle={translate('personalInfoStep.whatsYourAddress')}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.noPOBoxesPlease')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}

@@ -21,8 +21,6 @@ You can get support any time by locating your chat with Concierge in your chat i
 
 # 2. Create a new workspace
 
-Members can submit and manage their expenses in a workspace in Expensify. Each workspace has its own set of rules, settings, and integrations.
-
 <ol type="a">
    <li>Click your profile photo or icon in the bottom left menu.</li>
    <li>Scroll down and click <b>Workspaces</b> in the left menu.</li>
