@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,7 +17,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +58,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -246,10 +245,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                         shouldRenderTransferOwnerButton() && (
-                                            <Button
+                                            <ButtonDisabledWhenOffline
                                                 text={translate('workspace.people.transferOwner')}
                                                 onPress={startChangeOwnershipFlow}
-                                                isDisabled={isOffline}
                                                 icon={Expensicons.Transfer}
                                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                                 style={styles.mv5}
