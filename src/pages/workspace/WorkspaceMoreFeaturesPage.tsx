@@ -412,10 +412,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}
             >
                 <Section
-                    containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent]}
+                    containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
                     childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
-                    title={translate(section.titleTranslationKey)}
-                    titleStyles={styles.textStrong}
+                    renderTitle={() => <Text style={styles.mutedNormalTextLabel}>{translate(section.titleTranslationKey)}</Text>}
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}
