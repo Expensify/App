@@ -193,15 +193,23 @@ type GetValidReportsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     optionsToExclude?: Array<Partial<OptionData>>;
+
+    // These two will change the return type
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 } & GetValidOptionsSharedConfig;
+
+type GetValidReportsReturnTypeCombined = {
+    selfDMOptions: OptionData[];
+    workspaceOptions: OptionData[];
+    recentReports: OptionData[];
+};
 
 type GetOptionsConfig = {
     excludeLogins?: string[];
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    shouldSeparateWorkspaceChat?: boolean;
-    shouldSeparateSelfDMChat?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -1245,7 +1253,26 @@ function getUserToInviteOption({
 
 function getValidReports(
     reports: OptionList['reports'],
-    {
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat: true},
+): GetValidReportsReturnTypeCombined;
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat?: false},
+): Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'>;
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat: true},
+): Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'>;
+
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat?: false}): OptionData[];
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig,
+): GetValidReportsReturnTypeCombined | Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'> | Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'> | OptionData[] {
+    const {
         betas = [],
         includeMultipleParticipantReports = false,
         showChatPreviewLine = false,
@@ -1263,8 +1290,10 @@ function getValidReports(
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
         optionsToExclude = [],
-    }: GetValidReportsConfig,
-) {
+        shouldSeparateSelfDMChat,
+        shouldSeparateWorkspaceChat,
+    } = config;
+
     const topmostReportId = Navigation.getTopmostReportId();
 
     const validReportOptions: OptionData[] = [];
@@ -1399,6 +1428,22 @@ function getValidReports(
             lastIOUCreationDate,
         };
 
+        let workspaceChats: OptionData[] = [];
+
+        if (shouldSeparateWorkspaceChat) {
+            workspaceChats = recentReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
+        }
+
+        let selfDMChat: OptionData | undefined;
+
+        if (shouldSeparateWorkspaceChat) {
+            recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
+        }
+        if (shouldSeparateSelfDMChat) {
+            selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
+            recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
+        }
+
         validReportOptions.push(newReportOption);
     }
 
@@ -1410,16 +1455,7 @@ function getValidReports(
  */
 function getValidOptions(
     options: OptionList,
-    {
-        excludeLogins = [],
-        includeSelectedOptions = false,
-        includeRecentReports = true,
-        recentAttendees,
-        selectedOptions = [],
-        shouldSeparateSelfDMChat = false,
-        shouldSeparateWorkspaceChat = false,
-        ...config
-    }: GetOptionsConfig = {},
+    {excludeLogins = [], includeSelectedOptions = false, includeRecentReports = true, recentAttendees, selectedOptions = [], ...config}: GetOptionsConfig = {},
 ): Options {
     // Gather shared configs:
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
@@ -1437,7 +1473,7 @@ function getValidOptions(
     // Get valid recent reports:
     let recentReportOptions: OptionData[] = [];
     if (includeRecentReports) {
-        recentReportOptions = getValidReports(options.reports, {
+        const res = getValidReports(options.reports, {
             ...getValidReportsConfig,
             includeP2P,
             includeDomainEmail,
@@ -1474,22 +1510,6 @@ function getValidOptions(
 
             personalDetailsOptions.push(detail);
         }
-    }
-
-    let workspaceChats: OptionData[] = [];
-
-    if (shouldSeparateWorkspaceChat) {
-        workspaceChats = recentReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
-    }
-
-    let selfDMChat: OptionData | undefined;
-
-    if (shouldSeparateWorkspaceChat) {
-        recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
-    }
-    if (shouldSeparateSelfDMChat) {
-        selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
-        recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
     }
 
     return {
