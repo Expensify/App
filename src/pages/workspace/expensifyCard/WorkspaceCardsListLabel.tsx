@@ -22,6 +22,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import * as Card from '@userActions/Card';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -91,6 +92,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
     const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
 
+    const queueExpensifyCardForBilling = () => {
+        Card.queueExpensifyCardForBilling(CONST.COUNTRY.US, workspaceAccountID);
+    };
+
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.flexWrap]}>
@@ -118,7 +123,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 {isSettleBalanceButtonDisplayed && (
                     <View style={[styles.flexBasisAuto, styles.alignItemsStart, styles.justifyContentEnd, styles.mt2, styles.mr2]}>
                         <Button
-                            onPress={() => {}}
+                            onPress={queueExpensifyCardForBilling}
                             text={translate('workspace.expensifyCard.settleBalance')}
                             innerStyles={[styles.buttonSmall]}
                             textStyles={[styles.buttonSmallText]}
