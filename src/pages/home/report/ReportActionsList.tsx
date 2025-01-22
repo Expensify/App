@@ -526,7 +526,7 @@ function ReportActionsList({
         onScroll?.(event);
     };
 
-    const scrollToBottomAndMarkReportAsRead = () => {
+    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
@@ -538,7 +538,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    };
+    }, [report.reportID, reportScrollManager, hasNewestReportAction]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
