@@ -4077,7 +4077,7 @@ type ConvertTrackedWorkspaceParams = {
     taxCode: string;
     taxAmount: number;
     billable: boolean | undefined;
-    policyID: string | undefined;
+    policyID: string;
 };
 
 type AddTrackedExpenseToPolicyParam = {
@@ -4345,16 +4345,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const workspaceParams = isPolicyExpenseChatReportUtil(chatReport)
-                ? {
-                      category,
-                      tag,
-                      taxCode,
-                      taxAmount,
-                      billable,
-                      policyID: chatReport.policyID,
-                  }
-                : undefined;
+            const workspaceParams =
+                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
+                    ? {
+                          category,
+                          tag,
+                          taxCode,
+                          taxAmount,
+                          billable,
+                          policyID: chatReport.policyID,
+                      }
+                    : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
                 payerEmail,

@@ -9,7 +9,7 @@ type AddTrackedExpenseToPolicyParams = {
     taxCode: string;
     taxAmount: number;
     billable: boolean | undefined;
-    policyID: string | undefined;
+    policyID: string;
     transactionID: string;
     actionableWhisperReportActionID: string;
     moneyRequestReportID: string;
