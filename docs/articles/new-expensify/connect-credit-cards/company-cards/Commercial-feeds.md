@@ -63,7 +63,7 @@ If you have multiple feeds, click the feed name at the top left to select the ap
 
 Click Assign card to select an employee. All workspace members appear in the list.
 
-![Click assign card and select an employee from the list]({{site.url}}/assets/images/commfeed/commfeed-03.png){:width="100%"}
+![Click assign card and select an employee from the list]({{site.url}}/assets/images/commfeed-03.png){:width="100%"}
 
 Select the card you want to assign. Cards only appear if they have recent transactions.
 
