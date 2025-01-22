@@ -134,6 +134,10 @@ module.exports = {
             {
                 selector: ['variable', 'property'],
                 format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+                filter: {
+                    regex: '^private_[a-z][a-zA-Z0-9]+$',
+                    match: false,
+                },
             },
             {
                 selector: 'function',
