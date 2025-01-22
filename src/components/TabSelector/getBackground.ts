@@ -1,9 +1,9 @@
 import type {Animated} from 'react-native';
-import type GetBackgroudColor from './types';
+import type {BackgroundColor, GetBackgroundColorConfig} from './types';
 
-const getBackgroundColor: GetBackgroudColor = ({routesLength, tabIndex, affectedTabs, theme, position, isActive}) => {
+function getBackgroundColor({routesLength, tabIndex, affectedTabs, theme, position, isActive}: GetBackgroundColorConfig): BackgroundColor {
     if (routesLength > 1) {
-        const inputRange = Array.from({length: routesLength}, (v, i) => i);
+        const inputRange = Array.from({length: routesLength}, (_, i) => i);
 
         if (position) {
             return position.interpolate({
@@ -16,7 +16,8 @@ const getBackgroundColor: GetBackgroudColor = ({routesLength, tabIndex, affected
 
         return affectedTabs.includes(tabIndex) && isActive ? theme.border : theme.appBG;
     }
+
     return theme.border;
-};
+}
 
 export default getBackgroundColor;
