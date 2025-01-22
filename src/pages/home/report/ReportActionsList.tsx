@@ -190,6 +190,7 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const [pendingBottomScroll, setPendingBottomScroll] = useState(false);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -455,24 +456,48 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const isNewMessageDisplayed = useMemo(() => {
+        const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
+        const lastPrevVisibleAction = prevActions.at(0);
+        return lastAction?.reportActionID !== lastPrevVisibleAction?.reportActionID;
+    }, [prevSortedVisibleReportActionsObjects, lastAction]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || scrollingVerticalOffset.current === 0 || !isReportScreenTopmostCentralPane()) {
+                return;
+            }
+            if (!hasNewestReportActionRef.current) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                return;
+            }
+            if (!isNewMessageDisplayed) {
+                setPendingBottomScroll(true);
+            } else {
+                InteractionManager.runAfterInteractions(() => {
+                    reportScrollManager.scrollToBottom();
+                });
+            }
+        },
+        [reportScrollManager, report.reportID, isNewMessageDisplayed],
+    );
+
+    useEffect(() => {
+        if (!pendingBottomScroll || scrollingVerticalOffset.current === 0) {
+            return;
+        }
+
+        if (isNewMessageDisplayed) {
             InteractionManager.runAfterInteractions(() => {
-                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-                // they are now in the list.
-                if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
-                    return;
-                }
-                if (!hasNewestReportActionRef.current) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                    return;
-                }
                 setIsFloatingMessageCounterVisible(false);
                 reportScrollManager.scrollToBottom();
+                setPendingBottomScroll(false);
             });
-        },
-        [reportScrollManager, report.reportID],
-    );
+        }
+    }, [pendingBottomScroll, reportScrollManager, isNewMessageDisplayed]);
+
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
