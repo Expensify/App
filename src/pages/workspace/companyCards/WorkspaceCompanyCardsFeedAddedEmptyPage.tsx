@@ -38,7 +38,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
                     buttonAction: handleAssignCard,
                     icon: Expensicons.Plus,
                     success: true,
-                    isDisabled: isDisabledAssignCardButton ?? isOffline,
+                    isDisabled: isOffline || isDisabledAssignCardButton,
                 },
             ]}
         />
