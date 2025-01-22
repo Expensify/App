@@ -347,7 +347,7 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
     // while providing the `gestureBarHeight` as an extra property
     let platformBottomInset = insets?.bottom ?? 0;
     let gestureBarHeight = 0;
-    if (navigationBarType === 'gesture-bar') {
+    if (navigationBarType === CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR) {
         gestureBarHeight = platformBottomInset;
         platformBottomInset = 0;
     }

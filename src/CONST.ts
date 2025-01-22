@@ -1361,15 +1361,18 @@ const CONST = {
         DARK: 'dark',
     },
     NAVIGATION_BAR_TYPE: {
-        STATIC_SOFT_KEYS: 'static-soft-keys',
-        HIDDEN_SOFT_KEYS_OR_NONE: 'hidden-soft-keys-or-none',
+        // We consider there to be no navigation bar in one of these cases:
+        // 1. The device has physical navigation buttons
+        // 2. The device uses gesture navigation without a gesture bar.
+        // 3. The device uses hidden (auto-hiding) soft keys.
+        NONE: 'none',
+        SOFT_KEYS: 'soft-keys',
         GESTURE_BAR: 'gesture-bar',
     },
     // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
-    // https://forums.solar2d.com/t/height-of-android-navigation-bar-solved/353073
-    // According to this source, the navigation bar on (standard) Android devices is always 48dpi (device independent pixels) tall.
+    // The navigation bar on (standard) Android devices is around 40-48dpi (device independent pixels) tall.
     // To leave room to detect soft-key navigation bars on non-standard Android devices,
-    // we set this height threshold to 30, since gesture bars are will never be taller than 30dpi.
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that.
     NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
