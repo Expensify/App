@@ -712,6 +712,7 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabledStyle={styles.cursorDefault}
+                        style={styles.flex1}
                     >
                         <ReceiptImage
                             isThumbnail={isThumbnail}
@@ -732,6 +733,7 @@ function MoneyRequestConfirmationListFooter({
         [
             styles.moneyRequestImage,
             styles.cursorDefault,
+            styles.flex1,
             isLocalFile,
             receiptFilename,
             translate,

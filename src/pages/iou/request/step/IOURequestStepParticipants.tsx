@@ -5,11 +5,11 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
-import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
+import {isMobileSafari as isMobileSafariUtil} from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen, findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -79,13 +79,12 @@ function IOURequestStepParticipants({
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
-    const isMobileSafari = isMobileSafariBrowser();
+    const isMobileSafari = isMobileSafariUtil();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -108,9 +107,30 @@ function IOURequestStepParticipants({
         resetDraftTransactionsCustomUnit(transactionID);
     }, [isFocused, isMovingTransactionFromTrackExpense, transactionID]);
 
+    const trackExpense = useCallback(() => {
+        // If coming from the combined submit/track flow and the user proceeds to just track the expense,
+        // we will use the track IOU type in the confirmation flow.
+        if (!selfDMReportID) {
+            return;
+        }
+
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        setCustomUnitRateID(transactionID, rateID);
+        setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
+        Navigation.navigate(iouConfirmationPageRoute);
+    }, [action, selfDMReport, selfDMReportID, transactionID]);
+
     const addParticipant = useCallback(
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+
+            const firstParticipant = val.at(0);
+
+            if (firstParticipant?.isSelfDM) {
+                trackExpense();
+                return;
+            }
 
             const firstParticipantReportID = val.at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
@@ -134,7 +154,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID ?? reportID;
         },
-        [iouType, reportID, transactionID, isMovingTransactionFromTrackExpense],
+        [iouType, reportID, trackExpense, transactionID, isMovingTransactionFromTrackExpense],
     );
 
     const handleNavigation = useCallback(
@@ -230,10 +250,8 @@ function IOURequestStepParticipants({
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
-                onTrackExpensePress={trackExpense}
                 iouType={iouType}
                 action={action}
-                shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />
         </StepScreenWrapper>
     );
