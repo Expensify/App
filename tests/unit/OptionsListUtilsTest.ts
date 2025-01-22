@@ -1036,4 +1036,15 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
     });
+
+    it('createOptionList() localization', () => {
+        const reports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+        expect(reports.at(9)?.subtitle).toBe('Workspace');
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+            .then(() => {
+                const newReports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                expect(newReports.at(9)?.subtitle).toBe('Espacio de trabajo');
+            });
+    });
 });
