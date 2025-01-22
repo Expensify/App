@@ -19,14 +19,26 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
+import {
+    filterAndOrderOptions,
+    formatSectionsFromSearchTerm,
+    getHeaderMessage,
+    getParticipantsOption,
+    getPersonalDetailSearchTerms,
+    getPolicyExpenseReportOption,
+    getValidOptions,
+    isCurrentUser,
+    orderOptions,
+} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import {isInvoiceRoom} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
+import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,12 +83,12 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const isPaidGroupPolicy = useMemo(() => PolicyUtils.isPaidGroupPolicy(policy), [policy]);
+    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
+        searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const defaultOptions = useMemo(() => {
@@ -90,7 +102,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const optionList = OptionsListUtils.getValidOptions(
+        const optionList = getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -98,7 +110,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             {
                 betas,
                 selectedOptions: participants as Participant[],
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
@@ -108,13 +120,13 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                shouldSeparateSelfDMChat: true,
+                shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: true,
             },
         );
 
-        const orderedOptions = OptionsListUtils.orderOptions(optionList);
+        const orderedOptions = orderOptions(optionList);
 
         return {
             ...optionList,
@@ -135,10 +147,10 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -151,14 +163,14 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
+        const newSections: Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+        const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as ReportUtils.OptionData[],
+            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -172,6 +184,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             data: chatOptions.workspaceChats ?? [],
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
+
         newSections.push({
             title: translate('workspace.invoices.paymentMethods.personal'),
             data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
@@ -192,7 +205,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         if (
             chatOptions.userToInvite &&
-            !OptionsListUtils.isCurrentUser({
+            !isCurrentUser({
                 ...chatOptions.userToInvite,
                 accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 status: chatOptions.userToInvite?.status ?? undefined,
@@ -202,17 +215,17 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
         }
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -247,7 +260,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getInvoicePrimaryWorkspace(currentUserLogin)?.id;
+                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,
@@ -346,7 +359,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         sections.forEach((section) => {
             length += section.data.length;
         });
-
         return length;
     }, [areOptionsInitialized, sections]);
 
@@ -412,7 +424,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -436,7 +448,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}

@@ -15,6 +15,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
  * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -33,6 +34,10 @@ function useOnboardingFlowRouter() {
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
+            if (isLoadingApp !== false) {
+                return;
+            }
+
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
@@ -46,6 +51,10 @@ function useOnboardingFlowRouter() {
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+                return;
+            }
+
+            if (hasBeenAddedToNudgeMigration) {
                 return;
             }
 
@@ -73,6 +82,7 @@ function useOnboardingFlowRouter() {
             }
         });
     }, [
+        isLoadingApp,
         isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
