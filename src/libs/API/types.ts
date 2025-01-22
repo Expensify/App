@@ -406,7 +406,7 @@ const WRITE_COMMANDS = {
     CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY: 'ConfigureExpensifyCardsForPolicy',
     CREATE_EXPENSIFY_CARD: 'CreateExpensifyCard',
     CREATE_ADMIN_ISSUED_VIRTUAL_CARD: 'CreateAdminIssuedVirtualCard',
-    DOMAIN_QUEUE_EXPENSIFY_CARD_FOR_BILLING: ' Domain_QueueExpensifyCardForBilling',
+    QUEUE_EXPENSIFY_CARD_FOR_BILLING: ' Domain_QueueExpensifyCardForBilling',
     ADD_DELEGATE: 'AddDelegate',
     REMOVE_DELEGATE: 'RemoveDelegate',
     UPDATE_DELEGATE_ROLE: 'UpdateDelegateRole',
@@ -872,7 +872,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'domainAccountID'>;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
-    [WRITE_COMMANDS.DOMAIN_QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
+    [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;
