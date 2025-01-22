@@ -563,7 +563,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
-            position: 'fixed',
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             transform: [
                 {translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth},
