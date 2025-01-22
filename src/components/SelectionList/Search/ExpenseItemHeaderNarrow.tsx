@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -62,7 +62,7 @@ function ExpenseItemHeaderNarrow({
                 {!!canSelectMultiple && (
                     <PressableWithFeedback
                         accessibilityLabel={text ?? ''}
-                        role={CONST.ROLE.BUTTON}
+                        role={Platform.OS === 'web' ? CONST.ROLE.PRESENTATION : CONST.ROLE.BUTTON}
                         disabled={isDisabled}
                         onPress={() => handleCheckboxPress?.()}
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
