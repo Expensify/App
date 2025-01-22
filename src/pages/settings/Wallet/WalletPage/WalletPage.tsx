@@ -31,10 +31,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getDescriptionForPolicyDomainCard, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
@@ -44,7 +46,7 @@ import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultP
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData} from '@src/types/onyx';
+import type {AccountData, Card} from '@src/types/onyx';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */
@@ -72,6 +74,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
+    const [shouldShowCardMenu, setShouldShowCardMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
@@ -192,6 +195,36 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         setMenuPosition();
     };
 
+    const assignedCardPressed = (nativeEvent?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => {
+        if (shouldShowAddPaymentMenu) {
+            setShouldShowAddPaymentMenu(false);
+            return;
+        }
+        if (shouldShowDefaultDeleteMenu) {
+            setShouldShowDefaultDeleteMenu(false);
+            return;
+        }
+
+        if (shouldShowCardMenu) {
+            setShouldShowCardMenu(false);
+            return;
+        }
+        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        setPaymentMethod({
+            isSelectedPaymentMethodDefault: false,
+            selectedPaymentMethod: {},
+            formattedSelectedPaymentMethod: {
+                title: maskCardNumber(cardData?.cardName, cardData?.bank),
+                description: cardData ? getDescriptionForPolicyDomainCard(cardData.domainName) : '',
+                icon,
+            },
+            selectedPaymentMethodType: '',
+            methodID: cardID ?? CONST.DEFAULT_NUMBER_ID,
+        });
+        setShouldShowCardMenu(true);
+        setMenuPosition();
+    };
+
     /**
      * Hide the add payment modal
      */
@@ -224,6 +257,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         setShouldShowDefaultDeleteMenu(false);
         setShowConfirmDeleteModal(false);
     }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
+
+    const hideCardMenu = useCallback(() => {
+        setShouldShowCardMenu(false);
+    }, [setShouldShowCardMenu]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList ?? {};
@@ -285,7 +322,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu) {
+            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
                 return;
             }
             if (shouldShowAddPaymentMenu) {
@@ -300,7 +337,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             }
             popoverPositionListener.remove();
         };
-    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, setMenuPosition, shouldListenForResize]);
+    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
@@ -408,13 +445,13 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             shouldShowAssignedCards
                                             shouldShowEmptyListMessage={false}
                                             shouldEnableScroll={false}
-                                            onPress={paymentMethodPressed}
+                                            onPress={assignedCardPressed}
                                             style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                             listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
+                                            actionPaymentMethodType={shouldShowCardMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                                            activePaymentMethodID={shouldShowCardMenu ? paymentMethod.methodID : ''}
                                             buttonRef={addPaymentMethodAnchorRef}
-                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                            onListContentSizeChange={shouldShowCardMenu ? setMenuPosition : () => {}}
                                         />
                                     </Section>
                                 ) : null}
@@ -610,6 +647,46 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 />
                             </View>
                         )}
+                    </Popover>
+                    <Popover
+                        isVisible={shouldShowCardMenu}
+                        onClose={hideCardMenu}
+                        anchorPosition={{
+                            top: anchorPosition.anchorPositionTop,
+                            right: anchorPosition.anchorPositionRight,
+                        }}
+                        anchorRef={paymentMethodButtonRef as RefObject<View>}
+                    >
+                        <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
+                            {isPopoverBottomMount && (
+                                <MenuItem
+                                    title={paymentMethod.formattedSelectedPaymentMethod.title}
+                                    icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
+                                    iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                    iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                    iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
+                                    description={paymentMethod.formattedSelectedPaymentMethod.description}
+                                    wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
+                                    interactive={false}
+                                    displayInDefaultIconColor
+                                />
+                            )}
+                            <MenuItem
+                                icon={Expensicons.MoneySearch}
+                                title={translate('workspace.common.viewTransactions')}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                            query: buildCannedSearchQuery({
+                                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                                cardID: String(paymentMethod.methodID),
+                                            }),
+                                        }),
+                                    );
+                                }}
+                            />
+                        </View>
                     </Popover>
                     <ConfirmModal
                         isVisible={showConfirmDeleteModal}
