@@ -4640,6 +4640,8 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                waypoints,
+                customUnitRateID: mileageRate,
             };
             const policyParams = {
                 policyID: chatReport?.policyID ?? '-1',
