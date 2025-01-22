@@ -44,8 +44,8 @@ function SelectFeedType() {
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-            text: translate('workspace.companyCards.customFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.customFeedDetails'),
+            text: translate('workspace.companyCards.commercialFeed'),
+            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedDetails'),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },

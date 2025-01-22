@@ -3409,7 +3409,7 @@ const translations = {
                     text: 'Obtén más información sobre estas ',
                     linkText: 'opciones.',
                 },
-                customFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
+                commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
@@ -3455,7 +3455,7 @@ const translations = {
             },
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
-            customFeed: 'Fuente personalizada',
+            commercialFeed: 'Fuente comercial',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
