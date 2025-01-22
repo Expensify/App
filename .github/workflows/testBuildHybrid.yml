@@ -77,11 +77,11 @@ jobs:
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: process.env.PULL_REQUEST_NUMBER,
+              pull_number: '${{ env.PULL_REQUEST_NUMBER }}',
             });
             
             const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:(?<prNumber>.*)/;
+            const regex = /MOBILE-EXPENSIFY:(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
 
             return found.trim();
@@ -93,11 +93,14 @@ jobs:
       outputs:
         OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
       steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
         - name: Check if pull request number is correct
           id: getHeadRef
           run: |
             set -e
-            echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R 'Expensify/Mobile-Expensify' --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
