@@ -4072,13 +4072,11 @@ const getConvertTrackedExpenseInformation = (
 };
 
 type ConvertTrackedWorkspaceParams = {
-    receipt: Receipt | undefined;
     category: string | undefined;
     tag: string | undefined;
     taxCode: string;
     taxAmount: number;
     billable: boolean | undefined;
-    linkedTrackedExpenseReportID: string;
     policyID: string | undefined;
 };
 
@@ -4088,7 +4086,6 @@ type AddTrackedExpenseToPolicyParam = {
     comment: string;
     created: string;
     merchant: string;
-    chatReportID: string;
     transactionID: string;
     actionableWhisperReportActionID: string;
     moneyRequestReportID: string;
@@ -4150,13 +4147,11 @@ function convertTrackedExpenseToRequest(
             comment,
             created,
             merchant,
-            chatReportID,
             transactionID,
             actionableWhisperReportActionID,
             moneyRequestReportID,
             moneyRequestCreatedReportActionID,
             moneyRequestPreviewReportActionID,
-            transactionThreadReportID,
             modifiedExpenseReportActionID,
             reportPreviewReportActionID,
             ...workspaceParams,
@@ -4349,13 +4344,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             }
             const workspaceParams = isPolicyExpenseChatReportUtil(chatReport)
                 ? {
-                      receipt,
                       category,
                       tag,
                       taxCode,
                       taxAmount,
                       billable,
-                      linkedTrackedExpenseReportID,
                       policyID: chatReport.policyID,
                   }
                 : undefined;
