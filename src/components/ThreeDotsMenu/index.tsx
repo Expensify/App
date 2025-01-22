@@ -10,7 +10,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -98,7 +98,7 @@ function ThreeDotsMenu({
                         disabled={disabled}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
-                            if (!Browser.isMobile()) {
+                            if (!isMobile()) {
                                 return;
                             }
                             e.preventDefault();
