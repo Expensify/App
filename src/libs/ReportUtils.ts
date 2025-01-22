@@ -3246,8 +3246,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const isReportSettled = isSettled(report?.reportID);
-    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID);
+    const reportFields = getReportFieldsByPolicyID(report?.policyID);
     const titleReportField = Object.values(reportFields ?? {}).find((reportField) => reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
 
     if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
