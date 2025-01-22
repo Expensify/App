@@ -141,6 +141,7 @@ function SearchPageBottomTab() {
             )}
             {shouldUseNarrowLayout && (
                 <Search
+                    key={queryJSON.hash}
                     isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
