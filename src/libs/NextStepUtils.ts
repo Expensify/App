@@ -194,6 +194,33 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 });
             }
 
+            // Manual submission
+            if (
+                report?.total !== 0 &&
+                !harvesting?.enabled &&
+                [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL].includes(autoReportingFrequency)
+            ) {
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${ownerDisplayName}`,
+                        type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'submit',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+            }
+
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
