@@ -41,6 +41,7 @@ describe('libs/NextStepUtils', () => {
             message: [],
         };
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
+        const report2 = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-2', policyID, 1, 0, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
@@ -364,7 +365,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('manual', () => {
-                    // Waiting for userSubmitter to add expense(s).
+                    // Waiting for userSubmitter to submit expense(s).
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -377,7 +378,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' to ',
                         },
                         {
-                            text: 'add',
+                            text: 'submit',
                         },
                         {
                             text: ' %expenses.',
