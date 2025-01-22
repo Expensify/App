@@ -1,5 +1,5 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import * as parser from '@libs/SearchParser/autocompleteParser';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 type SubstitutionMap = Record<string, string>;
@@ -19,7 +19,7 @@ const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${
  * return: `A from:9876 A`
  */
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
-    const parsed = parser.parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsed = parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsed.ranges;
 
