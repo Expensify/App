@@ -415,7 +415,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 oldPolicyName,
                 policyName: report?.policyName,
-<<<<<<< HEAD
             },
         });
         failureData.push({
@@ -423,8 +422,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-=======
->>>>>>> main
                 private_isArchived: null,
             },
         });

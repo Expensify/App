@@ -793,10 +793,6 @@ describe('DebugUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
-<<<<<<< HEAD
-=======
-                private_isArchived: 'true',
->>>>>>> main
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
