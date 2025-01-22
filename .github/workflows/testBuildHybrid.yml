@@ -77,11 +77,11 @@ jobs:
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: env.PULL_REQUEST_NUMBER,
+              pull_number: '${{env.PULL_REQUEST_NUMBER }}'',
             });
             
             const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:(?<prNumber>.*)/;
+            const regex = /MOBILE-EXPENSIFY:(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
 
             return found.trim();
