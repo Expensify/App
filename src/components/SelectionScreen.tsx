@@ -150,7 +150,7 @@ function SelectionScreen<T = string>({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={false} // s77rt: revert this line
+            shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}

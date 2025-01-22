@@ -20,6 +20,59 @@ function connectPolicyToNSQS(policyID: string, nsqsAccountID: string) {
                 timestamp: new Date().toISOString(),
             },
         },
+
+        // s77rt remove the following optimistic data (for testing only)
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: {
+                        lastSync: {
+                            isAuthenticationError: false,
+                            isSuccessful: true,
+                            source: 'DIRECT',
+                        },
+                        data: {
+                            payableList: [],
+                        },
+                        config: {
+                            autoSync: {
+                                jobID: '',
+                                enabled: true,
+                            },
+                            syncOptions: {
+                                mapping: {
+                                    customers: CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                                    projects: CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                                },
+                            },
+                            currency: 'USD',
+                            exporter: '',
+                            exportDate: CONST.NSQS_EXPORT_DATE.LAST_EXPENSE,
+                            credentials: {
+                                accessToken: '',
+                                companyID: '',
+                                expires: '',
+                                scope: '',
+                                tokenType: '',
+                            },
+                            isConfigured: true,
+                            approvalAccount: '',
+                        },
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: null,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.NSQS,
+                timestamp: new Date().toISOString(),
+            },
+        },
     ];
 
     const params: ConnectPolicyToNSQSParams = {

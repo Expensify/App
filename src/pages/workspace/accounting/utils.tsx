@@ -213,7 +213,6 @@ function getAccountingIntegrationData(
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-            // s77rt: add missing fields
             return {
                 title: translate('workspace.accounting.nsqs'),
                 icon: Expensicons.NetSuiteSquare, // s77rt: wrong icon
@@ -223,6 +222,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE],
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NSQS)),
                 pendingFields: policy?.connections?.nsqs?.config?.pendingFields,
                 errorFields: policy?.connections?.nsqs?.config?.errorFields,
             };
