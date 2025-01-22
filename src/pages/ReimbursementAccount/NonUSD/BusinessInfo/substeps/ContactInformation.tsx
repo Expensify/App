@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidEmail, isValidPhoneInternational} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -32,13 +32,13 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values[BUSINESS_CONTACT_NUMBER] && !ValidationUtils.isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
+            if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
                 errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');
             }
 
-            if (values[BUSINESS_CONFIRMATION_EMAIL] && !ValidationUtils.isValidEmail(values[BUSINESS_CONFIRMATION_EMAIL])) {
+            if (values[BUSINESS_CONFIRMATION_EMAIL] && !isValidEmail(values[BUSINESS_CONFIRMATION_EMAIL])) {
                 errors[BUSINESS_CONFIRMATION_EMAIL] = translate('common.error.email');
             }
 
