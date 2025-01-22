@@ -36,7 +36,6 @@ function PreferencesPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={PreferencesPage.displayName}
