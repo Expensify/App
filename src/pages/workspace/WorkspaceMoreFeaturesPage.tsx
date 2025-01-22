@@ -364,7 +364,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         (item: Item) => (
             <View
                 key={item.titleTranslationKey}
-                style={styles.workspaceSectionMoreFeaturesItem}
+                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100]}
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
@@ -383,7 +383,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [styles, translate],
+        [styles, shouldUseNarrowLayout, translate],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
