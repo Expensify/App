@@ -72,8 +72,6 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const handleSubmit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
-        console.log(corpayData, 'corpayData');
-        console.log(reimbursementAccountDraft, 'reimbursementAccountDraft');
         createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
     };
 
