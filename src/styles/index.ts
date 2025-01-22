@@ -1243,6 +1243,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputMultilineContainer: {
+            height: '100%',
             paddingTop: 23,
         },
 
