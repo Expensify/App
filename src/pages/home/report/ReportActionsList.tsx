@@ -409,6 +409,7 @@ function ReportActionsList({
             reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
+            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
@@ -447,6 +448,7 @@ function ReportActionsList({
             return;
         }
         InteractionManager.runAfterInteractions(() => {
+            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -464,6 +466,7 @@ function ReportActionsList({
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                     return;
                 }
+                setIsFloatingMessageCounterVisible(false);
                 reportScrollManager.scrollToBottom();
             });
         },
@@ -524,6 +527,8 @@ function ReportActionsList({
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
+        setIsFloatingMessageCounterVisible(false);
+
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             openReport(report.reportID);
