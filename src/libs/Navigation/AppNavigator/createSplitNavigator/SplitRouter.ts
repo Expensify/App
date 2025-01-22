@@ -87,9 +87,9 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
                 });
             }
         }
-        // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
-        (state.index as number) = state.routes.length - 1;
     }
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
+    (state.index as number) = state.routes.length - 1;
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
