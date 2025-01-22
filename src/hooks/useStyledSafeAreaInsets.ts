@@ -34,27 +34,29 @@ import useStyleUtils from './useStyleUtils';
 function useStyledSafeAreaInsets() {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+    const {paddingTop: platformPaddingTop, paddingBottom: platformPaddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
 
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
-    const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
-    const isSafeAreaBottomPaddingApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
+    const isTopAlreadyApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
+    const isBottomAlreadyApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
 
     const adaptedInsets = {
         ...insets,
-        top: isSafeAreaTopPaddingApplied ? 0 : insets?.top,
-        bottom: isSafeAreaBottomPaddingApplied ? 0 : insets?.bottom,
+        top: isTopAlreadyApplied ? 0 : insets?.top,
+        bottom: isBottomAlreadyApplied ? 0 : insets?.bottom,
     };
-    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
 
-    const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom: adaptedPaddingBottom}), [adaptedPaddingBottom]);
+    const paddingTop = isTopAlreadyApplied ? 0 : platformPaddingTop;
+    const paddingBottom = isBottomAlreadyApplied ? 0 : platformPaddingBottom;
+
+    const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom}), [paddingBottom]);
 
     return {
-        paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
-        paddingBottom: adaptedPaddingBottom,
+        paddingTop,
+        paddingBottom,
         unmodifiedPaddings: {
-            top: paddingTop,
-            bottom: paddingBottom,
+            top: platformPaddingTop,
+            bottom: platformPaddingBottom,
         },
         insets: adaptedInsets,
         safeAreaPaddingBottomStyle,
