@@ -771,7 +771,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
  * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
+function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
     const optimisticMembersState = {policyID, inviterEmail};
@@ -821,31 +821,6 @@ function joinAccessiblePolicy(policyID: string) {
     ];
 
     API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
-}
-
-/**
- * Request access to the specified policyID
- */
-function requestPolicyAccess(policyID: string) {
-    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: memberJoinKey,
-            value: {policyID},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: memberJoinKey,
-            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.REQUEST_POLICY_ACCESS, {policyID}, {optimisticData, failureData});
 }
 
 /**
@@ -1050,7 +1025,6 @@ export {
     isApprover,
     importPolicyMembers,
     downloadMembersCSV,
-    requestPolicyAccess,
     clearInviteDraft,
 };
 

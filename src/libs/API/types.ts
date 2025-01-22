@@ -246,7 +246,6 @@ const WRITE_COMMANDS = {
     SET_POLICY_CUSTOM_TAX_NAME: 'SetPolicyCustomTaxName',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     JOIN_ACCESSIBLE_POLICY: 'JoinAccessiblePolicy',
-    REQUEST_POLICY_ACCESS: 'RequestPolicyAccess',
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
@@ -910,7 +909,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE]: Parameters.UpdateInvoiceCompanyWebsiteParams;
 
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
-    [WRITE_COMMANDS.REQUEST_POLICY_ACCESS]: Parameters.RequestPolicyAccessParams;
     // Dismis Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
 };

@@ -52,7 +52,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
             if (policy.automaticJoiningEnabled) {
                 MemberAction.joinAccessiblePolicy(policy.policyID);
             } else {
-                MemberAction.requestPolicyAccess(policy.policyID);
+                MemberAction.inviteMemberToWorkspace(policy.policyID);
             }
             Report.completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,

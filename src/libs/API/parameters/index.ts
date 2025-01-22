@@ -356,7 +356,6 @@ export type {default as TogglePlatformMuteParams} from './TogglePlatformMutePara
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
-export type {default as RequestPolicyAccessParams} from './RequestPolicyAccessParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
