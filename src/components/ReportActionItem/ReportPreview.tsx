@@ -327,7 +327,7 @@ function ReportPreview({
             return convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
-            return translate('iou.receiptScanning');
+            return translate('iou.receiptStatusTitle');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
             return translate('iou.fieldPending');
@@ -442,8 +442,8 @@ function ReportPreview({
                 };
             }
         }
-        if (showRTERViolationMessage) {
-            return {shouldShow: !isScanning, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        if (shouldShowBrokenConnectionViolation) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
     };

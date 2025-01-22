@@ -884,7 +884,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
-        receiptScanning: 'Scanning...',
+        receiptScanning: () => ({
+            one: 'Receipt scanning...',
+            other: 'Receipts scanning...',
+        }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({

@@ -233,8 +233,12 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isPending(transaction) || hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+        if (isPending(transaction)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+
+        if (hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
