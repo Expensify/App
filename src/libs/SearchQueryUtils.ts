@@ -14,7 +14,7 @@ import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getTagNamesFromTagsLists} from './PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
@@ -558,6 +558,9 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+        return getCleanedTagName(filterValue);
     }
     return filterValue;
 }

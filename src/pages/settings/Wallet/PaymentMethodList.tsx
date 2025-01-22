@@ -42,6 +42,7 @@ type PaymentMethodPressHandler = (
     icon?: FormattedSelectedPaymentMethodIcon,
     isDefault?: boolean,
     methodID?: number,
+    description?: string,
 ) => void;
 
 type CardPressHandler = (event?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => void;
@@ -130,7 +131,7 @@ function dismissError(item: PaymentMethodItem) {
 
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
-    const paymentID = isBankAccount ? item.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID : item.accountData?.fundID ?? CONST.DEFAULT_NUMBER_ID;
+    const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
 
     if (!paymentID) {
         Log.info('Unable to clear payment method error: ', undefined, item);
@@ -330,6 +331,7 @@ function PaymentMethodList({
                         },
                         paymentMethod.isDefault,
                         paymentMethod.methodID,
+                        paymentMethod.description,
                     ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

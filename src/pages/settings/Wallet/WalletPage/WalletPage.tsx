@@ -42,7 +42,7 @@ import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
-import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultPaymentMethod as makeDefaultPaymentMethodAction, openWalletPage} from '@userActions/PaymentMethods';
+import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods, openWalletPage} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -143,6 +143,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
+        description?: string,
     ) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
@@ -164,14 +165,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -269,9 +270,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            makeDefaultPaymentMethodAction(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodPaymentMethods(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            makeDefaultPaymentMethodAction(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,
@@ -616,7 +617,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 {shouldShowMakeDefaultButton && (
                                     <MenuItem
                                         title={translate('walletPage.setDefaultConfirmation')}
-                                        icon={Expensicons.Mail}
+                                        icon={Expensicons.Star}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
                                                 closeModal(() => {
