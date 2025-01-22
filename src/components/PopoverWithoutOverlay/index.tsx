@@ -77,7 +77,7 @@ function PopoverWithoutOverlay(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
+    } = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
