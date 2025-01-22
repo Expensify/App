@@ -5,7 +5,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
-import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
+import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -22,8 +22,8 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator() {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const rootNavigatorOptions = useRootNavigatorOptions();
     const route = useRoute();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -43,12 +43,12 @@ function ReportsSplitNavigator() {
                     sidebarScreen={SCREENS.HOME}
                     defaultCentralScreen={SCREENS.REPORT}
                     parentRoute={route}
-                    screenOptions={rootNavigatorOptions.centralPaneNavigator}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
                 >
                     <Split.Screen
                         name={SCREENS.HOME}
                         getComponent={loadSidebarScreen}
-                        options={rootNavigatorOptions.homeScreen}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
                     />
                     <Split.Screen
                         name={SCREENS.REPORT}
