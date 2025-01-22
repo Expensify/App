@@ -30,7 +30,7 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     isAdminRoom,
-    isChatUsedForOnboarding,
+    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isConciergeChatReport,
     isGroupChat,
     isOneOnOneChat,
@@ -62,7 +62,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const session = useSession();
     const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) : isConciergeChatReport(report);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
     const isActiveRouteHome = useIsCurrentRouteHome();
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
@@ -280,7 +281,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         isSystemChat(report)
                                                     }
                                                 />
-                                                {isChatUsedForOnboarding(report, onboardingPurposeSelected) && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}
