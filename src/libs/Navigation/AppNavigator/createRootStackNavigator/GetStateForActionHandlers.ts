@@ -52,6 +52,7 @@ function handleOpenWorkspaceSplitAction(
     const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, actionToPushSettingsSplitNavigator, configOptions);
 
     if (!stateWithSettingsSplitNavigator) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] SettingsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
@@ -59,6 +60,7 @@ function handleOpenWorkspaceSplitAction(
     const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithWorkspaceSplitNavigator) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspaceSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
