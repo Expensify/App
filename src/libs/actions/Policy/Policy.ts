@@ -64,6 +64,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
@@ -1605,7 +1606,8 @@ function generateCustomUnitID(): string {
 }
 
 function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
-    const currency = reportCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+    const currency = reportCurrency || (allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD);
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
 
@@ -1643,10 +1645,12 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
-function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false, currency = '', file?: File) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
+    const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1667,6 +1671,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 makeMeAdmin,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                avatarURL: file?.uri ?? null,
+                originalFileName: file?.name,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -1696,12 +1702,24 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
- * @param [expenseReportId] the reportID of the expense report that is being used to create the workspace
+ * @param [expenseReportId] Optional, Purpose of using application selected by user in guided setup flow
+ * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file] Optional, avatar file for workspace
  */
-function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: string) {
+function buildPolicyData(
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    policyName = '',
+    policyID = generatePolicyID(),
+    expenseReportId?: string,
+    engagementChoice?: string,
+    currency = '',
+    file?: File,
+) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {
         adminsChatReportID,
@@ -1763,6 +1781,8 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+                avatarURL: file?.uri,
+                originalFileName: file?.name,
             },
         },
         {
@@ -1948,6 +1968,9 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         successData.push(...optimisticCategoriesData.successData);
     }
 
+    // We need to clone the file to prevent non-indexable errors.
+    const clonedFile = file ? (createFile(file) as File) : undefined;
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -1961,6 +1984,8 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         customUnitID,
         customUnitRateID,
         engagementChoice,
+        currency: outputCurrency,
+        file: clonedFile,
     };
 
     return {successData, optimisticData, failureData, params};
@@ -1974,9 +1999,19 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), engagementChoice = ''): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice);
+function createWorkspace(
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    policyName = '',
+    policyID = generatePolicyID(),
+    engagementChoice = '',
+    currency = '',
+    file?: File,
+): CreateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice, currency, file);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
@@ -1995,10 +2030,10 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  */
-function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
+function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), currency = '', file?: File): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
@@ -2065,6 +2100,9 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         },
     ];
 
+    // We need to clone the file to prevent non-indexable errors.
+    const clonedFile = file ? (createFile(file) as File) : undefined;
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -2077,6 +2115,8 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         expenseCreatedReportActionID,
         customUnitID,
         customUnitRateID,
+        currency: outputCurrency,
+        file: clonedFile,
     };
 
     Onyx.update(optimisticData);

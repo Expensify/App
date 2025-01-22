@@ -46,6 +46,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         reports: [],
         personalDetails: [],
     });
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
@@ -72,7 +73,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return newOptions;
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reports, reportNameValuePairs]);
+    }, [reports, reportNameValuePairs, preferredLocale]);
 
     /**
      * This effect is used to update the options list when personal details change.
