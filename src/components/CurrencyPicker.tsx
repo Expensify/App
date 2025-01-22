@@ -57,7 +57,7 @@ function CurrencyPicker({selectedCurrency, label = '', errorText = '', value, on
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={isPickerVisible}
-                onClose={() => hidePickerModal}
+                onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
                 useNativeDriver
