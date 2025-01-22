@@ -2,8 +2,9 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Currency} from '@src/types/onyx';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
-import * as NumberFormatUtils from './NumberFormatUtils';
+import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
@@ -30,6 +31,11 @@ function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     return decimals ?? 2;
 }
 
+function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
+    const currencyItem = currencyList?.[currency];
+    return currencyItem;
+}
+
 /**
  * Returns the currency's minor unit quantity
  * e.g. Cent in USD
@@ -44,7 +50,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
  * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
+    const parts = formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -62,7 +68,7 @@ function getCurrencySymbol(currencyCode: string): string | undefined {
  * Whether the currency symbol is left-to-right.
  */
 function isCurrencySymbolLTR(currencyCode: string): boolean {
-    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
+    const parts = formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -121,7 +127,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
 
@@ -143,7 +149,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
 
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
@@ -161,7 +167,7 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
  */
 function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = amount / 100.0;
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
@@ -174,7 +180,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
@@ -216,5 +222,6 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
+    getCurrency,
     sanitizeCurrencyCode,
 };
