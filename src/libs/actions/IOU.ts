@@ -148,11 +148,11 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPartialMerchant,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
-    isPartialMerchant,
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -7764,8 +7764,7 @@ function canApproveIOU(
     let isTransactionBeingScanned = false;
     const reportTransactions = getAllReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanFailTransactions =
-        reportTransactions.length > 0 &&
-        reportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
+        reportTransactions.length > 0 && reportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
     if (hasOnlyPendingCardOrScanFailTransactions) {
         return false;
     }

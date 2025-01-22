@@ -35,8 +35,8 @@ import {
     getMerchant as getTransactionMerchant,
     isAmountMissing,
     isExpensifyCardTransaction,
-    isPending,
     isPartialMerchant,
+    isPending,
 } from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -342,8 +342,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
     const hasOnlyPendingCardOrScanFailTransactions =
-        allReportTransactions.length > 0 &&
-        allReportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
+        allReportTransactions.length > 0 && allReportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanFailTransactions) {
