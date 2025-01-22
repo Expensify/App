@@ -5442,6 +5442,7 @@ function buildOptimisticReportPreview(
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
+    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
@@ -5458,6 +5459,7 @@ function buildOptimisticReportPreview(
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        delegateAccountID: delegateAccountDetails?.accountID,
         created,
         accountID: iouReport?.managerID,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
