@@ -49,7 +49,7 @@ jobs:
           npm run grunt:build:shared
 
       - name: Run Android build
-        run: npx react-native build-android --mode Debug --appId org.me.mobiexpensifyg
+        run: bundle exec fastlane android build_local_hybrid
 
   verify_ios:
     name: Verify iOS HybridApp builds on main
@@ -111,4 +111,4 @@ jobs:
           command: npm run pod-install
 
       - name: Build iOS App
-        run: npx react-native build-ios --mode Debug --scheme Expensify
+        run: bundle exec fastlane ios build_unsigned_hybrid
