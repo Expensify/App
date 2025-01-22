@@ -1361,7 +1361,6 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
  */
 function expandURLPreview(reportID: string | undefined, reportActionID: string) {
     if (!reportID) {
-        Log.warn('Invalid reportID passed to expandURLPreview. Not calling the API because it will fail.');
         return;
     }
 
@@ -1460,7 +1459,6 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
 /** Toggles the pinned state of the report. */
 function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) {
     if (!reportID) {
-        Log.warn('Invalid reportID passed to togglePinnedState. Not calling the API because it will fail.');
         return;
     }
 

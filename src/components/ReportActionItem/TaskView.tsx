@@ -69,7 +69,7 @@ function TaskView({report}: TaskViewProps) {
                                     (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
