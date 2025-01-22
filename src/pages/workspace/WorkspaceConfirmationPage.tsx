@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
@@ -39,6 +40,7 @@ function getFirstAlphaNumericCharacter(str = '') {
 function WorkspaceConfirmationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -110,7 +112,10 @@ function WorkspaceConfirmationPage() {
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="always"
+            >
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
@@ -156,7 +161,6 @@ function WorkspaceConfirmationPage() {
                             label={translate('workspace.common.workspaceName')}
                             accessibilityLabel={translate('workspace.common.workspaceName')}
                             spellCheck={false}
-                            autoFocus
                             defaultValue={defaultWorkspaceName}
                             onChangeText={(str) => {
                                 if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
@@ -164,6 +168,7 @@ function WorkspaceConfirmationPage() {
                                 }
                                 setWorkspaceNameFirstCharacter(str);
                             }}
+                            ref={inputCallbackRef}
                         />
 
                         <View style={[styles.mhn5, styles.mt4]}>
