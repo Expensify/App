@@ -11,7 +11,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -93,6 +93,10 @@ function isCard(item: Card | Record<string, string>): item is Card {
 
 function isCardIssued(card: Card) {
     return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
+function isCardHiddenFromSearch(card: Card) {
+    return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
@@ -280,6 +284,9 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
+/**
+ * Verify if the feed is a custom feed. Those are also refered to as commercial feeds.
+ */
 function isCustomFeed(feed: CompanyCardFeed): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
 }
@@ -451,6 +458,28 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
+const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+    if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
+        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(feedKey));
+
+        const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
+        feedNumbers.sort((a, b) => a - b);
+
+        let firstAvailableNumber = 1;
+        for (const num of feedNumbers) {
+            if (num && num !== firstAvailableNumber) {
+                return `${feedKey}${firstAvailableNumber}`;
+            }
+            firstAvailableNumber++;
+        }
+
+        return `${feedKey}${firstAvailableNumber}`;
+    }
+    return feedKey;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -485,4 +514,6 @@ export {
     getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
     isCardIssued,
+    isCardHiddenFromSearch,
+    getFeedType,
 };
