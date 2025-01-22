@@ -18007,6 +18007,11 @@ async function run() {
         console.log('Comment body is either empty or doesn\'t contain the keyword "Proposal": ', payload.comment?.body);
         return;
     }
+    // If event is `edited` and comment was already edited by the bot, return early
+    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes('Edited by **proposal-police**')) {
+        console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
+        return;
+    }
     console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
     console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
     if (!isCommentCreatedEvent(payload) && !isCommentEditedEvent(payload)) {
@@ -18033,12 +18038,7 @@ async function run() {
     if (isCommentCreatedEvent(payload) && isActionRequired) {
         const formattedResponse = message
             // replace {user} from response template with @username
-            .replaceAll('{user}', `@${payload.comment?.user.login}`)
-            // replace {proposalLink} from response template with the link to the comment
-            .replaceAll('{proposalLink}', payload.comment?.html_url)
-            // remove any double quotes from the final comment because sometimes the assistant's
-            // response contains double quotes / sometimes it doesn't
-            .replaceAll('"', '');
+            .replaceAll('{user}', `@${payload.comment?.user.login}`);
         // Create a comment with the assistant's response
         console.log('ProposalPolice™ commenting on issue...');
         await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, github_1.context.issue.number, formattedResponse);
