@@ -12,8 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
+import {getWorkspaceAccountID, hasPolicyFeedsError} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,12 +39,12 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const {translate} = useLocalize();
     const theme = useTheme();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const formattedFeedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
-    const isCustomFeed = CardUtils.isCustomFeed(selectedFeed);
-    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const isComercialFeed = isCustomFeed(selectedFeed);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
 
     return (
@@ -60,7 +60,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     accessibilityLabel={formattedFeedName ?? ''}
                 >
                     <Icon
-                        src={CardUtils.getCardFeedIcon(selectedFeed)}
+                        src={getCardFeedIcon(selectedFeed)}
                         height={variables.cardIconHeight}
                         width={variables.cardIconWidth}
                         additionalStyles={styles.cardIcon}
@@ -70,14 +70,14 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                             <CaretWrapper>
                                 <Text style={styles.textStrong}>{formattedFeedName}</Text>
                             </CaretWrapper>
-                            {PolicyUtils.hasPolicyFeedsError(companyFeeds, selectedFeed) && (
+                            {hasPolicyFeedsError(companyFeeds, selectedFeed) && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}
                                 />
                             )}
                         </View>
-                        <Text style={styles.textLabelSupporting}>{translate(isCustomFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(isComercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
                     </View>
                 </PressableWithFeedback>
 
