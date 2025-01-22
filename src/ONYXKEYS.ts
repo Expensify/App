@@ -461,7 +461,7 @@ const ONYXKEYS = {
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 
-    /** Corpay fieds to be used in the bank account creation setup */
+    /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
     /** The user's session that will be preserved when using imported state */
