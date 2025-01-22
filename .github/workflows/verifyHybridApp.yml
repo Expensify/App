@@ -56,8 +56,16 @@ jobs:
           cd Mobile-Expensify
           npm run grunt:build:shared
 
-      - name: Run Android build
-        run: bundle exec fastlane android build_local_hybrid
+      - name: Build Android Debug
+        working-directory: Mobile-Expensify/Android
+        run: |
+          ./gradlew assembleDebug
+          if [ $? -eq 0 ]; then
+            echo "✅ Android debug build succeeded!"
+          else
+            echo "❌ Android debug build failed."
+            exit 1
+          fi
 
   verify_ios:
     name: Verify iOS HybridApp builds on main
@@ -118,5 +126,23 @@ jobs:
           max_attempts: 5
           command: npm run pod-install
 
-      - name: Build iOS App
-        run: bundle exec fastlane ios build_unsigned_hybrid
+      - name: Build for iOS Simulator
+        run: |
+          # Build the app for the iOS simulator without signing
+          xcodebuild \
+            -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
+            -scheme Expensify \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -arch x86_64 \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          if [ $? -eq 0 ]; then
+            echo "✅ iOS simulator build succeeded!"
+          else
+            echo "❌ iOS simulator build failed."
+            exit 1
+          fi
