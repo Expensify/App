@@ -108,10 +108,12 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
-
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        });
     };
 
     /** Opens privacy url as an external link */
