@@ -43,6 +43,14 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
       - name: Run grunt build
         run: |
           cd Mobile-Expensify
