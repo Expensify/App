@@ -153,6 +153,9 @@ type CustomBaseTextInputProps = {
     /** The mask of the masked input */
     mask?: MaskedTextInputOwnProps['mask'];
 
+    /** A set of permitted characters for the input */
+    allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
+
     /** Whether the input should be enforced to be uncontrolled. Default is `false` */
     uncontrolled?: boolean;
 };
