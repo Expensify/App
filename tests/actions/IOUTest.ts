@@ -4505,7 +4505,7 @@ describe('actions/IOU', () => {
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.UNKNOWN_MERCHANT,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
             };
             const fakeTransaction2: Transaction = {
