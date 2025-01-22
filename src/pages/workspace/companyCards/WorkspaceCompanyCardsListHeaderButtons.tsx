@@ -48,7 +48,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const currentFeedData = companyFeeds?.[selectedFeed];
 
     return (
-        <OfflineWithFeedbackg
+        <OfflineWithFeedback
             errors={currentFeedData?.errors}
             canDismissError={false}
             errorRowStyles={styles.ph5}
@@ -100,7 +100,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     />
                 </View>
             </View>
-        </OfflineWithFeedbackg>
+        </OfflineWithFeedback>
     );
 }
 
