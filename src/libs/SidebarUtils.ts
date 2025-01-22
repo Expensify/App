@@ -35,6 +35,16 @@ Onyx.connect({
         allPersonalDetails = value ?? {};
     },
 });
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -42,7 +52,7 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        const report = ReportUtils.getReport(reportID);
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
@@ -90,8 +100,8 @@ function ensureSingleSpacing(text: string) {
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
-    currentReportId: string | null,
-    allReports: OnyxCollection<Report>,
+    currentReportId: string | undefined,
+    reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
@@ -102,7 +112,7 @@ function getOrderedReportIDs(
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    const allReportsDictValues = Object.values(allReports ?? {});
+    const allReportsDictValues = Object.values(reports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
@@ -113,13 +123,13 @@ function getOrderedReportIDs(
         if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
             return;
         }
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
         const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const isHidden = ReportUtils.isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
-        if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0', parentReportAction)) {
+        if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
             return;
         }
         if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
@@ -145,7 +155,7 @@ function getOrderedReportIDs(
         if (
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportId ?? '-1',
+                currentReportId,
                 isInFocusMode,
                 betas,
                 policies: policies as OnyxCollection<Policy>,
@@ -190,15 +200,15 @@ function getOrderedReportIDs(
         };
 
         const isPinned = report?.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
         const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
+        } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        } else if (ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -229,7 +239,7 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
 
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return LHNReports;
@@ -246,7 +256,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const errors = ReportUtils.getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
     if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
@@ -330,7 +341,6 @@ function getOptionData({
         hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: undefined,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
@@ -353,7 +363,6 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     result.private_isArchived = report?.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
@@ -375,7 +384,7 @@ function getOptionData({
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? '-1';
+    result.parentReportID = report.parentReportID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
@@ -508,7 +517,7 @@ function getOptionData({
     }
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail?.accountID ?? -1;
+        result.accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         result.login = personalDetail?.login ?? '';
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
@@ -519,7 +528,15 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? -1, policy, invoiceReceiverPolicy);
+    result.icons = ReportUtils.getIcons(
+        report,
+        personalDetails,
+        personalDetail?.avatar,
+        personalDetail?.login,
+        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        policy,
+        invoiceReceiverPolicy,
+    );
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {

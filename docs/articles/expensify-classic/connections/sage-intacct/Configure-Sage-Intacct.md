@@ -86,7 +86,7 @@ These settings are particularly relevant to billable expenses and can be configu
 
 ### Tax
 
-As of September 2023, our Sage Intacct integration supports native VAT and GST tax. To enable this feature, open the Sage Intacct configuration settings in your workspace, go to the Coding tab, and enable Tax. For existing Sage Intacct connectings, simply resync your workspace and the tax toggle will appear. For new Sage Intacct connections, the tax toggle will be available when you complete the integration steps. 
+As of September 2023, our Sage Intacct integration supports native VAT and GST tax. To enable this feature, open the Sage Intacct configuration settings in your workspace, go to the Coding tab, and enable Tax. For existing Sage Intacct connections, simply resync your workspace and the tax toggle will appear. For new Sage Intacct connections, the tax toggle will be available when you complete the integration steps. 
 Enabling this option will import your native tax rates from Sage Intacct into Expensify. From there, you can select default rates for each category.
 
 ### User-Defined Dimensions

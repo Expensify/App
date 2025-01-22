@@ -1,13 +1,12 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +15,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
+import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -51,6 +51,14 @@ Onyx.connect({
     callback: (value) => (stashedSession = value ?? {}),
 });
 
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (newActivePolicyID) => {
+        activePolicyID = newActivePolicyID;
+    },
+});
+
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
@@ -72,6 +80,8 @@ function connect(email: string) {
 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);
+
+    const previousAccountID = getCurrentUserAccountID();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -130,6 +140,14 @@ function connect(email: string) {
                 Onyx.update(failureData);
                 return;
             }
+            if (!activePolicyID) {
+                Log.alert('[Delegate] Unable to access activePolicyID');
+                Onyx.update(failureData);
+                return;
+            }
+            const restrictedToken = response.restrictedToken;
+            const policyID = activePolicyID;
+
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
@@ -138,9 +156,9 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp();
 
-                    NativeModules.HybridAppModule.switchAccount({newDotCurrentAccount: email});
+                    // TODO: use object here
+                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
                 });
         })
         .catch((error) => {
@@ -195,22 +213,36 @@ function disconnect() {
                 return;
             }
 
+            if (!response?.requesterID || !response?.requesterEmail) {
+                Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                return;
+            }
+
+            const requesterEmail = response.requesterEmail;
+            const authToken = response.authToken;
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
+                    Onyx.set(ONYXKEYS.CREDENTIALS, {
+                        ...stashedCredentials,
+                        accountID: response.requesterID,
+                    });
+                    Onyx.set(ONYXKEYS.SESSION, {
+                        ...stashedSession,
+                        accountID: response.requesterID,
+                        email: requesterEmail,
+                        authToken,
+                        encryptedAuthToken: response.encryptedAuthToken,
+                    });
+                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
-                    Onyx.set(ONYXKEYS.CREDENTIALS, stashedCredentials);
-                    Onyx.set(ONYXKEYS.SESSION, stashedSession);
-                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
-                    openApp();
 
-                    NativeModules.HybridAppModule.switchAccount({newDotCurrentAccount: getCurrentUserEmail() ?? ''});
+                    // TODO: use object here
+                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(requesterEmail, authToken, '', ''));
                 });
         })
         .catch((error) => {

@@ -88,11 +88,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
-    const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -116,16 +116,16 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID, policies), [report?.policyID, policies]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
@@ -133,7 +133,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
@@ -143,7 +143,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
-    const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
+    const chatRoomSubtitle = useMemo(() => {
+        const subtitle = ReportUtils.getChatRoomSubtitle(report);
+
+        if (subtitle) {
+            return subtitle;
+        }
+
+        return '';
+    }, [report]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
@@ -163,7 +171,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
-        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         const detail = personalDetails?.[accountID];
         if (!detail) {
             return [];
@@ -209,8 +217,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
-    const canActionTask = Task.canActionTask(report, session?.accountID ?? -1);
+    const canModifyTask = Task.canModifyTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const canActionTask = Task.canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&
@@ -239,7 +247,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        Report.getReportPrivateNote(report?.reportID ?? '-1');
+        Report.getReportPrivateNote(report?.reportID);
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
@@ -271,6 +279,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
+    const shouldShowGoToWorkspace = PolicyUtils.shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
     const reportName = ReportUtils.getReportName(report);
 
@@ -288,19 +297,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         roomDescription = translate('newRoomPage.roomName');
     }
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenForCurrentUser(report);
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
 
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
 
-    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
-        : '';
+    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
@@ -343,9 +350,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', backTo));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, backTo));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, backTo));
                     }
                 },
             });
@@ -357,7 +364,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? '-1'));
+                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID));
                 },
             });
         }
@@ -370,15 +377,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, backTo));
                 },
             });
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
-            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
-            const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
+            const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction);
+            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
+            const actionableWhisperReportActionID = whisperAction?.reportActionID;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'actionableMentionTrackExpense.submit',
@@ -450,23 +457,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -493,7 +483,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration, backTo));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID, connectedIntegration, backTo));
                 },
             });
         }
@@ -505,6 +495,43 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 translationKey: 'iou.unapprove',
                 isAnonymousAction: false,
                 action: () => unapproveExpenseReportOrShowModal(),
+            });
+        }
+
+        if (shouldShowGoToWorkspace) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'workspace.common.goToWorkspace',
+                icon: Expensicons.Building,
+                action: () => {
+                    if (!report?.policyID) {
+                        return;
+                    }
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
+        if (shouldShowLeaveButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
             });
         }
 
@@ -524,7 +551,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -533,35 +559,38 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         report,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isTrackExpenseReport,
+        isDeletedParentAction,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowCancelPaymentButton,
+        shouldShowLeaveButton,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
-        canModifyTask,
-        shouldShowMenuItem,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        shouldOpenRoomMembersPage,
-        shouldShowCancelPaymentButton,
-        session,
-        isOffline,
-        transactionIDList,
-        leaveChat,
+        isExpenseReport,
         canUnapproveRequest,
         isDebugModeEnabled,
-        unapproveExpenseReportOrShowModal,
-        isExpenseReport,
+        shouldShowGoToWorkspace,
+        activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         backTo,
-        canActionTask,
-        isTrackExpenseReport,
-        iouTransactionID,
         parentReportAction,
+        iouTransactionID,
         moneyRequestReport?.reportID,
-        isDeletedParentAction,
+        session,
+        canModifyTask,
+        canActionTask,
+        isRootGroupChat,
+        leaveChat,
+        isOffline,
+        transactionIDList,
+        unapproveExpenseReportOrShowModal,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -608,18 +637,18 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID ?? '-1'))}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
-                        Report.updateGroupChatAvatar(report.reportID ?? '');
+                        Report.updateGroupChatAvatar(report.reportID);
                     }}
-                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '-1', file)}
+                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID, file)}
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar ?? undefined}
                     errors={report.errorFields?.avatar ?? null}
                     errorRowStyles={styles.mt6}
-                    onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '-1')}
+                    onErrorClose={() => Report.clearAvatarErrors(report.reportID)}
                     shouldUseStyleUtilityForAnchorPosition
                     style={[styles.w100, styles.mb3]}
                 />
@@ -639,8 +668,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
-
+        !ReportUtils.isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
@@ -655,7 +683,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 PromotedActions.hold({
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
-                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
+                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID,
                     isDelegateAccessRestricted,
                     setIsNoDelegateAccessMenuVisible,
                     currentSearchHash,
@@ -689,7 +717,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 <>
                     <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                         <DisplayNames
-                            fullTitle={reportName ?? ''}
+                            fullTitle={reportName}
                             displayNamesWithTooltips={displayNamesWithTooltips}
                             tooltipEnabled
                             numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
@@ -702,10 +730,16 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             style={[styles.w100]}
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={chatRoomSubtitle ?? ''}
+                            accessibilityLabel={chatRoomSubtitle}
                             accessible
                             onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                let policyID = report?.policyID;
+
+                                if (!policyID) {
+                                    policyID = '';
+                                }
+
+                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                             }}
                         >
                             {chatRoomSubtitleText}
@@ -755,7 +789,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
     }, [report, policy?.fieldList]);
-    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
+    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
 
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerApproverOrReportOwner(report, policy);
@@ -790,7 +824,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1', backTo))}
+                    onPress={() => {
+                        let policyID = report.policyID;
+
+                        if (!policyID) {
+                            policyID = '';
+                        }
+
+                        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, titleField.fieldID, backTo));
+                    }}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
@@ -810,7 +852,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
             IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
@@ -832,26 +874,19 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        let urlToNavigateBack: string | undefined;
-
+        // If transaction was not deleted (i.e. Cancel was clicked), do nothing
+        // which only dismiss the delete confirmation modal
         if (!isTransactionDeleted.current) {
-            if (caseID === CASES.DEFAULT) {
-                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
-                if (urlToNavigateBack) {
-                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                    Navigation.goBack(urlToNavigateBack as Route);
-                } else {
-                    Navigation.dismissModal();
-                }
-                return;
-            }
             return;
         }
 
+        let urlToNavigateBack: string | undefined;
+
+        // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
             } else {
                 urlToNavigateBack = IOU.getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             }
@@ -863,7 +898,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
