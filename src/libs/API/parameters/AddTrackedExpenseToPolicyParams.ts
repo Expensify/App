@@ -14,6 +14,9 @@ type AddTrackedExpenseToPolicyParams = {
     actionableWhisperReportActionID: string;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
+    modifiedExpenseReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestPreviewReportActionID: string;
 };
 
 export default AddTrackedExpenseToPolicyParams;

@@ -4090,6 +4090,9 @@ type AddTrackedExpenseToPolicyParam = {
     actionableWhisperReportActionID: string;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
+    modifiedExpenseReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestPreviewReportActionID: string;
 } & ConvertTrackedWorkspaceParams;
 
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
