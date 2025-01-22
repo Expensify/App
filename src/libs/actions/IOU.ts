@@ -4590,7 +4590,7 @@ function trackExpense(
     });
 
     const waypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? '' : customUnitRateID;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
@@ -4708,7 +4708,6 @@ function trackExpense(
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
                 customUnitRateID,
-                waypoints,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
