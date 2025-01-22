@@ -25,10 +25,13 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
-    return (
-        <View style={styles.appBG}>
-            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
+    const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling;
+
+    const getLabelsLayout = () => {
+        return isSettleBalanceButtonDisplayed ? (
+            <>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
@@ -43,6 +46,32 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
                     />
                 </View>
+                )
+            </>
+        ) : (
+            <>
+                <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+                    />
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
+                    />
+                </View>
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                />
+            </>
+        );
+    };
+
+    return (
+        <View style={styles.appBG}>
+            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
+                {getLabelsLayout()}
             </View>
 
             <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4]}>
