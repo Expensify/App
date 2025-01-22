@@ -77,7 +77,7 @@ jobs:
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: env.PULL_REQUEST_NUMBER,
+              pull_number: process.env.PULL_REQUEST_NUMBER,
             });
             
             const body = pullRequest.data.body;
