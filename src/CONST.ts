@@ -1370,9 +1370,9 @@ const CONST = {
         GESTURE_BAR: 'gesture-bar',
     },
     // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
-    // The navigation bar on (standard) Android devices is around 40-48dpi (device independent pixels) tall.
+    // The navigation bar on (standard) Android devices is around 30-50dpi tall. (Samsung: 40dpi, Huawei: ~34dpi)
     // To leave room to detect soft-key navigation bars on non-standard Android devices,
-    // we set this height threshold to 30dpi, since gesture bars will never be taller than that.
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
     NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
