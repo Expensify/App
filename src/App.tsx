@@ -46,6 +46,7 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
+    withoutBootsplash?: boolean;
 };
 
 LogBox.ignoreLogs([
@@ -61,7 +62,7 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url}: AppProps) {
+function App({url, withoutBootsplash}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
@@ -105,7 +106,7 @@ function App({url}: AppProps) {
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                                 <ColorSchemeWrapper>
-                                    <Expensify />
+                                    <Expensify withoutBootsplash={withoutBootsplash} />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
                         </ComposeProviders>
