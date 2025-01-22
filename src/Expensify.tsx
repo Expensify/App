@@ -76,7 +76,7 @@ type ExpensifyProps = {
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
-function Expensify({withoutBootsplash = false}) {
+function Expensify({withBootsplash = true}) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
@@ -294,7 +294,7 @@ function Expensify({withoutBootsplash = false}) {
                     shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                 />
             )}
-            {shouldHideSplash && !withoutBootsplash && <SplashScreenHider onHide={onSplashHide} />}
+            {shouldHideSplash && withBootsplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
