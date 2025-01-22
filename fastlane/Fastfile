@@ -465,6 +465,7 @@ platform :ios do
     lane :build_unsigned_hybrid do
       ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
+          scheme: "Debug",
           workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
           scheme: "Expensify"
       )
