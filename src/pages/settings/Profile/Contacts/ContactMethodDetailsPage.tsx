@@ -272,6 +272,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
                         return new Promise<void>((resolve) => {
                             const interval = setInterval(() => {
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 const trapContainer = trapContainers.at(0) as HTMLElement | SVGElement;
                                 if (getComputedStyle(trapContainer).visibility !== 'hidden') {
                                     resolve();
