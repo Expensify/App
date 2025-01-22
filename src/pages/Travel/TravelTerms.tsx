@@ -1,8 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, NativeModules, View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -14,13 +14,12 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {buildTravelDotURL} from '@libs/actions/Link';
-import {acceptSpotnanaTerms} from '@libs/actions/Travel';
+import {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning} from '@libs/actions/Travel';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
@@ -36,14 +35,14 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
     useEffect(() => {
-        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED) {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
-            Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
+        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
+            handleProvisioningPermissionDeniedError(domain);
         }
         if (travelProvisioning?.spotnanaToken) {
-            Linking.openURL(buildTravelDotURL(travelProvisioning?.spotnanaToken));
-            Navigation.goBack();
-            Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
+            openTravelDotAfterProvisioning(travelProvisioning.spotnanaToken);
+        }
+        if (travelProvisioning?.errors) {
+            setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
     }, [travelProvisioning, domain]);
 
