@@ -120,9 +120,14 @@ jobs:
 
       - name: Build iOS HybridApp
         run: |
+          # Let us know if the builds fails
           set -o pipefail
-          # Build iOS using xcodebuild, do not start metro
-          RCT_NO_LAUNCH_PACKAGER=1 xcodebuild \
+          
+          # Do not start metro
+          RCT_NO_LAUNCH_PACKAGER=1
+          
+          # Build iOS using xcodebuild
+          xcodebuild \
             -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
             -scheme Expensify \
             -configuration Debug \
