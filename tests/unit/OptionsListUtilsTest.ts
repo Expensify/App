@@ -1118,14 +1118,8 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(WORKSPACE_CHATS.length);
         });
 
-        it('should filter multiple workspace chats by single search term', () => {
+        it('should filter multiple workspace chats by search term', () => {
             const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
-
-            expect(result.length).toEqual(2);
-        });
-
-        it('should filter multiple workspace chats by two search terms', () => {
-            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google', 'Workspace']);
 
             expect(result.length).toEqual(2);
         });
@@ -1148,6 +1142,96 @@ describe('OptionsListUtils', () => {
             const result = OptionsListUtils.orderWorkspaceOptions(WORKSPACE_CHATS);
 
             expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
+        });
+    });
+
+    describe('filterSelfDMChat', () => {
+        const REPORT = {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        };
+        const LOGIN = 'johndoe@test.com';
+        const ALTERNATE_TEXT = 'John William Doe';
+        const SUBTITLE = 'Software Engineer';
+
+        it('should return the report when there are no search terms', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, []);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should return undefined, when the search term does not match the report', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['XYZ']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google', 'Workspace']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, ['john']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN]);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text if it is not a thread', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William']);
+
+            expect(result?.reportID).toBeUndefined();
+        });
+
+        it('should filter report by subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should not filter report by subtitle if it is not an expense chat nor a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: false}, ['Software']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by subtitle if it is a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: true}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
         });
     });
 });
