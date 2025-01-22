@@ -23,7 +23,7 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
-    ShareTrackedExpenseParams as ShareTrackedExpenseApiParams,
+    ShareTrackedExpenseParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -4249,7 +4249,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters: ShareTrackedExpenseApiParams = {
+    const parameters: ShareTrackedExpenseParams = {
         ...transactionParams,
         policyID: policyParams?.policyID,
         moneyRequestPreviewReportActionID,
@@ -4258,8 +4258,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
         reportPreviewReportActionID,
-        waypoints,
-        customUnitRateID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -4670,7 +4668,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: TrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID,
                 amount,
                 currency,
@@ -4683,13 +4681,13 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
-                sanitizedWaypoints,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
-            const policyParams = {
+            const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
             };
-            const reportInformation = {
+            const reportInformation: TrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID,
                 moneyRequestReportID: iouReport?.reportID,
                 moneyRequestCreatedReportActionID: createdIOUReportActionID,
@@ -4699,7 +4697,7 @@ function trackExpense(
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
