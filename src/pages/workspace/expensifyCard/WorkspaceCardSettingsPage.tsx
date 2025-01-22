@@ -45,7 +45,6 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
         >
             <ScreenWrapper
                 testID={WorkspaceCardSettingsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />

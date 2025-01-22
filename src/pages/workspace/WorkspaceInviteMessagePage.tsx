@@ -154,7 +154,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceInviteMessagePage.displayName}
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}

@@ -211,7 +211,6 @@ function DebugReportPage({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={DebugReportPage.displayName}

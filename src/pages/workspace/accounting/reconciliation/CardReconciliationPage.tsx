@@ -79,7 +79,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={CardReconciliationPage.displayName}
             >

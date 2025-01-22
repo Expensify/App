@@ -58,10 +58,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={TimezoneSelectPage.displayName}
-        >
+        <ScreenWrapper testID={TimezoneSelectPage.displayName}>
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}

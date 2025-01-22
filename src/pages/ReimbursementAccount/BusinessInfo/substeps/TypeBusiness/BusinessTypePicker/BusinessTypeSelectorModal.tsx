@@ -53,7 +53,6 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={BusinessTypeSelectorModal.displayName}
             >
                 <HeaderWithBackButton

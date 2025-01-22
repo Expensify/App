@@ -34,10 +34,7 @@ function LanguagePage() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={LanguagePage.displayName}
-        >
+        <ScreenWrapper testID={LanguagePage.displayName}>
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}

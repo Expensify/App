@@ -51,7 +51,6 @@ function SAMLSignInPage() {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={false}
             testID={SAMLSignInPage.displayName}
         >
             {showNavigation && (

@@ -61,7 +61,6 @@ function SelectFeedType() {
     return (
         <ScreenWrapper
             testID={SelectFeedType.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

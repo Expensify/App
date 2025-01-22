@@ -49,7 +49,6 @@ function WorkspaceTaxesSettingsForeignCurrency({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
                 style={styles.defaultModalContainer}

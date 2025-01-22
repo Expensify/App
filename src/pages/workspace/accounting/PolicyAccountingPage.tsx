@@ -492,7 +492,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         >
             <ScreenWrapper
                 testID={PolicyAccountingPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton

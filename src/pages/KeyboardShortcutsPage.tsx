@@ -42,10 +42,7 @@ function KeyboardShortcutsPage() {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={KeyboardShortcutsPage.displayName}
-        >
+        <ScreenWrapper testID={KeyboardShortcutsPage.displayName}>
             <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>

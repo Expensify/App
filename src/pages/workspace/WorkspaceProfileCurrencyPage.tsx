@@ -40,10 +40,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{onLinkPress: PolicyUtils.goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceProfileCurrencyPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceProfileCurrencyPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
                     onBackButtonPress={() => Navigation.goBack()}

@@ -51,7 +51,6 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={TransactionStartDateSelectorModal.displayName}
             >
                 <HeaderWithBackButton

@@ -51,7 +51,6 @@ function DebitCardPage() {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
-            includeSafeAreaPaddingBottom={false}
             testID={DebitCardPage.displayName}
         >
             <HeaderWithBackButton

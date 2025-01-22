@@ -36,7 +36,6 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={NetSuiteAutoSyncPage.displayName}
                 offlineIndicatorStyle={styles.mtAuto}

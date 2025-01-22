@@ -93,7 +93,6 @@ function DebugTransactionViolationCreatePage({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={DebugTransactionViolationCreatePage.displayName}

@@ -160,7 +160,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             testID={ImportSpreadsheet.displayName}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}

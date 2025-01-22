@@ -52,7 +52,6 @@ function TravelTerms() {
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >

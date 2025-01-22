@@ -70,7 +70,6 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={CountrySelectorModal.displayName}
             >
                 <HeaderWithBackButton

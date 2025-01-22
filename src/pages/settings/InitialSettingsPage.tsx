@@ -425,7 +425,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             style={[styles.w100, styles.pb0]}
             includePaddingTop={false}
-            includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
             shouldEnableKeyboardAvoidingView={false}
         >

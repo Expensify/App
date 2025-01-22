@@ -60,10 +60,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     );
 
     return (
-        <ScreenWrapper
-            testID={CountrySelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper testID={CountrySelectionPage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.country')}
                 shouldShowBackButton

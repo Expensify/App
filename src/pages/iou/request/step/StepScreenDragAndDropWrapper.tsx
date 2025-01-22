@@ -39,7 +39,6 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}

@@ -64,7 +64,6 @@ function RulesBillableDefaultPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={RulesBillableDefaultPage.displayName}
             >

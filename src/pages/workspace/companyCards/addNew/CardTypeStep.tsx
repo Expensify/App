@@ -99,7 +99,6 @@ function CardTypeStep() {
     return (
         <ScreenWrapper
             testID={CardTypeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

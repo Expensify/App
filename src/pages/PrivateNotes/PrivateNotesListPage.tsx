@@ -87,10 +87,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={PrivateNotesListPage.displayName}
-        >
+        <ScreenWrapper testID={PrivateNotesListPage.displayName}>
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton

@@ -66,7 +66,6 @@ function CurrencyPicker({selectedCurrency, label = '', errorText = '', value, on
                 <ScreenWrapper
                     style={styles.pb0}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
                     testID={label}
                 >
                     <HeaderWithBackButton

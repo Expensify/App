@@ -43,7 +43,6 @@ function BaseSidebarScreen() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
             testID={BaseSidebarScreen.displayName}

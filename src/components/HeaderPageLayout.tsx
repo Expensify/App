@@ -80,7 +80,6 @@ function HeaderPageLayout({
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]}
             shouldEnablePickerAvoiding={false}
-            includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}

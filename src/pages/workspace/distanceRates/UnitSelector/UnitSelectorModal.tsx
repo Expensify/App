@@ -40,7 +40,6 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={UnitSelectorModal.displayName}
             >
                 <HeaderWithBackButton

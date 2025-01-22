@@ -126,10 +126,7 @@ function AddDelegatePage() {
     }, [debouncedSearchValue]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={AddDelegatePage.displayName}
-        >
+        <ScreenWrapper testID={AddDelegatePage.displayName}>
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('delegate.addCopilot')}

@@ -361,7 +361,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >

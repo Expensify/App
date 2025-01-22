@@ -354,7 +354,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={AvatarCropModal.displayName}
             >
                 {shouldUseNarrowLayout && <HeaderGap />}

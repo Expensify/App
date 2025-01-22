@@ -119,7 +119,6 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={TagSettingsPage.displayName}
             >

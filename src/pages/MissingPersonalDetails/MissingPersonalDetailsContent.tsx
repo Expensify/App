@@ -109,7 +109,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetailsContent.displayName}
         >

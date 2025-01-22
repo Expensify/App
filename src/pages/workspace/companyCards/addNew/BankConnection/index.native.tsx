@@ -80,7 +80,6 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         <ScreenWrapper
             testID={BankConnection.displayName}
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

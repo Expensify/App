@@ -68,7 +68,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={CardAuthenticationModal.displayName}
             >
                 <HeaderWithBackButton

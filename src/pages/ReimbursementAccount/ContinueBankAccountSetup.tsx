@@ -39,10 +39,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={ContinueBankAccountSetup.displayName}
-        >
+        <ScreenWrapper testID={ContinueBankAccountSetup.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
                 subtitle={policyName}

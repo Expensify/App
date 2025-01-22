@@ -353,7 +353,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={RoomMembersPage.displayName}
         >

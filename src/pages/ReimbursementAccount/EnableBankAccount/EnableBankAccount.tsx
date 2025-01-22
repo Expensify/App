@@ -42,7 +42,6 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
     return (
         <ScreenWrapper
             testID={EnableBankAccount.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}

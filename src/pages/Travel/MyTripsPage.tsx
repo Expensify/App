@@ -13,7 +13,6 @@ function MyTripsPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={MyTripsPage.displayName}

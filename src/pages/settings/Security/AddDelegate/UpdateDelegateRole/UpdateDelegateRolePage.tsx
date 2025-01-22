@@ -40,10 +40,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     }, [login]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={UpdateDelegateRolePage.displayName}
-        >
+        <ScreenWrapper testID={UpdateDelegateRolePage.displayName}>
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('delegate.accessLevel')}

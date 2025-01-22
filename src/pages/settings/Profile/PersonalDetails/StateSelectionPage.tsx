@@ -80,10 +80,7 @@ function StateSelectionPage() {
     );
 
     return (
-        <ScreenWrapper
-            testID={StateSelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper testID={StateSelectionPage.displayName}>
             <HeaderWithBackButton
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

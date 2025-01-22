@@ -60,7 +60,6 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account, p
     return (
         <ScreenWrapper
             testID={ConnectBankAccount.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

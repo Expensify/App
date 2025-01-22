@@ -89,7 +89,6 @@ function AllSettingsScreen() {
         <ScreenWrapper
             testID={AllSettingsScreen.displayName}
             includePaddingTop={false}
-            includeSafeAreaPaddingBottom={false}
             style={[styles.pb0]}
         >
             <Breadcrumbs

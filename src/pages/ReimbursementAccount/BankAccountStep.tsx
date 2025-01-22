@@ -128,10 +128,7 @@ function BankAccountStep({
     }
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={BankAccountStep.displayName}
-        >
+        <ScreenWrapper testID={BankAccountStep.displayName}>
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}

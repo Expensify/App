@@ -46,7 +46,6 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={UpdateDelegateMagicCodePage.displayName}
             offlineIndicatorStyle={styles.mtAuto}

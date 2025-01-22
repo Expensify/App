@@ -113,7 +113,6 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="BaseOnboardingWorkspaces"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

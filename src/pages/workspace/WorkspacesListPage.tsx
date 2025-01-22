@@ -426,7 +426,6 @@ function WorkspacesListPage() {
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}

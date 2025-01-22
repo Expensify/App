@@ -74,7 +74,6 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton

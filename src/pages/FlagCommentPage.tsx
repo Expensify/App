@@ -130,10 +130,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     ));
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={FlagCommentPage.displayName}
-        >
+        <ScreenWrapper testID={FlagCommentPage.displayName}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(reportAction, report)}>
                     <HeaderWithBackButton
