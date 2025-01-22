@@ -64,7 +64,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
-    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getPlatformSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;

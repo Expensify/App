@@ -330,9 +330,9 @@ type SafeAreaPadding = {
 };
 
 /**
- * Takes safe area insets and returns padding to use for a View
+ * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
@@ -1220,7 +1220,7 @@ const staticStyleUtils = {
     getPaymentMethodMenuWidth,
     getSafeAreaInsets,
     getSafeAreaMargins,
-    getSafeAreaPadding,
+    getPlatformSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getTransparentColor,

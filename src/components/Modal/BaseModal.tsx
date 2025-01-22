@@ -184,7 +184,7 @@ function BaseModal(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
+    } = StyleUtils.getPlatformSafeAreaPadding(safeAreaInsets);
 
     const modalPaddingStyles = shouldUseModalPaddingStyle
         ? StyleUtils.getModalPaddingStyles({
