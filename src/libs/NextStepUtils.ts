@@ -195,11 +195,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             }
 
             // Manual submission
-            if (
-                report?.total !== 0 &&
-                !harvesting?.enabled &&
-                [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL].includes(autoReportingFrequency)
-            ) {
+            if (report?.total !== 0 && !harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
