@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -74,6 +75,7 @@ type SectionObject = {
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
+    const stylesutils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const {translate} = useLocalize();
@@ -364,7 +366,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         (item: Item) => (
             <View
                 key={item.titleTranslationKey}
-                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100]}
+                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && stylesutils.getMinimumWidth(0)]}
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
@@ -383,7 +385,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [styles, shouldUseNarrowLayout, translate],
+        [styles, stylesutils, shouldUseNarrowLayout, translate],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
@@ -398,11 +400,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     key="section-filler-col"
                     aria-hidden
                     accessibilityElementsHidden
-                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.mt0, styles.visibilityHidden, styles.bgTransparent]}
+                    style={[
+                        styles.workspaceSectionMoreFeaturesItem,
+                        shouldUseNarrowLayout && stylesutils.getMinimumWidth(0),
+                        styles.p0,
+                        styles.mt0,
+                        styles.visibilityHidden,
+                        styles.bgTransparent,
+                    ]}
                 />
             );
         },
-        [styles],
+        [styles, stylesutils, shouldUseNarrowLayout],
     );
 
     const renderSection = useCallback(
