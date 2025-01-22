@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
-import {getTagNamesFromTagsLists} from './PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import * as autocompleteParser from './SearchParser/autocompleteParser';
 
 /**
@@ -45,10 +45,12 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
         Object.values(allRecentTags ?? {})
             .map((recentTag) => Object.values(recentTag ?? {}))
             .flat(2)
-            .forEach((tag) => uniqueTagNames.add(tag));
+            .forEach((tag) => uniqueTagNames.add(getCleanedTagName(tag)));
         return Array.from(uniqueTagNames);
     }
-    return Object.values(singlePolicyRecentTags ?? {}).flat(2);
+    return Object.values(singlePolicyRecentTags ?? {})
+        .flat(2)
+        .map(getCleanedTagName);
 }
 
 /**
