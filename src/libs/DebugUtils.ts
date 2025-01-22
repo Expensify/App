@@ -617,7 +617,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,

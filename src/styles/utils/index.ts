@@ -1,12 +1,12 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import * as UserUtils from '@libs/UserUtils';
+import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
@@ -275,7 +275,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
-    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
+    const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
@@ -296,7 +296,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
         return CONST.ERECEIPT_COLORS.YELLOW;
     }
 
-    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+    const colorHash = hashText(transactionID.trim(), eReceiptColors.length);
 
     return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
@@ -747,15 +747,6 @@ function getMaximumWidth(maxWidth: number): ViewStyle {
     };
 }
 
-/**
- * Return style for opacity animation.
- */
-function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        opacity: fadeAnimation,
-    };
-}
-
 type AvatarBorderStyleParams = {
     theme: ThemeColors;
     isHovered: boolean;
@@ -971,7 +962,7 @@ function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
  * Returns style object for the mobile on WEB
  */
 function getOuterModalStyle(windowHeight: number, viewportOffsetTop: number): ViewStyle {
-    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
+    return isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
 /**
@@ -1192,7 +1183,6 @@ const staticStyleUtils = {
     getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
-    fade,
     getHorizontalStackedAvatarBorderStyle,
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
