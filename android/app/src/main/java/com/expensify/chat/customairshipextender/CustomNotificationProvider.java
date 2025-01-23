@@ -130,7 +130,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String rawPayload = message.getExtra(PAYLOAD_KEY);
             if (rawPayload == null) throw new Exception();
 
-            String processedPayload = PayloadHandler.processPayload(rawPayload);
+            PayloadHandler handler = new PayloadHandler();
+            String processedPayload = handler.processPayload(rawPayload);
             JsonMap payload = JsonValue.parseString(processedPayload).optMap();
             if (!payload.containsKey(ONYX_DATA_KEY)) throw new Exception();
 

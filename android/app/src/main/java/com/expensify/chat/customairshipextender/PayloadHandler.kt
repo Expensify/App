@@ -2,18 +2,16 @@ package com.expensify.chat.customairshipextender
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.util.Base64
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
-import java.util.Base64
 import java.util.zip.GZIPInputStream
 
-object PayloadHandler {
-    private const val BUFFER_SIZE = 1024
+class PayloadHandler {
+    private val BUFFER_SIZE = 1024
     private val GZIP_MAGIC = byteArrayOf(0x1f.toByte(), 0x8b.toByte())
 
-    @JvmStatic
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.O)
     fun processPayload(payloadString: String): String =
             runCatching {
                         val decoded = Base64.getDecoder().decode(payloadString)
@@ -35,7 +33,7 @@ object PayloadHandler {
                         output.write(buffer, 0, len)
                     }
 
-                    return output.toString(StandardCharsets.UTF_8.name())
+                    return output.toString("UTF-8")
                 }
             }
         }
