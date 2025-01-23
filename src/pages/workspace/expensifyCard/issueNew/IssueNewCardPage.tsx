@@ -21,7 +21,7 @@ import LimitTypeStep from './LimitTypeStep';
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
