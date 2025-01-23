@@ -92,7 +92,7 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? -1];
+        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport(
             participants,
@@ -164,7 +164,7 @@ function WorkspaceNewRoomPage() {
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (isExistingRoomName(values.roomName, reports, values.policyID ?? '-1')) {
+            } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
