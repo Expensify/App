@@ -6,7 +6,7 @@ import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
 
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
@@ -27,16 +27,16 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
     return validBankAccount || (shouldIncludeDebitCard && validDebitCard);
 }
 
-function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount): string {
+function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount, bankCurrency?: string): string {
     if (account) {
         if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
-            return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
+            return `${bankCurrency} ${CONST.DOT_SEPARATOR} ${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT && 'accountNumber' in account) {
-            return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
+            return `${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {
-            return `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
+            return `${translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
         }
     }
     return '';
@@ -61,7 +61,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         });
         combinedPaymentMethods.push({
             ...bankAccount,
-            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
+            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData, bankAccount.bankCurrency),
             icon,
             iconSize,
             iconHeight,

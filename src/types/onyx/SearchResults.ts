@@ -151,7 +151,6 @@ type SearchReport = {
     unheldTotal?: number;
 
     /** Whether the report is archived */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
 
     /** Whether the action is loading */
