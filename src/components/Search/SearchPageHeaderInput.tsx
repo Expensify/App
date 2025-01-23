@@ -266,8 +266,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     }}
                     isFullWidth
                     onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption();
-                        if (!focusedOption) {
+                        if (isAutocompleteListVisible) {
                             submitSearch(textInputValue);
                         }
                     }}
