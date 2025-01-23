@@ -336,7 +336,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 )}
 
-                {!isValidateCodeActionModalVisible && loginData?.validatedDate && getMenuItems()}
+                {!isValidateCodeActionModalVisible && !!loginData?.validatedDate && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
