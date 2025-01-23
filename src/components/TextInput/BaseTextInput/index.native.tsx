@@ -262,9 +262,6 @@ function BaseTextInput(
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
-
-    // Height fix is needed only for Text single line inputs
-    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
     return (
         <>
             <View style={[containerStyles]}>
@@ -356,9 +353,7 @@ function BaseTextInput(
                                     inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                    // once it exceeds the input space on iOS (See https://github.com/Expensify/App/issues/13802)
-                                    shouldApplyHeight && {height, lineHeight: undefined},
+                                    !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
