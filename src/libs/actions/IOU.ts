@@ -8,6 +8,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreatePerDiemRequestParams,
@@ -223,6 +224,8 @@ type TrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
+    waypoints?: string;
+    customUnitRateID?: string;
 };
 type TrackedExpensePolicyParams = {
     policyID: string | undefined;
@@ -779,7 +782,35 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  * Set custom unit rateID for the transaction draft
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
+            },
+        },
+    });
+}
+
+/**
+ * Revert custom unit of the draft transaction to the original transaction's value
+ */
+function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (!originalTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: originalTransaction.comment?.customUnit ?? {},
+        },
+    });
 }
 
 /**
@@ -4162,11 +4193,14 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-    const parameters = {
-        ...reportInformation,
+
+    const parameters: CategorizeTrackedExpenseApiParams = {
+        ...{
+            ...reportInformation,
+            linkedTrackedExpenseReportAction: undefined,
+        },
         ...policyParams,
         ...transactionParams,
-        linkedTrackedExpenseReportAction: undefined,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
@@ -4538,6 +4572,7 @@ function trackExpense(
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const {
         createdWorkspaceParams,
@@ -4635,7 +4670,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: TrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID,
                 amount,
                 currency,
@@ -4648,11 +4683,13 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID,
             };
-            const policyParams = {
+            const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
             };
-            const reportInformation = {
+            const reportInformation: TrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID,
                 moneyRequestReportID: iouReport?.reportID,
                 moneyRequestCreatedReportActionID: createdIOUReportActionID,
@@ -4662,7 +4699,7 @@ function trackExpense(
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4697,7 +4734,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -9510,6 +9547,7 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
+    resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,
