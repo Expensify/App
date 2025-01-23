@@ -43,6 +43,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
             if (elementContains(activePopoverRef.current?.ref, e.target) || elementContains(activePopoverRef.current?.anchorRef, e.target)) {
                 return;
             }
+            // incase there are any extra anchor refs where the popover should not close on click
             if (activePopoverExtraAnchorRefs?.some((ref: RefObject<View | HTMLElement | Text>) => elementContains(ref, e.target))) {
                 return;
             }
@@ -122,6 +123,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
         [closePopover],
     );
 
+    // To set the extra anchor refs for the popover when prop-drilling is not possible
     const setActivePopoverExtraAnchorRef = useCallback((extraAnchorRef?: RefObject<View | HTMLDivElement | Text>) => {
         if (!extraAnchorRef) {
             return;
