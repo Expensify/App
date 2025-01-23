@@ -42,7 +42,7 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
+    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => {
         return {
             transform: [{translateY: topBarOffset.get()}],
@@ -60,9 +60,9 @@ function SearchPageBottomTab() {
             const isScrollingDown = currentOffset > scrollOffsetValue;
             const distanceScrolled = currentOffset - scrollOffsetValue;
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight));
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
             }
             scrollOffset.set(currentOffset);
         },
@@ -73,9 +73,9 @@ function SearchPageBottomTab() {
             if (windowHeight <= h) {
                 return;
             }
-            topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, topBarOffset, StyleUtils.searchHeaderHeight],
+        [windowHeight, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
     );
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
@@ -137,7 +137,7 @@ function SearchPageBottomTab() {
                                     queryJSON={queryJSON}
                                     searchRouterListVisible={searchRouterListVisible}
                                     onSearchRouterFocus={() => {
-                                        topBarOffset.set(StyleUtils.searchHeaderHeight);
+                                        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                         setSearchRouterListVisible(true);
                                     }}
                                 />
@@ -145,7 +145,7 @@ function SearchPageBottomTab() {
                                     <SearchStatusBar
                                         queryJSON={queryJSON}
                                         onStatusChange={() => {
-                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
                                         }}
                                     />
                                 )}

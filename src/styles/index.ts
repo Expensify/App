@@ -4366,10 +4366,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
         tabOpacity: (
             hovered: boolean,
             isFocused: boolean,
