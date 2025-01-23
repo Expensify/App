@@ -81,6 +81,11 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.204.0
         with:
