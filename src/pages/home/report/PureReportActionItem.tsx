@@ -37,16 +37,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {hideEmojiPicker, isActive} from '@libs/actions/EmojiPickerAction';
-import {acceptJoinRequest, declineJoinRequest} from '@libs/actions/Policy/Member';
-import {expandURLPreview} from '@libs/actions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session';
-import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,6 +49,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAllReportActions,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -77,8 +72,9 @@ import {
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
-    isDeletedParentAction,
+    isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
+    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -108,13 +104,20 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    shouldDisplayThreadReplies,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
+import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
+import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {getLastModifiedExpense, revert} from '@userActions/Transaction';
+import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -124,8 +127,8 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
+import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
@@ -355,7 +358,7 @@ function PureReportActionItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
+    const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
 
@@ -364,7 +367,7 @@ function PureReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
-    const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
+    const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
@@ -375,7 +378,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const isDeletedParentActionValue = isDeletedParentAction(action);
+    const isDeletedParentAction = isDeletedParentActionUtils(action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -393,13 +396,28 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
+    const onClose = () => {
+        let transactionID;
+        if (isMoneyRequestAction(action)) {
+            transactionID = getOriginalMessage(action)?.IOUTransactionID;
+            revert(transactionID, getLastModifiedExpense(reportID));
+        } else if (isModifiedExpenseAction(action)) {
+            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
+            revert(transactionID, getOriginalMessage(action));
+        }
+        if (transactionID) {
+            clearError(transactionID);
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    };
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
             // we should also hide them when the current component is destroyed
-            if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                ReportActionContextMenu.hideContextMenu();
-                ReportActionContextMenu.hideDeleteModal();
+            if (isActiveReportAction(action.reportActionID)) {
+                hideContextMenu();
+                hideDeleteModal();
             }
             if (isActive(action.reportActionID)) {
                 hideEmojiPicker(true);
@@ -413,12 +431,12 @@ function PureReportActionItem({
 
     useEffect(() => {
         // We need to hide EmojiPicker when this is a deleted parent action
-        if (!isDeletedParentActionValue || !isActive(action.reportActionID)) {
+        if (!isDeletedParentAction || !isActive(action.reportActionID)) {
             return;
         }
 
         hideEmojiPicker(true);
-    }, [isDeletedParentActionValue, action.reportActionID]);
+    }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
         if (prevDraftMessage !== undefined || draftMessage === undefined) {
@@ -473,7 +491,7 @@ function PureReportActionItem({
     }, [latestDecision, action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
-        setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
+        setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
@@ -492,7 +510,7 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            ReportActionContextMenu.showContextMenu(
+            showContextMenu(
                 CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
@@ -688,7 +706,7 @@ function PureReportActionItem({
             const iouReportID = getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() ?? '-1' : '-1';
             children = (
                 <MoneyRequestAction
-                    // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is chatReportID
+                    // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
                     chatReportID={getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? '' : reportID}
                     requestReportID={iouReportID}
                     reportID={reportID}
@@ -947,6 +965,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -984,7 +1003,7 @@ function PureReportActionItem({
                     </View>
                 )}
 
-                {shouldDisplayThreadReplies(action, isThreadReportParentAction) && (
+                {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
                             childReportID={`${action.childReportID}`}
@@ -1097,7 +1116,7 @@ function PureReportActionItem({
                 }
                 Keyboard.dismiss();
             }}
-            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentActionValue ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
@@ -1138,13 +1157,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        clearError(transactionID);
-                                    }
-                                    clearAllRelatedReportActionErrors(reportID, action);
-                                }}
+                                onClose={onClose}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
