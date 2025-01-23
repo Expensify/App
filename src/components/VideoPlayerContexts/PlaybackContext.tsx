@@ -102,13 +102,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         // This prevents the video that plays when the app opens from being interrupted when currentReportID
         // is initially empty or '-1', or when it changes from empty/'-1' to another value
         // after the report screen in the central pane is mounted on the large screen.
-        if (
-            !currentReportID ||
-            !prevCurrentReportID ||
-            (currentReportID === '-1' && isReportScreenTopmostCentralPane()) ||
-            (prevCurrentReportID === '-1' && !isReportScreenTopmostCentralPane()) ||
-            currentReportID === prevCurrentReportID
-        ) {
+        if ((!currentReportID && isReportScreenTopmostCentralPane()) || (!prevCurrentReportID && !isReportScreenTopmostCentralPane()) || currentReportID === prevCurrentReportID) {
             return;
         }
         resetVideoPlayerData();

@@ -50,7 +50,7 @@ function BaseVideoPlayer({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
     isPreview,
-    reportID = '-1',
+    reportID,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -336,6 +336,7 @@ function BaseVideoPlayer({
         },
         [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
     );
+
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
@@ -359,7 +360,7 @@ function BaseVideoPlayer({
     useEffect(() => {
         shouldBindFunctionsRef.current = false;
 
-        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current || reportID !== currentlyPlayingURLReportID) {
             return;
         }
 
