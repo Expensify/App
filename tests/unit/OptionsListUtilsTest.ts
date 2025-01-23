@@ -156,6 +156,71 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const activePolicyID = 'DEF456';
+
+    const WORKSPACE_CHATS: ReportUtils.OptionData[] = [
+        {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '2',
+            text: 'Google Drive Workspace',
+            policyID: '22',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '3',
+            text: 'Slack Team Workspace',
+            policyID: '33',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '4',
+            text: 'Slack Development Workspace',
+            policyID: '44',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '5',
+            text: 'Microsoft Teams Workspace',
+            policyID: '55',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '6',
+            text: 'Microsoft Project Workspace',
+            policyID: '66',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '7',
+            text: 'Notion Design Workspace',
+            policyID: '77',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '8',
+            text: 'Notion Workspace for Marketing',
+            policyID: activePolicyID,
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '9',
+            text: 'Asana Task Workspace',
+            policyID: '99',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '10',
+            text: 'Asana Project Management',
+            policyID: '1010',
+            isPolicyExpenseChat: true,
+        },
+    ];
+
     // And a set of personalDetails some with existing reports and some without
     const PERSONAL_DETAILS: PersonalDetailsList = {
         // These exist in our reports
@@ -379,6 +444,7 @@ describe('OptionsListUtils', () => {
                     total: 1000,
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
             },
         });
         Onyx.registerLogger(() => {});
@@ -1052,5 +1118,136 @@ describe('OptionsListUtils', () => {
                 const newReports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
                 expect(newReports.at(9)?.subtitle).toBe('Espacio de trabajo');
             });
+    });
+
+    describe('filterWorkspaceChats', () => {
+        it('should return an empty array if there are no workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats([], []);
+
+            expect(result.length).toEqual(0);
+        });
+
+        it('should return all workspace chats if there are no search terms', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, []);
+
+            expect(result).toEqual(WORKSPACE_CHATS);
+            expect(result.length).toEqual(WORKSPACE_CHATS.length);
+        });
+
+        it('should filter multiple workspace chats by search term', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
+
+            expect(result.length).toEqual(2);
+        });
+
+        it('should filter workspace chat by exact name', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Microsoft', 'Teams', 'Workspace']);
+
+            expect(result.length).toEqual(1);
+        });
+
+        it('should return an empty array if there are no matching workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
+
+            expect(result.length).toEqual(0);
+        });
+    });
+
+    describe('orderWorkspaceOptions', () => {
+        it('should put the default workspace on top of the list', () => {
+            const result = OptionsListUtils.orderWorkspaceOptions(WORKSPACE_CHATS);
+
+            expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
+        });
+    });
+
+    describe('filterSelfDMChat', () => {
+        const REPORT = {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        };
+        const LOGIN = 'johndoe@test.com';
+        const ALTERNATE_TEXT = 'John William Doe';
+        const SUBTITLE = 'Software Engineer';
+
+        it('should return the report when there are no search terms', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, []);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should return undefined, when the search term does not match the report', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['XYZ']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google', 'Workspace']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, ['john']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN]);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text if it is not a thread', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William']);
+
+            expect(result?.reportID).toBeUndefined();
+        });
+
+        it('should filter report by subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should not filter report by subtitle if it is not an expense chat nor a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: false}, ['Software']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by subtitle if it is a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: true}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
     });
 });
