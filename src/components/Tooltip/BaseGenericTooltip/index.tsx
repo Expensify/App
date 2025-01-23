@@ -51,7 +51,6 @@ function BaseGenericTooltip({
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
-    const pressableRef = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
     const {setActivePopoverExtraAnchorRef} = useContext(PopoverContext);
@@ -60,7 +59,7 @@ function BaseGenericTooltip({
         if (!isEducationTooltip) {
             return;
         }
-        setActivePopoverExtraAnchorRef(pressableRef);
+        setActivePopoverExtraAnchorRef(rootWrapper);
     }, [isEducationTooltip, setActivePopoverExtraAnchorRef]);
 
     useLayoutEffect(() => {
@@ -140,18 +139,7 @@ function BaseGenericTooltip({
         );
     }
 
-    const contentWithOrWithoutPressable = isEducationTooltip ? (
-        <PressableWithoutFeedback
-            onPress={onTooltipPress}
-            ref={pressableRef}
-            role={CONST.ROLE.TOOLTIP}
-            accessibilityLabel={CONST.ROLE.TOOLTIP}
-        >
-            {content}
-        </PressableWithoutFeedback>
-    ) : (
-        content
-    );
+    const Wrapper = isEducationTooltip ? Animated.createAnimatedComponent(PressableWithoutFeedback) : Animated.View;
 
     const body = document.querySelector('body');
 
@@ -162,15 +150,18 @@ function BaseGenericTooltip({
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
+            <Wrapper
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
             >
-                {contentWithOrWithoutPressable}
+                {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </Wrapper>
         </>,
         body,
     );

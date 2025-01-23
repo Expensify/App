@@ -115,24 +115,17 @@ function BaseGenericTooltip({
         );
     }
 
-    const contentWithOrWithoutPressable = isEducationTooltip ? (
-        <PressableWithoutFeedback
-            onPress={onTooltipPress}
-            role={CONST.ROLE.TOOLTIP}
-            accessibilityLabel={CONST.ROLE.TOOLTIP}
-        >
-            {content}
-        </PressableWithoutFeedback>
-    ) : (
-        content
-    );
+    const Wrapper = isEducationTooltip ? Animated.createAnimatedComponent(PressableWithoutFeedback) : Animated.View;
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
-                ref={rootWrapper}
+            <Wrapper
                 style={[rootWrapperStyle, animationStyle]}
+                ref={rootWrapper}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 onLayout={(e) => {
                     const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {
@@ -147,11 +140,11 @@ function BaseGenericTooltip({
                     setWrapperMeasuredHeight(height);
                 }}
             >
-                {contentWithOrWithoutPressable}
+                {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </Wrapper>
         </Portal>
     );
 }
