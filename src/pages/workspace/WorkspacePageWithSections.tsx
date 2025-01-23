@@ -122,7 +122,7 @@ function WorkspacePageWithSections({
     threeDotsAnchorPosition,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params?.policyID ?? `${CONST.DEFAULT_NUMBER_ID}`;
 
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -130,7 +130,7 @@ function WorkspacePageWithSections({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state ?? '-1';
+    const achState = reimbursementAccount?.achData?.state;
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
