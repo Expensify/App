@@ -273,6 +273,30 @@ type OnboardingMessage = {
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
 
+const EMAIL = {
+    ACCOUNTING: 'accounting@expensify.com',
+    ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
+    ADMIN: 'admin@expensify.com',
+    BILLS: 'bills@expensify.com',
+    CHRONOS: 'chronos@expensify.com',
+    CONCIERGE: 'concierge@expensify.com',
+    CONTRIBUTORS: 'contributors@expensify.com',
+    FIRST_RESPONDER: 'firstresponders@expensify.com',
+    GUIDES_DOMAIN: 'team.expensify.com',
+    QA_DOMAIN: 'applause.expensifail.com',
+    HELP: 'help@expensify.com',
+    INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+    NOTIFICATIONS: 'notifications@expensify.com',
+    PAYROLL: 'payroll@expensify.com',
+    QA: 'qa@expensify.com',
+    QA_TRAVIS: 'qa+travisreceipts@expensify.com',
+    RECEIPTS: 'receipts@expensify.com',
+    STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+    SVFG: 'svfg@expensify.com',
+    EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+    EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+};
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -675,6 +699,7 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
     },
     BUTTON_STATES: {
@@ -936,6 +961,7 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
+    ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1675,29 +1701,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
-    EMAIL: {
-        ACCOUNTING: 'accounting@expensify.com',
-        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
-        ADMIN: 'admin@expensify.com',
-        BILLS: 'bills@expensify.com',
-        CHRONOS: 'chronos@expensify.com',
-        CONCIERGE: 'concierge@expensify.com',
-        CONTRIBUTORS: 'contributors@expensify.com',
-        FIRST_RESPONDER: 'firstresponders@expensify.com',
-        GUIDES_DOMAIN: 'team.expensify.com',
-        QA_DOMAIN: 'applause.expensifail.com',
-        HELP: 'help@expensify.com',
-        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
-        NOTIFICATIONS: 'notifications@expensify.com',
-        PAYROLL: 'payroll@expensify.com',
-        QA: 'qa@expensify.com',
-        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
-        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
-        SVFG: 'svfg@expensify.com',
-        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
-        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
-    },
+    EMAIL,
 
     FULL_STORY: {
         MASK: 'fs-mask',
@@ -3161,27 +3165,30 @@ const CONST = {
         WORKSPACE_FEATURES: 'WorkspaceFeatures',
         WORKSPACE_RULES: 'WorkspaceRules',
     },
-    get EXPENSIFY_EMAILS() {
-        return [
-            this.EMAIL.ACCOUNTING,
-            this.EMAIL.ACCOUNTS_PAYABLE,
-            this.EMAIL.ADMIN,
-            this.EMAIL.BILLS,
-            this.EMAIL.CHRONOS,
-            this.EMAIL.CONCIERGE,
-            this.EMAIL.CONTRIBUTORS,
-            this.EMAIL.FIRST_RESPONDER,
-            this.EMAIL.HELP,
-            this.EMAIL.INTEGRATION_TESTING_CREDS,
-            this.EMAIL.NOTIFICATIONS,
-            this.EMAIL.PAYROLL,
-            this.EMAIL.QA,
-            this.EMAIL.QA_TRAVIS,
-            this.EMAIL.RECEIPTS,
-            this.EMAIL.STUDENT_AMBASSADOR,
-            this.EMAIL.SVFG,
-        ];
-    },
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
+        // eslint-disable-next-line no-param-reassign
+        prev[email] = true;
+        return prev;
+    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS: [
+        EMAIL.ACCOUNTING,
+        EMAIL.ACCOUNTS_PAYABLE,
+        EMAIL.ADMIN,
+        EMAIL.BILLS,
+        EMAIL.CHRONOS,
+        EMAIL.CONCIERGE,
+        EMAIL.CONTRIBUTORS,
+        EMAIL.FIRST_RESPONDER,
+        EMAIL.HELP,
+        EMAIL.INTEGRATION_TESTING_CREDS,
+        EMAIL.NOTIFICATIONS,
+        EMAIL.PAYROLL,
+        EMAIL.QA,
+        EMAIL.QA_TRAVIS,
+        EMAIL.RECEIPTS,
+        EMAIL.STUDENT_AMBASSADOR,
+        EMAIL.SVFG,
+    ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
@@ -6455,6 +6462,53 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
+        },
+    },
+
+    CORPAY_FIELDS: {
+        EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
+        EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
+        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
+        ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
+        ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
+        BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
+        ACCOUNT_HOLDER_FIELDS: [
+            'accountHolderName',
+            'accountHolderAddress1',
+            'accountHolderAddress2',
+            'accountHolderCity',
+            'accountHolderRegion',
+            'accountHolderCountry',
+            'accountHolderPostal',
+            'accountHolderPhoneNumber',
+            'accountHolderEmail',
+            'ContactName',
+            'BeneficiaryCPF',
+            'BeneficiaryRUT',
+            'BeneficiaryCedulaID',
+            'BeneficiaryTaxID',
+        ] as string[],
+        SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
+        SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
+        STEPS_NAME: {
+            COUNTRY_SELECTOR: 'CountrySelector',
+            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
+            ACCOUNT_TYPE: 'AccountType',
+            BANK_INFORMATION: 'BankInformation',
+            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
+            CONFIRMATION: 'Confirmation',
+            SUCCESS: 'Success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
+            },
         },
     },
 
