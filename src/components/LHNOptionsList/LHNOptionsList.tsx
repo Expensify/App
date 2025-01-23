@@ -120,10 +120,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID ?? '-1'}`];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
-            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
+            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? CONST.DEFAULT_NUMBER_ID];
 
             let invoiceReceiverPolicyID = '-1';
             if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
@@ -138,7 +138,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
-            const transactionID = isMoneyRequestAction(itemParentReportAction) ? getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+            const transactionID = isMoneyRequestAction(itemParentReportAction)
+                ? getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+                : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
@@ -146,10 +148,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
-            let lastReportActionTransactionID = '';
+            let lastReportActionTransactionID: string | number = '';
 
             if (isMoneyRequestAction(lastReportAction)) {
-                lastReportActionTransactionID = getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '-1';
+                lastReportActionTransactionID = getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID;
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
