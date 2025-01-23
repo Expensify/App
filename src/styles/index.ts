@@ -2,15 +2,18 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
+// eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
+import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import * as Browser from '@libs/Browser';
+import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
+import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -92,9 +95,9 @@ type Styles = Record<
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -611,7 +614,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
-            height: 64,
+            minHeight: 64,
         },
 
         buttonSmall: {
@@ -990,7 +993,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.borderLighter,
             // Adding browser specefic style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       WebkitTextFillColor: theme.textSupporting,
                       WebkitOpacity: 1,
@@ -1074,6 +1077,11 @@ const styles = (theme: ThemeColors) =>
 
         headerGap: {
             height: CONST.DESKTOP_HEADER_PADDING,
+        },
+
+        searchHeaderGap: {
+            zIndex: variables.searchTopBarZIndex + 1,
+            backgroundColor: theme.appBG,
         },
 
         reportOptions: {
@@ -1218,7 +1226,8 @@ const styles = (theme: ThemeColors) =>
             'worklet';
 
             return {
-                transform: [{translateY: translateY.get()}, {scale: scale.get()}],
+                transform: [{translateY: translateY.get()}],
+                fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
         },
 
@@ -1733,10 +1742,6 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
-        welcomeVideoNarrowLayout: {
-            width: variables.onboardingModalWidth,
-        },
-
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -2001,19 +2006,6 @@ const styles = (theme: ThemeColors) =>
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
-                opacity: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, variables.overlayOpacity],
-                    extrapolate: 'clamp',
-                }),
-            } satisfies ViewStyle),
-
-        nativeOverlayStyles: (current: OverlayStylesParams) =>
-            ({
-                position: 'absolute',
-                backgroundColor: theme.overlay,
-                width: '100%',
-                height: '100%',
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -3202,7 +3194,7 @@ const styles = (theme: ThemeColors) =>
         inputTransparent: {
             color: 'transparent',
             // These properties are available in browser only
-            ...(Browser.getBrowser()
+            ...(getBrowser()
                 ? {
                       caretColor: 'transparent',
                       WebkitTextFillColor: 'transparent',
@@ -3725,7 +3717,7 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             position: 'absolute',
-            zIndex: 9,
+            zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
 
@@ -4010,25 +4002,15 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        reportActionComposeTooltipWrapper: {
+        productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
-            paddingVertical: 8,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        quickActionTooltipWrapper: {
-            backgroundColor: theme.tooltipHighlightBG,
-        },
-
-        quickActionTooltipTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
-            color: theme.tooltipHighlightText,
-        },
-
-        quickActionTooltipSubtitle: {
-            fontSize: variables.fontSizeLabel,
-            color: theme.textDark,
+            color: theme.textReversed,
+            lineHeight: variables.lineHeightLarge,
         },
 
         quickReactionsContainer: {
@@ -4385,7 +4367,11 @@ const styles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+        animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
@@ -4516,7 +4502,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             borderRadius: 12,
             overflow: 'hidden',
-            height: variables.reportActionImagesSingleImageHeight,
         },
 
         reportActionItemImage: {
@@ -4585,10 +4570,10 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
-            ...(Browser.getBrowser() &&
-                Browser.isSafari() &&
-                !Browser.isMobile() && {
+            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() &&
+                isSafari() &&
+                !isMobile() && {
                     transform: 'scale(0.7)',
                     fontSize: 13,
                     lineHeight: 15,
@@ -4787,6 +4772,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        cardItemSecondaryIconStyle: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderWidth: 2,
+            borderRadius: 2,
+            backgroundColor: theme.componentBG,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -4851,7 +4845,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
@@ -4931,6 +4925,19 @@ const styles = (theme: ThemeColors) =>
         workspaceSectionMobile: {
             width: '100%',
             alignSelf: 'center',
+        },
+
+        workspaceSectionMoreFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            minWidth: 350,
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+            marginTop: 12,
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
@@ -5243,6 +5250,12 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
+            alignSelf: 'center',
+        },
+
+        cardMiniature: {
+            overflow: 'hidden',
+            borderRadius: variables.cardMiniatureBorderRadius,
             alignSelf: 'center',
         },
 

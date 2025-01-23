@@ -75,7 +75,13 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
+    const excludedUsers = useMemo(() => {
+        const ineligibleInvites = PolicyUtils.getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvites.reduce((acc, login) => {
+            acc[login] = true;
+            return acc;
+        }, {} as Record<string, boolean>);
+    }, [policy?.employeeList]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -242,30 +248,30 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '-1';
+            const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.some((email) => email === searchValue)) {
+        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers.includes(
+            excludedUsers[
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
-                    : searchValue,
-            )
+                    : searchValue
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }

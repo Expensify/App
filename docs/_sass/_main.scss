@@ -144,6 +144,21 @@ p {
     padding-bottom: 20px;
 }
 
+code {
+    font-family: 'Expensify Mono', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: var(--color-borders);
+    background-color: var(--color-highlightBG);
+    line-height: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 13px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
 body,
 button,
 input,

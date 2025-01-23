@@ -11,7 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     // Onboarding is an empty object for old accounts and accounts migrated from OldDot
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return true;
     }
 
@@ -49,11 +49,22 @@ function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRYN
  * `false` means the user has not completed the NewDot onboarding flow
  */
 function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return false;
     }
 
     return !!onboarding?.selfTourViewed;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector};
+/**
+ * Selector to get the value of nvp_introSelected NVP from the Onyx Store
+ *
+ * `undefined` means the value is not loaded yet
+ * `true` means they were invited to NewDot
+ * `false` means they are an organic sign-in
+ */
+function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean | undefined {
+    return introSelected?.inviteType !== undefined;
+}
+
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};

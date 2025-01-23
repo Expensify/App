@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
 
@@ -28,7 +29,7 @@ type GetBackgroudColorConfig = {
     /**
      * The animated position interpolation.
      */
-    position: Animated.AnimatedInterpolation<number>;
+    position: Animated.AnimatedInterpolation<number> | undefined;
 
     /**
      * Whether the tab is active.

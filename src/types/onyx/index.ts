@@ -16,6 +16,8 @@ import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
+import type {CorpayFields, CorpayFormField} from './CorpayFields';
+import type CorpayOnboardingFields from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -31,6 +33,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
@@ -110,7 +113,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -125,6 +127,7 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
+    CorpayOnboardingFields,
     Currency,
     CurrencyList,
     CustomStatusDraft,
@@ -234,7 +237,6 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
-    WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
@@ -242,5 +244,8 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    CorpayFields,
+    CorpayFormField,
+    JoinablePolicies,
     DismissedProductTraining,
 };
