@@ -63,13 +63,10 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 };
 
 // Helper function to get key data from snapshot
-const getKeyData = <TKey extends OnyxKey, TReturnValue>(
-    snapshotData: SearchResults,
-    key: TKey,
-    initialValue?: TReturnValue
-): TReturnValue => {
+const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey, initialValue?: TReturnValue): TReturnValue => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Record<string, any> = {};
         const prefix = key;
 
@@ -102,9 +99,9 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
 ): UseOnyxResult<TReturnValue> {
     const {isOnSearch, hashKey} = useSearchState();
 
-    const {selector, ...optionsWithoutSelector} = options || {};
+    const {selector, ...optionsWithoutSelector} = options ?? {};
     // In search mode, get the entire snapshot
-    const [snapshotData, metadata] = originalUseOnyx(
+    const [data, metadata] = originalUseOnyx(
         isOnSearch ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as TKey) : key,
         optionsWithoutSelector as (BaseUseOnyxOptions & UseOnyxInitialValueOption<OnyxValue<TKey>> & Required<UseOnyxSelectorOption<TKey, OnyxValue<TKey>>>) | undefined,
         dependencies,
@@ -112,17 +109,16 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
-        if (!isOnSearch || !snapshotData || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
-            const selectedSnapshotData = selector ? selector(snapshotData) : snapshotData;
+        if (!isOnSearch || !data || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
+            const selectedSnapshotData = selector ? selector(data) : data;
             return [selectedSnapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
-        const keyData = getKeyData(snapshotData as unknown as SearchResults, key, options?.initialValue);
+        const keyData = getKeyData(data as unknown as SearchResults, key, options?.initialValue);
         const selectedKeyData = selector ? selector(keyData as OnyxValue<TKey>) : keyData;
         return [selectedKeyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
-    }, [isOnSearch, key, snapshotData, metadata]);
+    }, [isOnSearch, key, data, metadata, options?.initialValue, selector]);
 
     return result;
 }
 
 export default useOnyx;
-
