@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dimensions, View} from 'react-native';
+import {Dimensions, Text, View} from 'react-native';
 import CONST from '@src/CONST';
 import SkeletonViewLines from './SkeletonViewLines';
 
@@ -13,38 +13,24 @@ type ReportActionsSkeletonViewProps = {
 
 function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0}: ReportActionsSkeletonViewProps) {
     const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
-    const skeletonViewLines: React.ReactNode[] = [];
-    for (let index = 0; index < contentItems; index++) {
+    const skeletonViewLines = Array.from({length: contentItems}, (_, index) => {
         const iconIndex = (index + 1) % 4;
-        switch (iconIndex) {
-            case 2:
-                skeletonViewLines.push(
-                    <SkeletonViewLines
-                        shouldAnimate={shouldAnimate}
-                        numberOfRows={2}
-                        key={`skeletonViewLines${index}`}
-                    />,
-                );
-                break;
-            case 0:
-                skeletonViewLines.push(
-                    <SkeletonViewLines
-                        shouldAnimate={shouldAnimate}
-                        numberOfRows={3}
-                        key={`skeletonViewLines${index}`}
-                    />,
-                );
-                break;
-            default:
-                skeletonViewLines.push(
-                    <SkeletonViewLines
-                        shouldAnimate={shouldAnimate}
-                        numberOfRows={1}
-                        key={`skeletonViewLines${index}`}
-                    />,
-                );
+        let numberOfRows = 1;
+        if (iconIndex === 2) {
+            numberOfRows = 2;
+        } else if (iconIndex === 0) {
+            numberOfRows = 3;
         }
-    }
+
+        return (
+            <SkeletonViewLines
+                shouldAnimate={shouldAnimate}
+                numberOfRows={numberOfRows}
+                key={`skeletonViewLines${index}`}
+            />
+        );
+    });
+
     return <View>{skeletonViewLines}</View>;
 }
 
