@@ -18,12 +18,12 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {bookATrip} from '@libs/actions/Travel';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
-import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
@@ -133,7 +133,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     buttons: [
                         {
                             buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
+                            buttonAction: () => bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
                             success: true,
                         },
                     ],

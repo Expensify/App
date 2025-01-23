@@ -41,7 +41,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.spotnanaToken) {
             openTravelDotAfterProvisioning(travelProvisioning.spotnanaToken);
         }
-        if (travelProvisioning?.errors) {
+        if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
     }, [travelProvisioning, domain]);
