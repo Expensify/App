@@ -4078,6 +4078,7 @@ type ConvertTrackedWorkspaceParams = {
     taxAmount: number;
     billable: boolean | undefined;
     policyID: string;
+    receipt: Receipt | undefined;
 };
 
 type AddTrackedExpenseToPolicyParam = {
@@ -4346,16 +4347,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 return;
             }
             const workspaceParams =
-                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
-                    ? {
-                          category,
-                          tag,
-                          taxCode,
-                          taxAmount,
-                          billable,
-                          policyID: chatReport.policyID,
-                      }
-                    : undefined;
+                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID ? {receipt, category, tag, taxCode, taxAmount, billable, policyID: chatReport.policyID} : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
                 payerEmail,

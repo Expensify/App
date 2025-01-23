@@ -1,3 +1,5 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type AddTrackedExpenseToPolicyParams = {
     amount: number;
     currency: string;
@@ -17,6 +19,7 @@ type AddTrackedExpenseToPolicyParams = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
+    receipt: Receipt | undefined;
 };
 
 export default AddTrackedExpenseToPolicyParams;
