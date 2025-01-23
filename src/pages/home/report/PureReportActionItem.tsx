@@ -50,6 +50,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAllReportActions,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -71,8 +72,9 @@ import {
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
-    isDeletedParentAction as isDeletedParentActionReportActionsUtils,
+    isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
+    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -102,7 +104,7 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -114,6 +116,7 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {getLastModifiedExpense, revert} from '@userActions/Transaction';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -377,7 +380,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
+    const isDeletedParentAction = isDeletedParentActionUtils(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
     const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
     const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
@@ -397,6 +400,21 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const onClose = () => {
+        let transactionID;
+        if (isMoneyRequestAction(action)) {
+            transactionID = getOriginalMessage(action)?.IOUTransactionID;
+            revert(transactionID, getLastModifiedExpense(reportID));
+        } else if (isModifiedExpenseAction(action)) {
+            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
+            revert(transactionID, getOriginalMessage(action));
+        }
+        if (transactionID) {
+            clearError(transactionID);
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    };
 
     useEffect(
         () => () => {
@@ -963,7 +981,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -1160,13 +1178,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        clearError(transactionID);
-                                    }
-                                    clearAllRelatedReportActionErrors(reportID, action);
-                                }}
+                                onClose={onClose}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
