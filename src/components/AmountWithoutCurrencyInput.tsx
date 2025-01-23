@@ -16,7 +16,7 @@ type AmountFormProps = {
 } & Partial<BaseTextInputProps>;
 
 function AmountWithoutCurrencyInput(
-    {value: amount, onInputChange, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
+    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     return (
