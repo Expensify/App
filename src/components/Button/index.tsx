@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, Platform, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -17,6 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getNestedButtonRole, getNestedButtonStyle} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {
@@ -145,6 +146,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** Wheater is a nested button inside other button, since nesting buttons isn't valid html */
+    isNested?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -246,6 +250,7 @@ function Button(
         link = false,
         isContentCentered = false,
         isPressOnEnterActive,
+        isNested = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -400,11 +405,10 @@ function Button(
                     isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                     link && styles.bgTransparent,
-                    Platform.OS === 'web' && styles.cursorPointer,
+                    getNestedButtonStyle(styles, isNested),
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -416,7 +420,7 @@ function Button(
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
-                role={Platform.OS === 'web' ? CONST.ROLE.PRESENTATION : CONST.ROLE.BUTTON}
+                role={getNestedButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}

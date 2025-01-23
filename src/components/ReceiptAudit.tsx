@@ -50,7 +50,19 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
 
 function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
     const styles = useThemeStyles();
-    return <View style={[styles.mtn1, styles.mb2, styles.ph5, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>;
+    return (
+        <View style={[styles.mtn1, styles.mb2, styles.ph5, styles.gap1]}>
+            {notes.length > 0 &&
+                notes.map((message) => (
+                    <Text
+                        style={[styles.textLabelError]}
+                        key={message}
+                    >
+                        {message}
+                    </Text>
+                ))}
+        </View>
+    );
 }
 
 export {ReceiptAuditMessages};

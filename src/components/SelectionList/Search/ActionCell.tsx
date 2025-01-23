@@ -100,6 +100,7 @@ function ActionCell({
                 icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
+                isNested
             />
         ) : null;
     }
