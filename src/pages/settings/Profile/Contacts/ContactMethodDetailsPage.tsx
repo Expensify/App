@@ -270,11 +270,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             focusTrapSettings={{
                 focusTrapOptions: {
                     checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
-                        return new Promise<void>((resolve) => {
+                        return new Promise((resolve) => {
                             const interval = setInterval(() => {
-                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                                const trapContainer = trapContainers.at(0) as HTMLElement | SVGElement;
-                                if (getComputedStyle(trapContainer).visibility !== 'hidden') {
+                                const trapContainer = trapContainers.at(0);
+                                if (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden') {
                                     resolve();
                                     clearInterval(interval);
                                 }
