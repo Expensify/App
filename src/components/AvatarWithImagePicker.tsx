@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
@@ -27,7 +28,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
-import withNavigationFocus from './withNavigationFocus';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -107,9 +107,6 @@ type AvatarWithImagePickerProps = {
     /** File name of the avatar */
     originalFileName?: string;
 
-    /** Whether navigation is focused */
-    isFocused: boolean;
-
     /** Style applied to the avatar */
     avatarStyle: StyleProp<ViewStyle & ImageStyle>;
 
@@ -133,7 +130,6 @@ type AvatarWithImagePickerProps = {
 };
 
 function AvatarWithImagePicker({
-    isFocused,
     DefaultAvatar = () => null,
     style,
     disabledStyle,
@@ -164,6 +160,7 @@ function AvatarWithImagePicker({
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const {windowWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -466,4 +463,4 @@ function AvatarWithImagePicker({
 
 AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
-export default withNavigationFocus(AvatarWithImagePicker);
+export default AvatarWithImagePicker;
