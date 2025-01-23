@@ -3825,7 +3825,7 @@ function updateMoneyRequestAttendees(
 /** Updates the tag of an expense */
 function updateMoneyRequestTag(
     transactionID: string,
-    transactionThreadReportID: string,
+    transactionThreadReportID: string | undefined,
     tag: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,

@@ -17,7 +17,7 @@ type TagPickerProps = {
     /** The policyID we are getting tags for */
     // It's used in withOnyx HOC.
     // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
+    policyID: string | undefined;
 
     /** The selected tag of the expense */
     selectedTag: string;

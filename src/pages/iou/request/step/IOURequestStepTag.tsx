@@ -16,7 +16,8 @@ import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy, OptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {areRequiredFieldsEmpty, getTag} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -39,11 +40,11 @@ function IOURequestStepTag({
     },
     transaction,
 }: IOURequestStepTagProps) {
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? 0}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`);
-    let reportID: string | undefined = '-1';
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    let reportID: string | undefined;
     if (action === CONST.IOU.ACTION.EDIT) {
         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
     }
@@ -86,7 +87,7 @@ function IOURequestStepTag({
             return;
         }
         if (isEditing) {
-            updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories, currentSearchHash);
+            updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
             navigateBack();
             return;
         }
@@ -120,8 +121,8 @@ function IOURequestStepTag({
                                 onPress={() =>
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_TAGS_ROOT.getRoute(
-                                            policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                            policy?.id,
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
                                 }
@@ -136,7 +137,7 @@ function IOURequestStepTag({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
-                        policyID={report?.policyID ?? '-1'}
+                        policyID={report?.policyID}
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
