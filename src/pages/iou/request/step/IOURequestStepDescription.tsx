@@ -18,7 +18,7 @@ import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
+import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -112,16 +112,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
+            updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
