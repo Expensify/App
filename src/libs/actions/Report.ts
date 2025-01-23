@@ -2934,6 +2934,10 @@ function openReportFromDeepLink(url: string) {
                             Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
                         };
 
+                        if (isAnonymousUser()) {
+                            handleDeeplinkNavigation();
+                            return;
+                        }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
                             onNotCompleted: startOnboardingFlow,
