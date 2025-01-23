@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
+import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
         FormActions.clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
         Policy.updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
+        clearCorpayBankAccountFields();
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 

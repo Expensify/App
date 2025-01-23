@@ -192,7 +192,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                     <InputWrapper
                         InputComponent={UploadFile}
                         buttonText={translate('ownershipInfoStep.chooseFile')}
-                        uploadedFiles={uploadedAddressProof}
+                        uploadedFiles={uploadedCodiceFiscale}
                         onUpload={(files) => {
                             handleSelectFile(files, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
                         }}

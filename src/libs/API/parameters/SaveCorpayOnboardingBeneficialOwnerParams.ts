@@ -1,7 +1,7 @@
 type SaveCorpayOnboardingBeneficialOwnerParams = {
     inputs: string;
-    beneficialOwnerIDs: string[];
     files: string;
+    beneficialOwnerIDs: string;
     bankAccountID: number;
 };
 

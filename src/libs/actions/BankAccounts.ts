@@ -544,6 +544,10 @@ function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
+function clearCorpayBankAccountFields() {
+    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -841,6 +845,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
     saveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearCorpayBankAccountFields,
 };
 
 export type {BusinessAddress, PersonalAddress};
