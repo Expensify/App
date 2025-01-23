@@ -426,7 +426,7 @@ describe('SidebarUtils', () => {
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-            expect(result?.alternateText).toBe(`f50: ${getReportActionMessageText(lastAction)}`);
+            expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
         });
     });
 });
