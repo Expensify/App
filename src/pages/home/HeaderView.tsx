@@ -152,7 +152,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID.toString() === account?.adminsRoomReportID?.toString() && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = checkIfActionIsAllowed(() => joinRoom(report));
 
