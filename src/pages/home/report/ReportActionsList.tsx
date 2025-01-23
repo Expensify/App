@@ -130,7 +130,6 @@ type ReportActionsListProps = {
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
 const MSG_VISIBLE_THRESHOLD = 250;
-const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -391,18 +390,9 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
-    const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
-    const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(!isLinkedActionCloseToNewest);
+    const isLastPendingActionIsDelete = sortedReportActions?.at(0)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    useEffect(() => {
-        if (isLinkedActionCloseToNewest) {
-            return;
-        }
-        setIsFloatingMessageCounterVisible(true);
-    }, [isLinkedActionCloseToNewest, route]);
+    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
 
     useEffect(() => {
         if (
@@ -411,7 +401,6 @@ function ReportActionsList({
             reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
-            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
@@ -450,7 +439,6 @@ function ReportActionsList({
             return;
         }
         InteractionManager.runAfterInteractions(() => {
-            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -491,7 +479,6 @@ function ReportActionsList({
 
         if (isNewMessageDisplayed) {
             InteractionManager.runAfterInteractions(() => {
-                setIsFloatingMessageCounterVisible(false);
                 reportScrollManager.scrollToBottom();
                 setPendingBottomScroll(false);
             });
@@ -553,8 +540,6 @@ function ReportActionsList({
     };
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
-        setIsFloatingMessageCounterVisible(false);
-
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             openReport(report.reportID);
@@ -782,12 +767,15 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
+    // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
+    // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
+    const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
     return (
         <>
             <FloatingMessageCounter
-                isActive={isFloatingMessageCounterVisible}
+                isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
@@ -819,7 +807,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    initialScrollKey={route?.params?.reportActionID}
                 />
             </View>
         </>

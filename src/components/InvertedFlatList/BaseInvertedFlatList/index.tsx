@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
@@ -98,37 +98,11 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return config;
     }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
-    const listRef = useRef<RNFlatList | null>(null);
-    useImperativeHandle(ref, () => {
-        // If we're trying to scroll at the start of the list we need to make sure to
-        // render all items.
-        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
-            if (params.offset === 0) {
-                setCurrentDataId(null);
-            }
-            requestAnimationFrame(() => {
-                listRef.current?.scrollToOffset(params);
-            });
-        };
-
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    if (prop === 'scrollToOffset') {
-                        return scrollToOffsetFn;
-                    }
-                    return listRef.current?.[prop as keyof RNFlatList];
-                },
-            },
-        ) as RNFlatList;
-    });
-
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            ref={listRef}
+            ref={ref}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
