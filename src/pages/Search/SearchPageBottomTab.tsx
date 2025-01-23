@@ -43,9 +43,11 @@ function SearchPageBottomTab() {
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
-    const topBarAnimatedStyle = useAnimatedStyle(() => ({
-        top: topBarOffset.get(),
-    }));
+    const topBarAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{translateY: topBarOffset.get()}],
+        };
+    });
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
@@ -53,9 +55,10 @@ function SearchPageBottomTab() {
             if (windowHeight > contentSize.height) {
                 return;
             }
+            const scrollOffsetValue = scrollOffset.get();
             const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.get();
-            const distanceScrolled = currentOffset - scrollOffset.get();
+            const isScrollingDown = currentOffset > scrollOffsetValue;
+            const distanceScrolled = currentOffset - scrollOffsetValue;
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                 topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
@@ -129,13 +132,7 @@ function SearchPageBottomTab() {
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View
-                                style={[
-                                    searchRouterListVisible ? styles.narrowSearchRouterInactiveStyle : topBarAnimatedStyle,
-                                    !searchRouterListVisible && styles.narrowSearchRouterActiveStyle,
-                                    styles.narrowSearchHeaderStyle,
-                                ]}
-                            >
+                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterActiveStyle, styles.narrowSearchHeaderStyle]}>
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     searchRouterListVisible={searchRouterListVisible}
@@ -167,7 +164,7 @@ function SearchPageBottomTab() {
                         <SearchPageHeader queryJSON={queryJSON} />
                     </>
                 )}
-                {!searchRouterListVisible && (
+                <View style={[styles.flex1, searchRouterListVisible && styles.dNone]}>
                     <Search
                         isSearchScreenFocused={isActiveCentralPaneRoute}
                         queryJSON={queryJSON}
@@ -175,7 +172,7 @@ function SearchPageBottomTab() {
                         onContentSizeChange={onContentSizeChange}
                         contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
                     />
-                )}
+                </View>
             </ScreenWrapper>
         );
     }
