@@ -44,10 +44,8 @@ jobs:
       - name: Build Android Debug
         working-directory: Mobile-Expensify/Android
         run: |
-          ./gradlew assembleDebug
-          if [ $? -eq 0 ]; then
-            echo "✅ Android debug build succeeded!"
-          else
+          if ! ./gradlew assembleDebug
+          then
             echo "❌ Android debug build failed."
             exit 1
           fi
