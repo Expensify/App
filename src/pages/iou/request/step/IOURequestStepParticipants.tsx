@@ -97,8 +97,10 @@ function IOURequestStepParticipants({
         navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, isMovingTransactionFromTrackExpense]);
 
-    // When the step opens, reset the custom unit of the draft transaction if it's moving from Track Expense.
-    // This is needed to revert the rate back to the original FAKE_P2P_RATE_ID when changing the destination workspace.
+    // When the step opens, reset the draft transaction's custom unit if moved from Track Expense.
+    // This resets the custom unit to the p2p rate when the destination workspace changes,
+    // because we want to first check if the p2p rate exists on the workspace.
+    // If it doesn't exist - we'll show an error message to force the user to choose a valid rate from the workspace.
     useEffect(() => {
         if (!isMovingTransactionFromTrackExpense) {
             return;
@@ -138,8 +140,8 @@ function IOURequestStepParticipants({
             setMoneyRequestParticipants(transactionID, val);
 
             if (!isMovingTransactionFromTrackExpense) {
-                // When moving the transaction, keep the original rate and let the user manually change it to the one they want from the workspace.
-                // Otherwise, select the default one automatically.
+                // If not moving the transaction from track expense, select the default rate automatically.
+                // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
                 const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
                 setCustomUnitRateID(transactionID, rateID);
             }
