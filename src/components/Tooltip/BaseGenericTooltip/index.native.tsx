@@ -115,12 +115,12 @@ function BaseGenericTooltip({
         );
     }
 
-    const Wrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Wrapper
+            <AnimatedWrapper
                 style={[rootWrapperStyle, animationStyle]}
                 ref={rootWrapper}
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
@@ -144,7 +144,7 @@ function BaseGenericTooltip({
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Wrapper>
+            </AnimatedWrapper>
         </Portal>
     );
 }

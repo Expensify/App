@@ -139,7 +139,7 @@ function BaseGenericTooltip({
         );
     }
 
-    const Wrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
 
     const body = document.querySelector('body');
 
@@ -150,7 +150,7 @@ function BaseGenericTooltip({
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Wrapper
+            <AnimatedWrapper
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
@@ -161,7 +161,7 @@ function BaseGenericTooltip({
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Wrapper>
+            </AnimatedWrapper>
         </>,
         body,
     );
