@@ -3,13 +3,16 @@ import Navigation from './Navigation/Navigation';
 import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from './ReportUtils';
 
-const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms: boolean | undefined, onboardingPolicyID?: string, activeWorkspaceID?: string) => {
+const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms: boolean | undefined, onboardingPolicyID?: string, activeWorkspaceID?: string, onboardingAdminsChatReportID?: string, shouldOpenAdminRoom?: boolean) => {
     Navigation.dismissModal();
 
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
     if (!isSmallScreenWidth) {
+        if (shouldOpenAdminRoom && onboardingAdminsChatReportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingAdminsChatReportID));
+        }
         return;
     }
 
