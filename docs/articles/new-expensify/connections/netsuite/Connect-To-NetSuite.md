@@ -10,7 +10,7 @@ To use the NetSuite connection, you must have a NetSuite account and an Expensif
 
 Expensify’s integration with NetSuite supports syncing data between the two systems. Before you start connecting Expensify with NetSuite, there are a few things to note:
 
-- You must be able to login to NetSuite as an administrator to initiate the connection
+- You must be able to login to NetSuite as an administrator to initiate the connection.
 - A Control Plan in Expensify is required to integrate with NetSuite.
 - Employees don’t need NetSuite access or a NetSuite license to submit expense reports and sync them to NetSuite.
 - Each NetSuite subsidiary must be connected to a separate Expensify workspace.
@@ -18,7 +18,7 @@ Expensify’s integration with NetSuite supports syncing data between the two sy
 
 # Step 1: Install the Expensify Bundle in NetSuite
 
-1. While logged into NetSuite as an administrator, go to Customization > SuiteBundler > Search & Install Bundles, then search for “Expensify”.
+1. While logged into NetSuite as an administrator, go to _Customization > SuiteBundler > Search & Install Bundles_, then search for “Expensify”.
 2. Click on the Expensify Connect bundle (Bundle ID 283395).
 3. Click **Install**.
 4. If you already have the Expensify Connect bundle installed, head to _Customization > SuiteBundler > Search & Install Bundles > List_, and update it to the latest version.
@@ -34,7 +34,7 @@ Expensify’s integration with NetSuite supports syncing data between the two sy
 
 # Step 3: Add Expensify Integration Role to a User
 
-1. In NetSuite, head to Lists > Employees, and find the user to who you would like to add the Expensify Integration role. The user you select must at least have access to the permissions included in the Expensify Integration Role, and Admin access works too, but Admin access is not required.
+1. In NetSuite, head to _Lists > Employees_, and find the user to who you would like to add the Expensify Integration role. The user you select must have access to at least the permissions included in the Expensify Integration Role, but they’re not required to be a NetSuite admin.
 2. Click _Edit > Access_, then find the Expensify Integration role in the dropdown and add it to the user.
 3. Click **Save**.
 
@@ -61,8 +61,8 @@ Expense Reports must be enabled in order to use Expensify’s integration with N
 {% include end-info.html %}
 
 
-1. In NetSuite, go to Setup > Company > Enable Features > Employees.
-2. Confirm the checkbox next to Expense Reports_ is checked.
+1. In NetSuite, go to _Setup > Company > Enable Features > Employees_.
+2. Confirm the checkbox next to Expense Reports is checked.
 3. If not, click the checkbox and then click **Save** to enable Expense Reports.
 
 
