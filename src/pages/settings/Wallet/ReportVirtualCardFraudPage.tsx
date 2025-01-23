@@ -48,6 +48,7 @@ function ReportVirtualCardFraudPage({
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
+    const prevConfirmationVisible = usePrevious(isConfirmationModalVisible);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
@@ -66,6 +67,16 @@ function ReportVirtualCardFraudPage({
         // if we switch from loading to not loading, show the confirmation modal
         setIsConfirmationModalVisible(true);
     }, [formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+
+    useEffect(() => {
+        if (!prevConfirmationVisible || isConfirmationModalVisible) {
+            return;
+        }
+
+        if (latestIssuedVirtualCardID) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
+        }
+    }, [isConfirmationModalVisible, latestIssuedVirtualCardID, prevConfirmationVisible]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
@@ -133,10 +144,6 @@ function ReportVirtualCardFraudPage({
                     onClose={() => {
                         setIsValidateCodeActionModalVisible(false);
                         setIsConfirmationModalVisible(false);
-
-                        if (latestIssuedVirtualCardID) {
-                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
-                        }
                     }}
                 />
             </View>
