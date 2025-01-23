@@ -2590,7 +2590,7 @@ const translations = {
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
-            profile: 'Workspace profile',
+            profile: 'Overview',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
