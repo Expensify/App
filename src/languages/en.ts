@@ -4558,7 +4558,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
-        scheduleADemo: 'Schedule a demo',
+        scheduleADemo: 'Schedule demo',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
@@ -5333,7 +5333,7 @@ const translations = {
                 subtitleEnd: 'so your team can start expensing.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                title: ({numOfDays}: TrialStartedTitleParams) => `Trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             trialEnded: {
