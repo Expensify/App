@@ -273,7 +273,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         return new Promise((resolve) => {
                             const interval = setInterval(() => {
                                 const trapContainer = trapContainers.at(0);
-                                if (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden') {
+                                if (!trapContainer || (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden')) {
                                     resolve();
                                     clearInterval(interval);
                                 }
