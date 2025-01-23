@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
@@ -119,10 +119,10 @@ jobs:
           set -o pipefail
           
           # Do not start metro
-          RCT_NO_LAUNCH_PACKAGER=1
+          export RCT_NO_LAUNCH_PACKAGER=1
           
           # Build iOS using xcodebuild
-          xcodebuild \
+          if ! xcodebuild \
             -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
             -scheme Expensify \
             -configuration Debug \
@@ -131,11 +131,8 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build | xcpretty
-
-          if [ $? -eq 0 ]; then
-            echo "✅ iOS simulator build succeeded!"
-          else
+            build | xcpretty 
+          then
             echo "❌ iOS simulator build failed."
             exit 1
           fi
