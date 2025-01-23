@@ -17,15 +17,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
+import {queueExpensifyCardForBilling} from '@userActions/Card';
+import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -54,7 +54,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
+    const workspaceAccountID = getWorkspaceAccountID(route.params.policyID);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -84,9 +84,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        Policy.requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
+        requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
-        Report.navigateToConciergeChat();
+        navigateToConciergeChat();
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
@@ -95,8 +95,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
 
-    const queueExpensifyCardForBilling = () => {
-        Card.queueExpensifyCardForBilling(CONST.COUNTRY.US, workspaceAccountID);
+    const handleSettleBalanceButtonClick = () => {
+        queueExpensifyCardForBilling(CONST.COUNTRY.US, workspaceAccountID);
     };
 
     return (
@@ -121,12 +121,12 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                             />
                         </PressableWithFeedback>
                     </View>
-                    <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(value, policyCurrency)}</Text>
+                    <Text style={styles.shortTermsHeadline}>{convertToDisplayString(value, policyCurrency)}</Text>
                 </View>
                 {isSettleBalanceButtonDisplayed && (
                     <View style={[styles.flexBasisAuto, styles.alignItemsStart, styles.justifyContentEnd, styles.mt2, styles.mr2]}>
                         <Button
-                            onPress={queueExpensifyCardForBilling}
+                            onPress={handleSettleBalanceButtonClick}
                             text={translate('workspace.expensifyCard.settleBalance')}
                             innerStyles={[styles.buttonSmall]}
                             textStyles={[styles.buttonSmallText]}
