@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {ForwardedRef, MutableRefObject} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -18,13 +18,14 @@ import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as InputUtils from '@libs/InputUtils';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -97,7 +98,6 @@ function BaseTextInput(
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
@@ -106,6 +106,8 @@ function BaseTextInput(
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
+
+    useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, isMarkdownEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -184,7 +186,6 @@ function BaseTextInput(
             const layout = event.nativeEvent.layout;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
@@ -260,25 +261,6 @@ function BaseTextInput(
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
-    /**
-     * To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
-     * make sure to include the `lineHeight`.
-     * Reference: https://github.com/Expensify/App/issues/26735
-     * For other platforms, explicitly remove `lineHeight` from single-line inputs
-     * to prevent long text from disappearing once it exceeds the input space.
-     * See https://github.com/Expensify/App/issues/13802
-     */
-    const lineHeight = useMemo(() => {
-        if (Browser.isSafari() || Browser.isMobileChrome()) {
-            const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
-            if (lineHeightValue !== undefined) {
-                return lineHeightValue;
-            }
-        }
-
-        return undefined;
-    }, [inputStyle]);
-
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -327,7 +309,6 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
@@ -377,15 +358,11 @@ function BaseTextInput(
                                     inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                    // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && {height, lineHeight},
-
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
                                     // Set overflow property to enable the parent flexbox to shrink its size
                                     // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+                                    !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -428,7 +405,7 @@ function BaseTextInput(
                                         if (didScrollToEndRef.current || !input.current) {
                                             return;
                                         }
-                                        InputUtils.scrollToRight(input.current);
+                                        scrollToRight(input.current);
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
@@ -521,7 +498,7 @@ function BaseTextInput(
                             return;
                         }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
+                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
