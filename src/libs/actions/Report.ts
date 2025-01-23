@@ -2494,16 +2494,15 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
+    if (!reportID) {
+        Log.warn('[Report] deleteReport called with no reportID');
+        return;
+    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
     };
-
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
-        return;
-    }
 
     // Delete linked transactions
     const reportActionsForReport = allReportActions?.[reportID];

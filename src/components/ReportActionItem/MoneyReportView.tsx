@@ -147,10 +147,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
                                             onPress={() => {
-                                                if (!report?.reportID) {
-                                                    return;
-                                                }
-
                                                 Navigation.navigate(
                                                     ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
                                                 );

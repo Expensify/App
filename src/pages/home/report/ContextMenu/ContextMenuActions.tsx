@@ -691,10 +691,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Bug,
         shouldShow: ({type, user}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !!user?.isDebugModeEnabled,
         onPress: (closePopover, {reportID}) => {
-            if (!reportID) {
-                return;
-            }
-
             Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },

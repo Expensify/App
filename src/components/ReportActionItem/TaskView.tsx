@@ -62,14 +62,14 @@ function TaskView({report}: TaskViewProps) {
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
                             onPress={checkIfActionIsAllowed((e) => {
-                                if (isDisableInteractive || !report?.reportID) {
+                                if (isDisableInteractive) {
                                     return;
                                 }
                                 if (e && e.type === 'click') {
                                     (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,

@@ -82,16 +82,11 @@ function MoneyRequestAction({
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
-            if (!chatReportID) {
-                return;
-            }
-            const reportActionID = action.reportActionID;
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
-        const childReportID = action?.childReportID;
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;

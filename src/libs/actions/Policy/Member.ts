@@ -875,10 +875,10 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
  * Accept user join request to a workspace
  */
 function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>) {
-    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
     if (!reportAction) {
         return;
     }
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
 
     const optimisticData: OnyxUpdate[] = [
         {
