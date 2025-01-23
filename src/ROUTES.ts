@@ -1483,6 +1483,7 @@ const ROUTES = {
     },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
+    TRAVEL_UPGRADE: 'travel/upgrade',
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',

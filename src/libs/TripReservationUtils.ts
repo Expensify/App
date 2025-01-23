@@ -16,7 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {openTravelDotLink} from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import {getPolicy, isControlPolicy} from './PolicyUtils';
+import {getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -101,8 +101,8 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         return;
     }
     const policy = getPolicy(activePolicyID);
-    if (!isControlPolicy(policy)) {
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(activePolicyID ?? '-1', CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel.alias, Navigation.getActiveRoute()));
+    if (!isPaidGroupPolicy(policy)) {
+        Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
         return;
     }
     if (isEmptyObject(policy?.address)) {
