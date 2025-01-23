@@ -47,8 +47,6 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 type AppProps = {
     /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
-    /** Specifies if the SplashScreenHider should be mounted */
-    withBootsplash?: boolean;
 };
 
 LogBox.ignoreLogs([
@@ -64,7 +62,7 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, withBootsplash}: AppProps) {
+function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
@@ -108,7 +106,7 @@ function App({url, withBootsplash}: AppProps) {
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                                 <ColorSchemeWrapper>
-                                    <Expensify withBootsplash={withBootsplash} />
+                                    <Expensify />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
                         </ComposeProviders>
