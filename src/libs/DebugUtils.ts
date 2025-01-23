@@ -8,7 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -60,7 +60,7 @@ type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string |
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
-const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
+const REPORT_REQUIRED_PROPERTIES: Array<keyof Report | keyof ReportNameValuePairs> = ['reportID'] satisfies Array<keyof Report | keyof ReportNameValuePairs>;
 
 const REPORT_ACTION_REQUIRED_PROPERTIES: Array<keyof ReportAction> = ['reportActionID', 'created', 'actionName'] satisfies Array<keyof ReportAction>;
 
@@ -441,7 +441,7 @@ function unionValidation(firstValidation: () => void, secondValidation: () => vo
  * @param key - property key
  * @param value - value provided by the user
  */
-function validateReportDraftProperty(key: keyof Report, value: string) {
+function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePairs, value: string) {
     if (REPORT_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
@@ -567,7 +567,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
-            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
+            return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
