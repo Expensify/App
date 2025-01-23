@@ -2730,7 +2730,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         customUnitRateID,
         iouReportID,
         memberData: JSON.stringify(memberData),
-        reportActionID: movedReportAction?.reportActionID,
+        reportActionID: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
