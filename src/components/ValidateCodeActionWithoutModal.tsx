@@ -10,6 +10,7 @@ import ValidateCodeForm from './ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 
 type ValidateCodeActionWithoutModalProps = {
+    /** Ref for validate code form */
     forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
 };
 
