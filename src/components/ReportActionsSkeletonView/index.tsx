@@ -15,12 +15,7 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
     const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = Array.from({length: contentItems}, (_, index) => {
         const iconIndex = (index + 1) % 4;
-        let numberOfRows = 1;
-        if (iconIndex === 2) {
-            numberOfRows = 2;
-        } else if (iconIndex === 0) {
-            numberOfRows = 3;
-        }
+        const numberOfRows = iconIndex === 2 ? 2 : iconIndex === 0 ? 3 : 1;
 
         return (
             <SkeletonViewLines
@@ -28,6 +23,11 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
                 numberOfRows={numberOfRows}
                 key={`skeletonViewLines${index}`}
             />
+
+            // When we replace SkeletonViewLines with other componets e.g. Text it works fine.
+            // It might be something with the height of SkeletonViewLine component
+
+            // <Text>TestTestLoading</Text>
         );
     });
 
