@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -70,7 +71,8 @@ function SearchPage({route}: SearchPageProps) {
                     <View style={styles.searchSplitContainer}>
                         <View style={styles.searchSidebar}>
                             {queryJSON ? (
-                                <View>
+                                <View style={styles.flex1}>
+                                    <HeaderGap />
                                     <TopBar
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.search')}
