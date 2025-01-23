@@ -1,5 +1,5 @@
 ---
-title: Connect to NetSuite
+title: Connect To NetSuite
 description: Connect NetSuite to New Expensify for streamlined expense reporting and accounting integration.
 order: 1
 ---
