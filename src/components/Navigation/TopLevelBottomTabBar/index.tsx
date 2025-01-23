@@ -64,13 +64,13 @@ function TopLevelBottomTabBar() {
     }, [shouldDisplayTopLevelBottomTabBar]);
 
     return (
-        <View style={styles.topLevelBottomTabBar(shouldDisplayTopLevelBottomTabBar && isAfterClosingTransition, shouldUseNarrowLayout, paddingBottom)}>
+        <View style={styles.topLevelBottomTabBar(shouldDisplayTopLevelBottomTabBar || isAfterClosingTransition, shouldUseNarrowLayout, paddingBottom)}>
             {/* We are not rendering BottomTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
             <BottomTabBar
                 selectedTab={selectedTab}
-                isTooltipAllowed={shouldDisplayTopLevelBottomTabBar}
+                isTooltipAllowed={shouldDisplayTopLevelBottomTabBar || isAfterClosingTransition}
             />
         </View>
     );
