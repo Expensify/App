@@ -555,7 +555,7 @@ function PureReportActionItem({
     const contextValue = useMemo(
         () => ({
             anchor: popoverAnchorRef.current,
-            report: report?.reportID ? {...report, reportID: report?.reportID} : undefined,
+            report,
             reportNameValuePairs,
             action,
             transactionThreadReport,
