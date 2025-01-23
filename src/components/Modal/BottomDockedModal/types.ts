@@ -1,62 +1,10 @@
 import type {ReactNode} from 'react';
-import type {Animated, NativeSyntheticEvent, NativeTouchEvent, PanResponderGestureState, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-type Direction = 'up' | 'down' | 'left' | 'right';
-
-type ScrollToEvent = {
-    scrollViewTag?: number;
-    x?: number;
-    y?: number;
-    animated?: boolean;
-};
-type GestureResponderEvent = NativeSyntheticEvent<NativeTouchEvent>;
-type AnimationEvent = ReturnType<typeof Animated.event>;
-
 type GestureProps = {
-    /** Whether swipe gestures should propagate to parent components */
-    propagateSwipe?: boolean | ((event?: GestureResponderEvent, gestureState?: PanResponderGestureState) => boolean);
-
-    /** Threshold for the pan responder to recognize the swipe gesture */
-    panResponderThreshold?: number;
-
-    /** Minimum swipe distance for the modal to close */
-    swipeThreshold?: number;
-
-    /** Allowed swipe direction(s) for the modal */
-    swipeDirection?: Direction | Direction[];
-
-    /** Scrolls to the specified position within the modal */
-    scrollTo?: ((e?: ScrollToEvent) => void) | null;
-
-    /** Vertical offset for scrolling */
-    scrollOffset?: number;
-
-    /** Maximum scroll offset value */
-    scrollOffsetMax?: number;
-
-    /** Whether scrolling is horizontal */
-    scrollHorizontal?: boolean;
-
-    /**  Callback when swipe gesture starts */
-    onSwipeStart?: (gestureState: PanResponderGestureState) => void;
-
-    /** Callback when swipe gesture moves */
-    onSwipeMove?: (percentageShown: number, gestureState: PanResponderGestureState) => void;
-
-    /** Callback when swipe gesture is completed */
-    onSwipeComplete?: (
-        params: {
-            swipingDirection: Direction;
-        },
-        gestureState: PanResponderGestureState,
-    ) => void;
-
-    /** Callback when swipe gesture is canceled */
-    onSwipeCancel?: (gestureState: PanResponderGestureState) => void;
-
     /** Height of the device (used for positioning) */
     deviceHeight?: number | null;
 
@@ -134,9 +82,6 @@ type ModalProps = ViewProps &
         /** Custom component to use as the backdrop */
         customBackdrop?: ReactNode;
 
-        /** Whether to use the native driver for animations */
-        useNativeDriver?: boolean;
-
         /** Whether to hide modal content during animations */
         hideModalContentWhileAnimating?: boolean;
 
@@ -174,9 +119,6 @@ type BackdropProps = {
     /** Style applied to the modal backdrop */
     style: StyleProp<ViewStyle>;
 
-    /** Whether modal has backdrop */
-    hasBackdrop: boolean;
-
     /** Custom backdrop component */
     customBackdrop?: ReactNode;
 
@@ -205,4 +147,4 @@ type ContainerProps = {
 };
 
 export default ModalProps;
-export type {GestureResponderEvent, AnimationEvent, Direction, BackdropProps, ContainerProps, GestureProps};
+export type {BackdropProps, ContainerProps, GestureProps};

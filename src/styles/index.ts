@@ -2670,6 +2670,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
         modalContainerBox: {
             zIndex: 2,
             opacity: 1,

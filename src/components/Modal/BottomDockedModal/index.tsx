@@ -1,16 +1,13 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {PanResponderInstance, ViewStyle} from 'react-native';
-import {Animated, BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, PanResponder, View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
+import noop from 'lodash/noop';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {ViewStyle} from 'react-native';
+import {BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type {EnhancedGestureEvent} from './panResponders';
-import {onMoveShouldSetPanResponder, onPanResponderMove, onPanResponderRelease, onStartShouldSetPanResponder} from './panResponders';
 import type ModalProps from './types';
-import type {AnimationEvent, Direction} from './types';
 
 function BottomDockedModal({
     testID,
@@ -28,28 +25,16 @@ function BottomDockedModal({
     customBackdrop = null,
     deviceHeight: deviceHeightProp = null,
     deviceWidth: deviceWidthProp = null,
-    propagateSwipe = false,
     isVisible = false,
-    panResponderThreshold = 4,
-    swipeThreshold = 100,
-    onModalWillShow = () => {},
-    onModalShow = () => {},
-    onModalWillHide = () => {},
-    onModalHide = () => {},
+    onModalWillShow = noop,
+    onModalShow = noop,
+    onModalWillHide = noop,
+    onModalHide = noop,
     onDismiss,
-    onBackdropPress = () => {},
-    onBackButtonPress = () => {},
+    onBackdropPress = noop,
+    onBackButtonPress = noop,
     style,
-    scrollTo = null,
-    scrollOffset = 0,
-    scrollOffsetMax = 0,
-    scrollHorizontal = false,
-    onSwipeStart,
-    onSwipeMove,
-    onSwipeComplete,
-    onSwipeCancel,
     statusBarTranslucent = false,
-    swipeDirection,
     ...props
 }: ModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -57,66 +42,8 @@ function BottomDockedModal({
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
-    const [pan, setPan] = useState(new Animated.ValueXY());
-    const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
-    const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
 
     const styles = useThemeStyles();
-
-    const isSwipeable = !!swipeDirection;
-    const currentSwipingDirectionRef = useRef<Direction | null>(null);
-    const animEvt = useRef<AnimationEvent | null>(null);
-    const yOffset = useSharedValue(0);
-    const xOffset = useSharedValue(0);
-
-    const setCurrentSwipingDirection = (direction: Direction | null) => {
-        currentSwipingDirectionRef.current = direction;
-    };
-
-    const setAnimEvt = (currentAnim: AnimationEvent | null): void => {
-        animEvt.current = currentAnim;
-    };
-
-    const buildPanResponder = useCallback(() => {
-        const gestureProps = {
-            propagateSwipe,
-            panResponderThreshold,
-            swipeThreshold,
-            swipeDirection,
-            scrollTo,
-            scrollOffset,
-            scrollOffsetMax,
-            scrollHorizontal,
-            onSwipeStart,
-            onSwipeMove,
-            onSwipeComplete,
-            onSwipeCancel,
-            deviceHeight: deviceHeightProp,
-            deviceWidth: deviceWidthProp,
-        };
-
-        setPanResponder(
-            PanResponder.create({
-                onMoveShouldSetPanResponder: onMoveShouldSetPanResponder(gestureProps, setAnimEvt, setCurrentSwipingDirection, pan),
-                onStartShouldSetPanResponder: (a, b) => onStartShouldSetPanResponder(gestureProps, setCurrentSwipingDirection)(a as EnhancedGestureEvent, b),
-                onPanResponderMove: onPanResponderMove(
-                    gestureProps,
-                    currentSwipingDirectionRef,
-                    setCurrentSwipingDirection,
-                    setAnimEvt,
-                    animEvt,
-                    pan,
-                    deviceHeight,
-                    deviceWidth,
-                    xOffset,
-                    yOffset,
-                    swipeDirection,
-                ),
-                onPanResponderRelease: onPanResponderRelease(gestureProps, currentSwipingDirectionRef, setInSwipeClosingState, xOffset, yOffset),
-            }),
-        );
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     const handleDimensionsUpdate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -151,15 +78,6 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        if (!isSwipeable) {
-            return;
-        }
-
-        setPan(new Animated.ValueXY());
-        buildPanResponder();
-    }, [isSwipeable, buildPanResponder]);
-
-    useEffect(() => {
         const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
@@ -184,10 +102,6 @@ function BottomDockedModal({
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            if (inSwipeClosingState) {
-                setInSwipeClosingState(false);
-            }
-
             onModalWillHide();
 
             setIsVisibleState(false);
@@ -221,16 +135,13 @@ function BottomDockedModal({
 
     const containerView = (
         <Container
+            pointerEvents="box-none"
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
-            style={style}
-            panPosition={isSwipeable ? {translateX: xOffset, translateY: yOffset} : undefined}
-            pointerEvents="box-none"
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
+            style={style}
         >
             {children}
         </Container>
@@ -240,7 +151,6 @@ function BottomDockedModal({
         <Backdrop
             style={backdropStyle}
             customBackdrop={customBackdrop}
-            hasBackdrop={hasBackdrop}
             onBackdropPress={onBackdropPress}
             animationInTiming={backdropTransitionInTiming}
             animationOutTiming={backdropTransitionOutTiming}
@@ -256,7 +166,7 @@ function BottomDockedModal({
             >
                 {isVisibleState && (
                     <>
-                        {backdropView}
+                        {hasBackdrop && backdropView}
                         {containerView}
                     </>
                 )}
@@ -282,7 +192,7 @@ function BottomDockedModal({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            {isVisibleState && backdropView}
+            {isVisibleState && hasBackdrop && backdropView}
 
             {avoidKeyboard ? (
                 <KeyboardAvoidingView

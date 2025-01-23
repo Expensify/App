@@ -1,37 +1,38 @@
 import React, {useEffect, useMemo} from 'react';
-import Animated, {Easing, Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const FadeOutKeyframe = new Keyframe({
-    0: {opacity: 1},
-    100: {opacity: 0, easing: Easing.out(Easing.ease)},
+    from: {opacity: 1},
+    to: {opacity: 0},
 });
 
 function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
-    const sv = useSharedValue(0);
-    const initiated = useSharedValue(false);
+    const styles = useThemeStyles();
+    const opacity = useSharedValue(0);
+    const isInitiated = useSharedValue(false);
 
     useEffect(() => {
-        if (initiated.get()) {
+        if (isInitiated.get()) {
             return;
         }
-        initiated.set(true);
-        sv.set(
-            withTiming(1, {duration: animationInTiming, easing: Easing.out(Easing.ease)}, () => {
+        isInitiated.set(true);
+        opacity.set(
+            withTiming(1, {duration: animationInTiming}, () => {
                 'worklet';
 
                 runOnJS(onOpenCallBack)();
             }),
         );
-    }, [animationInTiming, onOpenCallBack, sv, initiated]);
+    }, [animationInTiming, onOpenCallBack, opacity, isInitiated]);
 
     const animatedStyles = useAnimatedStyle(() => {
         'worklet';
 
-        return {opacity: sv.get()};
-    }, [sv]);
+        return {opacity: opacity.get()};
+    }, [opacity]);
 
     const FadeOut = useMemo(() => {
         return FadeOutKeyframe.duration(animationOutTiming).withCallback(() => {
@@ -43,12 +44,12 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
 
     return (
         <Animated.View
-            style={[style, {height: '100%'}]}
+            style={[style, styles.modalContainer]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             <Animated.View
-                style={[{width: '100%'}, animatedStyles]}
+                style={[styles.modalAnimatedContainer, animatedStyles]}
                 exiting={FadeOut}
             >
                 {props.children}

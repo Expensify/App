@@ -276,8 +276,8 @@ function BaseModal(
                     // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                    animationInTiming={animationInTiming ?? 300}
-                    animationOutTiming={animationOutTiming ?? 300}
+                    animationInTiming={animationInTiming}
+                    animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
                     navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}

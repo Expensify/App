@@ -1,18 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, FadeIn, Keyframe} from 'react-native-reanimated';
+import Animated, {FadeIn, Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const FadeOut = new Keyframe({
-    0: {opacity: 1},
-    100: {opacity: 0, easing: Easing.out(Easing.ease)},
+    from: {opacity: 1},
+    to: {opacity: 0},
 });
 
 function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 300, animationOutTiming = 300}: BackdropProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     if (!customBackdrop) {
         return (
@@ -22,10 +23,10 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
             >
                 <PressableWithoutFeedback
                     accessible
-                    accessibilityLabel="Modal Backdrop"
+                    accessibilityLabel={translate('modal.backdropLabel')}
                     onPress={onBackdropPress}
                 >
-                    <View style={[styles.modalBackdrop, style]}>{!!customBackdrop && customBackdrop}</View>
+                    <View style={[styles.modalBackdrop, style]} />
                 </PressableWithoutFeedback>
             </Animated.View>
         );

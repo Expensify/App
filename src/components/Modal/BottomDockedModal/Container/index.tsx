@@ -3,19 +3,21 @@ import {View} from 'react-native';
 import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const EnteringKeyframe = new Keyframe({
-    0: {transform: [{translateY: '100%'}]},
-    100: {transform: [{translateY: '0%'}]},
+    from: {transform: [{translateY: '100%'}]},
+    to: {transform: [{translateY: '0%'}]},
 });
 
 const ExitingKeyframe = new Keyframe({
-    0: {transform: [{translateY: '0%'}]},
-    100: {transform: [{translateY: '100%'}]},
+    from: {transform: [{translateY: '0%'}]},
+    to: {transform: [{translateY: '100%'}]},
 });
 
 function Container({style, animationInDelay = 100, animationInTiming = 300, animationOutTiming = 300, onCloseCallBack, onOpenCallBack, ...props}: Partial<ModalProps> & ContainerProps) {
+    const styles = useThemeStyles();
+
     const Entering = useMemo(() => {
         return EnteringKeyframe.delay(animationInDelay)
             .duration(animationInTiming)
@@ -36,12 +38,12 @@ function Container({style, animationInDelay = 100, animationInTiming = 300, anim
 
     return (
         <View
-            style={[style, {height: '100%'}]}
+            style={[style, styles.modalContainer]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             <Animated.View
-                style={{width: '100%'}}
+                style={styles.modalAnimatedContainer}
                 entering={Entering}
                 exiting={Exiting}
             >
