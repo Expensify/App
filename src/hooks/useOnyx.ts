@@ -63,11 +63,14 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 };
 
 // Helper function to get key data from snapshot
-const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey, initialValue?: TReturnValue) => {
+const getKeyData = <TKey extends OnyxKey, TReturnValue>(
+    snapshotData: SearchResults,
+    key: TKey,
+    initialValue?: TReturnValue
+): TReturnValue => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result: Record<string, any> = initialValue ?? {};
+        const result: Record<string, any> = {};
         const prefix = key;
 
         // Get all keys that start with the prefix
@@ -77,9 +80,9 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
             }
             result[dataKey] = value;
         });
-        return result;
+        return (Object.keys(result).length > 0 ? result : initialValue) as TReturnValue;
     }
-    return getDataByPath(snapshotData?.data, key);
+    return (getDataByPath(snapshotData?.data, key) ?? initialValue) as TReturnValue;
 };
 
 function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
