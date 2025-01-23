@@ -70,7 +70,7 @@ jobs:
           git submodule update --init --remote
           # TODO: Remove these two lines before merging
           git fetch
-          git checkout e85d2d976db27c549baebd7163b95697172aab09
+          git checkout main
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
