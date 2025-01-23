@@ -18,12 +18,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
-import * as Task from '@userActions/Task';
+import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,8 +40,8 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const parsedDescription = ReportUtils.getParsedComment(values?.description);
-            const taskDescriptionLength = ReportUtils.getCommentLength(parsedDescription);
+            const parsedDescription = getParsedComment(values?.description);
+            const taskDescriptionLength = getCommentLength(parsedDescription);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
@@ -56,7 +56,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
-                Task.editTask(report, {description: values.description});
+                editTask(report, {description: values.description});
             }
 
             Navigation.dismissModal(report?.reportID);
@@ -64,7 +64,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
         [report],
     );
 
-    if (!ReportUtils.isTaskReport(report)) {
+    if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal(report?.reportID);
         });
@@ -72,9 +72,9 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isOpen = isOpenTaskReport(report);
+    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 
     useFocusEffect(
         useCallback(() => {

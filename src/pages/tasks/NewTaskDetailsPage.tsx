@@ -74,7 +74,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            setShareDestinationValue(task?.parentReportID ?? '-1');
+            setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
             createTaskAndNavigate(task?.parentReportID ?? '-1', values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
