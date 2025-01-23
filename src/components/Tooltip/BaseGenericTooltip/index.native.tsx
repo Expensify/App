@@ -4,8 +4,8 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -115,7 +115,7 @@ function BaseGenericTooltip({
         );
     }
 
-    const Wrapper = isEducationTooltip ? Animated.createAnimatedComponent(PressableWithoutFeedback) : Animated.View;
+    const Wrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>

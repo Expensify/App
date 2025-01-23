@@ -3,9 +3,9 @@ import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import {PopoverContext} from '@components/PopoverProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -139,7 +139,7 @@ function BaseGenericTooltip({
         );
     }
 
-    const Wrapper = isEducationTooltip ? Animated.createAnimatedComponent(PressableWithoutFeedback) : Animated.View;
+    const Wrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
 
     const body = document.querySelector('body');
 
