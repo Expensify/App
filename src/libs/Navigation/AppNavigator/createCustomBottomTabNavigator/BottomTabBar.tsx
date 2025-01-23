@@ -10,8 +10,8 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
+import {useReportIDs} from '@hooks/useReportIDs';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -70,17 +70,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {currentReportID} = useCurrentReportID() ?? {};
+    const {orderedReportIDs} = useReportIDs();
     const [user] = useOnyx(ONYXKEYS.USER);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
-        getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
-    );
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const isFocused = useBottomTabIsFocused();
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
@@ -89,10 +82,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         selectedTab !== SCREENS.HOME && isFocused,
     );
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
+    }, [activeWorkspaceID, orderedReportIDs, reportActions]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
@@ -138,12 +131,6 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
                     activeWorkspaceID={activeWorkspaceID}
-                    reports={reports}
-                    currentReportID={currentReportID}
-                    betas={betas}
-                    policies={policies}
-                    transactionViolations={transactionViolations}
-                    priorityMode={priorityMode}
                 />
             )}
             <View style={styles.bottomTabBarContainer}>
