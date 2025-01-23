@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
-index 673ebd1..22970af 100644
+index 673ebd1..08d65fe 100644
 --- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
 +++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
 @@ -710,6 +710,15 @@ void NativeReanimatedModule::performOperations() {
@@ -14,8 +14,7 @@ index 673ebd1..22970af 100644
 +    // will be applied in ReanimatedCommitHook.
 +    return;
 +  }
-+  
++
    bool hasLayoutUpdates = false;
    for (const auto &[shadowNode, props] : copiedOperationsQueue) {
      if (isThereAnyLayoutProp(rt, props->asObject(rt))) {
-      
