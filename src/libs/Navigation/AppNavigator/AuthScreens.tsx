@@ -384,7 +384,7 @@ function AuthScreens() {
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Session.checkIfActionIsAllowed(() => {
+                Session.callFnIfActionIsAllowed(() => {
                     const state = navigationRef.getRootState();
                     const currentFocusedRoute = findFocusedRoute(state);
                     if (isOnboardingFlowName(currentFocusedRoute?.name)) {
@@ -401,7 +401,7 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Modal.close(Session.callFnIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,

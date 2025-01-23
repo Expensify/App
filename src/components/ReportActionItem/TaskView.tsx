@@ -63,7 +63,7 @@ function TaskView({report}: TaskViewProps) {
                 <Hoverable>
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
-                            onPress={Session.checkIfActionIsAllowed((e) => {
+                            onPress={Session.callFnIfActionIsAllowed((e) => {
                                 if (isDisableInteractive) {
                                     return;
                                 }
@@ -87,7 +87,7 @@ function TaskView({report}: TaskViewProps) {
                                     <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
-                                            onPress={Session.checkIfActionIsAllowed(() => {
+                                            onPress={Session.callFnIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                 if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
                                                     return;

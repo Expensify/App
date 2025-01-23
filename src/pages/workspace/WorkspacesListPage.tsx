@@ -28,7 +28,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
-import {checkIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
+import {callFnIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
@@ -203,7 +203,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: checkIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                    onSelected: callFnIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
                 });
             }
 

@@ -31,7 +31,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 success
                 isDisabled={!Task.canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => {
+                onPress={Session.callFnIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                     if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
                         return;

@@ -24,7 +24,7 @@ function PinButton({report}: PinButtonProps) {
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>
             <PressableWithFeedback
-                onPress={Session.checkIfActionIsAllowed(() => ReportActions.togglePinnedState(report.reportID, report.isPinned ?? false))}
+                onPress={Session.callFnIfActionIsAllowed(() => ReportActions.togglePinnedState(report.reportID, report.isPinned ?? false))}
                 style={styles.touchableButtonImage}
                 accessibilityLabel={report.isPinned ? translate('common.unPin') : translate('common.pin')}
                 role={CONST.ROLE.BUTTON}

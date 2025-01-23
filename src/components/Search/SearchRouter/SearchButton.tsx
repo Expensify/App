@@ -32,7 +32,7 @@ function SearchButton({style}: SearchButtonProps) {
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 // eslint-disable-next-line react-compiler/react-compiler
-                onPress={Session.checkIfActionIsAllowed(() => {
+                onPress={Session.callFnIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
 
                     Timing.start(CONST.TIMING.OPEN_SEARCH);

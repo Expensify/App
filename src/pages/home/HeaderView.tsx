@@ -59,7 +59,7 @@ import {
 } from '@libs/ReportUtils';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -152,7 +152,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
-    const join = checkIfActionIsAllowed(() => joinRoom(report));
+    const join = callFnIfActionIsAllowed(() => joinRoom(report));
 
     const canJoin = canJoinChat(report, parentReportAction, policy);
 

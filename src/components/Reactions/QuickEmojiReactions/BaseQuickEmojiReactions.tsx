@@ -35,7 +35,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={Session.checkIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                            onPress={Session.callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                         />
                     </View>
                 </Tooltip>

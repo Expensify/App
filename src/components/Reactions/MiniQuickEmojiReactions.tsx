@@ -67,7 +67,7 @@ function MiniQuickEmojiReactions({
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={Session.checkIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                    onPress={Session.callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
@@ -79,7 +79,7 @@ function MiniQuickEmojiReactions({
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.checkIfActionIsAllowed(() => {
+                onPress={Session.callFnIfActionIsAllowed(() => {
                     if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
                         openEmojiPicker();
                     } else {

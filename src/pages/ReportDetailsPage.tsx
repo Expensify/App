@@ -124,7 +124,7 @@ import {
     setDeleteTransactionNavigateBackUrl,
     updateGroupChatAvatar,
 } from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -512,7 +512,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     icon: Expensicons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
-                    action: checkIfActionIsAllowed(() => {
+                    action: callFnIfActionIsAllowed(() => {
                         Navigation.dismissModal();
                         reopenTask(report);
                     }),

@@ -108,7 +108,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
                             disabled={!Task.canActionTask(taskReport, currentUserPersonalDetails.accountID, taskOwnerAccountID, taskAssigneeAccountID)}
-                            onPress={Session.checkIfActionIsAllowed(() => {
+                            onPress={Session.callFnIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport, taskReportID);
                                 } else {

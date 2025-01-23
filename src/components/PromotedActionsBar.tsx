@@ -54,7 +54,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: Expensicons.ChatBubbles,
         text: Localize.translateLocal('common.join'),
-        onSelected: Session.checkIfActionIsAllowed(() => {
+        onSelected: Session.callFnIfActionIsAllowed(() => {
             Navigation.dismissModal();
             ReportActions.joinRoom(report);
         }),

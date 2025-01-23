@@ -15,7 +15,7 @@ import getButtonState from '@libs/getButtonState';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -611,7 +611,7 @@ function MenuItem(
                     <Hoverable>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress ? callFnIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}

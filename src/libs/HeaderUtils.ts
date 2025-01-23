@@ -13,7 +13,7 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     return {
         icon: Expensicons.Pin,
         text: Localize.translateLocal(isPinned ? 'common.unPin' : 'common.pin'),
-        onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, isPinned)),
+        onSelected: Session.callFnIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, isPinned)),
     };
 }
 

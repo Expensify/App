@@ -90,7 +90,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
-                onPress={Session.checkIfActionIsAllowed(onPress)}
+                onPress={Session.callFnIfActionIsAllowed(onPress)}
                 onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
                     if (!event || event.button === 2) {

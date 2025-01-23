@@ -122,7 +122,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={Session.callFnIfActionIsAllowed(() => flagComment(item.severity))}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}
