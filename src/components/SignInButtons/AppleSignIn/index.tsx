@@ -3,8 +3,8 @@ import React, {useEffect, useState} from 'react';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
+import {beginAppleSignIn} from '@libs/actions/Session';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
@@ -46,7 +46,7 @@ const config = {
 
 const successListener = (event: AppleIDSignInOnSuccessEvent) => {
     const token = event.detail.authorization.id_token;
-    Session.beginAppleSignIn(token);
+    beginAppleSignIn(token);
 };
 
 const failureListener = (event: AppleIDSignInOnFailureEvent) => {
