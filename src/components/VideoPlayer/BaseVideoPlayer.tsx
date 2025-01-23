@@ -20,7 +20,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
@@ -88,7 +88,7 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
@@ -390,7 +390,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {

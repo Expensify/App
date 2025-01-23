@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -63,7 +63,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const cellWidth = useMemo(
