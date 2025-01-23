@@ -1752,13 +1752,12 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+    if (!reportID || !originalReportAction) {
+        return;
+    }
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-
-    if (!originalReportID || !originalReportAction) {
-        return;
-    }
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
