@@ -968,7 +968,7 @@ const translations = {
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the ${amount} payment`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1463,8 +1463,8 @@ const translations = {
         getPaidBackFaster: 'Get paid back faster',
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
-        expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends.',
+        expensifyWallet: 'Expensify Wallet (Beta)',
+        sendAndReceiveMoney: 'Send and receive money with friends. US bank accounts only.',
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
@@ -2022,6 +2022,17 @@ const translations = {
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Please enter a valid percentage number.',
         },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: "Where's your bank account located?",
+        accountDetailsStepHeader: 'What are your account details?',
+        accountTypeStepHeader: 'What type of account is this?',
+        bankInformationStepHeader: 'What are your bank details?',
+        accountHolderInformationStepHeader: 'What are the account holder details?',
+        howDoWeProtectYourData: 'How do we protect your data?',
+        currencyHeader: "What's your bank account's currency?",
+        confirmationStepHeader: 'Check your info.',
+        confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -2648,6 +2659,7 @@ const translations = {
             planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
+            viewTransactions: 'View transactions',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -4884,7 +4896,7 @@ const translations = {
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
-                integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `failed to export this report to ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `failed to export this report to ${label} ("${errorMessage}")`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
@@ -5218,7 +5230,7 @@ const translations = {
     },
     violationDismissal: {
         rter: {
-            manual: 'marked this receipt as cash.',
+            manual: 'marked this receipt as cash',
         },
         duplicatedTransaction: {
             manual: 'resolved the duplicate',
