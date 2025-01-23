@@ -460,10 +460,10 @@ If you're having trouble importing your Categories, you'll want to start by chec
 
 If you have confirmed that your categories are set as Expense Categories in NetSuite and they still aren't importing to Expensify, make sure that the subsidiary of the Expense Category matches the subsidiary selected in your connection settings.
 
-## What's the difference between a Custom Segment, Custom Record and Custom List?
+## What's the difference between a Custom Segment, Custom Record, and Custom List?
 
-- **Custom Segment**: This is a tagging tool for transactions and records, used for reporting and GL classification. Think of it as a dynamic dropdown powered by Custom Records that integrates seamlessly with your GL.
-- **Custom Record**: A flexible data structure for storing and relating complex information not covered by standard records, often used for workflows or additional data tracking.
-- **Custom List**: A static, single-column dropdown for simple options, like "Preferred Contact Method." No relationships or GL impact.
+- **Custom Record**: This is a completely customizable record type used to store detailed, structured information not covered by standard NetSuite records (e.g., customers, vendors, and transactions). Unlike Segments, Custom Records are designed to manage standalone data, like tracking projects, assets, or other entities.
+- **Custom Segment**: A custom classification field, similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financials. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
+- **Custom List**: A static dropdown of predefined values used for simple selections, like "Preferred Contact Method." Custom Lists are lightweight and don’t support complex relationships or GL impacts.
 
 {% include faq-end.md %}
