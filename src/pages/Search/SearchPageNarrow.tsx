@@ -103,45 +103,47 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
         >
-            {!selectionMode?.isEnabled ? (
-                <>
-                    <View style={[styles.zIndex10, styles.appBG]}>
-                        <TopBar
-                            activeWorkspaceID={policyID}
-                            breadcrumbLabel={translate('common.reports')}
-                            shouldDisplaySearch={shouldUseNarrowLayout}
-                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
-                        />
-                    </View>
-                    {shouldUseNarrowLayout ? (
-                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
+            <View style={[styles.flex1, {overflow: 'hidden'}]}>
+                {!selectionMode?.isEnabled ? (
+                    <>
+                        <View style={[styles.zIndex10, styles.appBG]}>
+                            <TopBar
+                                activeWorkspaceID={policyID}
+                                breadcrumbLabel={translate('common.reports')}
+                                shouldDisplaySearch={shouldUseNarrowLayout}
+                                shouldDisplayCancelSearch={shouldDisplayCancelSearch}
+                            />
+                        </View>
+                        {shouldUseNarrowLayout ? (
+                            <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
+                                <SearchTypeMenu
+                                    queryJSON={queryJSON}
+                                    searchName={searchName}
+                                />
+                                <SearchStatusBar
+                                    queryJSON={queryJSON}
+                                    onStatusChange={() => {
+                                        topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                    }}
+                                />
+                            </Animated.View>
+                        ) : (
                             <SearchTypeMenu
                                 queryJSON={queryJSON}
                                 searchName={searchName}
                             />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                onStatusChange={() => {
-                                    topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
-                                }}
-                            />
-                        </Animated.View>
-                    ) : (
-                        <SearchTypeMenu
-                            queryJSON={queryJSON}
-                            searchName={searchName}
-                        />
-                    )}
-                </>
-            ) : (
-                <SearchSelectionModeHeader queryJSON={queryJSON} />
-            )}
-            <Search
-                queryJSON={queryJSON}
-                onSearchListScroll={scrollHandler}
-                onContentSizeChange={onContentSizeChange}
-                contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-            />
+                        )}
+                    </>
+                ) : (
+                    <SearchSelectionModeHeader queryJSON={queryJSON} />
+                )}
+                <Search
+                    queryJSON={queryJSON}
+                    onSearchListScroll={scrollHandler}
+                    onContentSizeChange={onContentSizeChange}
+                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
