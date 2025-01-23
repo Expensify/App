@@ -46,6 +46,9 @@ const ONYXKEYS = {
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
+    /** Keeps track if there is a full screen currently visible or not */
+    FULLSCREEN_VISIBILITY: 'fullscreenVisibility',
+
     /** Has information about the network status (offline/online) */
     NETWORK: 'network',
 
@@ -919,6 +922,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
+    [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;

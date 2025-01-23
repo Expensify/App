@@ -107,10 +107,12 @@ import {
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
+    isArchivedReportWithID,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -135,7 +137,6 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
-    getAllReportTransactions,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getCurrency,
@@ -7634,7 +7635,7 @@ function getPayMoneyRequestParams(
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getAllReportTransactions(iouReport?.reportID);
+        const reportTransactions = getReportTransactions(iouReport?.reportID);
         for (const transaction of reportTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -7756,9 +7757,9 @@ function canApproveIOU(
     const isApproved = isReportApproved(iouReport);
     const iouSettled = isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
+    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     let isTransactionBeingScanned = false;
-    const reportTransactions = getAllReportTransactions(iouReport?.reportID);
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
         const hasReceipt = hasReceiptTransactionUtils(transaction);
         const isReceiptBeingScanned = isReceiptBeingScannedTransactionUtils(transaction);
@@ -7785,7 +7786,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = isArchivedReport(chatReport, reportNameValuePairs);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -7849,7 +7850,7 @@ function canSubmitReport(
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-    const isArchived = isArchivedReport(report);
+    const isArchived = isArchivedReportWithID(report?.reportID);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);

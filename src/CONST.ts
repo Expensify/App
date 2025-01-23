@@ -902,6 +902,7 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    EMPTY_STRING: '',
     DEFAULT_NUMBER_ID: 0,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
@@ -4629,6 +4630,8 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
+        /** Use for Tooltips */
+        TOOLTIP: 'tooltip',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
