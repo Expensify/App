@@ -807,6 +807,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -837,6 +838,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -908,6 +910,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
         });
@@ -923,6 +926,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
 
             it("it is user's own policy expense chat", () => {
@@ -937,6 +941,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
         });
     });
