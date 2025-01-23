@@ -2,6 +2,7 @@ import {FullStory, init, isInitialized} from '@fullstory/browser';
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
@@ -136,7 +137,7 @@ const FS = {
         try {
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME || Session.isSupportAuthToken()) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     FullStory('shutdown');
                     return;
