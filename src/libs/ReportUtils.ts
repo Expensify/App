@@ -11,7 +11,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
@@ -158,7 +158,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import {
-    getAllReportTransactions,
     getAttendees,
     getBillable,
     getCardID,
@@ -514,22 +513,25 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticTaskReport = Pick<
-    Report,
-    | 'reportID'
-    | 'reportName'
-    | 'description'
-    | 'ownerAccountID'
-    | 'participants'
-    | 'managerID'
-    | 'type'
-    | 'parentReportID'
-    | 'policyID'
-    | 'stateNum'
-    | 'statusNum'
-    | 'parentReportActionID'
-    | 'lastVisibleActionCreated'
-    | 'hasParentAccess'
+type OptimisticTaskReport = SetRequired<
+    Pick<
+        Report,
+        | 'reportID'
+        | 'reportName'
+        | 'description'
+        | 'ownerAccountID'
+        | 'participants'
+        | 'managerID'
+        | 'type'
+        | 'parentReportID'
+        | 'policyID'
+        | 'stateNum'
+        | 'statusNum'
+        | 'parentReportActionID'
+        | 'lastVisibleActionCreated'
+        | 'hasParentAccess'
+    >,
+    'parentReportID'
 >;
 
 type TransactionDetails = {
@@ -787,7 +789,7 @@ Onyx.connect({
 
         reportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
             const reportsMap = all;
-            if (!transaction) {
+            if (!transaction?.reportID) {
                 return reportsMap;
             }
 
@@ -896,6 +898,14 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
  */
 function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+}
+
+function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
+    if (!transactions || !reportID) {
+        return [];
+    }
+
+    return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
 
 function getReportTransactions(reportID: string | undefined): Transaction[] {
@@ -1893,7 +1903,7 @@ function isPayAtEndExpenseReport(reportID: string | undefined, transactions: Tra
         return false;
     }
 
-    return isPayAtEndExpense(transactions?.[0] ?? getAllReportTransactions(reportID).at(0));
+    return isPayAtEndExpense(transactions?.[0] ?? getReportTransactions(reportID).at(0));
 }
 
 /**
@@ -2990,7 +3000,7 @@ function getReasonAndReportActionThatRequiresAttention(
 
     const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
-    const transactions = getAllReportTransactions(iouReportID);
+    const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
@@ -3189,6 +3199,10 @@ function getReportFieldKey(reportFieldId: string | undefined) {
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
+    if (!policyID) {
+        return {};
+    }
+
     const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
     const fieldList = policyReportFields?.[1]?.fieldList;
 
@@ -3730,7 +3744,7 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    const allReportTransactions = getAllReportTransactions(report.reportID);
+    const allReportTransactions = getReportTransactions(report.reportID);
     const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
     const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
 
@@ -4799,7 +4813,7 @@ function buildOptimisticIOUReport(
     payeeAccountID: number,
     payerAccountID: number,
     total: number,
-    chatReportID: string,
+    chatReportID: string | undefined,
     currency: string,
     isSendingMoney = false,
     parentReportActionID?: string,
@@ -4871,7 +4885,14 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 }
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
-function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
+function buildOptimisticInvoiceReport(
+    chatReportID: string,
+    policyID: string | undefined,
+    receiverAccountID: number,
+    receiverName: string,
+    total: number,
+    currency: string,
+): OptimisticExpenseReport {
     const formattedTotal = convertToDisplayString(total, currency);
     const invoiceReport = {
         reportID: generateReportID(),
@@ -4943,8 +4964,8 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>) {
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  */
 function buildOptimisticExpenseReport(
-    chatReportID: string,
-    policyID: string,
+    chatReportID: string | undefined,
+    policyID: string | undefined,
     payeeAccountID: number,
     total: number,
     currency: string,
@@ -5545,7 +5566,7 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param transactionThreadID - The reportID of the transaction thread
  * @param movedToReportID - The reportID of the report the transaction is moved to
  */
-function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string | undefined, movedToReportID: string | undefined): OptimisticModifiedExpenseReportAction {
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     return {
@@ -6351,8 +6372,8 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
 
 function buildOptimisticTaskReport(
     ownerAccountID: number,
+    parentReportID: string,
     assigneeAccountID = 0,
-    parentReportID?: string,
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -7805,7 +7826,10 @@ function getWorkspaceChats(policyID: string, accountIDs: number[], reports: Onyx
  *
  * @param policyID - the workspace ID to get all associated reports
  */
-function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
+function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
+    if (!policyID) {
+        return [];
+    }
     return Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
 }
 
@@ -8512,13 +8536,6 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<R
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport);
 }
 
-function getTripTransactions(tripRoomReportID: string | undefined, reportFieldToCompare: 'parentReportID' | 'reportID' = 'parentReportID'): Transaction[] {
-    const tripTransactionReportIDs = Object.values(allReports ?? {})
-        .filter((report) => report && report?.[reportFieldToCompare] === tripRoomReportID)
-        .map((report) => report?.reportID);
-    return tripTransactionReportIDs.flatMap((reportID) => getReportTransactions(reportID));
-}
-
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
     return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
@@ -8781,10 +8798,6 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     }
 
     return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
-}
-
-function shouldShowMerchantColumn(transactions: Transaction[]) {
-    return transactions.some((transaction) => isExpenseReport(allReports?.[transaction.reportID] ?? null));
 }
 
 /**
@@ -9170,6 +9183,8 @@ export {
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
+    getReportTransactions,
+    reportTransactionsSelector,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
@@ -9321,11 +9336,9 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
-    getTripTransactions,
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
-    shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
     changeMoneyRequestHoldStatus,
