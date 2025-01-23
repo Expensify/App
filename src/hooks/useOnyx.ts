@@ -63,11 +63,11 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 };
 
 // Helper function to get key data from snapshot
-const getKeyData = <TKey extends OnyxKey>(snapshotData: SearchResults, key: TKey) => {
+const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey, initialValue?: TReturnValue) => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result: Record<string, any> = {};
+        const result: Record<string, any> = initialValue ?? {};
         const prefix = key;
 
         // Get all keys that start with the prefix
@@ -98,7 +98,6 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     dependencies: DependencyList = [],
 ): UseOnyxResult<TReturnValue> {
     const {isOnSearch, hashKey} = useSearchState();
-
     // In search mode, get the entire snapshot
     const [snapshotData, metadata] = originalUseOnyx(
         isOnSearch ? (`snapshot_${hashKey}` as TKey) : key,
@@ -111,7 +110,7 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
         if (!isOnSearch || !snapshotData || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
             return [snapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
-        const keyData = getKeyData(snapshotData as unknown as SearchResults, key);
+        const keyData = getKeyData(snapshotData as unknown as SearchResults, key, options?.initialValue);
         return [keyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
     }, [isOnSearch, key, snapshotData, metadata]);
 
