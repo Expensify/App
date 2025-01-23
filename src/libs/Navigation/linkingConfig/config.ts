@@ -244,6 +244,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
@@ -1176,6 +1180,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
