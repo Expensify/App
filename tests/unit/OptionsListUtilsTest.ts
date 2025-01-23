@@ -152,7 +152,6 @@ describe('OptionsListUtils', () => {
             // This indicates that the report is archived
             stateNum: 2,
             statusNum: 2,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             private_isArchived: DateUtils.getDBTime(),
         },
     };
@@ -478,7 +477,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -488,7 +487,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -502,7 +504,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -526,7 +528,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we provide a "selected" option to getValidOptions()
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
 
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -548,7 +550,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -560,7 +562,10 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
@@ -576,7 +581,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -761,8 +766,8 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
-            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS});
-            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
             expect(filterOptions.recentReports.length).toBe(0);
         });
 
@@ -770,7 +775,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
 
             const options = OptionsListUtils.getSearchOptions(OPTIONS);
-            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
@@ -987,17 +992,65 @@ describe('OptionsListUtils', () => {
                     expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
+
+        it('should filter out duplicated entries by login', () => {
+            const login = 'brucebanner@expensify.com';
+
+            // Duplicate personalDetails entries and reassign to OPTIONS
+            OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '');
+            const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
+
+            // There should be 2 unique login entries
+            expect(filteredOptions.personalDetails.length).toBe(2);
+            expect(matchingEntries.length).toBe(1);
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
-        it('should not allow to create option if email is an email of current user', () => {
+        const VALID_EMAIL = 'valid@email.com';
+        it('should allow to create optimistic personal detail option if email is valid', () => {
+            const currentUserEmail = 'tonystark@expensify.com';
             const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: OPTIONS.personalDetails,
-                currentUserOption: null,
+                searchValue: VALID_EMAIL,
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as ReportUtils.OptionData,
+                // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
+                // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
+                // This is a performance optimization.
+                personalDetailsOptions: [],
+                recentReportOptions: [],
+            });
+
+            expect(canCreate).toBe(true);
+        });
+
+        it('should not allow to create option if email is an email of current user', () => {
+            const currentUserEmail = 'tonystark@expensify.com';
+            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
+                searchValue: currentUserEmail,
+                recentReportOptions: [],
+                personalDetailsOptions: [],
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as ReportUtils.OptionData,
             });
 
             expect(canCreate).toBe(false);
         });
+    });
+
+    it('createOptionList() localization', () => {
+        const reports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+        expect(reports.at(9)?.subtitle).toBe('Workspace');
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+            .then(() => {
+                const newReports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                expect(newReports.at(9)?.subtitle).toBe('Espacio de trabajo');
+            });
     });
 });

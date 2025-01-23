@@ -14,6 +14,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('@src/components/Icon/Expensicons');
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -46,7 +47,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
@@ -101,7 +101,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };

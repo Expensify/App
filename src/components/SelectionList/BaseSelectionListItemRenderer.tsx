@@ -1,7 +1,8 @@
 import React from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isReportListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -11,6 +12,8 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
+        titleStyles?: StyleProp<TextStyle>;
+        titleContainerStyles?: StyleProp<ViewStyle>;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -37,10 +40,12 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldSyncFocus,
     shouldHighlightSelectedItem,
     wrapperStyle,
+    titleStyles,
     singleExecution,
+    titleContainerStyles,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (SearchUIUtils.isReportListItemType(item)) {
+        if (isReportListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
@@ -82,6 +87,8 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
+                titleStyles={titleStyles}
+                titleContainerStyles={titleContainerStyles}
             />
             {item.footerContent && item.footerContent}
         </>

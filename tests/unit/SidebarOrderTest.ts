@@ -17,6 +17,7 @@ jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 
 describe('Sidebar', () => {
     beforeAll(() =>
@@ -831,7 +832,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = LHNTestUtils.getFakeReport([1, 3]);
@@ -983,7 +983,6 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 lastMessageText: 'test',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = {

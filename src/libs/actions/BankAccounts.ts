@@ -11,20 +11,22 @@ import type {
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
+import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form';
-import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as ReimbursementAccount from './ReimbursementAccount';
+import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -62,8 +64,14 @@ function clearPlaid(): Promise<void | void[]> {
     return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
 
+function clearInternationalBankAccount() {
+    return clearPlaid()
+        .then(() => Onyx.set(ONYXKEYS.CORPAY_FIELDS, null))
+        .then(() => Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, null));
+}
+
 function openPlaidView() {
-    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+    clearPlaid().then(() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
 function setPlaidEvent(eventName: string | null) {
@@ -73,10 +81,16 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
-    clearPlaid().then(() => {
+function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: string, source?: string, isUserValidated = true) {
+    clearInternationalBankAccount().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        if (policyID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+        }
+        if (source) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
@@ -161,7 +175,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = t
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -196,7 +210,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount) {
+function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -207,6 +221,12 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
     };
+    if (policyID) {
+        parameters.policyID = policyID;
+    }
+    if (source) {
+        parameters.source = source;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -244,7 +264,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -334,7 +354,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.validationAmounts'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -344,8 +364,6 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
 }
 
 function getCorpayBankAccountFields(country: string, currency: string) {
-    // TODO - Use parameters when API is ready
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const parameters = {
         countryISO: country,
         currency,
@@ -353,155 +371,146 @@ function getCorpayBankAccountFields(country: string, currency: string) {
         isBusinessBankAccount: true,
     };
 
-    // return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters);
-    return {
-        bankCountry: 'AU',
-        bankCurrency: 'AUD',
-        classification: 'Business',
-        destinationCountry: 'AU',
-        formFields: [
+    const onyxData: OnyxData = {
+        optimisticData: [
             {
-                errorMessage: 'Swift must be less than 12 characters',
-                id: 'swiftBicCode',
-                isRequired: false,
-                isRequiredInValueSet: true,
-                label: 'Swift Code',
-                regEx: '^.{0,12}$',
-                validationRules: [
-                    {
-                        errorMessage: 'Swift must be less than 12 characters',
-                        regEx: '^.{0,12}$',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
-            },
-            {
-                errorMessage: 'Beneficiary Bank Name must be less than 250 characters',
-                id: 'bankName',
-                isRequired: true,
-                isRequiredInValueSet: true,
-                label: 'Bank Name',
-                regEx: '^.{0,250}$',
-                validationRules: [
-                    {
-                        errorMessage: 'Beneficiary Bank Name must be less than 250 characters',
-                        regEx: '^.{0,250}$',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
-            },
-            {
-                errorMessage: 'City must be less than 100 characters',
-                id: 'bankCity',
-                isRequired: true,
-                isRequiredInValueSet: true,
-                label: 'Bank City',
-                regEx: '^.{0,100}$',
-                validationRules: [
-                    {
-                        errorMessage: 'City must be less than 100 characters',
-                        regEx: '^.{0,100}$',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
-            },
-            {
-                errorMessage: 'Bank Address Line 1 must be less than 1000 characters',
-                id: 'bankAddressLine1',
-                isRequired: true,
-                isRequiredInValueSet: true,
-                label: 'Bank Address',
-                regEx: '^.{0,1000}$',
-                validationRules: [
-                    {
-                        errorMessage: 'Bank Address Line 1 must be less than 1000 characters',
-                        regEx: '^.{0,1000}$',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
-            },
-            {
-                detailedRule: [
-                    {
-                        isRequired: true,
-                        value: [
-                            {
-                                errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
-                                regEx: '^.{1,50}$',
-                                ruleDescription: '1 to 50 characters',
-                            },
-                        ],
-                    },
-                ],
-                errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
-                id: 'accountNumber',
-                isRequired: true,
-                isRequiredInValueSet: true,
-                label: 'Account Number (iACH)',
-                regEx: '^.{1,50}$',
-                validationRules: [
-                    {
-                        errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
-                        regEx: '^.{1,50}$',
-                        ruleDescription: '1 to 50 characters',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
-            },
-            {
-                detailedRule: [
-                    {
-                        isRequired: true,
-                        value: [
-                            {
-                                errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
-                                regEx: '^[0-9]{6}$',
-                                ruleDescription: 'Exactly 6 digits',
-                            },
-                        ],
-                    },
-                ],
-                errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
-                id: 'routingCode',
-                isRequired: true,
-                isRequiredInValueSet: true,
-                label: 'BSB Number',
-                regEx: '^[0-9]{6}$',
-                validationRules: [
-                    {
-                        errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
-                        regEx: '^[0-9]{6}$',
-                        ruleDescription: 'Exactly 6 digits',
-                    },
-                    {
-                        errorMessage: 'The following characters are not allowed: <,>, "',
-                        regEx: '^[^<>\\x22]*$',
-                    },
-                ],
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: true,
+                    isSuccess: false,
+                },
             },
         ],
-        paymentMethods: ['E'],
-        preferredMethod: 'E',
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: false,
+                    isSuccess: false,
+                },
+            },
+        ],
     };
+
+    return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters, onyxData);
+}
+
+function createCorpayBankAccount(fields: ReimbursementAccountForm) {
+    const parameters = {
+        type: 1,
+        isSavings: false,
+        isWithdrawal: true,
+        inputs: JSON.stringify(fields),
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    isCreateCorpayBankAccount: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    isCreateCorpayBankAccount: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    isCreateCorpayBankAccount: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, parameters, onyxData);
+}
+
+function getCorpayOnboardingFields(country: Country | '') {
+    return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
+}
+
+function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetails, bankAccountID: number) {
+    const formattedParams = {
+        inputs: JSON.stringify(parameters),
+        bankAccountID,
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, formattedParams, onyxData);
 }
 
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
+function clearReimbursementAccountBankCreation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
+}
+
+function clearReimbursementAccountSaveCorpayOnboardingCompanyDetails() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingCompanyFields: null});
 }
 
 /**
@@ -625,11 +634,11 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID: policyID ?? '-1',
+        policyID,
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
@@ -695,10 +704,60 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     const errorFields: FormInputErrors<AccountFormValues> = {};
 
     if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = Localize.translateLocal('bankAccount.error.youNeedToSelectAnOption');
+        errorFields.selectedPlaidAccountID = translateLocal('bankAccount.error.youNeedToSelectAnOption');
     }
 
     return errorFields;
+}
+
+function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdrawal?: boolean, isBusinessBankAccount?: boolean) {
+    API.write(
+        WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS,
+        {countryISO: bankCountry, currency: bankCurrency, isWithdrawal, isBusinessBankAccount},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                    value: {
+                        bankCountry,
+                        bankCurrency: bankCurrency ?? null,
+                    },
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+    const inputData = {
+        ...data,
+        classification,
+        destinationCountry,
+        preferredMethod,
+        setupType: 'manual',
+        fieldsType: 'international',
+        country: data.bankCountry,
+        currency: data.bankCurrency,
+    };
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
 }
 
 export {
@@ -712,6 +771,7 @@ export {
     openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
+    createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
     setPersonalBankAccountContinueKYCOnSuccess,
@@ -729,7 +789,13 @@ export {
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
+    fetchCorpayFields,
+    clearReimbursementAccountBankCreation,
     getCorpayBankAccountFields,
+    createCorpayBankAccountForWalletFlow,
+    getCorpayOnboardingFields,
+    saveCorpayOnboardingCompanyDetails,
+    clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
 };
 
 export type {BusinessAddress, PersonalAddress};
