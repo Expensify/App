@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {getCurrency} from '@libs/CurrencyUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,6 +54,10 @@ function WorkspaceConfirmationPage() {
                 addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
+            if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
+                errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+            }
+
             return errors;
         },
         [translate],
@@ -73,9 +76,7 @@ function WorkspaceConfirmationPage() {
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
-    const [currencyCode, setCurrencyCode] = useState(userCurrency);
 
-    const currency = getCurrency(currencyCode);
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
         avatarFileName: null,
@@ -149,7 +150,7 @@ function WorkspaceConfirmationPage() {
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={(val) => {
-                        createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
+                        createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, val[INPUT_IDS.CURRENCY], avatarFile as File);
                     }}
                     enabledWhenOffline
                 >
@@ -174,13 +175,9 @@ function WorkspaceConfirmationPage() {
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
                                 InputComponent={CurrencyPicker}
-                                value={`${currencyCode} - ${currency?.symbol}`}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                selectedCurrency={currencyCode}
-                                onValueChange={(val) => {
-                                    setCurrencyCode(val as string);
-                                }}
+                                defaultValue={userCurrency}
                             />
                         </View>
                     </View>
