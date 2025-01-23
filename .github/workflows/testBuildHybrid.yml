@@ -151,7 +151,7 @@ jobs:
         if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch
+          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
       
       - name: Configure MapBox SDK
