@@ -124,8 +124,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (updatedUserQuery || textInputValue.length > 0) {
+            if (updatedUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
+            } else {
+                listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
@@ -258,16 +260,11 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             <View style={[styles.appBG, ...autocompleteInputStyle]}>
                 <SearchRouterInput
                     value={textInputValue}
-                    onSearchQueryChange={(userQuery) => {
-                        onSearchQueryChange(userQuery);
-                        if (userQuery) {
-                            return;
-                        }
-                        listRef.current?.updateAndScrollToFocusedIndex(-1);
-                    }}
+                    onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     onSubmit={() => {
-                        if (!isAutocompleteListVisible) {
+                        const focusedOption = listRef.current?.getFocusedOption(); 
+                        if (focusedOption) { 
                             return;
                         }
                         submitSearch(textInputValue);
