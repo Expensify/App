@@ -260,15 +260,17 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     value={textInputValue}
                     onSearchQueryChange={(userQuery) => {
                         onSearchQueryChange(userQuery);
-                        if (!userQuery) {
-                            listRef.current?.updateAndScrollToFocusedIndex(-1);
+                        if (userQuery) {
+                            return;
                         }
+                        listRef.current?.updateAndScrollToFocusedIndex(-1);
                     }}
                     isFullWidth
                     onSubmit={() => {
-                        if (isAutocompleteListVisible) {
-                            submitSearch(textInputValue);
+                        if (!isAutocompleteListVisible) {
+                            return;
                         }
+                        submitSearch(textInputValue);
                     }}
                     autoFocus={false}
                     onFocus={showAutocompleteList}
