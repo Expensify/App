@@ -2,13 +2,16 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
+// eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
+import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
@@ -1220,7 +1223,8 @@ const styles = (theme: ThemeColors) =>
             'worklet';
 
             return {
-                transform: [{translateY: translateY.get()}, {scale: scale.get()}],
+                transform: [{translateY: translateY.get()}],
+                fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
         },
 
@@ -2008,19 +2012,6 @@ const styles = (theme: ThemeColors) =>
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
-                opacity: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, variables.overlayOpacity],
-                    extrapolate: 'clamp',
-                }),
-            } satisfies ViewStyle),
-
-        nativeOverlayStyles: (current: OverlayStylesParams) =>
-            ({
-                position: 'absolute',
-                backgroundColor: theme.overlay,
-                width: '100%',
-                height: '100%',
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -4358,7 +4349,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: (hovered && !isFocused ? theme.highlightBG : background) as string,
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
         }),
 
         tabOpacity: (
@@ -4488,7 +4479,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             borderRadius: 12,
             overflow: 'hidden',
-            height: variables.reportActionImagesSingleImageHeight,
         },
 
         reportActionItemImage: {
@@ -4912,6 +4902,19 @@ const styles = (theme: ThemeColors) =>
         workspaceSectionMobile: {
             width: '100%',
             alignSelf: 'center',
+        },
+
+        workspaceSectionMoreFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            minWidth: 350,
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+            marginTop: 12,
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
