@@ -374,6 +374,7 @@ function MoneyRequestPreviewContent({
                     style={[
                         isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
+                        styles.borderedContentCardLarge,
                     ]}
                 >
                     {!isDeleted && (

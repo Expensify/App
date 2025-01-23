@@ -540,7 +540,7 @@ function ReportPreview({
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.borderedContentCardLarge]}
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
