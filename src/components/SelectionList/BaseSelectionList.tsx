@@ -24,6 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -129,6 +130,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
+    const shouldSyncFocusRef = useRef(false);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
@@ -318,6 +320,13 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
 
+    const setShouldSyncFocus = useCallback(() => {
+        if (shouldSyncFocusRef.current) {
+            return;
+        }
+        shouldSyncFocusRef.current = true;
+    }, []);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
@@ -333,8 +342,15 @@ function BaseSelectionList<TItem extends ListItem>(
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
+        ...(!shouldSyncFocusRef.current && {setShouldSyncFocus}),
         isFocused,
     });
+
+    useEffect(() => {
+        addKeyDownPressListener(setShouldSyncFocus);
+
+        return () => removeKeyDownPressListener(setShouldSyncFocus);
+    }, [setShouldSyncFocus]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
@@ -549,7 +565,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldSyncFocus={!isTextInputFocusedRef.current && shouldSyncFocusRef.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}

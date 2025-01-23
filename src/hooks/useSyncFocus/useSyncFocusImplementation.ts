@@ -1,4 +1,4 @@
-import {useContext, useEffect, useLayoutEffect, useRef} from 'react';
+import {useContext, useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
@@ -17,22 +17,9 @@ const useSyncFocusImplementation = (ref: RefObject<View>, isFocused: boolean, sh
     const didScreenTransitionEnd = contextValue ? contextValue.didScreenTransitionEnd : true;
 
     const prevIsFocused = usePrevious(isFocused);
-    const hasKeyBeenPressed = useRef(false);
-
-    useEffect(() => {
-        const onKeyDown = () => {
-            hasKeyBeenPressed.current = true;
-        };
-
-        document.addEventListener('keydown', onKeyDown);
-
-        return () => {
-            document.removeEventListener('keydown', onKeyDown);
-        };
-    }, []);
 
     useLayoutEffect(() => {
-        if (!(isFocused && !prevIsFocused) || !shouldSyncFocus || !didScreenTransitionEnd || !hasKeyBeenPressed.current) {
+        if (!(isFocused && !prevIsFocused) || !shouldSyncFocus || !didScreenTransitionEnd) {
             return;
         }
 

@@ -15,6 +15,7 @@ type Config = {
     allowHorizontalArrowKeys?: boolean;
     allowNegativeIndexes?: boolean;
     isFocused?: boolean;
+    setShouldSyncFocus?: () => void;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -50,6 +51,7 @@ export default function useArrowKeyFocusManager({
     allowHorizontalArrowKeys = false,
     allowNegativeIndexes = false,
     isFocused = true,
+    setShouldSyncFocus,
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const prevIsFocusedIndex = usePrevious(focusedIndex);
@@ -82,7 +84,7 @@ export default function useArrowKeyFocusManager({
             return;
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
-
+        setShouldSyncFocus?.();
         setFocusedIndex((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
@@ -105,7 +107,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes]);
+    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setShouldSyncFocus]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -113,6 +115,7 @@ export default function useArrowKeyFocusManager({
         if (maxIndex < 0 || !isFocused) {
             return;
         }
+        setShouldSyncFocus?.();
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
@@ -150,7 +153,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex]);
+    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setShouldSyncFocus]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
