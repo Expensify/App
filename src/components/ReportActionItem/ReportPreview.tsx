@@ -163,7 +163,7 @@ function ReportPreview({
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID, allTransactions),
+            hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID, transactions),
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),

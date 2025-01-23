@@ -101,23 +101,28 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     dependencies: DependencyList = [],
 ): UseOnyxResult<TReturnValue> {
     const {isOnSearch, hashKey} = useSearchState();
+
+    const {selector, ...optionsWithoutSelector} = options || {};
     // In search mode, get the entire snapshot
     const [snapshotData, metadata] = originalUseOnyx(
-        isOnSearch ? (`snapshot_${hashKey}` as TKey) : key,
-        options as (BaseUseOnyxOptions & UseOnyxInitialValueOption<OnyxValue<TKey>> & Required<UseOnyxSelectorOption<TKey, OnyxValue<TKey>>>) | undefined,
+        isOnSearch ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as TKey) : key,
+        optionsWithoutSelector as (BaseUseOnyxOptions & UseOnyxInitialValueOption<OnyxValue<TKey>> & Required<UseOnyxSelectorOption<TKey, OnyxValue<TKey>>>) | undefined,
         dependencies,
     );
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
         if (!isOnSearch || !snapshotData || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
-            return [snapshotData, metadata] as UseOnyxResult<TReturnValue>;
+            const selectedSnapshotData = selector ? selector(snapshotData) : snapshotData;
+            return [selectedSnapshotData, metadata] as UseOnyxResult<TReturnValue>;
         }
         const keyData = getKeyData(snapshotData as unknown as SearchResults, key, options?.initialValue);
-        return [keyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
+        const selectedKeyData = selector ? selector(keyData as OnyxValue<TKey>) : keyData;
+        return [selectedKeyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
     }, [isOnSearch, key, snapshotData, metadata]);
 
     return result;
 }
 
 export default useOnyx;
+
