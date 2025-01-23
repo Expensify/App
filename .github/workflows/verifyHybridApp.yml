@@ -25,14 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env:
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
-        run: |
-          git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
+        run: git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -73,14 +66,11 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env:
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
         run: |
           git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
+          # TODO: Remove these two lines before merging
+          git fetch
+          git checkout e85d2d976db27c549baebd7163b95697172aab09
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
