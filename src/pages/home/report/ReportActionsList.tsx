@@ -741,7 +741,7 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
-    
+
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
