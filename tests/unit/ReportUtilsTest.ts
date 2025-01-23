@@ -1850,16 +1850,16 @@ describe('ReportUtils', () => {
                 ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED);
             });
 
-            it('should return HAS_DRAFT_COMMENT when report has draft', () => {
+            it('should return HAS_DRAFT_COMMENT when report has draft', async () => {
                 const report = {
                     reportID: '1',
                     type: CONST.REPORT.TYPE.CHAT,
                     reportName: 'test',
                     participants: {1: {} as Participant},
-                    hasDraft: true,
                 } as Report;
 
-                // Add a report action for the report not to be empty:
+                // Add a draft for the report not to be empty:
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
 
                 expect(
                     reasonForReportToBeInOptionList({
@@ -1872,6 +1872,8 @@ describe('ReportUtils', () => {
                         excludeEmptyChats: false,
                     }),
                 ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
             });
 
             it('should return PINNED_BY_USER when report is pinned', () => {
@@ -1895,6 +1897,96 @@ describe('ReportUtils', () => {
                     }),
                 ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
             });
+
+            it('should return IS_ARCHIVED when report is archived and not in focus mode', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    private_isArchived: 'thisisastringnotaboolokay',
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+                        policies: {},
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
+            });
+
+            it('should return HAS_GBR if item requires attention from user', () => {});
+        });
+
+        describe('handles error cases', () => {
+            it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS if there are errors from typing to add a workspace', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    errorFields: {addWorkspaceRoom: {error: 'error'}},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+                        policies: {},
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
+            });
+
+            it('should return HAS_IOU_VIOLATIONS if report has them', async () => {
+                const report = {
+                    reportID: '1',
+                    parentReportID: '2',
+                    parentReportActionID: '3',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                } as Report;
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                    '3': {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUDetails: {
+                                amount: 1,
+                                comment: '',
+                                currency: 'USD',
+                            },
+                        },
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                    reportID: report.parentReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                } as Report);
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+                        policies: {},
+                        isInFocusMode: false,
+                        doesReportHaveViolations: true,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
+            });
         });
 
         // Focus mode tests
@@ -1904,22 +1996,28 @@ describe('ReportUtils', () => {
                     reportID: '1',
                     type: CONST.REPORT.TYPE.CHAT,
                     reportName: 'test',
-                    participants: {1: {} as Participant},
+                    participants: {[currentUserAccountID]: {} as Participant},
+                    lastMessageText: 'hey, answer me?!?!',
+                    lastVisibleActionCreated: '2024-01-01',
                     lastReadTime: '2023-01-01',
-                    lastVisibleActionCreated: '2023-01-02',
                 } as Report;
 
-                expect(
-                    reasonForReportToBeInOptionList({
-                        report,
-                        betas: [CONST.BETAS.DEFAULT_ROOMS],
-                        currentReportId: '2',
-                        policies: {},
-                        isInFocusMode: true,
-                        doesReportHaveViolations: false,
-                        excludeEmptyChats: false,
-                    }),
-                ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
+                const params = {
+                    report,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    currentReportId: '2',
+                    policies: {},
+                    isInFocusMode: true,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                };
+
+                expect(reasonForReportToBeInOptionList(params)).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
+
+                // Expect nothing is the user has muted preference
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                report.participants![currentUserAccountID].notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+                expect(reasonForReportToBeInOptionList(params)).toBeNull();
             });
 
             it('should return null in focus mode for read report', () => {
@@ -2014,7 +2112,7 @@ describe('ReportUtils', () => {
                         isInFocusMode: false,
                         doesReportHaveViolations: false,
                         excludeEmptyChats: false,
-                        login: 'test@domain.com',
+                        login: '+@domain.com',
                         includeDomainEmail: false,
                     }),
                 ).toBeNull();
