@@ -568,8 +568,6 @@ const styles = (theme: ThemeColors) =>
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             transform: [
-                {translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth},
-
                 // This conditional style is here to hide the bottom tab bar when it's not needed.
                 shouldDisplayTopLevelBottomTabBar ? {translateY: 0} : {translateY: bottomSafeAreaOffset + variables.bottomTabHeight},
             ],
