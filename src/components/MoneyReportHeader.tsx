@@ -167,7 +167,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     useEffect(() => {
         setIsDuplicate(isDuplicateTransactionUtils(transaction?.transactionID));
-    }, [isPaidAnimationRunning, isApprovedAnimationRunning]);
+    }, [isPaidAnimationRunning, isApprovedAnimationRunning, transaction?.transactionID]);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -365,8 +365,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
-
-    console.log('alllooo', shouldShowSettlementButton, shouldUseNarrowLayout);
 
     return (
         <View style={[styles.pt0]}>
