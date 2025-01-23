@@ -1,5 +1,6 @@
 import type {KeyValueMapping, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 import CONST from '@src/CONST';
 import * as OnyxUpdates from '@src/libs/actions/OnyxUpdates';
 import DateUtils from '@src/libs/DateUtils';
@@ -67,13 +68,4 @@ describe('OnyxUpdatesTest', () => {
 
 function getOnyxValues<TKey extends OnyxKey>(...keys: TKey[]) {
     return Promise.all(keys.map((key) => getOnyxValue(key)));
-}
-
-function getOnyxValue<TKey extends OnyxKey>(key: TKey): Promise<OnyxEntry<KeyValueMapping[TKey]>> {
-    return new Promise((resolve) => {
-        Onyx.connect({
-            key,
-            callback: (value) => resolve(value),
-        });
-    });
 }
