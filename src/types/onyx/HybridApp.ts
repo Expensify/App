@@ -1,6 +1,24 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+/** */
+type HybridAppDelegateAccessData = {
+    /** */
+    isDelegateAccess?: boolean;
+
+    /** */
+    oldDotCurrentUserEmail?: string;
+
+    /** */
+    oldDotCurrentAuthToken?: string;
+
+    /** */
+    oldDotCurrentEncryptedAuthToken?: string;
+
+    /** */
+    oldDotCurrentAccountID?: number;
+};
+
 /**  */
 type HybridApp = {
     /** Stores the information if HybridApp uses NewDot's sign-in flow */
@@ -20,6 +38,9 @@ type HybridApp = {
 
     /** Describes current stage of NewDot sign-in */
     newDotSignInState?: ValueOf<typeof CONST.HYBRID_APP_SIGN_IN_STATE>;
+
+    /**  */
+    delegateAccessData?: HybridAppDelegateAccessData;
 };
 
 export default HybridApp;
