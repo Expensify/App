@@ -1482,7 +1482,7 @@ describe('ReportUtils', () => {
                 lastVisibleActionCreated: '2',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    '1': {
+                    [currentUserAccountID]: {
                         notificationPreference: 'always',
                     },
                 },
@@ -1491,10 +1491,6 @@ describe('ReportUtils', () => {
             const currentReportId = '3';
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: 1,
-            });
 
             expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
