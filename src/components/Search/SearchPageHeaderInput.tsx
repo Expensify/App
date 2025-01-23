@@ -151,7 +151,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
     );
 
     const onListItemPress = useCallback(
