@@ -743,9 +743,7 @@ function ReportActionsList({
     }, [loadOlderChats]);
     
     // Parse Fullstory attributes on initial render
-    useLayoutEffect(() => {
-        parseFSAttributes();
-    }, [])
+    useLayoutEffect(parseFSAttributes, []);
 
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
