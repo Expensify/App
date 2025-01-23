@@ -41,21 +41,20 @@ Each workspace has its own set of rules, settings, and integrations. Even if you
 
 ![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
 
-
 # 3. Add an expense 
 
-You can create an expense automatically by SmartScanning a receipt, or you can enter it manually. 
+You can create an expense automatically by SmartScanning a receipt, or you can enter them manually. 
 
 ## SmartScan a receipt
 
-You can upload pictures of your receipts to Expensify, and SmartScan will automatically capture the receipt details, including the merchant, date, total, and currency.
+You can upload pictures of your receipts to Expensify and SmartScan will automatically capture the receipt details including the merchant, date, total, and currency.
 
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click the <b>Green +</b> icon.</li>
-   <li>Click <b>Create Expense </b> button
+   <li>Click the <b>Expenses</b> tab.</li>
+   <li>Click the + icon in the top right and select <b>Scan Receipt</b>.</li>  
    <li>Upload a saved image of a receipt.</li>   
 </ol> 
 {% include end-option.html %}
@@ -65,7 +64,7 @@ You can upload pictures of your receipts to Expensify, and SmartScan will automa
    <li>Open the mobile app and tap the camera icon in the bottom right corner.</li>
    <li>Upload or take a photo of your receipt.</li>  
        <ul>
-           <li>Upload a photo: Click the photo icon in the left corner and select the image from your device.</li>
+           <li>Upload a photo: Click the camera icon and select the image from your device.</li>
            <li>Take a photo: Click the camera icon in the right corner to select the mode, make sure all of the transaction details are clearly visible, and then take the photo.</li>
            <ul>
               <li>Normal Mode: Upload one receipt.</li>
@@ -82,6 +81,51 @@ You can open any receipt and select **Fill out details myself** to add or edit t
 {% include info.html %}
 You can also email receipts to SmartScan by sending them to receipts@expensify.com from an email address tied to your Expensify account (either a primary or secondary email). SmartScan will automatically pull all of the details from the receipt, fill them in for you, and add the receipt to the Expenses tab on your account.
 {% include end-info.html %}
+
+## Manually enter an expense
+
+{% include selector.html values="desktop, mobile" %}
+
+{% include option.html value="desktop" %}
+
+<ol type="a">
+   <li>Click the <b>Expenses</b> tab.</li>
+   <li>Click the Green + icon.</li>  
+   <li>Select the type of expense and enter the expense details.</li>
+       <ul>
+           <li>Manually create: Manually enter receipt details.</li>
+           <li>Scan receipt: Upload a saved image of a receipt.</li>
+           <li>Create multiple: Upload expenses in bulk.</li>
+           <li>Time: Create an expense based on hours.</li>
+           <li>Distance: Create an expense based on distance.</li>
+               <ul>
+                  <li>Manually Create: Manually enter the distance details for the expense.</li>
+                  <li>Create from Map: Enter the start and end destination and Expensify will help you create a receipt for the trip.</li>
+               </ul>
+       </ul>
+  <li>Click <b>Save</b>.</li>
+</ol>             
+{% include end-option.html %}
+
+{% include option.html value="mobile" %}
+<ol type="a">
+   <li>Tap the ☰ menu icon in the top left.</li>
+   <li>Tap <b>Expenses</b>.</li>  
+   <li>Tap the + icon .</li>
+   <li>Tap the correct expense type and enter the expense details.</li>
+       <ul>
+           <li>Manually create: Manually enter receipt details.</li>
+           <li>Time: Enter work time and rate.</li>
+           <li>Manually create (Distance): Manually enter trip details by total distance.</li>
+           <li>Odometer: Manually enter trip details by start and end odometer readings.</li>
+           <li>Start GPS: Track distance while using the Expensify app to automatically calculate the distance in real time during the trip.</li>
+       </ul>
+  <li>Tap <b>Save</b>.</li>
+</ol>           
+{% include end-option.html %}
+
+{% include end-selector.html %}
+
 
 # 4. Connect your cards and accounts 
 
