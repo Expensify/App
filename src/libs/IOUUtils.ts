@@ -6,10 +6,10 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
-import * as CurrencyUtils from './CurrencyUtils';
+import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
-import * as TransactionUtils from './TransactionUtils';
+import {getAllReportTransactions, getCurrency, getTagArrayFromName} from './TransactionUtils';
 
 let lastLocationPermissionPrompt: string;
 Onyx.connect({
@@ -47,7 +47,7 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
 function calculateAmount(numberOfParticipants: number, total: number, currency: string, isDefaultUser = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
@@ -118,8 +118,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions: Transaction[] = TransactionUtils.getAllReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+    const reportTransactions: Transaction[] = getAllReportTransactions(iouReport.reportID);
+    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
@@ -150,7 +150,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @returns
  */
 function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
-    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    const tagArray = getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
