@@ -2,7 +2,6 @@ import type {NavigationState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-// Determines whether the report page is opened in RHP.
 const isReportOpenInRHP = (state: NavigationState | undefined): boolean => {
     const lastRoute = state?.routes?.at(-1);
     if (!lastRoute) {

@@ -37,10 +37,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import BOTTOM_TABS from './BOTTOM_TABS';
 
-type BottomTabName = ValueOf<typeof BOTTOM_TABS>;
-
 type BottomTabBarProps = {
-    selectedTab: BottomTabName;
+    selectedTab: ValueOf<typeof BOTTOM_TABS>;
     isTooltipAllowed?: boolean;
 };
 
@@ -117,7 +115,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.ROOT).at(-1);
+            const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
@@ -139,6 +137,12 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         });
     }, [activeWorkspaceID, selectedTab]);
 
+    /**
+     * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
+     * If the user opens this tab from another tab, it is necessary to check whether it has not been opened before.
+     * If so, all previously opened screens have be pushed to the navigation stack to maintain the order of screens within the tab.
+     * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
+     */
     const showSettingsPage = useCallback(() => {
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
@@ -300,5 +304,3 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 BottomTabBar.displayName = 'BottomTabBar';
 
 export default memo(BottomTabBar);
-export {BOTTOM_TABS};
-export type {BottomTabName};

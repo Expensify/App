@@ -47,7 +47,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
                 return;
             }
 
-            // We want ot set animation after mounting so it will animate on going UP to the settings split.
+            // We want to set animation after mounting so it will animate on going UP to the settings split.
             navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
         });
 
@@ -57,6 +57,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
     return (
         <FocusTrapForScreens>
             <Split.Navigator
+                persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
                 parentRoute={route}

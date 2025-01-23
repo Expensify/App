@@ -28,7 +28,7 @@ const workspaceSplitsWithoutEnteringAnimation = new Set();
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
- * If the user is on other tab than settings and the workspace split is "remembered", this action will called after pressing the settings tab.
+ * If the user is on other tab than settings and the workspace split is "remembered", this action will be called after pressing the settings tab.
  * It will push the settings split navigator first and then push the workspace split navigator.
  * This allows the user to swipe back on the iOS to the settings split navigator underneath.
  */
@@ -52,6 +52,7 @@ function handleOpenWorkspaceSplitAction(
     const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, actionToPushSettingsSplitNavigator, configOptions);
 
     if (!stateWithSettingsSplitNavigator) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] SettingsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
@@ -59,6 +60,7 @@ function handleOpenWorkspaceSplitAction(
     const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithWorkspaceSplitNavigator) {
+        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspaceSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
@@ -73,6 +75,11 @@ function handleOpenWorkspaceSplitAction(
     return stateWithWorkspaceSplitNavigator;
 }
 
+/**
+ * Handles the SWITCH_POLICY_ID action.
+ * Information about the currently selected policy can be found in the last ReportsSplitNavigator or Search_Root.
+ * As the policy can only be changed from Search or Inbox Tab, after changing the policy a new ReportsSplitNavigator or Search_Root with the changed policy has to be pushed to the navigation state.
+ */
 function handleSwitchPolicyID(
     state: StackNavigationState<ParamListBase>,
     action: SwitchPolicyIdActionType,
@@ -113,6 +120,10 @@ function handleSwitchPolicyID(
     return null;
 }
 
+/**
+ * If a new ReportSplitNavigator is opened, it is necessary to check whether workspace is currently selected in the application.
+ * If so, the id of the current policy has to be passed to the new ReportSplitNavigator.
+ */
 function handlePushReportAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -144,6 +155,10 @@ function handlePushReportAction(
     return stackRouter.getStateForAction(state, modifiedAction, configOptions);
 }
 
+/**
+ * If a new Search page is opened, it is necessary to check whether workspace is currently selected in the application.
+ * If so, the id of the current policy has to be passed to the new Search page
+ */
 function handlePushSearchPageAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -184,6 +199,10 @@ function handlePushSearchPageAction(
     return stackRouter.getStateForAction(state, modifiedAction, configOptions);
 }
 
+/**
+ * Handles the DISMISS_MODAL action.
+ * If the last route is a modal route, it has to be popped from the navigation stack.
+ */
 function handleDismissModalAction(
     state: StackNavigationState<ParamListBase>,
     configOptions: RouterConfigOptions,
@@ -200,6 +219,9 @@ function handleDismissModalAction(
     return stackRouter.getStateForAction(state, newAction, configOptions);
 }
 
+/**
+ * Handles opening a new modal navigator from an existing one.
+ */
 function handleNavigatingToModalFromModal(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,

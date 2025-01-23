@@ -43,7 +43,7 @@ index 7558eb3..b7bb75e 100644
          }) : STATE_TRANSITIONING_OR_BELOW_TOP;
        }
 +      
-+      const isHomeScreenAndNotOnTop = (route.name === 'BottomTabNavigator' || route.name === 'Workspace_Initial' || route.name === 'Home' || route.name === 'Search_Bottom_Tab' || route.name === 'Settings_Root' || route.name === 'ReportsSplitNavigator' || route.name === 'Search_Central_Pane')  && isScreenActive !== STATE_ON_TOP;
++      const shouldNotDetachScreen = route?.dontDetachScreen && isScreenActive !== STATE_ON_TOP;
 +
        const {
          headerShown = true,
@@ -53,7 +53,7 @@ index 7558eb3..b7bb75e 100644
          style: StyleSheet.absoluteFill,
          enabled: detachInactiveScreens,
 -        active: isScreenActive,
-+        active: isHomeScreenAndNotOnTop ? STATE_TRANSITIONING_OR_BELOW_TOP : isScreenActive,
++        active: shouldNotDetachScreen ? STATE_TRANSITIONING_OR_BELOW_TOP : isScreenActive,
          freezeOnBlur: freezeOnBlur,
          pointerEvents: "box-none"
        }, /*#__PURE__*/React.createElement(CardContainer, {
@@ -62,7 +62,7 @@ index 7558eb3..b7bb75e 100644
          onTransitionEnd: onTransitionEnd,
          isNextScreenTransparent: isNextScreenTransparent,
 -        detachCurrentScreen: detachCurrentScreen
-+        detachCurrentScreen: isHomeScreenAndNotOnTop ? false : detachCurrentScreen,
++        detachCurrentScreen: shouldNotDetachScreen ? false : detachCurrentScreen,
        }));
      })), isFloatHeaderAbsolute ? floatingHeader : null);
    }

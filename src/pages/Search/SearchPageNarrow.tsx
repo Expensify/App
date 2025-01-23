@@ -114,25 +114,18 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                                 shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                             />
                         </View>
-                        {shouldUseNarrowLayout ? (
-                            <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                                <SearchTypeMenu
-                                    queryJSON={queryJSON}
-                                    searchName={searchName}
-                                />
-                                <SearchStatusBar
-                                    queryJSON={queryJSON}
-                                    onStatusChange={() => {
-                                        topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
-                                    }}
-                                />
-                            </Animated.View>
-                        ) : (
+                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
                             <SearchTypeMenu
                                 queryJSON={queryJSON}
                                 searchName={searchName}
                             />
-                        )}
+                            <SearchStatusBar
+                                queryJSON={queryJSON}
+                                onStatusChange={() => {
+                                    topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                }}
+                            />
+                        </Animated.View>
                     </>
                 ) : (
                     <SearchSelectionModeHeader queryJSON={queryJSON} />

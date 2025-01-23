@@ -49,7 +49,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             if (!backTo) {
                 Navigation.goBack();
             } else {
-                // Set compareParams to false because we want to goUp to this particular screen and update params (country).
+                // Set compareParams to false because we want to go back to this particular screen and update params (country).
                 Navigation.goBack(appendParam(backTo, 'country', option.value), {compareParams: false});
             }
         },

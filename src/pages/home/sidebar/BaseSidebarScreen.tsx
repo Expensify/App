@@ -14,15 +14,15 @@ import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
-import navigationRef from '@libs/Navigation/navigationRef';
+import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import SidebarLinksData from './SidebarLinksData';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
@@ -44,7 +44,7 @@ function BaseSidebarScreen() {
         }
 
         // Otherwise, if the workspace is already loaded, we don't need to do anything
-        const topmostReport = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const topmostReport = getTopmostReportsSplitNavigator();
 
         if (!topmostReport) {
             return;
@@ -58,11 +58,8 @@ function BaseSidebarScreen() {
             return;
         }
 
-        navigationRef.current?.dispatch({
-            target: navigationRef.current.getRootState().key,
-            payload: getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT}),
-            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
-        });
+        const reportsSplitNavigatorWithoutPolicyID = getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT});
+        Navigation.replaceWithSplitNavigator(reportsSplitNavigatorWithoutPolicyID);
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID, isLoading, currentRoute.key]);
 

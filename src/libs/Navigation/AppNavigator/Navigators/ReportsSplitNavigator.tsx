@@ -15,7 +15,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
-const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/SidebarScreen').default;
+const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
 
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
@@ -40,6 +40,7 @@ function ReportsSplitNavigator() {
         <FreezeWrapper>
             <FocusTrapForScreens>
                 <Split.Navigator
+                    persistentScreens={[SCREENS.HOME]}
                     sidebarScreen={SCREENS.HOME}
                     defaultCentralScreen={SCREENS.REPORT}
                     parentRoute={route}
