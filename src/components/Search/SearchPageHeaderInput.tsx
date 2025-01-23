@@ -263,8 +263,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption(); 
-                        if (focusedOption) { 
+                        const focusedOption = listRef.current?.getFocusedOption();
+                        if (focusedOption) {
                             return;
                         }
                         submitSearch(textInputValue);
