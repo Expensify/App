@@ -111,19 +111,19 @@ const FS = {
                 // time to call the resolve function in case it ran successfully.
                 setTimeout(resolve, 1000);
             } else {
-                FullStory('observe', {type: 'start', callback: resolve});
+                FullStory(CONST.FULL_STORY.OBSERVE, {type: 'start', callback: resolve});
             }
         }),
 
     /**
      * Sets the identity as anonymous using the FullStory library.
      */
-    anonymize: () => FullStory('setIdentity', {anonymous: true}),
+    anonymize: () => FullStory(CONST.FULL_STORY.SET_IDENTITY, {anonymous: true}),
 
     /**
      * Sets the identity consent status using the FullStory library.
      */
-    consent: (c: boolean) => FullStory('setIdentity', {consent: c}),
+    consent: (c: boolean) => FullStory(CONST.FULL_STORY.SET_IDENTITY, {consent: c}),
 
     /**
      * Initializes the FullStory metadata with the provided metadata information.
@@ -143,10 +143,10 @@ const FS = {
                     Session.isSupportAuthToken()
                 ) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
-                    FullStory('shutdown');
+                    FullStory(CONST.FULL_STORY.SHUTDOWN);
                     return;
                 }
-                FullStory('restart');
+                FullStory(CONST.FULL_STORY.RESTART);
                 FS.onReady().then(() => {
                     FS.consent(true);
                     const localMetadata = value;
@@ -165,7 +165,7 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: UserMetadata) => {
-        FullStory('setIdentity', {
+        FullStory(CONST.FULL_STORY.SET_IDENTITY, {
             uid: String(metadata.accountID),
             properties: metadata,
         });
