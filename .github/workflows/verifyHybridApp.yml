@@ -121,6 +121,20 @@ jobs:
           # Do not start metro
           RCT_NO_LAUNCH_PACKAGER=1
           
+          PROJECT_ROOT=${PROJECT_ROOT:-"$PROJECT_DIR/.."}
+          NEW_DOT_DIR="$PROJECT_ROOT/.."
+  
+          if [ ! -f main.jsbundle ]; then
+            cd $NEW_DOT_DIR
+            npx react-native bundle \
+            --entry-file index.js \
+            --platform ios \
+            --dev false \
+            --bundle-output "$PROJECT_ROOT/ios/main.jsbundle" \
+            --assets-dest "$PROJECT_ROOT/ios"
+            cd $PROJECT_ROOT
+          fi
+          
           # Build iOS using xcodebuild
           xcodebuild \
             -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
