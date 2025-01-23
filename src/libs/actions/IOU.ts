@@ -3830,11 +3830,12 @@ function updateMoneyRequestTag(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    hash?: number,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, undefined, hash);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
