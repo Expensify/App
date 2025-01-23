@@ -73,6 +73,7 @@ ValidateCodeActionWithoutModal.displayName = 'ValidateCodeActionWithoutModal';
 
 export default forwardRef<ValidateCodeFormHandle, ValidateCodeActionProps>((props, ref) => (
     <ValidateCodeActionWithoutModal
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
