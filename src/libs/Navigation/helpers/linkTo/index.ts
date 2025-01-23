@@ -140,7 +140,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {screen: matchingFullScreenRoute.state?.routes?.at(-1)?.name});
+                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                    screen: lastRouteInMatchingFullScreen?.name,
+                    params: lastRouteInMatchingFullScreen?.params,
+                });
                 navigation.dispatch(additionalAction);
             }
         }
