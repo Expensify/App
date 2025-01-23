@@ -13,12 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTripTransactions from '@hooks/useTripTransactions';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMoneyRequestSpendBreakdown, getTripTransactions} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {getReservationsFromTripTransactions, getTripReservationIcon} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -117,8 +118,8 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
+    const tripTransactions = useTripTransactions(chatReportID);
 
-    const tripTransactions = getTripTransactions(chatReport?.reportID);
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(chatReport);
@@ -130,7 +131,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         }
 
         return convertToDisplayString(
-            tripTransactions.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
             currency,
         );
     }, [currency, totalDisplaySpend, tripTransactions]);

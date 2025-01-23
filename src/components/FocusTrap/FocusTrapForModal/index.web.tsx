@@ -1,4 +1,4 @@
-import FocusTrap from 'focus-trap-react';
+import {FocusTrap} from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -15,7 +15,6 @@ function FocusTrapForModal({children, active, initialFocus = false}: FocusTrapFo
                 clickOutsideDeactivates: true,
                 initialFocus,
                 fallbackFocus: document.body,
-                unpauseOnDeactivate: false,
                 setReturnFocus: (element) => {
                     if (ReportActionComposeFocusManager.isFocused()) {
                         return false;
