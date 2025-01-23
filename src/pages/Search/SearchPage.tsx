@@ -19,7 +19,7 @@ import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -35,13 +35,13 @@ function SearchPage({route}: SearchPageProps) {
     const {q, name} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
+        const parsedQuery = buildSearchQueryJSON(q);
+        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
 
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
     const isSearchNameModified = name === q;
@@ -101,7 +101,10 @@ function SearchPage({route}: SearchPageProps) {
                         >
                             <SearchPageHeader queryJSON={queryJSON} />
                             <SearchStatusBar queryJSON={queryJSON} />
-                            <Search queryJSON={queryJSON} />
+                            <Search
+                                key={queryJSON.hash}
+                                queryJSON={queryJSON}
+                            />
                         </ScreenWrapper>
                     </View>
                 )}
