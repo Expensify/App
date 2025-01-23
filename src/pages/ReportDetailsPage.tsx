@@ -299,7 +299,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const canModifyTask = canModifyTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const canActionTask = canActionTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
