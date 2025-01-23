@@ -10,7 +10,9 @@ import type {AnimationDirection} from './AnimatedStepContext';
 import AnimatedStepContext from './AnimatedStepContext';
 
 type AnimatedStepProviderProps = ChildrenProps & {
+    /** The initial step to render */
     initialStep: string;
+    /** Object with the steps to render */
     steps: Record<string, ReactNode>;
 };
 
