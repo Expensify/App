@@ -20,18 +20,31 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import {getCompanyFeeds} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {
+    getWorkspaceAccountID,
+    goBackFromInvalidPolicy,
+    hasPolicyCategoriesError,
+    hasPolicyFeedsError as hasPolicyFeedsErrorUtil,
+    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyFeatureEnabled,
+    shouldShowEmployeeListError,
+    shouldShowPolicy as shouldShowPolicyUtil,
+    shouldShowSyncError,
+    shouldShowTaxRateError,
+} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy/Policy';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,17 +89,17 @@ type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
 function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        PolicyUtils.goBackFromInvalidPolicy();
-        Policy.removeWorkspace(policyID);
+        goBackFromInvalidPolicy();
+        removeWorkspace(policyID);
     } else {
-        Policy.clearErrors(policyID);
+        clearErrors(policyID);
     }
 }
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id);
+    const workspaceAccountID = getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -97,7 +110,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {login, accountID} = useCurrentUserPersonalDetails();
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
@@ -131,7 +144,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyDraft?.id) {
             return;
         }
-        Policy.openPolicyInitialPage(route.params.policyID);
+        openPolicyInitialPage(route.params.policyID);
     }, [policyDraft?.id, route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
@@ -153,20 +166,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
+        updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policyID);
+        navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.shouldShowEmployeeListError(policy);
-    const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
+    const hasMembersError = shouldShowEmployeeListError(policy);
+    const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
         !isEmptyObject(policy?.errorFields?.name ?? {}) ||
         !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
         !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
-    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+    const shouldShowProtectedItems = isPolicyAdmin(policy, login);
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
@@ -177,7 +190,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
             (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
-                const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
+                const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
                 newFeatureStates[key] =
                     prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
             });
@@ -189,7 +202,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
     useEffect(() => {
-        App.confirmReadyToOpenApp();
+        confirmReadyToOpenApp();
     }, []);
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
@@ -212,7 +225,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     }
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-        const hasPolicyFeedsError = PolicyUtils.hasPolicyFeedsError(CardUtils.getCompanyFeeds(cardFeeds));
+        const hasPolicyFeedsError = hasPolicyFeedsErrorUtil(getCompanyFeeds(cardFeeds));
 
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.companyCards',
@@ -259,7 +272,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.InvoiceGeneric,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.INVOICES,
-            badgeText: CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
+            badgeText: convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
         });
     }
 
@@ -288,7 +301,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Coins,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
-            brickRoadIndicator: PolicyUtils.shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -340,17 +353,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
     const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
-    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => shouldShowPolicyUtil(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
     // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
+        if (isEmptyObject(prevPolicy) || isPendingDeletePolicy(prevPolicy) || !isPendingDeletePolicy(policy)) {
             return;
         }
-        PolicyUtils.goBackFromInvalidPolicy();
+        goBackFromInvalidPolicy();
     }, [policy, prevPolicy]);
 
     // We are checking if the user can access the route.

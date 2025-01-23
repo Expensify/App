@@ -17,17 +17,23 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearOnfidoToken, openReimbursementAccountPage, setPlaidEvent, setReimbursementAccountLoading} from '@libs/actions/BankAccounts';
+import {
+    clearReimbursementAccountDraft,
+    goToWithdrawalAccountSetupStep,
+    hideBankAccountErrors,
+    setBankAccountSubStep,
+    updateReimbursementAccountDraft,
+} from '@libs/actions/ReimbursementAccount';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -267,7 +273,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
 
         if (policyIDParam) {
-            BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
         }
     }
 
@@ -278,14 +284,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        BankAccounts.setReimbursementAccountLoading(true);
-        ReimbursementAccount.clearReimbursementAccountDraft();
+        setReimbursementAccountLoading(true);
+        clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
         if (isStepToOpenEmpty) {
-            BankAccounts.setBankAccountSubStep(null);
-            BankAccounts.setPlaidEvent(null);
+            setBankAccountSubStep(null);
+            setPlaidEvent(null);
         }
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -321,7 +327,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-                    BankAccounts.hideBankAccountErrors();
+                    hideBankAccountErrors();
                 }
 
                 // The route is showing the correct step, no need to update the route param or clear errors.
@@ -331,14 +337,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             // Update the data that is returned from back-end to draft value
             const draftStep = reimbursementAccount?.draftStep;
             if (draftStep) {
-                BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
+                updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
             }
 
             if (currentStepRouteParam !== '') {
                 // When we click "Connect bank account", we load the page without the current step param, if there
                 // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
                 // so we don't clear it. We only want to clear the errors if we are moving between steps.
-                BankAccounts.hideBankAccountErrors();
+                hideBankAccountErrors();
             }
 
             Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
@@ -348,7 +354,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const setManualStep = () => {
-        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
         });
     };
@@ -363,37 +369,37 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                     setShouldShowContinueSetupButton(true);
                 }
                 if (subStep) {
-                    BankAccounts.setBankAccountSubStep(null);
-                    BankAccounts.setPlaidEvent(null);
+                    setBankAccountSubStep(null);
+                    setPlaidEvent(null);
                 } else {
                     Navigation.goBack();
                 }
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.clearOnfidoToken();
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                clearOnfidoToken();
+                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
-                    BankAccounts.clearOnfidoToken();
+                    clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+                    goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
                 }
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS);
+                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if ([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP].some((value) => value === achData?.state)) {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
+                    goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 } else if (!isOffline && achData?.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
@@ -438,14 +444,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    if ((!isLoading && (isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy))) || PolicyUtils.isPendingDeletePolicy(policy)) {
+    if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                    subtitleKey={isEmptyObject(policy) || PolicyUtils.isPendingDeletePolicy(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
+                    subtitleKey={isEmptyObject(policy) || isPendingDeletePolicy(policy) ? undefined : 'workspace.common.notAuthorized'}
                 />
             </ScreenWrapper>
         );
