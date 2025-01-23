@@ -93,6 +93,7 @@ import {
     getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
+    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
@@ -100,6 +101,7 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDraftReport,
@@ -605,7 +607,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (isArchivedNonExpenseReport(report)) {
+    const reportNameValuePairs = getReportNameValuePairs(reportID);
+
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -705,7 +709,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !report.private_isArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -772,7 +776,7 @@ function createOption(
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        result.private_isArchived = report.private_isArchived;
+        result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
