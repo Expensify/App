@@ -107,7 +107,6 @@ import {
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -137,6 +136,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
+    getAllReportTransactions,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getCurrency,
@@ -7635,7 +7635,7 @@ function getPayMoneyRequestParams(
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getReportTransactions(iouReport?.reportID);
+        const reportTransactions = getAllReportTransactions(iouReport?.reportID);
         for (const transaction of reportTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -7759,7 +7759,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     let isTransactionBeingScanned = false;
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const reportTransactions = getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
         const hasReceipt = hasReceiptTransactionUtils(transaction);
         const isReceiptBeingScanned = isReceiptBeingScannedTransactionUtils(transaction);
