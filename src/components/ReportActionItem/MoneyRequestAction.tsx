@@ -1,14 +1,13 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {isDeletedParentAction, isReversedTransaction, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -18,18 +17,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestPreview from './MoneyRequestPreview';
 
-type MoneyRequestActionOnyxProps = {
-    /** Chat report associated with iouReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** IOU report data object */
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-};
-
-type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
+type MoneyRequestActionProps = {
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -72,9 +60,6 @@ function MoneyRequestAction({
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive = () => {},
-    chatReport,
-    iouReport,
-    reportActions,
     isHovered = false,
     style,
     isWhisper = false,
@@ -83,23 +68,29 @@ function MoneyRequestAction({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
-    const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
+    const isActionSplitBill = isSplitBillAction(action);
+    const isActionTrackExpense = isTrackExpenseAction(action);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canEvict: false});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
 
     const onMoneyRequestPreviewPressed = () => {
-        if (isSplitBillAction) {
-            const reportActionID = action.reportActionID ?? '-1';
+        if (isActionSplitBill) {
+            const reportActionID = action.reportActionID;
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
-        const childReportID = action?.childReportID ?? '-1';
+        const childReportID = action?.childReportID;
+        if (!childReportID) {
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
+    const isParentActionDeleted = isDeletedParentAction(action);
+    const isTransactionReveresed = isReversedTransaction(action);
     if (
         !isEmptyObject(iouReport) &&
         !isEmptyObject(reportActions) &&
@@ -108,25 +99,25 @@ function MoneyRequestAction({
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
+        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    if (isDeletedParentAction || isReversedTransaction) {
+    if (isParentActionDeleted || isTransactionReveresed) {
         let message: TranslationPaths;
-        if (isReversedTransaction) {
+        if (isTransactionReveresed) {
             message = 'parentReportAction.reversedTransaction';
         } else {
             message = 'parentReportAction.deletedExpense';
         }
-        return <RenderHTML html={`<comment>${translate(message)}</comment>`} />;
+        return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isTransactionReveresed}">${translate(message)}</deleted-action>`} />;
     }
     return (
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
+            isBillSplit={isActionSplitBill}
+            isTrackExpense={isActionTrackExpense}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}
@@ -142,15 +133,4 @@ function MoneyRequestAction({
 
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
-export default withOnyx<MoneyRequestActionProps, MoneyRequestActionOnyxProps>({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
-    },
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(MoneyRequestAction);
+export default MoneyRequestAction;
