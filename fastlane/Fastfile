@@ -119,7 +119,9 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-        task: "bundleDebug"
+        task: 'assemble',
+        flavor: 'Production',
+        build_type: 'Release',
       )
       setGradleOutputsInEnv()
     end
@@ -466,8 +468,7 @@ platform :ios do
       ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
           workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
-          scheme: "Expensify",
-          configuration: "Debug"
+          scheme: "Expensify"
       )
       setIOSBuildOutputsInEnv()
     end
