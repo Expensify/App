@@ -22,7 +22,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
@@ -515,7 +514,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   iconHeight: variables.h40,
                                   text: translate('workspace.new.newWorkspace'),
                                   description: translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => createWorkspaceWithPolicyDraftAndNavigateToIt()),
+                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
                               },
                           ]
                         : []),

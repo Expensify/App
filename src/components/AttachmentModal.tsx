@@ -14,13 +14,13 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
+import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,8 +183,9 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
@@ -249,7 +250,7 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(`${sourceURL}`) : file?.name;
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
             fileDownload(sourceURL, fileName ?? '');
         }
 
@@ -288,14 +289,14 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID ?? '-1');
+        detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.goBack();
     }, [transaction]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
-            FileUtils.validateImageForCorruption(fileObject)
+            validateImageForCorruption(fileObject)
                 .then(() => {
                     if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                         setIsAttachmentInvalid(true);
@@ -355,7 +356,7 @@ function AttachmentModal({
                      * upload, drag and drop, copy-paste
                      */
                     let updatedFile = fileObject;
-                    const cleanName = FileUtils.cleanFileName(updatedFile.name);
+                    const cleanName = cleanFileName(updatedFile.name);
                     if (updatedFile.name !== cleanName) {
                         updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                     }
@@ -432,13 +433,7 @@ function AttachmentModal({
                 onSelected: () => {
                     closeModal(true);
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transaction?.transactionID ?? '-1',
-                            report?.reportID ?? '-1',
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
                     );
                 },
             });
@@ -450,13 +445,9 @@ function AttachmentModal({
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (
-            !TransactionUtils.hasEReceipt(transaction) &&
-            TransactionUtils.hasReceipt(transaction) &&
-            !TransactionUtils.isReceiptBeingScanned(transaction) &&
-            canEditReceipt &&
-            !TransactionUtils.hasMissingSmartscanFields(transaction)
-        ) {
+
+        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canEditReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),

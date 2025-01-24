@@ -16,7 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,7 +76,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
         [windowHeight, topBarOffset, StyleUtils.searchHeaderHeight],
     );
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -94,7 +94,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !isCannedSearchQuery(queryJSON);
 
     return (
         <ScreenWrapper
@@ -131,6 +131,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                     <SearchSelectionModeHeader queryJSON={queryJSON} />
                 )}
                 <Search
+                    key={queryJSON.hash}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
                     onContentSizeChange={onContentSizeChange}
