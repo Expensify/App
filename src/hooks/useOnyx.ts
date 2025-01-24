@@ -2,6 +2,7 @@ import {useMemo} from 'react';
 import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import useSearchState from './useSearchState';
@@ -108,10 +109,11 @@ function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
 
     // Extract the specific key data from snapshot if in search mode
     const result = useMemo(() => {
-        if (!isOnSearch || !data || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
+        if (!isOnSearch || !data || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) || !CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey))) {
             const selectedData = selector ? selector(data) : data;
             return [selectedData, metadata] as UseOnyxResult<TReturnValue>;
         }
+
         const keyData = getKeyData(data as unknown as SearchResults, key, options?.initialValue);
         const selectedKeyData = selector ? selector(keyData as OnyxValue<TKey>) : keyData;
         return [selectedKeyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
