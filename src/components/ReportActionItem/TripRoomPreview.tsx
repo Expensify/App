@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -111,7 +111,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     );
 }
 
-const renderItem = ({item}: {item: ReservationData}) => <ReservationView reservation={item.reservation} />;
+const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => <ReservationView reservation={item.reservation} />;
 
 function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
