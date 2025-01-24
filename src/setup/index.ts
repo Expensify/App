@@ -1,7 +1,7 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import * as Device from '@userActions/Device';
+import {setDeviceID} from '@userActions/Device';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -45,7 +45,7 @@ export default function () {
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
 
-    Device.setDeviceID();
+    setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
