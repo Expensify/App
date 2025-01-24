@@ -7,8 +7,6 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {Coins} from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -21,8 +19,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getInvoicePrimaryWorkspace} from '@libs/actions/Policy/Policy';
-import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -41,11 +37,14 @@ import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
+import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -53,9 +52,6 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
-
-    /** Callback to navigate to Track Expense confirmation flow  */
-    onTrackExpensePress?: () => void;
 
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
@@ -65,20 +61,15 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
-
-    /** Whether we should display the Track Expense button at the top of the participants list */
-    shouldDisplayTrackExpenseButton?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
-    onTrackExpensePress,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onFinish = (_value?: string) => {},
     onParticipantsAdded,
     iouType,
     action,
-    shouldDisplayTrackExpenseButton,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -126,7 +117,7 @@ function MoneyRequestParticipantsSelector({
             {
                 betas,
                 selectedOptions: participants as Participant[],
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
@@ -136,6 +127,9 @@ function MoneyRequestParticipantsSelector({
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
+                shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
+                shouldSeparateWorkspaceChat: true,
+                includeSelfDM: true,
             },
         );
 
@@ -155,13 +149,15 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
+                workspaceChats: [],
+                selfDMChat: null,
             };
         }
 
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -189,6 +185,18 @@ function MoneyRequestParticipantsSelector({
         );
 
         newSections.push(formatResults.section);
+
+        newSections.push({
+            title: translate('workspace.common.workspace'),
+            data: chatOptions.workspaceChats ?? [],
+            shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
+        });
+
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
 
         newSections.push({
             title: translate('common.recents'),
@@ -221,7 +229,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         const headerMessage = getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
+            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
             participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
@@ -235,6 +243,8 @@ function MoneyRequestParticipantsSelector({
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
+        chatOptions.selfDMChat,
+        chatOptions.workspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
@@ -250,7 +260,7 @@ function MoneyRequestParticipantsSelector({
         (option: Participant) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
                     selected: true,
                     iouType,
                 },
@@ -267,7 +277,10 @@ function MoneyRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newParticipants);
-            onFinish();
+
+            if (!option.isSelfDM) {
+                onFinish();
+            }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
@@ -360,22 +373,6 @@ function MoneyRequestParticipantsSelector({
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
-    const headerContent = useMemo(() => {
-        if (!shouldDisplayTrackExpenseButton) {
-            return;
-        }
-
-        // We only display the track expense button if the user is coming from the combined submit/track flow.
-        return (
-            <MenuItem
-                title={translate('iou.justTrackIt')}
-                shouldShowRightIcon
-                icon={Coins}
-                onPress={onTrackExpensePress}
-            />
-        );
-    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
-
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -461,7 +458,6 @@ function MoneyRequestParticipantsSelector({
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
-            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
