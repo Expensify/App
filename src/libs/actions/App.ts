@@ -10,6 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
+import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -31,7 +32,6 @@ import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
 import Timing from './Timing';
-import DateUtils from '@libs/DateUtils';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
