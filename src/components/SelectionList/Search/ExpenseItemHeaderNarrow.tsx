@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {getNestedButtonRole} from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -62,7 +62,7 @@ function ExpenseItemHeaderNarrow({
                 {!!canSelectMultiple && (
                     <PressableWithFeedback
                         accessibilityLabel={text ?? ''}
-                        role={getNestedButtonRole(true)}
+                        role={getButtonRole(true)}
                         disabled={isDisabled}
                         onPress={() => handleCheckboxPress?.()}
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}

@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
-import type {GetButtonRole, GetNestedButtonStyle} from './types';
+import type {GetButtonRole, GetButtonStyle} from './types';
 
-const getNestedButtonStyle: GetNestedButtonStyle = () => undefined;
-const getNestedButtonRole: GetButtonRole = () => CONST.ROLE.BUTTON;
-export {getNestedButtonStyle, getNestedButtonRole};
+const getButtonStyle: GetButtonStyle = () => undefined;
+const getButtonRole: GetButtonRole = () => CONST.ROLE.BUTTON;
+export {getButtonStyle, getButtonRole};

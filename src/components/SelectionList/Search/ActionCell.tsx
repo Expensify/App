@@ -115,6 +115,7 @@ function ActionCell({
             isLoading={isLoading}
             success={shouldUseSuccessStyleProp}
             isDisabled={isOffline}
+            isNested
         />
     );
 }

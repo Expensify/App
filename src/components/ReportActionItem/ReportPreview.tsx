@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
-import {getNestedButtonRole, getNestedButtonStyle} from '@components/Button/utils';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -542,8 +542,8 @@ function ReportPreview({
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, getNestedButtonStyle(styles, true)]}
-                    role={getNestedButtonRole(true)}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, getButtonStyle(styles, true)]}
+                    role={getButtonRole(true)}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>

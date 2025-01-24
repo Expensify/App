@@ -17,7 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getNestedButtonRole, getNestedButtonStyle} from './utils';
+import {getButtonRole, getButtonStyle} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {
@@ -408,7 +408,7 @@ function Button(
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                     link && styles.bgTransparent,
-                    getNestedButtonStyle(styles, isNested),
+                    getButtonStyle(styles, isNested),
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -420,7 +420,7 @@ function Button(
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
-                role={getNestedButtonRole(isNested)}
+                role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
