@@ -265,7 +265,6 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     policyAvatar: '',
     policyID: 'CC048FA711B35B1F',
     policyName: "53019's Workspace",
-    private_isArchived: '',
     reportID: '7605647250932303',
     reportName: 'Chat Report',
     stateNum: 0,
