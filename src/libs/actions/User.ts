@@ -32,7 +32,6 @@ import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
-import Timing from '@userActions/Timing';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -41,6 +40,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import Timing from '@userActions/Timing';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -921,7 +921,7 @@ function subscribeToPusherPong() {
 
         // Remove the event from the map
         delete pingIDsAndTimestamps[pongEvent.pingID];
-        Timing.end(CONST.TIMING.OPEN_REPORT);
+        Timing.end(CONST.TIMING.PUSHER_PING_PONG);
     });
 }
 
@@ -957,7 +957,7 @@ function pingPusher() {
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-    Timing.start(CONST.TIMING.OPEN_REPORT);
+    Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
 function checkforMissingPongEvents() {
