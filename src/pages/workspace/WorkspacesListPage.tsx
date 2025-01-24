@@ -428,7 +428,7 @@ function WorkspacesListPage() {
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
     );
-    
+
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
