@@ -10,7 +10,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NumberUtils from '@libs/NumberUtils';
-import {goBackWhenEnableFeature, navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
