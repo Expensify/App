@@ -37,6 +37,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const route = useRoute();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -121,9 +122,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
+            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
-            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? CONST.DEFAULT_NUMBER_ID];
+            const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
 
             let invoiceReceiverPolicyID = '-1';
             if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
@@ -144,15 +146,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
-            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWriteAction(itemFullReport));
+            const canUserPerformWrite = canUserPerformWriteAction(itemFullReport);
+            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
-            let lastReportActionTransactionID: string | number = '';
-
-            if (isMoneyRequestAction(lastReportAction)) {
-                lastReportActionTransactionID = getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID;
-            }
+            const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
+                ? getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+                : CONST.DEFAULT_NUMBER_ID;
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
@@ -173,6 +174,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     iouReportReportActions={itemIouReportReportActions}
@@ -202,6 +204,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             reportActions,
             reports,
+            reportNameValuePairs,
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
@@ -210,8 +213,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
     );
 
     const previousOptionMode = usePrevious(optionMode);

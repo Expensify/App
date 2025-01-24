@@ -25,7 +25,7 @@ import {
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedReport as isArchivedReportUtils,
+    isArchivedReportWithID,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserSubmitter,
     isInvoiceReport,
@@ -154,7 +154,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const isArchivedReport = isArchivedReportUtils(moneyRequestReport);
+    const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const getCanIOUBePaid = useCallback(

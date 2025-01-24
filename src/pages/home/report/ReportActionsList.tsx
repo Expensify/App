@@ -626,7 +626,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedNonExpenseReport(report);
+        const isArchivedReport = isArchivedNonExpenseReport(report, reportNameValuePairs);
         const hasNewMessagesInView = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
