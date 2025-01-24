@@ -731,7 +731,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = isClosedExpenseReportWithNoExpenses ? (
-                <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
+                <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />
             ) : (
                 <ReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style

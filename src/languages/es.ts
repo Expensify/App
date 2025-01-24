@@ -5486,12 +5486,12 @@ const translations = {
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
-        deletedReport: '[Informe eliminado]',
-        deletedMessage: '[Mensaje eliminado]',
-        deletedExpense: '[Gasto eliminado]',
-        reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminada]',
-        hiddenMessage: '[Mensaje oculto]',
+        deletedReport: 'Informe eliminado',
+        deletedMessage: 'Mensaje eliminado',
+        deletedExpense: 'Gasto eliminado',
+        reversedTransaction: 'Transacción anulada',
+        deletedTask: 'Tarea eliminada',
+        hiddenMessage: 'Mensaje oculto',
     },
     threads: {
         thread: 'Hilo',

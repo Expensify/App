@@ -47,10 +47,9 @@ type ReportActionItemContentCreatedProps = {
 function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {report, action, transactionThreadReport} = contextValue;
 
-    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report?.policyID);
+    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const transactionCurrency = getCurrency(transaction);
@@ -94,7 +93,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                         >
-                            <RenderHTML html={`<comment>${translate(message)}</comment>`} />
+                            <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />
                         </ReportActionItemSingle>
                         <View style={styles.threadDividerLine} />
                     </OfflineWithFeedback>
@@ -128,7 +127,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader={draftMessage === undefined}
                             report={report}
                         >
-                            <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                            <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />
                         </ReportActionItemSingle>
                     </OfflineWithFeedback>
                     <View style={styles.reportHorizontalRule} />

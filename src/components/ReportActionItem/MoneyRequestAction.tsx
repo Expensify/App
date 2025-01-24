@@ -110,7 +110,7 @@ function MoneyRequestAction({
         } else {
             message = 'parentReportAction.deletedExpense';
         }
-        return <RenderHTML html={`<comment>${translate(message)}</comment>`} />;
+        return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
     return (
         <MoneyRequestPreview
