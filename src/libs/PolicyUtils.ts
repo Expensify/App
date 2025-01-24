@@ -1114,7 +1114,7 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string) {
+function hasVBBA(policyID: string | undefined) {
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
