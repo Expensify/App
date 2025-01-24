@@ -7307,7 +7307,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedReportWithID(report?.reportID)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedReportWithID(report?.reportID) || isTripRoom(report)) {
         return [];
     }
 
