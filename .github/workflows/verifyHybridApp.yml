@@ -1,10 +1,20 @@
-name: Verify HybridApp builds on main
+name: Verify HybridApp build
 
 on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths:
+      - '**.kt'
+      - '**.java'
+      - '**.swift'
+      - '**.mm'
+      - '**.h'
+      - '**.cpp'
+      - 'AndroidManifest.xml'
+      - 'project.pbxproj'
+      - 'package.json'
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-verify-main
@@ -25,7 +35,10 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        run: git submodule update --init --remote
+        run: |
+          git submodule update --init --remote
+          git fetch
+          git checkout main
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -66,7 +79,6 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
-          # TODO: Remove these two lines before merging
           git fetch
           git checkout main
 
