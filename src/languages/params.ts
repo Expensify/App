@@ -419,6 +419,10 @@ type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string}
 
 type TrialStartedTitleParams = {numOfDays: number};
 
+type EarlyDiscountTitleParams = {discountType: number};
+
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
+
 type CardNextPaymentParams = {nextPaymentDate: string};
 
 type CardEndingParams = {cardNumber: string};
@@ -644,6 +648,8 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    EarlyDiscountTitleParams,
+    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
