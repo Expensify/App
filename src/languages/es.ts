@@ -59,6 +59,8 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    EarlyDiscountSubtitleParams,
+    EarlyDiscountTitleParams,
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
@@ -99,6 +101,7 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
+    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -963,7 +966,7 @@ const translations = {
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -988,6 +991,7 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
@@ -1020,6 +1024,7 @@ const translations = {
             invalidQuantity: 'Por favor, introduce una cantidad válida.',
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero.',
             invalidSubrateLength: 'Debe haber al menos una subtasa.',
+            invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
@@ -1464,8 +1469,8 @@ const translations = {
         getPaidBackFaster: 'Recibe tus pagos más rápido',
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
-        expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        expensifyWallet: 'Billetera Expensify (Beta)',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify. Solo cuentas bancarias de EE. UU.',
         enableWallet: 'Habilitar billetera',
         addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
@@ -2045,6 +2050,17 @@ const translations = {
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
         },
     },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
+        confirmationStepHeader: 'Verifica tu información.',
+        confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido añadida.',
@@ -2598,7 +2614,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil del espacio de trabajo',
+            profile: 'Resumen',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2672,6 +2688,7 @@ const translations = {
             planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
+            viewTransactions: 'Ver transacciones',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -4933,7 +4950,7 @@ const translations = {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                integrationsMessage: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
+                integrationsMessage: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -5732,7 +5749,7 @@ const translations = {
     },
     violationDismissal: {
         rter: {
-            manual: 'marcó el recibo como pagado en efectivo.',
+            manual: 'marcó el recibo como pagado en efectivo',
         },
         duplicatedTransaction: {
             manual: 'resolvió el duplicado',
@@ -5864,6 +5881,19 @@ const translations = {
             trialEnded: {
                 title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            earlyDiscount: {
+                claimOffer: 'Solicitar oferta',
+                noThanks: 'No, gracias',
+                subscriptionPageTitle: {
+                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
+                    phrase2: `¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                },
+                onboardingChatTitle: {
+                    phrase1: 'Oferta por tiempo limitado:',
+                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
+                },
+                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
         cardSection: {
