@@ -8,6 +8,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreatePerDiemRequestParams,
@@ -107,10 +108,12 @@ import {
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
+    isArchivedReportWithID,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -135,7 +138,6 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
-    getAllReportTransactions,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getCurrency,
@@ -222,6 +224,8 @@ type TrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
+    waypoints?: string;
+    customUnitRateID?: string;
 };
 type TrackedExpensePolicyParams = {
     policyID: string | undefined;
@@ -778,7 +782,35 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  * Set custom unit rateID for the transaction draft
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
+            },
+        },
+    });
+}
+
+/**
+ * Revert custom unit of the draft transaction to the original transaction's value
+ */
+function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (!originalTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: originalTransaction.comment?.customUnit ?? {},
+        },
+    });
 }
 
 /**
@@ -4161,11 +4193,14 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-    const parameters = {
-        ...reportInformation,
+
+    const parameters: CategorizeTrackedExpenseApiParams = {
+        ...{
+            ...reportInformation,
+            linkedTrackedExpenseReportAction: undefined,
+        },
         ...policyParams,
         ...transactionParams,
-        linkedTrackedExpenseReportAction: undefined,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
@@ -4537,6 +4572,7 @@ function trackExpense(
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const {
         createdWorkspaceParams,
@@ -4634,7 +4670,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: TrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID,
                 amount,
                 currency,
@@ -4647,11 +4683,13 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID,
             };
-            const policyParams = {
+            const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
             };
-            const reportInformation = {
+            const reportInformation: TrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID,
                 moneyRequestReportID: iouReport?.reportID,
                 moneyRequestCreatedReportActionID: createdIOUReportActionID,
@@ -4661,7 +4699,7 @@ function trackExpense(
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4696,7 +4734,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -7634,7 +7672,7 @@ function getPayMoneyRequestParams(
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getAllReportTransactions(iouReport?.reportID);
+        const reportTransactions = getReportTransactions(iouReport?.reportID);
         for (const transaction of reportTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -7756,9 +7794,9 @@ function canApproveIOU(
     const isApproved = isReportApproved(iouReport);
     const iouSettled = isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
+    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     let isTransactionBeingScanned = false;
-    const reportTransactions = getAllReportTransactions(iouReport?.reportID);
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
         const hasReceipt = hasReceiptTransactionUtils(transaction);
         const isReceiptBeingScanned = isReceiptBeingScannedTransactionUtils(transaction);
@@ -7785,7 +7823,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = isArchivedReport(chatReport, reportNameValuePairs);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -7849,7 +7887,7 @@ function canSubmitReport(
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-    const isArchived = isArchivedReport(report);
+    const isArchived = isArchivedReportWithID(report?.reportID);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
@@ -9509,6 +9547,7 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
+    resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,
