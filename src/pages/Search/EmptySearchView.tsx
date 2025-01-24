@@ -6,7 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -18,20 +18,20 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startMoneyRequest} from '@libs/actions/IOU';
+import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {bookATrip} from '@libs/actions/Travel';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
-import * as Task from '@userActions/Task';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -41,11 +41,11 @@ type EmptySearchViewProps = {
 
 const tripsFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.PiggyBank,
+        icon: PiggyBank,
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Illustrations.Alert,
+        icon: Alert,
         translationKey: 'travel.features.alerts',
     },
 ];
@@ -58,7 +58,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
@@ -118,8 +118,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTask = Task.canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
         switch (type) {
@@ -151,10 +151,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATour'),
                                           buttonAction: () => {
-                                              Link.openExternalLink(navatticURL);
-                                              Welcome.setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                                  Task.completeTask(viewTourTaskReport);
+                                              openExternalLink(navatticURL);
+                                              setSelfTourViewed();
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                                  completeTask(viewTourTaskReport);
                                               }
                                           },
                                       },
@@ -168,7 +168,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                             setModalVisible(true);
                                             return;
                                         }
-                                        IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
                                     }),
                                 success: true,
                             },
@@ -191,10 +191,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATour'),
                                           buttonAction: () => {
-                                              Link.openExternalLink(navatticURL);
-                                              Welcome.setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                                  Task.completeTask(viewTourTaskReport);
+                                              openExternalLink(navatticURL);
+                                              setSelfTourViewed();
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                                  completeTask(viewTourTaskReport);
                                               }
                                           },
                                       },
@@ -208,7 +208,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                             setModalVisible(true);
                                             return;
                                         }
-                                        IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
                                     }),
                                 success: true,
                             },
@@ -243,8 +243,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
-        canModifyTask,
-        canActionTask,
+        canModifyTheTask,
+        canActionTheTask,
     ]);
 
     return (
@@ -267,7 +267,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
                 title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
