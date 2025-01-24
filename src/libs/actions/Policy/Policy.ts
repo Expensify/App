@@ -2853,7 +2853,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect = false, useGoBack = false) {
+function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect = false, shouldGoBack = false) {
     const authToken = NetworkStore.getAuthToken();
 
     const onyxData: OnyxData = {
@@ -2899,7 +2899,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);
@@ -2907,7 +2907,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect 
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false, useGoBack = false) {
+function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false, shouldGoBack = false) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2951,7 +2951,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, disableRed
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);
@@ -2959,7 +2959,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, disableRed
     }
 }
 
-function enablePolicyTaxes(policyID: string, enabled: boolean, useGoBack = false) {
+function enablePolicyTaxes(policyID: string, enabled: boolean, shouldGoBack = false) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData = {
         optimisticData: [
@@ -3069,7 +3069,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, useGoBack = false
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);
@@ -3174,7 +3174,7 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect = false, useGoBack = false) {
+function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect = false, shouldGoBack = false) {
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3226,7 +3226,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
     API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);

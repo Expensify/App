@@ -958,7 +958,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true, useGoBack = false) {
+function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true, shouldGoBack = false) {
     const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
     if (!enabled) {
         onyxUpdatesToDisableCategories.push(
@@ -1030,7 +1030,7 @@ function enablePolicyCategories(policyID: string, enabled: boolean, shouldNaviga
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldNavigate) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);

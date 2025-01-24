@@ -70,7 +70,7 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, disableRedirect?: boolean, useGoBack = false) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, disableRedirect?: boolean, shouldGoBack = false) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
@@ -124,7 +124,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
     API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        if (useGoBack) {
+        if (shouldGoBack) {
             goBackWhenEnableFeature(policyID);
         } else {
             navigateWhenEnableFeature(policyID);
