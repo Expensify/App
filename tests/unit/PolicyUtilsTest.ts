@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue} from '@libs/PolicyUtils';
+import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -9,9 +10,13 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+const CARLOS_EMAIL = 'cmartins@expensifail.com';
+const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -425,6 +430,48 @@ describe('PolicyUtils', () => {
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
                 });
             });
+        });
+    });
+    describe('shouldShowPolicy', () => {
+        beforeAll(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
+                },
+            });
+        });
+
+        beforeEach(() => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            return Onyx.clear().then(waitForBatchedUpdates);
+        });
+        it('should return false', () => {
+            // Given an archived paid policy.
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: '',
+            };
+            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be false since it is an archived paid policy.
+            expect(result).toBe(false);
+        });
+        it('should return true', () => {
+            // Given a paid policy.
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
+            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be true, since it is an active paid policy.
+            expect(result).toBe(true);
+        });
+        it('should returnfalse', () => {
+            // Given a control workspace which is pending delete.
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // The result should be false since it is a policy which is pending deletion.
+            expect(result).toEqual(false);
         });
     });
 });

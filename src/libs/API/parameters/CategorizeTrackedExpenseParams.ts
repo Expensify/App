@@ -20,6 +20,10 @@ type CategorizeTrackedExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    policyExpenseChatReportID?: string;
+    policyExpenseCreatedReportActionID?: string;
+    adminsChatReportID?: string;
+    adminsCreatedReportActionID?: string;
     waypoints?: string;
     customUnitRateID?: string;
 };
