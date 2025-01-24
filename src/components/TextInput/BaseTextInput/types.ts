@@ -121,6 +121,7 @@ type CustomBaseTextInputProps = {
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
+    /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
     markdownStyle?: MarkdownStyle;
 
     /** Whether the clear button should be displayed */
