@@ -26,8 +26,27 @@ describe('actions/App', () => {
         App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
-        // The lastFullReconnecTime should be updated
-        const lastFullReconnectTime = await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME);
-        expect(lastFullReconnectTime).toBeTruthy();
+        // The lastFullReconnectTime should be updated
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
+    });
+
+    test('lastFullReconnectTime - full reconnectApp', async () => {
+        // When a full ReconnectApp runs
+        App.reconnectApp();
+        App.confirmReadyToOpenApp();
+        await waitForBatchedUpdates();
+
+        // The lastFullReconnectTime should be updated
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
+    });
+
+    test('lastFullReconnectTime - incremental reconnectApp', async () => {
+        // When an incremental ReconnectApp runs
+        App.reconnectApp(123);
+        App.confirmReadyToOpenApp();
+        await waitForBatchedUpdates();
+
+        // The lastFullReconnectTime should NOT be updated
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
     });
 });
