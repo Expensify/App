@@ -1803,9 +1803,6 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    console.log('card', card);
-    console.log('privatePersonalDetails', privatePersonalDetails);
-
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
         !privatePersonalDetails?.legalLastName ||
@@ -1814,7 +1811,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0;
 
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && card?.state === 2 && missingDetails;
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === 2 || missingDetails);
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', card?: Card) {
