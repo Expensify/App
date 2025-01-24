@@ -133,8 +133,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const [isDuplicate, setIsDuplicate] = useState(() => isDuplicateTransactionUtils(transaction?.transactionID));
-    const prevIsDuplicate = usePrevious(isDuplicate);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -160,14 +159,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
-    const shouldShowIsDuplicate = useMemo(
-        () => isDuplicate || (prevIsDuplicate && (isPaidAnimationRunning || isApprovedAnimationRunning)),
-        [isApprovedAnimationRunning, isDuplicate, isPaidAnimationRunning, prevIsDuplicate],
-    );
-
-    useEffect(() => {
-        setIsDuplicate(isDuplicateTransactionUtils(transaction?.transactionID));
-    }, [isPaidAnimationRunning, isApprovedAnimationRunning, transaction?.transactionID]);
+    const shouldShowIsDuplicate = useMemo(() => isDuplicate, [isDuplicate]);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>

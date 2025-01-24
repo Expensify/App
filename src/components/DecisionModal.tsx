@@ -62,12 +62,14 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
                         text={firstOptionText}
+                        large
                     />
                 )}
                 <Button
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
+                    large
                 />
             </View>
         </Modal>
