@@ -2,6 +2,7 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
@@ -1495,6 +1496,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.REPORT]: {
                     path: ROUTES.REPORT_WITH_ID.route,
                     exact: true,
+                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+                    // We want to avoid that situation, so we will return an empty string instead.
+                    parse: {
+                        reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
+                    },
+                    stringify: {
+                        reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
+                    },
                 },
             },
         },

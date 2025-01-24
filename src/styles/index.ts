@@ -1264,12 +1264,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputMultilineContainer: {
+            height: '100%',
             paddingTop: 23,
         },
 
         textInputAndIconContainer: {
-            flex: 1,
-            height: '100%',
             zIndex: -1,
             flexDirection: 'row',
         },

@@ -6,9 +6,9 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import DateUtils from '@libs/DateUtils';
-import * as Localize from '@libs/Localize';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {translateLocal} from '@libs/Localize';
+import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
+import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,12 +71,12 @@ const signUpWithTestUser = () => {
 };
 
 const getOptionRows = () => {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+    const hintText = translateLocal('accessibilityHints.navigatesToChat');
     return screen.queryAllByAccessibilityHint(hintText);
 };
 
 const getDisplayNames = () => {
-    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
     return screen.queryAllByLabelText(hintText);
 };
 
@@ -267,11 +267,10 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             await initializeState({
@@ -427,15 +426,15 @@ describe('SidebarLinksData', () => {
         it('should not display the single transaction thread', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
-            const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
                     currency: 'USD',
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+            const expenseCreatedAction = buildOptimisticIOUReportAction(
                 'create',
                 100,
                 'USD',
@@ -450,7 +449,7 @@ describe('SidebarLinksData', () => {
                 undefined,
                 undefined,
             );
-            const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             // When a single transaction thread is initialized in Onyx

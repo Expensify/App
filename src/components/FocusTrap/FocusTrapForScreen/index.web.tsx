@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import FocusTrap from 'focus-trap-react';
+import {FocusTrap} from 'focus-trap-react';
 import React, {useMemo} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
@@ -50,7 +50,6 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: false,
                 setReturnFocus: false,
-                unpauseOnDeactivate: false,
                 ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >

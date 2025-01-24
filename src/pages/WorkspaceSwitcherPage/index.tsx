@@ -14,9 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
@@ -90,11 +89,9 @@ function WorkspaceSwitcherPage() {
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             Navigation.goBack();
-            if (newPolicyID !== activeWorkspaceID) {
-                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
-                // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
-                switchPolicyAfterInteractions(newPolicyID);
-            }
+            // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
+            // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
+            switchPolicyAfterInteractions(newPolicyID);
         },
         [activeWorkspaceID, isFocused],
     );
@@ -105,14 +102,14 @@ function WorkspaceSwitcherPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
+            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
-                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
@@ -121,7 +118,7 @@ function WorkspaceSwitcherPage() {
                 ],
                 isBold: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
-                isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
+                isPolicyAdmin: isPolicyAdmin(policy),
                 isSelected: activeWorkspaceID === policy?.id,
             }));
     }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);

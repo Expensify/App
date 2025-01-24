@@ -11,8 +11,8 @@ import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
+import {useReportIDs} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,19 +75,11 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {currentReportID} = useCurrentReportID() ?? {};
+    const {orderedReportIDs} = useReportIDs();
     const [user] = useOnyx(ONYXKEYS.USER);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
-        getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
-    );
-
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -95,10 +87,10 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
+    }, [activeWorkspaceID, orderedReportIDs, reportActions]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === BOTTOM_TABS.HOME) {
@@ -211,12 +203,6 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
                     activeWorkspaceID={activeWorkspaceID}
-                    reports={reports}
-                    currentReportID={currentReportID}
-                    betas={betas}
-                    policies={policies}
-                    transactionViolations={transactionViolations}
-                    priorityMode={priorityMode}
                 />
             )}
             <View style={styles.bottomTabBarContainer}>
@@ -230,6 +216,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
+                    onTooltipPress={navigateToChats}
                 >
                     <PressableWithFeedback
                         onPress={navigateToChats}
