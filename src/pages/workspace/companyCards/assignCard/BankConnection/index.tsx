@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -8,12 +9,12 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName} from '@libs/CardUtils';
+import {getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import getCurrentUrl from '@navigation/currentUrl';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
@@ -31,9 +32,10 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const bankName = getBankName(feed);
-    const currentUrl = getCurrentUrl();
-    const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const url = getCompanyCardBankConnection(policyID, bankName);
+    const isFeedExpired = isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -57,7 +59,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
         if (!url) {
             return;
         }
-        if (isBankConnectionCompleteRoute) {
+        if (!isFeedExpired) {
             customWindow?.close();
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
@@ -66,7 +68,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [isBankConnectionCompleteRoute, policyID, url]);
+    }, [isFeedExpired, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
