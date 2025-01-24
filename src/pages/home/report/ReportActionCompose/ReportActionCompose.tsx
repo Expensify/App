@@ -453,6 +453,10 @@ function ReportActionCompose({
                         wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pv2]}
                         shiftHorizontal={variables.composerTooltipShiftHorizontal}
                         shiftVertical={variables.composerTooltipShiftVertical + offsetTop}
+                        onTooltipPress={() => {
+                            setMenuVisibility(true);
+                            onAddActionPressed();
+                        }}
                     >
                         <View
                             ref={containerRef}

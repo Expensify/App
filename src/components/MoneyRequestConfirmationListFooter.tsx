@@ -269,6 +269,7 @@ function MoneyRequestConfirmationListFooter({
     const taxRateTitle = getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
     const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) && !isPerDiemRequest;
     // The per diem custom unit
@@ -398,6 +399,7 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
+                    brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
