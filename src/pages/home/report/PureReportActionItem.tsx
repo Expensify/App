@@ -33,7 +33,6 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -373,9 +372,7 @@ function PureReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const reportScrollManager = useReportScrollManager();
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-    const originalMessage = getOriginalMessage(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -383,9 +380,6 @@ function PureReportActionItem({
     );
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
-    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
-    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -553,18 +547,6 @@ function PureReportActionItem({
             isThreadReportParentAction,
         ],
     );
-
-    // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
-    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
-    useEffect(() => {
-        if (index !== 0 || !isActionableWhisper) {
-            return;
-        }
-
-        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
-            reportScrollManager.scrollToIndex(index);
-        }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
@@ -1106,11 +1088,6 @@ function PureReportActionItem({
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
     if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
-        return null;
-    }
-
-    // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 
