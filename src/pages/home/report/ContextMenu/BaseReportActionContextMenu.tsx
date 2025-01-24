@@ -332,7 +332,7 @@ function BaseReportActionContextMenu({
                             openOverflowMenu,
                             setIsEmojiPickerActive,
                             moneyRequestAction,
-                            card: card,
+                            card,
                         };
 
                         if ('renderContent' in contextAction) {
