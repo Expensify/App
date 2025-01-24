@@ -49,7 +49,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
             if (row.value !== config?.export?.billDate) {
                 updateXeroExportBillDate(policyID, row.value, config?.export?.billDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
         [config?.export?.billDate, policyID],
     );
