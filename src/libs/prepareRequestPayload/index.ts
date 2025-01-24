@@ -1,6 +1,9 @@
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
+/**
+ * Prepares the request payload (body) for a given command and data.
+ */
 const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
     const formData = new FormData();
 

@@ -1,6 +1,10 @@
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
+/**
+ * Prepares the request payload (body) for a given command and data.
+ * This function is specifically designed for native platforms (IOS and Android) to handle the regeneration of blob files. It ensures that files, such as receipts, are properly read and appended to the FormData object before the request is sent.
+ */
 const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOffline) => {
     const formData = new FormData();
     let promiseChain = Promise.resolve();
