@@ -153,7 +153,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
-            enableCompanyCards(policyID, isEnabled, false, true);
+            enableCompanyCards(policyID, isEnabled, true);
         },
         disabledAction: () => {
             setIsDisableCompanyCardsWarningModalOpen(true);
@@ -175,7 +175,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, undefined, true);
+                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true);
             },
         });
     }
@@ -209,7 +209,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled, false, true);
+                enablePolicyRules(policyID, isEnabled);
             },
         },
     ];
@@ -243,7 +243,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, true, true);
+                enablePolicyCategories(policyID, isEnabled, true);
             },
         },
         {
@@ -273,7 +273,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled, true);
+                enablePolicyTaxes(policyID, isEnabled);
             },
         },
         {
@@ -296,7 +296,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         return;
                     }
 
-                    enablePolicyReportFields(policyID, true, false, true);
+                    enablePolicyReportFields(policyID, true, true);
                     return;
                 }
                 setIsReportFieldsWarningModalOpen(true);
@@ -507,7 +507,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsReportFieldsWarningModalOpen(false);
-                        enablePolicyReportFields(policyID, false, false, true);
+                        enablePolicyReportFields(policyID, false, true);
                     }}
                     onCancel={() => setIsReportFieldsWarningModalOpen(false)}
                     prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
