@@ -21,6 +21,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {
+    clearContactMethod,
+    clearContactMethodErrors,
+    clearUnvalidatedNewContactMethodAction,
+    deleteContactMethod,
+    requestContactMethodValidateCode,
+    resetContactMethodValidateCodeSentState,
+    setContactMethodAsDefault,
+    validateSecondaryLogin,
+} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,15 +38,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {close} from '@userActions/Modal';
-import {
-    clearContactMethod,
-    clearContactMethodErrors,
-    clearUnvalidatedNewContactMethodAction,
-    deleteContactMethod,
-    requestContactMethodValidateCode,
-    setContactMethodAsDefault,
-    validateSecondaryLogin,
-} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -166,6 +167,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
+
+    useEffect(() => {
+        resetContactMethodValidateCodeSentState(contactMethod);
+    }, [contactMethod]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -325,13 +330,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        onThreeDotsButtonPress={() => {
-                            // Hide the keyboard when the user clicks the three-dot menu.
-                            // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
-                            blurActiveElement();
-                            KeyboardUtils.dismiss();
-                        }}
-                        threeDotsMenuItems={getThreeDotsMenuItems()}
                         forwardedRef={validateCodeFormRef}
                     />
                 )}
