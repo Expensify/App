@@ -44,10 +44,9 @@ An active member is anyone who performs any of these actions in Expensify during
   - Cost for additional two members: $36/member = $72  
   - Total bill: $252
 
-## Adjustments:
+**Adjustments:**
 - You can increase your subscription size by extending your subscription period.  
 - Reductions are only allowed after your current subscription ends.  
-
 ---
 # Pay-Per-Use Billing
 - Charges apply at full rates with no discounts.  
