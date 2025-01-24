@@ -1,10 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +29,8 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
+    const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
+
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const getLabelsLayout = () => {
@@ -46,7 +50,6 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
                     />
                 </View>
-                )
             </>
         ) : (
             <>
@@ -70,11 +73,16 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
 
     return (
         <View style={styles.appBG}>
-            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
-                {getLabelsLayout()}
-            </View>
-
-            <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4]}>
+            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mt5, styles.mh5, styles.ph4]}>{getLabelsLayout()}</View>
+            {!!errorMessage && (
+                <View style={[styles.mh5, styles.ph4, styles.mt2]}>
+                    <FormHelpMessage
+                        isError
+                        message={errorMessage}
+                    />
+                </View>
+            )}
+            <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4, isLessThanMediumScreen ? styles.mt3 : styles.mt5]}>
                 <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
