@@ -439,7 +439,7 @@ platform :ios do
         workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
         scheme: "Expensify AdHoc",
         output_name: "Expensify.ipa",
-        export_method: "app-store",
+        export_method: "ad-hoc",
         export_options: {
           manageAppVersionAndBuildNumber: false,
           provisioningProfiles: {
