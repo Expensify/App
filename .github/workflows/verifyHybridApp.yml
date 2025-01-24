@@ -49,17 +49,12 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
-      - name: Run grunt build
-        run: |
-          cd Mobile-Expensify
-          npm run grunt:build:shared
-
       - name: Build Android Debug
         working-directory: Mobile-Expensify/Android
         run: |
           if ! ./gradlew assembleDebug
           then
-            echo "❌ Android debug build failed."
+            echo "❌ Android HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
             exit 1
           fi
 
@@ -90,11 +85,6 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: 'true'
-
-      - name: Run grunt build
-        run: |
-          cd Mobile-Expensify
-          npm run grunt:build:shared
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.204.0
@@ -143,6 +133,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build | xcpretty 
           then
-            echo "❌ iOS simulator build failed."
+            echo "❌ iOS HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
             exit 1
           fi
