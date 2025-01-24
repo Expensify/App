@@ -1,19 +1,16 @@
-import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
-import {convertToDisplayString} from './CurrencyUtils';
+import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {translateLocal} from './Localize';
+import * as Localize from './Localize';
 import Log from './Log';
-import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
-import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
-// eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat} from './ReportUtils';
-import {getTagArrayFromName} from './TransactionUtils';
+import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -58,17 +55,17 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
-    const isOldValuePartialMerchant = valueName === translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isOldValuePartialMerchant = valueName === Localize.translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
     if (!oldValue || isOldValuePartialMerchant) {
-        const fragment = translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+        const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
     } else if (!newValue) {
-        const fragment = translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
+        const fragment = Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
         removalFragments.push(fragment);
     } else {
-        const fragment = translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+        const fragment = Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
         changeFragments.push(fragment);
     }
 }
@@ -94,9 +91,9 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
                 return `${acc} ${value}`;
             }
             if (messageFragments.length === 2) {
-                return `${acc} ${translateLocal('common.and')} ${value}`;
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}`;
             }
-            return `${acc}, ${translateLocal('common.and')} ${value}`;
+            return `${acc}, ${Localize.translateLocal('common.and')} ${value}`;
         }
         if (index === 0) {
             return `${acc} ${value}`;
@@ -123,30 +120,16 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
         Log.hmmm("Distance request merchant doesn't match NewDot format. Defaulting to showing as distance changed.", {newMerchant, oldMerchant});
     }
 
-    const translatedChangedField = translateLocal(`common.${changedField}`).toLowerCase();
+    const translatedChangedField = Localize.translateLocal(`common.${changedField}`).toLowerCase();
     if (!oldMerchant.length) {
-        return translateLocal('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+        return Localize.translateLocal('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
     }
-    return translateLocal('iou.updatedTheDistanceMerchant', {
+    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {
         translatedChangedField,
         newMerchant,
         oldMerchant,
         newAmountToDisplay: newAmount,
         oldAmountToDisplay: oldAmount,
-    });
-}
-
-function getForExpenseMovedFromSelfDM(destinationReportID: string) {
-    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
-    const rootParentReport = getRootParentReport(destinationReport);
-
-    // The "Move report" flow only supports moving expenses to a policy expense chat or a 1:1 DM.
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
-    const policyName = getPolicyName(rootParentReport, true);
-
-    return translateLocal('iou.movedFromSelfDM', {
-        reportName,
-        workspaceName: !isEmpty(policyName) ? policyName : undefined,
     });
 }
 
@@ -157,15 +140,12 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
  * If we change this function be sure to update the backend as well.
  */
 function getForReportAction(reportOrID: string | SearchReport | undefined, reportAction: OnyxEntry<ReportAction>): string {
-    if (!isModifiedExpenseAction(reportAction)) {
+    if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
-    const reportActionOriginalMessage = getOriginalMessage(reportAction);
+    const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
-
-    if (reportActionOriginalMessage?.movedToReportID) {
-        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
-    }
+    const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -184,10 +164,10 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = oldAmountValue > 0 ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency;
-        const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
@@ -195,7 +175,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
             return getForDistanceRequest(reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
         }
 
-        buildMessageFragmentForValue(amount, oldAmount, translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
@@ -203,7 +183,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.newComment ?? '',
             reportActionOriginalMessage?.oldComment ?? '',
-            translateLocal('common.description'),
+            Localize.translateLocal('common.description'),
             true,
             setFragments,
             removalFragments,
@@ -214,14 +194,22 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
         const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
 
-        buildMessageFragmentForValue(reportActionOriginalMessage.created, formattedOldCreated, translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage.created,
+            formattedOldCreated,
+            Localize.translateLocal('common.date'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.merchant ?? '',
             reportActionOriginalMessage?.oldMerchant ?? '',
-            translateLocal('common.merchant'),
+            Localize.translateLocal('common.merchant'),
             true,
             setFragments,
             removalFragments,
@@ -234,7 +222,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.category ?? '',
             reportActionOriginalMessage?.oldCategory ?? '',
-            translateLocal('common.category'),
+            Localize.translateLocal('common.category'),
             true,
             setFragments,
             removalFragments,
@@ -244,13 +232,13 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
-        const splittedTag = getTagArrayFromName(transactionTag);
-        const splittedOldTag = getTagArrayFromName(oldTransactionTag);
-        const localizedTagListName = translateLocal('common.tag');
-        const sortedTagKeys = getSortedTagKeys(policyTags);
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
+        const localizedTagListName = Localize.translateLocal('common.tag');
+        const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
@@ -260,8 +248,8 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
 
             if (newTag !== oldTag) {
                 buildMessageFragmentForValue(
-                    getCleanedTagName(newTag),
-                    getCleanedTagName(oldTag),
+                    PolicyUtils.getCleanedTagName(newTag),
+                    PolicyUtils.getCleanedTagName(oldTag),
                     policyTagListName,
                     true,
                     setFragments,
@@ -277,10 +265,10 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     if (hasModifiedTaxAmount) {
         const currency = reportActionOriginalMessage?.currency;
 
-        const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
-        buildMessageFragmentForValue(taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
@@ -288,7 +276,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.taxRate ?? '',
             reportActionOriginalMessage?.oldTaxRate ?? '',
-            translateLocal('iou.taxRate'),
+            Localize.translateLocal('iou.taxRate'),
             false,
             setFragments,
             removalFragments,
@@ -301,7 +289,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
-            translateLocal('iou.expense'),
+            Localize.translateLocal('iou.expense'),
             true,
             setFragments,
             removalFragments,
@@ -312,9 +300,9 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         buildMessageFragmentForValue(
-            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
-            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
-            translateLocal('iou.expense'),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            Localize.translateLocal('iou.expense'),
             true,
             setFragments,
             removalFragments,
@@ -327,7 +315,7 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         buildMessageFragmentForValue(
             reportActionOriginalMessage.oldAttendees ?? '',
             reportActionOriginalMessage.attendees ?? '',
-            translateLocal('iou.attendees'),
+            Localize.translateLocal('iou.attendees'),
             false,
             setFragments,
             removalFragments,
@@ -336,11 +324,11 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
     }
 
     const message =
-        getMessageLine(`\n${translateLocal('iou.changed')}`, changeFragments) +
-        getMessageLine(`\n${translateLocal('iou.set')}`, setFragments) +
-        getMessageLine(`\n${translateLocal('iou.removed')}`, removalFragments);
+        getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
+        getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
+        getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
-        return translateLocal('iou.changedTheExpense');
+        return Localize.translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
 }

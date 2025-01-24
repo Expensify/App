@@ -68,7 +68,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 

@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTripTransactions from '@hooks/useTripTransactions';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
@@ -16,7 +15,6 @@ type TripSummaryProps = {
 
 function TripSummary({report}: TripSummaryProps) {
     const styles = useThemeStyles();
-    const tripTransactions = useTripTransactions(report?.reportID);
 
     if (!report?.reportID) {
         return null;
@@ -28,7 +26,6 @@ function TripSummary({report}: TripSummaryProps) {
             <OfflineWithFeedback pendingAction={report.pendingAction}>
                 <TripDetailsView
                     tripRoomReportID={report.reportID}
-                    tripTransactions={tripTransactions}
                     shouldShowHorizontalRule={false}
                 />
             </OfflineWithFeedback>

@@ -54,6 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -593,7 +594,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
             .finally(() => {
-                resolve(`${route}${isSingleNewDotEntry === 'true' ? '?singleNewDotEntry=true' : ''}` as Route);
+                resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
             });
     });
 
@@ -825,11 +826,20 @@ function clearSignInData() {
 }
 
 /**
- * Reset navigation state after logout
+ * Reset all current params of the Home route
  */
-function resetNavigationState() {
+function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        navigationRef.resetRoot(navigationRef.getRootState());
+        const routes = navigationRef.current?.getState()?.routes;
+        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
+
+        const emptyParams: Record<string, undefined> = {};
+        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
+        });
+
+        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
 
@@ -848,7 +858,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetNavigationState();
+    resetHomeRouteParams();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });

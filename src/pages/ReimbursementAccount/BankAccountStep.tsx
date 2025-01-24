@@ -17,12 +17,12 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import {openPlaidView, setBankAccountSubStep} from '@userActions/BankAccounts';
-import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
-import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
-import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,7 +81,7 @@ function BankAccountStep({
     const selectedSubStep = useRef('');
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
-    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
 
     let subStep = reimbursementAccount?.achData?.subStep ?? '';
@@ -99,9 +99,9 @@ function BankAccountStep({
         }
 
         if (selectedSubStep.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
-            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         } else if (selectedSubStep.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
-            openPlaidView();
+            BankAccounts.openPlaidView();
         }
     }, [account?.validated]);
 
@@ -115,7 +115,7 @@ function BankAccountStep({
             [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
         };
-        updateReimbursementAccountDraft(bankAccountData);
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
     };
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
@@ -152,7 +152,7 @@ function BankAccountStep({
                     >
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink onPress={() => openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         {!!personalBankAccounts.length && (
@@ -186,7 +186,7 @@ function BankAccountStep({
                                         return;
                                     }
                                     removeExistingBankAccountDetails();
-                                    openPlaidView();
+                                    BankAccounts.openPlaidView();
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -203,7 +203,7 @@ function BankAccountStep({
                                         return;
                                     }
                                     removeExistingBankAccountDetails();
-                                    setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -213,11 +213,11 @@ function BankAccountStep({
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
+                            onPress={() => Link.openExternalLink('https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         >
-                            <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
+                            <TextLink href="https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/">{translate('bankAccount.yourDataIsSecure')}</TextLink>
                             <View style={styles.ml1}>
                                 <Icon
                                     src={Expensicons.Lock}
@@ -234,10 +234,10 @@ function BankAccountStep({
                     isVisible={!!isValidateCodeActionModalVisible}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                    sendValidateCode={() => requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                    clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                    sendValidateCode={() => User.requestValidateCodeAction()}
+                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onClose={() => toggleValidateCodeActionModal?.(false)}
                 />
             </View>

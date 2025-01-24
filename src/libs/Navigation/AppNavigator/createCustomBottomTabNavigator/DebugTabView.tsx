@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
-import {useReportIDs} from '@hooks/useReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,12 +21,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {Beta, Policy, PriorityMode, ReimbursementAccount, Report, TransactionViolations} from '@src/types/onyx';
 
 type DebugTabViewProps = {
     selectedTab?: string;
     chatTabBrickRoad: BrickRoad;
     activeWorkspaceID?: string;
+    currentReportID: string | undefined;
+    reports: OnyxCollection<Report>;
+    betas: OnyxEntry<Beta[]>;
+    policies: OnyxCollection<Policy>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    priorityMode: OnyxEntry<PriorityMode>;
 };
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
@@ -92,14 +97,13 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
+function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID, currentReportID, reports, betas, policies, transactionViolations, priorityMode}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useReportIDs();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === SCREENS.HOME) {
@@ -133,7 +137,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
 
     const navigateTo = useCallback(() => {
         if (selectedTab === SCREENS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReportIDs);
+            const report = getChatTabBrickRoadReport(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -146,7 +150,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
         return null;

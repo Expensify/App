@@ -6,7 +6,6 @@ const PopoverContext = React.createContext<PopoverContextValue>({
     popover: null,
     close: () => {},
     isOpen: false,
-    setActivePopoverExtraAnchorRef: () => {},
 });
 
 function PopoverContextProvider(props: PopoverContextProps) {
@@ -16,7 +15,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
             close: () => {},
             popover: null,
             isOpen: false,
-            setActivePopoverExtraAnchorRef: () => {},
         }),
         [],
     );

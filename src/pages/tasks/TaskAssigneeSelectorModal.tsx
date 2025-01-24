@@ -47,7 +47,7 @@ function useOptions() {
             },
             {
                 betas,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
             },
         );
 
@@ -69,7 +69,7 @@ function useOptions() {
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(

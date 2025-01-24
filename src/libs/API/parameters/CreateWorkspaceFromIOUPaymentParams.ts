@@ -12,7 +12,7 @@ type CreateWorkspaceFromIOUPaymentParams = {
     customUnitRateID: string;
     iouReportID: string;
     memberData: string;
-    reportActionID: string | undefined;
+    reportActionID: string;
 };
 
 export default CreateWorkspaceFromIOUPaymentParams;

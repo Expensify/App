@@ -20,8 +20,6 @@ type ShareTrackedExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
-    waypoints?: string;
-    customUnitRateID?: string;
     policyExpenseChatReportID?: string;
     policyExpenseCreatedReportActionID?: string;
     adminsChatReportID?: string;

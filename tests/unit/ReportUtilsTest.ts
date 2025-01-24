@@ -326,58 +326,50 @@ describe('ReportUtils', () => {
         });
 
         describe('Default Policy Room', () => {
-            afterEach(async () => {
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
-            });
-
             const baseAdminsRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
 
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-
             test('Active', () => {
                 expect(getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
-            test('Archived', async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
+            test('Archived', () => {
+                const archivedAdminsRoom = {
+                    ...baseAdminsRoom,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
+                };
 
-                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
+                expect(getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
         describe('User-Created Policy Room', () => {
-            afterEach(async () => {
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
-            });
-
             const baseUserCreatedRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
 
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-
             test('Active', () => {
                 expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
-            test('Archived', async () => {
+            test('Archived', () => {
                 const archivedPolicyRoom = {
                     ...baseUserCreatedRoom,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
                 expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
@@ -419,26 +411,24 @@ describe('ReportUtils', () => {
                     ownerAccountID: 1,
                     policyID: policy.id,
                     oldPolicyName: policy.name,
-                };
-
-                const reportNameValuePairs = {
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                test('as member', async () => {
+                test('as member', () => {
                     const memberArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: true,
                     };
-
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
                 });
 
-                test('as admin', async () => {
+                test('as admin', () => {
                     const adminArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
@@ -1180,10 +1170,11 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
+                private_isArchived: true,
             };
 
             // Get the quick action detail
@@ -1513,10 +1504,11 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
+                private_isArchived: true,
             };
             const currentReportId = '3';
             const isInFocusMode = false;
@@ -1541,10 +1533,11 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
+                private_isArchived: true,
             };
             const currentReportId = '3';
             const isInFocusMode = true;

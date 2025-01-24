@@ -1,5 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';

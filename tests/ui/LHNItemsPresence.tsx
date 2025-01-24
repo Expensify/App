@@ -258,10 +258,13 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: true,
             };
 
             await initializeState({

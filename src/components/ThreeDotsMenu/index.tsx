@@ -5,13 +5,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobile} from '@libs/Browser';
-import variables from '@styles/variables';
+import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ThreeDotsMenuProps from './types';
@@ -32,8 +30,6 @@ function ThreeDotsMenu({
     shouldSetModalVisibility = true,
     disabled = false,
     hideProductTrainingTooltip,
-    renderProductTrainingTooltipContent,
-    shouldShowProductTrainingTooltip = false,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -59,46 +55,31 @@ function ThreeDotsMenu({
         hidePopoverMenu();
     }, [isBehindModal, isPopupMenuVisible]);
 
-    const onThreeDotsPress = () => {
-        if (isPopupMenuVisible) {
-            hidePopoverMenu();
-            return;
-        }
-        hideProductTrainingTooltip?.();
-        buttonRef.current?.blur();
-        showPopoverMenu();
-        if (onIconPress) {
-            onIconPress();
-        }
-    };
-
-    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
-    const tooltipProps = shouldShowProductTrainingTooltip
-        ? {
-              renderTooltipContent: renderProductTrainingTooltipContent,
-              shouldRender: shouldShowProductTrainingTooltip,
-              anchorAlignment: {
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-              },
-              shiftHorizontal: variables.savedSearchShiftHorizontal,
-              shiftVertical: variables.savedSearchShiftVertical,
-              wrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-              onTooltipPress: onThreeDotsPress,
-          }
-        : {text: translate(iconTooltip), shouldRender: true};
-
     return (
         <>
             <View>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                <TooltipToRender {...tooltipProps}>
+                <Tooltip
+                    text={translate(iconTooltip)}
+                    // We need to hide the extra "More" tooltip when we have an educational tooltip
+                    shouldRender={!hideProductTrainingTooltip}
+                >
                     <PressableWithoutFeedback
-                        onPress={onThreeDotsPress}
+                        onPress={() => {
+                            if (isPopupMenuVisible) {
+                                hidePopoverMenu();
+                                return;
+                            }
+                            hideProductTrainingTooltip?.();
+                            buttonRef.current?.blur();
+                            showPopoverMenu();
+                            if (onIconPress) {
+                                onIconPress();
+                            }
+                        }}
                         disabled={disabled}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
-                            if (!isMobile()) {
+                            if (!Browser.isMobile()) {
                                 return;
                             }
                             e.preventDefault();
@@ -113,7 +94,7 @@ function ThreeDotsMenu({
                             fill={iconFill ?? isPopupMenuVisible ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>
-                </TooltipToRender>
+                </Tooltip>
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}

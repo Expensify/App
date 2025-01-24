@@ -200,7 +200,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
+    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
@@ -386,49 +386,36 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
                 return [];
             }
-            const onSelected = () => {
-                interceptAnonymousUser(() => {
-                    hideProductTrainingTooltip();
-                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
-                });
-            };
             return [
                 {
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                    onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
+                    onSelected: () =>
+                        interceptAnonymousUser(() => {
+                            hideProductTrainingTooltip();
+                            navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                        }),
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
-            const onSelected = () => {
-                interceptAnonymousUser(() => {
-                    selectOption(() => {
-                        hideProductTrainingTooltip();
-                        const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
-                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
-                    }, true);
-                });
-            };
-
             return [
                 {
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
-                    onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
+                    onSelected: () =>
+                        interceptAnonymousUser(() => {
+                            selectOption(() => {
+                                hideProductTrainingTooltip();
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
+                                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                            }, true);
+                        }),
                     shouldShowSubscriptRightAvatar: true,
                 },
             ];
@@ -437,23 +424,22 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         return [];
     }, [
         translate,
+        quickActionAvatars,
+        isValidReport,
+        styles.popoverMenuItem.paddingVertical,
         styles.pt3,
         styles.pb2,
-        styles.popoverMenuItem.paddingVertical,
         styles.productTrainingTooltipWrapper,
-        quickActionAvatars,
         renderProductTrainingTooltip,
-        shouldShowProductTrainingTooltip,
+        hideProductTrainingTooltip,
         quickAction,
         policyChatForActivePolicy,
-        quickActionReport,
-        quickActionPolicy,
         quickActionTitle,
         hideQABSubtitle,
-        hideProductTrainingTooltip,
-        isValidReport,
+        quickActionReport,
+        shouldShowProductTrainingTooltip,
         selectOption,
-        hideCreateMenu,
+        quickActionPolicy,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;

@@ -94,7 +94,6 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 1. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
 1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code

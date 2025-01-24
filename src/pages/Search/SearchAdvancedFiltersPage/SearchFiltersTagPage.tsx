@@ -6,9 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,7 +23,7 @@ function SearchFiltersTagPage() {
         if (tag === CONST.SEARCH.EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
-        return {name: getCleanedTagName(tag), value: tag};
+        return {name: tag, value: tag};
     });
     const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -38,14 +38,14 @@ function SearchFiltersTagPage() {
                 .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
-            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
         } else {
-            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name: getCleanedTagName(name), value: name})));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name, value: name})));
         }
         return items;
     }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
-    const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
+    const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
 
     return (
         <ScreenWrapper

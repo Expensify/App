@@ -5,6 +5,7 @@ import BaseOverlay from './BaseOverlay';
 function Overlay({...rest}: Omit<BaseOverlayProps, 'shouldUseNativeStyles'>) {
     return (
         <BaseOverlay
+            shouldUseNativeStyles={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

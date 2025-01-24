@@ -5,7 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {getCorpayBankAccountFields} from '@userActions/BankAccounts';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -41,7 +41,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     };
 
     useEffect(() => {
-        getCorpayBankAccountFields(country, currency);
+        BankAccounts.getCorpayBankAccountFields(country, currency);
     }, [country, currency]);
 
     const bodyContent: Array<ComponentType<BankInfoSubStepProps>> =

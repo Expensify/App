@@ -392,7 +392,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                         wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
-                        onTooltipPress={onFiltersButtonPress}
                     >
                         <Button
                             innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}

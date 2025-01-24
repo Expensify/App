@@ -13,15 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTripTransactions from '@hooks/useTripTransactions';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import type {ReservationData} from '@libs/TripReservationUtils';
-import {getReservationsFromTripTransactions, getTripReservationIcon} from '@libs/TripReservationUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -61,7 +59,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const reservationIcon = getTripReservationIcon(reservation.type);
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName;
 
     let titleComponent = (
@@ -111,27 +109,27 @@ function ReservationView({reservation}: ReservationViewProps) {
     );
 }
 
-const renderItem = ({item}: {item: ReservationData}) => <ReservationView reservation={item.reservation} />;
+const renderItem = ({item}: {item: TripReservationUtils.ReservationData}) => <ReservationView reservation={item.reservation} />;
 
 function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
-    const tripTransactions = useTripTransactions(chatReportID);
 
-    const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
+    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.reportID);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
-    const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(chatReport);
+    const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
 
     const currency = iouReport?.currency ?? chatReport?.currency;
     const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {
-            return convertToDisplayString(totalDisplaySpend, currency);
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, currency);
         }
 
-        return convertToDisplayString(
-            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+        return CurrencyUtils.convertToDisplayString(
+            tripTransactions.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
             currency,
         );
     }, [currency, totalDisplaySpend, tripTransactions]);
@@ -144,7 +142,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
-                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress

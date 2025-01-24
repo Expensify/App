@@ -1,5 +1,4 @@
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
-// eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';

@@ -54,36 +54,6 @@ To delete a category,
 
 {% include end-selector.html %}
 
-# Upload expense categories via CSV
-
-To upload expense categories via a CSV file:
-
-{% include selector.html values="desktop, mobile" %}
-
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu.
-3. Select the workspace you want to upload categories to.
-4. Click **Categories** in the left menu.
-5. Click the 3-dot menu in the top right corner and select **Import Spreadsheet**.
-6. Ensure your spreadsheet is formatted with all required columns, even if you do not plan to use them all.
-7. To obtain an example file, click the 3-dot menu again and select **Download CSV**.
-8. After preparing your file, upload the CSV by following the prompts and save your changes.
-{% include end-option.html %}
-
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**.
-3. Select the workspace you want to upload categories to.
-4. Tap **Categories**.
-5. Tap the 3-dot menu in the top right corner and select **Import Spreadsheet**.
-6. Ensure your spreadsheet is formatted with all required columns, even if you do not plan to use them all.
-7. To obtain an example file, tap the 3-dot menu again and select **Download CSV**.
-8. After preparing your file, upload the CSV by following the prompts and save your changes.
-{% include end-option.html %}
-
-{% include end-selector.html %}
-
 # Enable or disable categories
 
 Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses. 

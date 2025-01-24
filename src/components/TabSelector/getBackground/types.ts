@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
 

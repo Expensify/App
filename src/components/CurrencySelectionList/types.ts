@@ -23,9 +23,6 @@ type CurrencySelectionListProps = {
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
-
-    /** List of excluded currency codes */
-    excludedCurrencies?: string[];
 };
 
 export type {CurrencyListItem, CurrencySelectionListProps};

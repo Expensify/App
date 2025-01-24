@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -37,6 +37,13 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
+
+type SavedSearchMenuItem = MenuItemWithLink & {
+    key: string;
+    hash: string;
+    query: string;
+    styles: Array<ViewStyle | TextStyle>;
+};
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
@@ -125,7 +132,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
             }
 
-            return {
+            const baseMenuItem: SavedSearchMenuItem = {
                 key,
                 title,
                 hash: key,
@@ -141,8 +148,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
-                        shouldRenderTooltip={!isNarrow && index === 0 && shouldShowProductTrainingTooltip}
-                        renderTooltipContent={renderProductTrainingTooltip}
                     />
                 ),
                 styles: [styles.alignItemsCenter],
@@ -150,18 +155,37 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 shouldIconUseAutoWidthStyle: true,
             };
+
+            if (!isNarrow) {
+                return {
+                    ...baseMenuItem,
+                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
+                    tooltipAnchorAlignment: {
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    },
+                    tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
+                    tooltipShiftVertical: variables.savedSearchShiftVertical,
+                    tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
+                    renderTooltipContent: renderProductTrainingTooltip,
+                };
+            }
+            return baseMenuItem;
         },
         [
             allCards,
             hash,
             getOverflowMenu,
             styles.alignItemsCenter,
+            styles.mh4,
+            styles.pv2,
             personalDetails,
             reports,
             taxRates,
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
+            styles.productTrainingTooltipWrapper,
         ],
     );
 

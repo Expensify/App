@@ -10,7 +10,7 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 - **Hard Approval**: Bookings are automatically canceled/voided and refunded if a manager does not approve them within 24 hours. 
 - **Passive Approval**: Managers are informed of out-of-policy travel, but there is no action to be taken.
 
-# Set Approval Method
+# Set approval method
 
 1. Click the **Travel** tab.
 2. Click **Book or manage travel**.
@@ -19,25 +19,25 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 
 ![Screenshot of Expensify Travel policy approval settings](https://help.expensify.com/assets/images/Travel_Policy.png){:width="100%"}
 
-# Approve Travel
+# Approve travel
 
 ![Screenshot of Expensify Travel approval email](https://help.expensify.com/assets/images/Travel_Email.png){:width="100%"}
 
-## Soft Approval
+## Soft approval
 
 Once an employee has booked a trip, their approver will receive an email notifying them of the booking with a prompt to decline it if needed. 
 
 - To approve the booking, no action is required. 
 - To decline the booking, click **Decline booking** within 24 hours. Then click **Deny Booking**.
 
-## Hard Approval
+## Hard approval
 
 Once an employee has booked a trip, their approver will receive an email notifying them of the booking with a prompt to accept or decline the booking.
 
 To approve the booking, click **Approve booking**. Then click **Approve**.
 To decline the booking, click **Decline booking**. Then click **Deny**. 
 
-# FAQ
+# FAQs
 
 ## Are extended approval windows given for trips booked over the weekend or during company holidays?
 
@@ -61,7 +61,7 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 - **Hard Approval**: Bookings are automatically canceled/voided and refunded if a manager does not approve them within 24 hours. 
 - **Passive Approval**: Managers are informed of out-of-policy travel, but there is no action to be taken.
 
-# Set Approval Method
+# Set approval method
 
 1. Click the + icon in the bottom left menu and select **Book travel**. 
 2. Click **Book or manage travel**. 
@@ -70,25 +70,25 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 
 ![Screenshot of Expensify Travel policy approval settings](https://help.expensify.com/assets/images/Travel_Policy.png){:width="100%"}
 
-# Approve Travel
+# Approve travel
 
 ![Screenshot of Expensify Travel approval email](https://help.expensify.com/assets/images/Travel_Email.png){:width="100%"}
 
-## Soft Approval
+## Soft approval
 
 Once an employee has booked a trip, their approver will receive an email notifying them of the booking with a prompt to decline it if needed. 
 
 - To approve the booking, no action is required. 
 - To decline the booking, click **Decline booking** within 24 hours. Then click **Deny Booking**.
 
-## Hard Approval
+## Hard approval
 
 Once an employee has booked a trip, their approver will receive an email notifying them of the booking with a prompt to accept or decline the booking.
 
 To approve the booking, click **Approve booking**. Then click **Approve**.
 To decline the booking, click **Decline booking**. Then click **Deny**. 
 
-# FAQ
+# FAQs
 
 ## Are extended approval windows given for trips booked over the weekend or during company holidays?
 

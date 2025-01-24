@@ -363,7 +363,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
         for (const tag of Object.values(policyTagList.tags ?? {})) {
-            uniqueTagNames.add(tag.name);
+            uniqueTagNames.add(getCleanedTagName(tag.name));
         }
     }
     return Array.from(uniqueTagNames);

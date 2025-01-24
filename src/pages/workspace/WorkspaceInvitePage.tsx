@@ -75,13 +75,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    const excludedUsers = useMemo(() => {
-        const ineligibleInvites = PolicyUtils.getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce((acc, login) => {
-            acc[login] = true;
-            return acc;
-        }, {} as Record<string, boolean>);
-    }, [policy?.employeeList]);
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -262,16 +256,16 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.some((email) => email === searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[
+            excludedUsers.includes(
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
-                    : searchValue
-            ]
+                    : searchValue,
+            )
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }

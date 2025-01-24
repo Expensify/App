@@ -11,8 +11,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
-import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
+import * as PolicyUtils from './PolicyUtils';
+import * as ReportUtils from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -23,7 +23,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentUserAccountID = value?.accountID ?? -1;
         currentUserEmail = value?.email ?? '';
     },
 });
@@ -69,7 +69,7 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(report: OnyxEntry<Report>) {
     const approverAccountID = getNextApproverAccountID(report);
 
-    return getDisplayNameForParticipant(approverAccountID) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 /**
@@ -81,18 +81,18 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>) {
  * @returns nextStep
  */
 function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
-    if (!isExpenseReport(report)) {
+    if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
     const {policyID = '', ownerAccountID = -1} = report ?? {};
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
-    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const ownerDisplayName = getDisplayNameForParticipant(ownerAccountID);
+    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
+    const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
-    const reimburserAccountID = getReimburserAccountID(policy);
+    const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
@@ -194,29 +194,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 });
             }
 
-            // Manual submission
-            if (report?.total !== 0 && !harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
@@ -263,8 +240,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
             if (
-                isInvoiceReport(report) ||
-                !isPayer(
+                ReportUtils.isInvoiceReport(report) ||
+                !ReportUtils.isPayer(
                     {
                         accountID: currentUserAccountID,
                         email: currentUserEmail,
@@ -289,7 +266,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                               text: 'an admin',
                           }
                         : {
-                              text: getDisplayNameForParticipant(reimburserAccountID),
+                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
                               type: 'strong',
                           },
                     {

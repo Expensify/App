@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -831,6 +830,10 @@ describe('Sidebar', () => {
             const report1: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = LHNTestUtils.getFakeReport([1, 3]);
             const report3 = LHNTestUtils.getFakeReport([1, 4]);
@@ -849,13 +852,6 @@ describe('Sidebar', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
             };
 
-            const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
-                },
-            };
-
             return (
                 waitForBatchedUpdates()
                     .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
@@ -867,7 +863,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportNameValuePairsCollectionDataSet,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -986,7 +981,11 @@ describe('Sidebar', () => {
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 lastMessageText: 'test',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([1, 3], 2, true),
@@ -1003,13 +1002,6 @@ describe('Sidebar', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
             };
 
-            const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
-                },
-            };
-
             return (
                 waitForBatchedUpdates()
                     .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
@@ -1021,7 +1013,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportNameValuePairsCollectionDataSet,
                             ...reportCollectionDataSet,
                         }),
                     )

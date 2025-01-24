@@ -14,7 +14,7 @@ import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
+import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
@@ -559,9 +559,6 @@ function getFilterDisplayValue(
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-        return getCleanedTagName(filterValue);
-    }
     return filterValue;
 }
 
@@ -624,22 +621,14 @@ function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
     policyID,
-    cardID,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
     policyID?: string;
-    cardID?: string;
 } = {}): SearchQueryString {
-    let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
-
-    if (policyID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`;
-    }
-
-    if (cardID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} expense-type:card card:${cardID}`;
-    }
+    const queryString = policyID
+        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
+        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);

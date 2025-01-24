@@ -61,7 +61,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             {
                 selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
@@ -69,7 +69,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);

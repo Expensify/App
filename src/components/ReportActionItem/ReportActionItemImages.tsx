@@ -1,5 +1,4 @@
 /* eslint-disable react/no-array-index-key */
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
@@ -54,17 +53,13 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
     const MAX_REMAINING = 9;
 
     // The height varies depending on the number of images we are displaying.
-    let maxHeightStyle = {};
-    let minHeightStyle = {};
+    let heightStyle = {};
     if (numberOfShownImages === 1) {
-        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesSingleImageHeight);
-        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesSingleImageHeight);
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
     } else if (numberOfShownImages === 2) {
-        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesDoubleImageHeight);
-        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesDoubleImageHeight);
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesDoubleImageHeight);
     } else if (numberOfShownImages > 2) {
-        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesMultipleImageHeight);
-        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesMultipleImageHeight);
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
     }
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
@@ -73,13 +68,13 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
 
     return (
         <View style={styles.reportActionItemImagesContainer}>
-            <View style={[styles.reportActionItemImages, hoverStyle, minHeightStyle, maxHeightStyle]}>
-                {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
-                    // Show a border to separate multiple images. Shown to the right for each except the last.
-                    const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
-                    const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                    return (
-                        <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={numberOfShownImages === 1 ? true : Str.isPDF(filename ?? '')}>
+            <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
+                <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={false}>
+                    {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
+                        // Show a border to separate multiple images. Shown to the right for each except the last.
+                        const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                        const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                        return (
                             <View
                                 key={`${index}-${image}`}
                                 style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
@@ -98,9 +93,9 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     onPress={onPress}
                                 />
                             </View>
-                        </ImageBehaviorContextProvider>
-                    );
-                })}
+                        );
+                    })}
+                </ImageBehaviorContextProvider>
             </View>
             {remaining > 0 && (
                 <View style={[styles.reportActionItemImagesMoreContainer]}>

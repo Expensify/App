@@ -1,11 +1,15 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {getFieldRequiredErrors, isValidCompanyName} from '@libs/ValidationUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -15,8 +19,9 @@ type NameProps = SubStepProps;
 const {COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [COMPANY_NAME];
 
-function Name({onNext, onMove, isEditing}: NameProps) {
+function Name({onNext, isEditing}: NameProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -24,9 +29,9 @@ function Name({onNext, onMove, isEditing}: NameProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.companyName && !isValidCompanyName(values.companyName)) {
+            if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
                 errors.companyName = translate('bankAccount.error.companyName');
             }
 
@@ -42,20 +47,25 @@ function Name({onNext, onMove, isEditing}: NameProps) {
     });
 
     return (
-        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
-            isEditing={isEditing}
-            onNext={onNext}
-            onMove={onMove}
+        <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.whatsTheBusinessName')}
+            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={COMPANY_NAME}
-            inputLabel={translate('businessInfoStep.legalBusinessName')}
-            inputMode={CONST.INPUT_MODE.TEXT}
-            defaultValue={defaultValue}
-            shouldShowHelpLinks={false}
-        />
+            style={[styles.mh5, styles.flexGrow1]}
+        >
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessName')}</Text>
+            <InputWrapper
+                InputComponent={TextInput}
+                label={translate('businessInfoStep.legalBusinessName')}
+                aria-label={translate('businessInfoStep.legalBusinessName')}
+                role={CONST.ROLE.PRESENTATION}
+                inputID={COMPANY_NAME}
+                containerStyles={[styles.mt6]}
+                defaultValue={defaultValue}
+                shouldSaveDraft={!isEditing}
+            />
+        </FormProvider>
     );
 }
 

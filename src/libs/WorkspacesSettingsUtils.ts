@@ -2,16 +2,18 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, PriorityMode, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
-import {convertToDisplayString} from './CurrencyUtils';
+import * as CurrencyUtils from './CurrencyUtils';
 import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
-import {getOneTransactionThreadReportID} from './ReportActionsUtils';
-import {getAllReportErrors, hasReportViolations, isReportOwner, isUnread, isUnreadWithMention, requiresAttentionFromCurrentUser, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 type CheckingMethod = () => boolean;
 
@@ -67,13 +69,13 @@ Onyx.connect({
  */
 const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-    const reportErrors = getAllReportErrors(report, reportActions);
-    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
+    const reportErrors = ReportUtils.getAllReportErrors(report, reportActions);
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     if (!doesReportContainErrors) {
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, allTransactionViolations);
-        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(report.reportID);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, allTransactionViolations);
+        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(report.reportID);
         const hasViolations = shouldDisplayViolations || shouldDisplayReportViolations;
         if (hasViolations) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -83,7 +85,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
         const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
+        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     }
@@ -98,8 +100,8 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
         const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : undefined;
     }
-    const reportOption = {...report, isUnread: isUnread(report), isUnreadWithMention: isUnreadWithMention(report)};
-    const shouldShowGreenDotIndicator = requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
+    const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
+    const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
@@ -136,12 +138,23 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     );
 }
 
-function getChatTabBrickRoadReport(policyID: string | undefined, orderedReportIDs: string[] = []): OnyxEntry<Report> {
-    if (!orderedReportIDs.length) {
+function getChatTabBrickRoadReport(
+    policyID: string | undefined,
+    currentReportId: string | undefined,
+    reports: OnyxCollection<Report>,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<PolicySelector>,
+    priorityMode: OnyxEntry<PriorityMode>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    policyMemberAccountIDs: number[] = [],
+): OnyxEntry<Report> {
+    const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyID, policyMemberAccountIDs);
+    if (!reportIDs.length) {
         return undefined;
     }
 
-    const allReports = orderedReportIDs.map((reportID) => reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+    const allReports = reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
@@ -167,8 +180,17 @@ function getChatTabBrickRoadReport(policyID: string | undefined, orderedReportID
     return undefined;
 }
 
-function getChatTabBrickRoad(policyID: string | undefined, orderedReportIDs: string[]): BrickRoad | undefined {
-    const report = getChatTabBrickRoadReport(policyID, orderedReportIDs);
+function getChatTabBrickRoad(
+    policyID: string | undefined,
+    currentReportId: string | undefined,
+    reports: OnyxCollection<Report>,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<PolicySelector>,
+    priorityMode: OnyxEntry<PriorityMode>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    policyMemberAccountIDs: number[] = [],
+): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(policyID, currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyMemberAccountIDs);
     return report ? getBrickRoadForPolicy(report) : undefined;
 }
 
@@ -228,7 +250,7 @@ function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<st
 
         // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
         // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
-        workspacesUnreadStatuses[policyID] = isUnread(report) && !!report.lastActorAccountID;
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;
@@ -278,7 +300,7 @@ function getOwnershipChecksDisplayText(
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
                 email: ownerOwesAmount?.ownerEmail,
-                amount: convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
+                amount: CurrencyUtils.convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;

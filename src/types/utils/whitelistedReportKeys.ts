@@ -61,6 +61,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             endDate: unknown;
             tripID: unknown;
         };
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
         welcomeMessage: unknown;
     },

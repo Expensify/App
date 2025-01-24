@@ -42,6 +42,9 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
+        notarize: {
+            teamId: '368M544MTT',
+        },
         target: [
             {
                 target: 'default',

@@ -717,10 +717,6 @@ export default {
         rowGap: 16,
     },
 
-    columnGap3: {
-        columnGap: 12,
-    },
-
     minHeight5: {
         minHeight: 20,
     },

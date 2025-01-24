@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -57,7 +56,7 @@ function TabSelectorItem({
         >
             <AnimatedPressableWithFeedback
                 accessibilityLabel={title}
-                style={[styles.tabSelectorButton, styles.animatedTabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
                 wrapperStyle={[styles.flexGrow1]}
                 onPress={onPress}
                 onHoverIn={() => setIsHovered(true)}
