@@ -1,11 +1,13 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {translateLocal} from './Localize';
-import * as PolicyUtils from './PolicyUtils';
+import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
     POLICY_OWNER_WITH_AMOUNT_OWED: 'policy_owner_with_amount_owed',
@@ -22,11 +24,19 @@ const PAYMENT_STATUS = {
     GENERIC_API_ERROR: 'generic_api_error',
 } as const;
 
+type DiscountInfo = {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    discountType: number;
+};
+
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -234,6 +244,53 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
+function shouldShowDiscountBanner(): boolean {
+    if (!isUserOnFreeTrial()) {
+        return false;
+    }
+
+    if (doesUserHavePaymentCardAdded()) {
+        return false;
+    }
+
+    const dateNow = Math.floor(Date.now() / 1000);
+    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
+    const lastDayTimestamp = fromZonedTime(`${lastDayFreeTrial}`, 'UTC').getTime() / 1000;
+    if (dateNow > lastDayTimestamp) {
+        return false;
+    }
+
+    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
+}
+
+function getEarlyDiscountInfo(): DiscountInfo | null {
+    if (!firstDayFreeTrial) {
+        return null;
+    }
+    const dateNow = Math.floor(Date.now() / 1000);
+    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
+
+    let timeLeftInSeconds;
+    const timeLeft24 = CONST.DATE.SECONDS_PER_DAY - (dateNow - firstDayTimestamp);
+    if (timeLeft24 > 0) {
+        timeLeftInSeconds = timeLeft24;
+    } else {
+        timeLeftInSeconds = firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY - dateNow;
+    }
+
+    if (timeLeftInSeconds <= 0) {
+        return null;
+    }
+
+    return {
+        days: Math.floor(timeLeftInSeconds / CONST.DATE.SECONDS_PER_DAY),
+        hours: Math.floor((timeLeftInSeconds % CONST.DATE.SECONDS_PER_DAY) / 3600),
+        minutes: Math.floor((timeLeftInSeconds % 3600) / 60),
+        seconds: Math.floor(timeLeftInSeconds % 60),
+        discountType: timeLeft24 > 0 ? 50 : 25,
+    };
+}
+
 /**
  * @returns Whether there is a retry billing error.
  */
@@ -385,7 +442,7 @@ function calculateRemainingFreeTrialDays(): number {
  * @returns The free trial badge text .
  */
 function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
-    const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
+    const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
@@ -456,7 +513,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
             // Extracts the owner account ID from the collection member key.
             const ownerAccountID = Number(entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length));
 
-            if (PolicyUtils.isPolicyOwner(policy, ownerAccountID)) {
+            if (isPolicyOwner(policy, ownerAccountID)) {
                 return true;
             }
         }
@@ -465,7 +522,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
-        PolicyUtils.isPolicyOwner(policy, currentUserAccountID) &&
+        isPolicyOwner(policy, currentUserAccountID) &&
         ownerBillingGraceEndPeriod &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
@@ -494,4 +551,6 @@ export {
     PAYMENT_STATUS,
     shouldRestrictUserBillableActions,
     shouldShowPreTrialBillingBanner,
+    shouldShowDiscountBanner,
+    getEarlyDiscountInfo,
 };

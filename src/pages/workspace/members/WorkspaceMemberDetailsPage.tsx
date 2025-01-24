@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,13 +17,9 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
-import {clearWorkspaceOwnerChangeFlow, isApprover, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,6 +33,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
+import {setIssueNewCardStepAndData} from '@userActions/Card';
+import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,7 +58,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -97,8 +96,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isUserApprover = isApprover(policy, accountID);
-        if (!isUserApprover) {
+        const isApprover = isApproverUserAction(policy, accountID);
+        if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
@@ -247,10 +246,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                         shouldRenderTransferOwnerButton() && (
-                                            <Button
+                                            <ButtonDisabledWhenOffline
                                                 text={translate('workspace.people.transferOwner')}
                                                 onPress={startChangeOwnershipFlow}
-                                                isDisabled={isOffline}
                                                 icon={Expensicons.Transfer}
                                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                                 style={styles.mv5}
