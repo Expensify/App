@@ -27,7 +27,7 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {getPolicy, goBackWhenEnableFeature, navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import {getAllPolicyReports} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -958,7 +958,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true) {
+function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true, useGoBack = false) {
     const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
     if (!enabled) {
         onyxUpdatesToDisableCategories.push(
@@ -1030,7 +1030,11 @@ function enablePolicyCategories(policyID: string, enabled: boolean, shouldNaviga
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldNavigate) {
-        navigateWhenEnableFeature(policyID);
+        if (useGoBack) {
+            goBackWhenEnableFeature(policyID);
+        } else {
+            navigateWhenEnableFeature(policyID);
+        }
     }
 }
 
