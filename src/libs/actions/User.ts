@@ -32,7 +32,7 @@ import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
-import Performance from '@libs/Performance';
+import Timing from '@userActions/Timing';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -921,7 +921,7 @@ function subscribeToPusherPong() {
 
         // Remove the event from the map
         delete pingIDsAndTimestamps[pongEvent.pingID];
-        Performance.markEnd(CONST.TIMING.PUSHER_PING_PONG);
+        Timing.end(CONST.TIMING.OPEN_REPORT);
     });
 }
 
@@ -957,7 +957,7 @@ function pingPusher() {
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-    Performance.markStart(CONST.TIMING.PUSHER_PING_PONG);
+    Timing.start(CONST.TIMING.OPEN_REPORT);
 }
 
 function checkforMissingPongEvents() {
