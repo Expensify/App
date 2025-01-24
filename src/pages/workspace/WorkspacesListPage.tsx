@@ -345,6 +345,18 @@ function WorkspacesListPage() {
         }, {});
     }, [reports]);
 
+    const navigateToWorkspace = useCallback(
+        (policyID: string) => {
+            // On the wide layout, we always want to open the Profile page when opening workpsace settings from the list
+            if (shouldUseNarrowLayout) {
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+        },
+        [shouldUseNarrowLayout],
+    );
+
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
@@ -380,7 +392,7 @@ function WorkspacesListPage() {
                 return {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                    action: () => navigateToWorkspace(policy.id),
                     brickRoadIndicator: !isPolicyAdmin(policy)
                         ? undefined
                         : reimbursementAccountBrickRoadIndicator ??
@@ -405,7 +417,7 @@ function WorkspacesListPage() {
                 };
             })
             .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms, session?.email, allConnectionSyncProgresses]);
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
 
     const getHeaderButton = () => (
         <Button
