@@ -964,7 +964,7 @@ const translations = {
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1465,8 +1465,8 @@ const translations = {
         getPaidBackFaster: 'Recibe tus pagos más rápido',
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
-        expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        expensifyWallet: 'Billetera Expensify (Beta)',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify. Solo cuentas bancarias de EE. UU.',
         enableWallet: 'Habilitar billetera',
         addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
@@ -2046,6 +2046,17 @@ const translations = {
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
         },
     },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
+        confirmationStepHeader: 'Verifica tu información.',
+        confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido añadida.',
@@ -2599,7 +2610,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil del espacio de trabajo',
+            profile: 'Resumen',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2673,6 +2684,7 @@ const translations = {
             planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
+            viewTransactions: 'Ver transacciones',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -4936,7 +4948,7 @@ const translations = {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                integrationsMessage: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
+                integrationsMessage: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -5735,7 +5747,7 @@ const translations = {
     },
     violationDismissal: {
         rter: {
-            manual: 'marcó el recibo como pagado en efectivo.',
+            manual: 'marcó el recibo como pagado en efectivo',
         },
         duplicatedTransaction: {
             manual: 'resolvió el duplicado',
