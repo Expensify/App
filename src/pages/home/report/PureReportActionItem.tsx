@@ -37,12 +37,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {hideEmojiPicker, isActive} from '@libs/actions/EmojiPickerAction';
-import {acceptJoinRequest, declineJoinRequest} from '@libs/actions/Policy/Member';
-import {expandURLPreview} from '@libs/actions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session';
-import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
@@ -116,7 +110,6 @@ import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import type {IgnoreDirection} from '@userActions/ReportActions';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
@@ -1088,11 +1081,6 @@ function PureReportActionItem({
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
     if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
-        return null;
-    }
-
-    // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 
