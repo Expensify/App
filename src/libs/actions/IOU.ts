@@ -4347,7 +4347,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 return;
             }
             const workspaceParams =
-                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID ? {receipt, category, tag, taxCode, taxAmount, billable, policyID: chatReport.policyID} : undefined;
+                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
+                    ? {receipt: receipt instanceof Blob ? receipt : undefined, category, tag, taxCode, taxAmount, billable, policyID: chatReport.policyID}
+                    : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
                 payerEmail,
