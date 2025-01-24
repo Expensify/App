@@ -27,7 +27,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                 {
                     title: translate('validationStep.secureYourAccount'),
                     onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '')));
+                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                     },
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
