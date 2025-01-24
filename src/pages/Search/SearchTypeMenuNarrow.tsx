@@ -1,6 +1,6 @@
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
+import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -210,7 +210,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
+                    <View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
@@ -229,7 +229,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                                 small
                             />
                         </View>
-                    </Animated.View>
+                    </View>
                 )}
             </PressableWithFeedback>
             <EducationalTooltip
@@ -242,6 +242,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
+                onTooltipPress={onPress}
             >
                 <Button
                     icon={Expensicons.Filters}
