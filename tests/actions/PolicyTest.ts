@@ -261,7 +261,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Unarchive the report
+            // Unarchive the report (report key)
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`,
@@ -271,7 +271,18 @@ describe('actions/Policy', () => {
                         expect(report?.statusNum).toBe(fakeReport.statusNum);
                         expect(report?.policyName).toBe(fakeReport.policyName);
                         expect(report?.oldPolicyName).toBe(fakePolicy.name);
-                        expect(report?.private_isArchived).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+
+            // Unarchive the report (reportNameValuePairs key)
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${fakeReport.reportID}`,
+                    callback: (reportNameValuePairs) => {
+                        Onyx.disconnect(connection);
+                        expect(reportNameValuePairs?.private_isArchived).toBeUndefined();
                         resolve();
                     },
                 });
