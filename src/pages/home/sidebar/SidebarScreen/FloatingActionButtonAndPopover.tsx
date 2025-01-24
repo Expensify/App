@@ -242,7 +242,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             return '';
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
-            const name: string = getDisplayNameForParticipant({accountID: +(quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID), shouldUseShortForm: true}) ?? '';
+            const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
+            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true}) ?? '';
             return translate('quickAction.paySomeone', {name});
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
@@ -391,7 +392,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
-                    description: !hideQABSubtitle ? getReportName({report: quickActionReport}) ?? translate('quickAction.updateDestination') : '',
+                    description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             hideProductTrainingTooltip();
@@ -407,7 +408,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    description: getReportName({report: policyChatForActivePolicy}),
+                    description: getReportName(policyChatForActivePolicy),
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {

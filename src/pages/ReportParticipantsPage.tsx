@@ -381,7 +381,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         }
                     }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName({report}))}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal

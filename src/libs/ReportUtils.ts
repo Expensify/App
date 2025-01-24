@@ -904,16 +904,10 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, reports?: SearchReport[]): OnyxEntry<Report> | SearchReport {
-    if (reports) {
-        return reports?.find((report) => report.reportID === reportID);
-    }
-
-    if (allReports) {
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    }
-
-    return allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[]): OnyxEntry<Report> | SearchReport {
+    const searchReport = searchReports?.find((report) => report.reportID === reportID);
+    const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return searchReport ?? onyxReport ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 }
 
 function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
@@ -942,6 +936,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 }
 
 /**
+ * @private
  * Returns the report
  */
 function getReport(reportID: string, reports?: SearchReport[]): OnyxEntry<Report> | SearchReport {
@@ -1137,10 +1132,23 @@ function isReportManager(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the report with supplied ID has been approved
+ */
+function isReportIDApproved(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const report = getReport(reportID);
+    if (!report) {
+        return;
+    }
+    return isReportApproved({report});
+}
+
+/**
  * Checks if the supplied report has been approved
  */
-function isReportApproved({reportOrID, parentReportAction = undefined}: {reportOrID: OnyxInputOrEntry<Report> | string; parentReportAction?: OnyxEntry<ReportAction> | undefined}): boolean {
-    const report = typeof reportOrID === 'string' ? getReport(reportOrID) ?? null : reportOrID;
+function isReportApproved({report, parentReportAction = undefined}: {report: OnyxInputOrEntry<Report>; parentReportAction?: OnyxEntry<ReportAction> | undefined}): boolean {
     if (!report) {
         return parentReportAction?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && parentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     }
@@ -1980,7 +1988,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  */
 
 function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy> | SearchPolicy) {
-    const isApproved = isReportApproved({reportOrID: iouReport});
+    const isApproved = isReportApproved({report: iouReport});
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -2036,7 +2044,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
-    if (isReportApproved({reportOrID: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
+    if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -3156,7 +3164,7 @@ function getPolicyExpenseChatName({
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
-    personalDetailsList?: OnyxEntry<PersonalDetailsList>;
+    personalDetailsList?: Partial<PersonalDetailsList>;
     policies?: SearchPolicy[];
     reports?: SearchReport[];
 }): string | undefined {
@@ -3350,7 +3358,7 @@ function getMoneyRequestReportName({
         amount: formattedAmount,
     });
 
-    if (isReportApproved({reportOrID: report})) {
+    if (isReportApproved({report})) {
         return translateLocal('iou.managerApprovedAmount', {
             manager: payerOrApproverName,
             amount: formattedAmount,
@@ -3479,7 +3487,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return !isForwarded;
     }
 
-    return !isReportApproved({reportOrID: moneyRequestReport}) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
+    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
 }
 
 /**
@@ -3511,7 +3519,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     const moneyRequestReport = iouMessage?.IOUReportID ? getReport(iouMessage?.IOUReportID) ?? ({} as Report) : ({} as Report);
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
-    if (isSettled(String(moneyRequestReport.reportID)) || isReportApproved({reportOrID: String(moneyRequestReport.reportID)})) {
+    if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
     }
 
@@ -3600,7 +3608,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     }
 
     const isRequestSettled = isSettled(moneyRequestReport?.reportID);
-    const isApproved = isReportApproved({reportOrID: moneyRequestReport});
+    const isApproved = isReportApproved({report: moneyRequestReport});
     const transactionID = moneyRequestReport ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
@@ -3884,7 +3892,7 @@ function getReportPreviewMessage(
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({reportOrID: report}) && isPaidGroupPolicy(report)) {
+    if (isReportApproved({report}) && isPaidGroupPolicy(report)) {
         return translateLocal('iou.managerApprovedAmount', {
             manager: payerName ?? '',
             amount: formattedAmount,
@@ -4155,7 +4163,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1])}) ?? '';
+            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
         }
     }
 
@@ -4256,15 +4264,11 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
  */
 const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
-/**
- * Get the title for a report.
- */
-
 type GetReportNameParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
     transactions?: SearchTransaction[];
     reports?: SearchReport[];
@@ -4274,7 +4278,24 @@ type GetReportNameParams = {
     policies?: SearchPolicy[];
 };
 
-function getReportName({
+/**
+ * Get the title for a report.
+ */
+function getReportName(
+    report: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
+    personalDetails?: Partial<PersonalDetailsList>,
+    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+): string {
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
+}
+
+function getSearchReportName(props: GetReportNameParams): string {
+    return getReportNameInternal(props);
+}
+
+function getReportNameInternal({
     report,
     policy,
     parentReportActionParam,
@@ -4544,7 +4565,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
     }
 
     return {
-        reportName: getReportName({report: parentReport}),
+        reportName: getReportName(parentReport),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -7984,7 +8005,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
-    const isApproved = isReportApproved({reportOrID: iouReport});
+    const isApproved = isReportApproved({report: iouReport});
     if (isRequestSettled) {
         return translateLocal('iou.payerSettled', {
             amount: formattedAmount,
@@ -9130,6 +9151,7 @@ export {
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
+    getSearchReportName,
     getReportTransactions,
     reportTransactionsSelector,
     getReportNotificationPreference,
@@ -9235,6 +9257,7 @@ export {
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
+    isReportIDApproved,
     isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,

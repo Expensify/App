@@ -291,10 +291,8 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(
                     getReportName({
-                        report: {
-                            reportID: '',
-                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                        },
+                        reportID: '',
+                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -302,10 +300,8 @@ describe('ReportUtils', () => {
             test('no displayName', () => {
                 expect(
                     getReportName({
-                        report: {
-                            reportID: '',
-                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
-                        },
+                        reportID: '',
+                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -313,10 +309,8 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(
                     getReportName({
-                        report: {
-                            reportID: '',
-                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
-                        },
+                        reportID: '',
+                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -325,10 +319,8 @@ describe('ReportUtils', () => {
         test('Group DM', () => {
             expect(
                 getReportName({
-                    report: {
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
-                    },
+                    reportID: '',
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -341,7 +333,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName({report: baseAdminsRoom})).toBe('#admins');
+                expect(getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
             test('Archived', () => {
@@ -352,9 +344,9 @@ describe('ReportUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                expect(getReportName({report: archivedAdminsRoom})).toBe('#admins (archived)');
+                expect(getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName({report: archivedAdminsRoom})).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
@@ -366,7 +358,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName({report: baseUserCreatedRoom})).toBe('#VikingsChat');
+                expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
             test('Archived', () => {
@@ -377,9 +369,9 @@ describe('ReportUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                expect(getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archived)');
+                expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -388,13 +380,11 @@ describe('ReportUtils', () => {
                 test('as member', () => {
                     expect(
                         getReportName({
-                            report: {
-                                reportID: '',
-                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                                policyID: policy.id,
-                                isOwnPolicyExpenseChat: true,
-                                ownerAccountID: 1,
-                            },
+                            reportID: '',
+                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                            policyID: policy.id,
+                            isOwnPolicyExpenseChat: true,
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Vikings Policy');
                 });
@@ -402,13 +392,11 @@ describe('ReportUtils', () => {
                 test('as admin', () => {
                     expect(
                         getReportName({
-                            report: {
-                                reportID: '',
-                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                                policyID: policy.id,
-                                isOwnPolicyExpenseChat: false,
-                                ownerAccountID: 1,
-                            },
+                            reportID: '',
+                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                            policyID: policy.id,
+                            isOwnPolicyExpenseChat: false,
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Ragnar Lothbrok');
                 });
@@ -432,11 +420,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(getReportName({report: memberArchivedPolicyExpenseChat})).toBe('Vikings Policy (archived)');
+                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName({report: memberArchivedPolicyExpenseChat})).toBe('Vikings Policy (archivado)'),
-                    );
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
                 });
 
                 test('as admin', () => {
@@ -445,11 +431,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName({report: adminArchivedPolicyExpenseChat})).toBe('Ragnar Lothbrok (archived)');
+                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName({report: adminArchivedPolicyExpenseChat})).toBe('Ragnar Lothbrok (archivado)'),
-                    );
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
         });
@@ -472,7 +456,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName({report: threadOfSubmittedReportAction, policy, parentReportActionParam: submittedParentReportAction})).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -491,7 +475,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName({report: threadOfRemovedRoomMemberAction, policy, parentReportActionParam: removedParentReportAction})).toBe('removed ragnar@vikings.net');
+                expect(getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
             });
         });
     });

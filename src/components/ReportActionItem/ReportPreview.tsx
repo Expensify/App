@@ -207,7 +207,7 @@ function ReportPreview({
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
-    const isApproved = isReportApproved({reportOrID: iouReport, parentReportAction: action});
+    const isApproved = isReportApproved({report: iouReport, parentReportAction: action});
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,

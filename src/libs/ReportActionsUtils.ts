@@ -1818,7 +1818,7 @@ function getCardIssuedMessage({
     shouldRenderHTML?: boolean;
     policyID?: string;
     shouldDisplayLinkToCard?: boolean;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails?: Partial<PersonalDetailsList>;
 }) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,

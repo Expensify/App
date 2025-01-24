@@ -13,17 +13,16 @@ import type SCREENS from '@src/SCREENS';
 type ReportAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({route}: ReportAvatarProps) {
-    const reportIDFromRoute = route.params?.reportID;
-    const policyIDFromRoute = route.params?.policyID;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDFromRoute}`);
+    const {reportID, policyID} = route.params;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     const attachment = useMemo(() => {
         if (ReportUtils.isGroupChat(report) && !ReportUtils.isThread(report)) {
             return {
                 source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID),
-                headerTitle: ReportUtils.getReportName({report}),
+                headerTitle: ReportUtils.getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }

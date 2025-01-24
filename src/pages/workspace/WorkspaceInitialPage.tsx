@@ -447,7 +447,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
                             <OfflineWithFeedback pendingAction={reportPendingAction}>
                                 <MenuItem
-                                    title={getReportName({report: currentUserPolicyExpenseChat})}
+                                    title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
                                     onPress={() =>

@@ -108,7 +108,7 @@ function getPersonalDetailsByIDs({
     accountIDs: number[];
     currentUserAccountID: number;
     shouldChangeUserDisplayName?: boolean;
-    personalDetailsParam?: OnyxEntry<PersonalDetailsList>;
+    personalDetailsParam?: Partial<PersonalDetailsList>;
 }): PersonalDetails[] {
     const result: PersonalDetails[] = accountIDs
         .filter((accountID) => !!personalDetailsParam?.[accountID])

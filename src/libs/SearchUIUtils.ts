@@ -29,7 +29,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
-    getReportName,
+    getSearchReportName,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -373,15 +373,15 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
-        .filter((key): key is TransactionKey => isTransactionEntry(key))
+        .filter(isTransactionEntry)
         .map((key) => data[key]);
 
     const reports = Object.keys(data)
-        .filter((key): key is ReportKey => isReportEntry(key))
+        .filter(isReportEntry)
         .map((key) => data[key]);
 
     const policies = Object.keys(data)
-        .filter((key): key is PolicyKey => isPolicyEntry(key))
+        .filter(isPolicyEntry)
         .map((key) => data[key]);
 
     for (const key in data) {
@@ -404,7 +404,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    reportName: getReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
