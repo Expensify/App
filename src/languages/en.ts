@@ -3673,7 +3673,7 @@ const translations = {
                 pendingBankTitle: 'Check your browser window',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `Please connect to ${bankName} via your browser window that just opened. If one didn’t open, `,
                 pendingBankLink: 'please click here.',
-                giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
+                giveItNameInstruction: 'Give the card a name that sets it apart from others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
