@@ -466,7 +466,7 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser || scrollingVerticalOffset.current === 0 || !isReportScreenTopmostCentralPane()) {
+            if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
                 return;
             }
             if (!hasNewestReportActionRef.current) {
@@ -485,7 +485,7 @@ function ReportActionsList({
     );
 
     useEffect(() => {
-        if (!pendingBottomScroll || scrollingVerticalOffset.current === 0) {
+        if (!pendingBottomScroll) {
             return;
         }
 
