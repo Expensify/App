@@ -68,6 +68,12 @@ type PrivatePersonalDetails = {
 
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Authentication failure errors */
+    errors?: OnyxCommon.Errors | null;
+
+    /** Whether the API is loading */
+    isValidating?: boolean;
 };
 
 export default PrivatePersonalDetails;

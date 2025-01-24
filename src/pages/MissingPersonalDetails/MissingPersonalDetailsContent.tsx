@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -12,11 +11,12 @@ import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {updatePersonalDetailsAndShipExpensifyCards} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -24,7 +24,6 @@ import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CustomSubStepProps} from './types';
 import {getInitialSubstep, getSubstepValues} from './utils';
-import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -36,9 +35,6 @@ const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const primaryLogin = account?.primaryLogin ?? '';
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
@@ -82,9 +78,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
         },
         [values],
     );

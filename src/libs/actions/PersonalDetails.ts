@@ -465,6 +465,15 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Clear errors for the current user's personal details
+ */
+function clearPersonalDetailsErrors() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errors: null,
+    });
+}
+
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
@@ -504,6 +513,15 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isValidating: false,
+                },
+            },
+        ],
     });
 }
 
@@ -523,4 +541,5 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
+    clearPersonalDetailsErrors,
 };

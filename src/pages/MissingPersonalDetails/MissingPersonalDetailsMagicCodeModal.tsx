@@ -3,11 +3,12 @@ import {useOnyx} from 'react-native-onyx';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
+import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Delegate from '@userActions/Delegate';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MissingPersonalDetailsMagicCodeModalProps = {
     handleSubmitForm: (validateCode: string) => void;
@@ -20,17 +21,26 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const validateLoginError = ErrorUtils.getLatestError();
-    const privateDetailValidated = privatePersonalDetails?.validated;
+    const privateDetailsErrors = privatePersonalDetails?.errors ?? undefined;
+    const validateLoginError = ErrorUtils.getLatestError(privateDetailsErrors);
     const primaryLogin = account?.primaryLogin ?? '';
+
+    const missingDetails =
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0;
+
     useEffect(() => {
-        if (!privateDetailValidated) {
+        if (missingDetails || !!privateDetailsErrors || privatePersonalDetails?.isValidating) {
             return;
         }
 
         FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
-    }, [privateDetailValidated]);
+    }, [missingDetails, privateDetailsErrors, privatePersonalDetails?.isValidating]);
 
     const sendValidateCode = () => {
         if (validateCodeAction?.validateCodeSent) {
@@ -48,9 +58,9 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         if (!validateLoginError) {
             return;
         }
-        Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
+        clearPersonalDetailsErrors();
     };
- 
+
     return (
         <ValidateCodeActionModal
             clearError={clearError}
