@@ -70,8 +70,8 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
     const isActionSplitBill = isSplitBillAction(action);
     const isActionTrackExpense = isTrackExpenseAction(action);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canEvict: false});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
 
     const onMoneyRequestPreviewPressed = () => {
