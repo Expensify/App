@@ -36,10 +36,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
             // We want to avoid that situation, so we will return an empty string instead.
             parse: {
-                reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
             },
             stringify: {
-                reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
             },
         },
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
