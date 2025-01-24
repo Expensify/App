@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -14,6 +14,13 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ConfirmModal from '@components/ConfirmModal';
+import * as Workflow from '@userActions/Workflow';
+import {useOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import { InteractionManager } from 'react-native';
+import { Approver, Member } from '@src/types/onyx/ApprovalWorkflow';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -25,10 +32,42 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const policy = usePolicy(policyID);
 
     const customReportNamesUnavailable = !policy?.areReportFieldsEnabled;
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
     const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    
+    const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
+    // const isPreventSelfApprovalsDisabled = !PolicyUtils.canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
+    const isPreventSelfApprovalsDisabled = false;
 
+    /**
+     * Handle toggling of “Prevent Self Approvals”
+     * - If toggling OFF, we just call the action and skip any modal.
+     * - If toggling ON:
+     *    - If nobody is self-approving, enable immediately.
+     *    - Otherwise, show a modal for confirmation.
+     */
+    function handleTogglePreventSelfApprovals(isEnabled: boolean) {
+        if (!isEnabled) {
+            PolicyActions.setPolicyPreventSelfApproval(policyID, false);
+            return;
+        }
+    
+        // Only check for self approvers when enabling the setting
+        const selfApprovers = PolicyUtils.getAllSelfApprovers(policy);
+        if (selfApprovers.length === 0) {
+            PolicyActions.setPolicyPreventSelfApproval(policyID, true);
+        } else {
+            setIsPreventSelfApprovalsModalVisible(true);
+        }
+    }
+    
+    function isSelfApprover(email: string): boolean {
+        const employee = policy?.employeeList?.[email];
+        return !!(employee && employee.submitsTo === email);
+    }
+    
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
@@ -89,14 +128,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             subtitle: workflowApprovalsUnavailable
-                ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
-                : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
+                ? renderFallbackSubtitle({ featureName: translate('common.approvals').toLowerCase() })
+                : isPreventSelfApprovalsDisabled
+                    ? translate('workspace.rules.expenseReportRules.preventSelfApprovalsDisabledSubtitle')
+                    : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
-            showLockIcon: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
+            showLockIcon: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
-            onToggle: (isEnabled: boolean) => PolicyActions.setPolicyPreventSelfApproval(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) => handleTogglePreventSelfApprovals(isEnabled),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -181,36 +222,90 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     ];
 
     return (
-        <Section
-            isCentralPane
-            title={translate('workspace.rules.expenseReportRules.title')}
-            subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
-            titleStyles={styles.accountSettingsSectionTitle}
-            subtitleMuted
-        >
-            {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
-                const showBorderBottom = index !== optionItems.length - 1;
+        <>
+            <Section
+                isCentralPane
+                title={translate('workspace.rules.expenseReportRules.title')}
+                subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
+                titleStyles={styles.accountSettingsSectionTitle}
+                subtitleMuted
+            >
+                {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
+                    const showBorderBottom = index !== optionItems.length - 1;
 
-                return (
-                    <ToggleSettingOptionRow
-                        key={title}
-                        title={title}
-                        subtitle={subtitle}
-                        switchAccessibilityLabel={title}
-                        wrapperStyle={[styles.pv6, showBorderBottom && styles.borderBottom]}
-                        shouldPlaceSubtitleBelowSwitch
-                        titleStyle={styles.pv2}
-                        subtitleStyle={styles.pt1}
-                        isActive={!!isActive}
-                        showLockIcon={showLockIcon}
-                        disabled={disabled}
-                        subMenuItems={subMenuItems}
-                        onToggle={onToggle}
-                        pendingAction={pendingAction}
-                    />
-                );
-            })}
-        </Section>
+                    return (
+                        <ToggleSettingOptionRow
+                            key={title}
+                            title={title}
+                            subtitle={subtitle}
+                            switchAccessibilityLabel={title}
+                            wrapperStyle={[styles.pv6, showBorderBottom && styles.borderBottom]}
+                            shouldPlaceSubtitleBelowSwitch
+                            titleStyle={styles.pv2}
+                            subtitleStyle={styles.pt1}
+                            isActive={!!isActive}
+                            showLockIcon={showLockIcon}
+                            disabled={disabled}
+                            subMenuItems={subMenuItems}
+                            onToggle={onToggle}
+                            pendingAction={pendingAction}
+                        />
+                    );
+                })}
+            </Section>
+            <ConfirmModal
+                    isVisible={isPreventSelfApprovalsModalVisible}
+                    title={translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle')}
+                    prompt={translate('workspace.rules.expenseReportRules.preventSelfApprovalsModalText', {
+                        managerEmail: policy?.approver ?? '',
+                    })}
+                    confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
+                    cancelText={translate('common.cancel')}
+                    onConfirm={() => {
+                    // First, enable the setting that blocks self-approvals.
+                    PolicyActions.setPolicyPreventSelfApproval(policyID, true);
+
+                    // Build a new workflow where all self-approvers are replaced by the policy owner.
+                    const newWorkflow: ApprovalWorkflow = {
+                            ...approvalWorkflow,
+                            // Remove any members who are self-approvers
+                            members: (approvalWorkflow?.members ?? []).filter((member) => !isSelfApprover(member.email)),
+                            // Add the policy owner as the first approver; filter out existing self-approvers
+                            approvers: [
+                                {
+                                    email: policy?.owner ?? '',
+                                    displayName: policy?.owner ?? '',
+                                },
+                                ...(approvalWorkflow?.approvers?.filter(
+                                    (approver: Approver) => approver && !isSelfApprover(approver.email),
+                                ) ?? []),
+                            ],
+                            // Assume this is the "default" workflow
+                            isDefault: approvalWorkflow?.isDefault ?? true,
+                        };
+
+                        // Compute which members and approvers were removed
+                        const membersToRemove =
+                            approvalWorkflow?.members?.filter(
+                                (oldMember: Member) => !newWorkflow.members.some((newMember) => newMember.email === oldMember.email),
+                            ) ?? [];
+
+                        const approversToRemove =
+                            approvalWorkflow?.approvers?.filter(
+                                (oldApprover: Approver) =>
+                                    oldApprover &&
+                                    !newWorkflow.approvers.some((newApprover) => newApprover.email === oldApprover.email),
+                            ) as Approver[] ?? [];
+
+                        setIsPreventSelfApprovalsModalVisible(false);
+
+                        InteractionManager.runAfterInteractions(() => {
+                            Workflow.updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
+                        });
+                    }}
+                    onCancel={() => setIsPreventSelfApprovalsModalVisible(false)}
+                />
+        </>
     );
 }
 
