@@ -363,10 +363,13 @@ function ReportPreview({
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
-            if (showRTERViolationMessage && totalDisplaySpend) {
-                return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
-            }
             return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
+        }
+        if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
+            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+        if (showRTERViolationMessage) {
+            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
         let payerOrApproverName;
@@ -391,6 +394,9 @@ function ReportPreview({
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
         isScanning,
+        numberOfPendingRequests,
+        numberOfRequests,
+        showRTERViolationMessage,
         isPolicyExpenseChat,
         isInvoiceRoom,
         isApproved,
@@ -398,7 +404,6 @@ function ReportPreview({
         iouReport?.isWaitingOnBankAccount,
         hasNonReimbursableTransactions,
         translate,
-        showRTERViolationMessage,
         totalDisplaySpend,
         chatReport,
         policy,
