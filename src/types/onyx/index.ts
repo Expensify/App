@@ -16,7 +16,7 @@ import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
-import type CorpayFields from './CorpayFields';
+import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type CorpayOnboardingFields from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -127,7 +127,6 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
-    CorpayFields,
     CorpayOnboardingFields,
     Currency,
     CurrencyList,
@@ -245,6 +244,8 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    CorpayFields,
+    CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
 };
