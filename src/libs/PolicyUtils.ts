@@ -1220,31 +1220,41 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
     }, [] as string[]);
     const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
 
-    return [...new Set([...adminDomains, ...ownerDomains])].filter((domain) => !isPublicDomain(domain));
+    return [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
 }
 
+/**
+ * Determines the most frequent domain from the `acceptedDomains` list
+ * that appears in the email addresses of policy members.
+ *
+ * @param acceptedDomains - List of domains to consider.
+ * @param policy - The policy object.
+ */
 function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
     if (!policy) {
         return undefined;
     }
     const domainOccurrences = {} as Record<string, number>;
-    [...Object.keys(policy.employeeList ?? {}).map((email) => Str.extractEmailDomain(email).toLowerCase()), Str.extractEmailDomain(policy.owner).toLowerCase()].forEach((memberDomain) => {
-        if (!acceptedDomains.includes(memberDomain)) {
-            return;
-        }
-        domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
-    });
-    let mostRequent = {domain: '', count: 0};
+    Object.keys(policy.employeeList ?? {})
+        .concat(policy.owner)
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())
+        .forEach((memberDomain) => {
+            if (!acceptedDomains.includes(memberDomain)) {
+                return;
+            }
+            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        });
+    let mostFrequent = {domain: '', count: 0};
     Object.entries(domainOccurrences).forEach(([domain, count]) => {
-        if (count <= mostRequent.count) {
+        if (count <= mostFrequent.count) {
             return;
         }
-        mostRequent = {domain, count};
+        mostFrequent = {domain, count};
     });
-    if (mostRequent.count === 0) {
+    if (mostFrequent.count === 0) {
         return undefined;
     }
-    return mostRequent.domain;
+    return mostFrequent.domain;
 }
 
 const getDescriptionForPolicyDomainCard = (domainName: string): string => {
