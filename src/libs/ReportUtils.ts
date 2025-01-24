@@ -6808,7 +6808,6 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
 }
 
 const REPORT_FLAGS = {
-    // Basic report validity flags
     HAS_VALID_STRUCTURE: 1 << 0, // 1
     IS_SUPPORTED_TYPE: 1 << 1, // 2
     HAS_DRAFT_COMMENT: 1 << 2, // 4
@@ -6820,15 +6819,21 @@ const REPORT_FLAGS = {
     IS_SELF_DM: 1 << 8, // 256
     HAS_VIOLATIONS: 1 << 9, // 512
     IS_SINGLE_TRANSACTION_THREAD: 1 << 10, // 1024
-
-    // Chat type flags
-    IS_CHAT_ROOM: 1 << 11, // 2048
-    IS_CHAT_THREAD: 1 << 12, // 4096
-    IS_SYSTEM_CHAT: 1 << 13, // 8192
-    IS_GROUP_CHAT: 1 << 14, // 16384
-    IS_MONEY_REQUEST: 1 << 15, // 32768
-    IS_TASK_REPORT: 1 << 16, // 65536
-    IS_ADMIN_ROOM: 1 << 17, // 131072
+    HAS_GBR: 1 << 11, // 2048
+    IS_CHAT_ROOM: 1 << 12,
+    IS_CHAT_THREAD: 1 << 13,
+    IS_SYSTEM_CHAT: 1 << 14,
+    IS_GROUP_CHAT: 1 << 15,
+    IS_MONEY_REQUEST: 1 << 16,
+    IS_TASK_REPORT: 1 << 17,
+    IS_ADMIN_ROOM: 1 << 18,
+    IS_THREAD: 1 << 19,
+    IS_ONE_TRANSACTION_THREAD: 1 << 20,
+    IS_EXPENSE_REQUEST: 1 << 21,
+    IS_EXPENSE_REPORT: 1 << 22,
+    SHOULD_HIDE_REPORT: 1 << 23,
+    SHOULD_ADMIN_ROOM_BE_VISIBLE: 1 << 24,
+    IS_POLICY_EXPENSE_CHAT: 1 << 25,
 } as const;
 
 // Type for the flags
@@ -6844,41 +6849,14 @@ const reportFlagsCache = new Map<string, ReportFlagValue>();
 function computeReportFlags(report: Report, policies: ShouldReportBeInOptionListParams['policies'], betas: ShouldReportBeInOptionListParams['betas']): number {
     let flags = 0;
 
-    // Check basic report structure
-    if (
-        report?.reportID &&
-        report?.type &&
-        report?.reportName !== undefined &&
-        (report?.participants ||
-            isChatRoom(report) ||
-            isChatThread(report) ||
-            isArchivedReport(report, getReportNameValuePairs(report?.reportID)) ||
-            isMoneyRequestReport(report) ||
-            isTaskReport(report) ||
-            isSelfDM(report) ||
-            isSystemChat(report) ||
-            isGroupChat(report))
-    ) {
-        flags |= REPORT_FLAGS.HAS_VALID_STRUCTURE;
-    }
-
-    // Check if type is supported
-    if (!Object.values(CONST.REPORT.UNSUPPORTED_TYPE).includes(report?.type ?? '')) {
-        flags |= REPORT_FLAGS.IS_SUPPORTED_TYPE;
-    }
-
-    // Set various report type flags
     if (isChatRoom(report)) {
         flags |= REPORT_FLAGS.IS_CHAT_ROOM;
     }
     if (isChatThread(report)) {
         flags |= REPORT_FLAGS.IS_CHAT_THREAD;
     }
-    if (isSystemChat(report)) {
-        flags |= REPORT_FLAGS.IS_SYSTEM_CHAT;
-    }
-    if (isGroupChat(report)) {
-        flags |= REPORT_FLAGS.IS_GROUP_CHAT;
+    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+        flags |= REPORT_FLAGS.IS_ARCHIVED;
     }
     if (isMoneyRequestReport(report)) {
         flags |= REPORT_FLAGS.IS_MONEY_REQUEST;
@@ -6886,14 +6864,61 @@ function computeReportFlags(report: Report, policies: ShouldReportBeInOptionList
     if (isTaskReport(report)) {
         flags |= REPORT_FLAGS.IS_TASK_REPORT;
     }
-    if (isAdminRoom(report)) {
-        flags |= REPORT_FLAGS.IS_ADMIN_ROOM;
+    if (isSelfDM(report)) {
+        flags |= REPORT_FLAGS.IS_SELF_DM;
+    }
+    if (isSystemChat(report)) {
+        flags |= REPORT_FLAGS.IS_SYSTEM_CHAT;
+    }
+    if (isGroupChat(report)) {
+        flags |= REPORT_FLAGS.IS_GROUP_CHAT;
+    }
+    // Check basic report structure
+    if (
+        report?.reportID &&
+        report?.type &&
+        report?.reportName !== undefined &&
+        (report?.participants ||
+            flags & REPORT_FLAGS.IS_CHAT_ROOM ||
+            flags & REPORT_FLAGS.IS_CHAT_THREAD ||
+            flags & REPORT_FLAGS.IS_ARCHIVED ||
+            flags & REPORT_FLAGS.IS_MONEY_REQUEST ||
+            flags & REPORT_FLAGS.IS_TASK_REPORT ||
+            flags & REPORT_FLAGS.IS_SELF_DM ||
+            flags & REPORT_FLAGS.IS_SYSTEM_CHAT ||
+            flags & REPORT_FLAGS.IS_GROUP_CHAT)
+    ) {
+        console.log('it has a valid structure!!!');
+        flags |= REPORT_FLAGS.HAS_VALID_STRUCTURE;
+    } else {
+        console.log('report has no valid structure');
+        // if the report has no valid structure we don't need to continue computing other flags.
+        // other checking sites should check first if the report has a valid structure before checking other flags.
+        return flags;
     }
 
-    // Set status flags
+    // Check if type is supported
+    if (!Object.values(CONST.REPORT.UNSUPPORTED_TYPE).includes(report?.type ?? '')) {
+        flags |= REPORT_FLAGS.IS_SUPPORTED_TYPE;
+    }
+
+    // TODO: optimize: are there flags that will only be set if another flag is set first? (reduce calculations per report)
+    //       are there things that we can else-if
+
+    if (isAdminRoom(report)) {
+        flags |= REPORT_FLAGS.IS_ADMIN_ROOM;
+        if (shouldAdminsRoomBeVisible(report)) {
+            flags |= REPORT_FLAGS.SHOULD_ADMIN_ROOM_BE_VISIBLE;
+        }
+    }
+    if (isThread(report)) {
+        flags |= REPORT_FLAGS.IS_THREAD;
+    }
+
     if (hasValidDraftComment(report.reportID)) {
         flags |= REPORT_FLAGS.HAS_DRAFT_COMMENT;
     }
+    // TODO: think about this, this might be a bit duplicated work…
     if (report.isPinned) {
         flags |= REPORT_FLAGS.IS_PINNED;
     }
@@ -6903,20 +6928,29 @@ function computeReportFlags(report: Report, policies: ShouldReportBeInOptionList
     if (isUnread(report)) {
         flags |= REPORT_FLAGS.IS_UNREAD;
     }
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
-        flags |= REPORT_FLAGS.IS_ARCHIVED;
-    }
     if (isEmptyReport(report)) {
         flags |= REPORT_FLAGS.IS_EMPTY_CHAT;
     }
-    if (isSelfDM(report)) {
-        flags |= REPORT_FLAGS.IS_SELF_DM;
+    if (isExpenseRequest(report)) {
+        flags |= REPORT_FLAGS.IS_EXPENSE_REQUEST;
+    }
+
+    if (requiresAttentionFromCurrentUser(report)) {
+        flags |= REPORT_FLAGS.HAS_GBR;
+    }
+    if (isPolicyExpenseChat(report)) {
+        flags |= REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT;
     }
 
     return flags;
 }
 
-function getReportFlags(report: Report, policies: ShouldReportBeInOptionListParams['policies'], betas: ShouldReportBeInOptionListParams['betas'], forceRecompute = false): number {
+function getReportFlags(
+    report: Report,
+    policies: ShouldReportBeInOptionListParams['policies'],
+    betas: ShouldReportBeInOptionListParams['betas'],
+    forceRecompute = process.env.NODE_ENV === 'test',
+): number {
     const cacheKey = report.reportID;
     const cachedData = reportFlagsCache.get(cacheKey);
 
@@ -6968,10 +7002,23 @@ type ShouldReportBeInOptionListParams = {
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
+    forceRecompute?: boolean;
 };
 
 function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
-    const {report, currentReportId, isInFocusMode, betas, policies, excludeEmptyChats, doesReportHaveViolations, includeSelfDM = false, login, includeDomainEmail = false} = params;
+    const {
+        report,
+        currentReportId,
+        isInFocusMode,
+        betas,
+        policies,
+        excludeEmptyChats,
+        doesReportHaveViolations,
+        includeSelfDM = false,
+        login,
+        includeDomainEmail = false,
+        forceRecompute,
+    } = params;
 
     if (!report?.reportID) {
         return null;
@@ -6984,61 +7031,125 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
-    const flags = getReportFlags(report, policies, betas);
-    const {requiredFlags, excludedFlags} = getVisibilityRequirements(params);
+    const flags = getReportFlags(report, policies, betas, forceRecompute);
+    // const {requiredFlags, excludedFlags} = getVisibilityRequirements(params);
 
-    // Check if report meets basic requirements
-    if ((flags & requiredFlags) !== requiredFlags) {
+    // // Check if report meets basic requirements
+    // if ((flags & requiredFlags) !== requiredFlags) {
+    //     return null;
+    // }
+
+    // // Check if report has any excluded flags
+    // if (flags & excludedFlags) {
+    //     return null;
+    // }
+    if (!(flags & REPORT_FLAGS.HAS_VALID_STRUCTURE)) {
         return null;
     }
 
-    // Check if report has any excluded flags
-    if (flags & excludedFlags) {
+    // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
+    // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
+    // show that chat
+    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && flags & REPORT_FLAGS.IS_EMPTY_CHAT) {
         return null;
     }
 
-    // Priority checks (order matters)
+    if (!(flags & REPORT_FLAGS.IS_SUPPORTED_TYPE)) {
+        return null;
+    }
+
+    // TODO: can access report
+    const parentReportAction =
+        flags & REPORT_FLAGS.IS_CHAT_THREAD ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
+    if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
+        return null;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === currentReportId) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
+    }
+
     if (flags & REPORT_FLAGS.HAS_DRAFT_COMMENT) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
+    if (flags & REPORT_FLAGS.HAS_GBR) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
+    }
+
+    // Include reports if they are pinned
     if (flags & REPORT_FLAGS.IS_PINNED) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
     }
 
-    if (doesReportHaveViolations) {
-        return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
+    // Always show IOU reports with violations unless they are reimbursed
+    if (flags & REPORT_FLAGS.IS_EXPENSE_REQUEST && doesReportHaveViolations) {
+        if (report.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+            return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
+        }
     }
 
+    // Hide only chat threads that haven't been commented on (other threads are actionable)
+    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && flags & REPORT_FLAGS.SHOULD_HIDE_REPORT) {
+        return null;
+    }
+
+    // Show #admins room only when it has some value to the user.
+    if (flags & REPORT_FLAGS.IS_ADMIN_ROOM && !(flags & REPORT_FLAGS.SHOULD_ADMIN_ROOM_BE_VISIBLE)) {
+        return null;
+    }
+
+    // Include reports that have errors from trying to add a workspace
+    // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (flags & REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS;
     }
 
-    // Focus mode unread check
-    if (params.isInFocusMode && flags & REPORT_FLAGS.IS_UNREAD) {
-        return CONST.REPORT_IN_LHN_REASONS.IS_UNREAD;
+    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInFocusMode) {
+        return flags & REPORT_FLAGS.IS_UNREAD && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD : null;
     }
 
-    // Default mode archived check
-    if (!params.isInFocusMode && flags & REPORT_FLAGS.IS_ARCHIVED) {
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (!isInFocusMode && flags & REPORT_FLAGS.IS_ARCHIVED) {
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
+    }
+
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (
+        excludeEmptyChats &&
+        flags & REPORT_FLAGS.IS_EMPTY_CHAT &&
+        !(flags & REPORT_FLAGS.IS_CHAT_ROOM) &&
+        !(flags & REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT) &&
+        !(flags & REPORT_FLAGS.IS_SYSTEM_CHAT) &&
+        !(flags & REPORT_FLAGS.IS_GROUP_CHAT) &&
+        flags & REPORT_FLAGS.SHOULD_HIDE_REPORT
+    ) {
+        return null;
+    }
+
+    if (flags & REPORT_FLAGS.IS_SELF_DM) {
+        return params.includeSelfDM ? CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM : null;
+    }
+
+    if (Str.isDomainEmail(login ?? '') && !includeDomainEmail) {
+        return null;
+    }
+
+    // Hide chat threads where the parent message is pending removal
+    if (!isEmptyObject(parentReportAction) && isPendingRemove(parentReportAction) && isThreadParentMessage(parentReportAction, report?.reportID)) {
+        return null;
     }
 
     return CONST.REPORT_IN_LHN_REASONS.DEFAULT;
 }
 
-function reasonForReportToBeInOptionList({
-    report,
-    currentReportId,
-    isInFocusMode,
-    betas,
-    policies,
-    excludeEmptyChats,
-    doesReportHaveViolations,
-    includeSelfDM = false,
-    login,
-    includeDomainEmail = false,
-}: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+function reasonForReportToBeInOptionList(params: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    return reasonForReportToBeInOptionListOptimized(params);
+
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
