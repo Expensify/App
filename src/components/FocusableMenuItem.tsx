@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 import useSyncFocus from '@hooks/useSyncFocus';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
