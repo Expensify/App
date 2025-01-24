@@ -18,16 +18,16 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
+import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isArchivedNonExpenseReportWithID,
-    isInvoiceReport as isInvoiceReportUtils,
-    isMoneyRequestReport as isMoneyRequestReportUtils,
-    isTrackExpenseReport as isTrackExpenseReportUtils,
+    isInvoiceReport as ReportUtilsIsInvoiceReport,
+    isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
+    isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
 import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -171,8 +171,8 @@ function BaseReportActionContextMenu({
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
-    const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtils(childReport), [childReport]);
-    const isInvoiceReport = useMemo(() => isInvoiceReportUtils(childReport), [childReport]);
+    const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
+    const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -185,16 +185,20 @@ function BaseReportActionContextMenu({
     }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+
+    const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID}`);
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
-    const isMoneyRequest = useMemo(() => isMoneyRequestReportUtils(childReport), [childReport]);
-    const isTrackExpenseReport = isTrackExpenseReportUtils(childReport);
+    const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
+    const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
     const areHoldRequirementsMet =
-        !isInvoiceReport && isMoneyRequestOrReport && !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+        !isInvoiceReport &&
+        isMoneyRequestOrReport &&
+        !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? childReportNameValuePairs : parentReportNameValuePairs);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -316,7 +320,7 @@ function BaseReportActionContextMenu({
         ? getOriginalMessage(reportAction)
         : undefined;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
+    const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
 
     return (
