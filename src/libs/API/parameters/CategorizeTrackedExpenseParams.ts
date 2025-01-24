@@ -27,6 +27,7 @@ type CategorizeTrackedExpenseParams = {
     adminsChatReportID?: string;
     adminsCreatedReportActionID?: string;
     guidedSetupData?: string;
+    engagementChoice?: string;
 };
 
 export default CategorizeTrackedExpenseParams;
