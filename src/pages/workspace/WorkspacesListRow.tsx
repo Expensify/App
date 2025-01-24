@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -120,7 +120,7 @@ function WorkspacesListRow({
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -149,6 +149,7 @@ function WorkspacesListRow({
                 <Tooltip
                     maxWidth={variables.w184}
                     text={translate('workspace.common.defaultNote')}
+                    numberOfLines={4}
                 >
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
@@ -225,7 +226,7 @@ function WorkspacesListRow({
                             <View style={styles.flex1}>
                                 <WorkspacesListRowDisplayName
                                     isDeleted={isDeleted}
-                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                    ownerName={getDisplayNameOrDefault(ownerDetails)}
                                 />
                                 <Text
                                     numberOfLines={1}

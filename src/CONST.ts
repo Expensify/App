@@ -446,6 +446,9 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
+    HIDDEN_MESSAGE_ATTRIBUTE: 'is-hidden-message',
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -904,7 +907,6 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
-    EMPTY_STRING: '',
     DEFAULT_NUMBER_ID: 0,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
