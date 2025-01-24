@@ -47,6 +47,7 @@ type CommentSubrate = {
     id: string;
     quantity: number;
     name: string;
+    rate: number;
 };
 
 function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[], currentSubrateID?: string) {

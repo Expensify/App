@@ -132,7 +132,7 @@ type TransactionCustomUnit = {
         name: string;
 
         /** Custom unit rate */
-        rate?: number;
+        rate: number;
     }>;
 };
 
