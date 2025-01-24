@@ -1249,27 +1249,7 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function getValidReports(
-    reports: OptionList['reports'],
-    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat: true},
-): GetValidReportsReturnTypeCombined;
-
-function getValidReports(
-    reports: OptionList['reports'],
-    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat?: false},
-): Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'>;
-
-function getValidReports(
-    reports: OptionList['reports'],
-    config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat: true},
-): Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'>;
-
-function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat?: false}): OptionData[];
-
-function getValidReports(
-    reports: OptionList['reports'],
-    config: GetValidReportsConfig,
-): GetValidReportsReturnTypeCombined | Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'> | Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'> | OptionData[] {
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1287,14 +1267,14 @@ function getValidReports(
         includeP2P = true,
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
-        loginsToExclude = [],
+        loginsToExclude = {},
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
     const validReportOptions: OptionData[] = [];
-    let workspaceChats: OptionData[] = [];
+    const workspaceChats: OptionData[] = [];
     let selfDMChat: OptionData | undefined;
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
@@ -1427,45 +1407,30 @@ function getValidReports(
             lastIOUCreationDate,
         };
 
-        validReportOptions.push(newReportOption);
+        // validReportOptions.push(newReportOption);
+
+        // if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
+        //     workspaceChats.push(newReportOption);
+        // }
+
+        // if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
+        //     selfDMChat = newReportOption;
+        // }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
             workspaceChats.push(newReportOption);
-        }
-
-        // if (shouldSeparateWorkspaceChat) {
-        //     recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
-        // }
-
-        if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
+        } else if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
             selfDMChat = newReportOption;
-            // recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
+        } else {
+            validReportOptions.push(newReportOption);
         }
     }
 
-    if (shouldSeparateSelfDMChat && shouldSeparateWorkspaceChat) {
-        return {
-            recentReports: validReportOptions,
-            workspaceOptions: workspaceChats,
-            selfDMOption: selfDMChat,
-        };
-    }
-
-    if (shouldSeparateSelfDMChat) {
-        return {
-            recentReports: validReportOptions,
-            selfDMOption: selfDMChat,
-        };
-    }
-
-    if (shouldSeparateWorkspaceChat) {
-        return {
-            recentReports: validReportOptions,
-            workspaceOptions: workspaceChats,
-        };
-    }
-
-    return validReportOptions;
+    return {
+        recentReports: validReportOptions,
+        workspaceOptions: workspaceChats,
+        selfDMOption: selfDMChat,
+    };
 }
 
 /**
@@ -1504,15 +1469,22 @@ function getValidOptions(
 
     // Get valid recent reports:
     let recentReportOptions: OptionData[] = [];
+    let workspaceChats: OptionData[] = [];
+    let selfDMChat: OptionData | undefined;
     if (includeRecentReports) {
-        recentReportOptions = getValidReports(options.reports, {
+        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(options.reports, {
             ...getValidReportsConfig,
             includeP2P,
             includeDomainEmail,
             selectedOptions,
             loginsToExclude,
             shouldBoldTitleByDefault,
+            shouldSeparateSelfDMChat,
+            shouldSeparateWorkspaceChat,
         });
+        recentReportOptions = recentReports;
+        workspaceChats = workspaceOptions;
+        selfDMChat = selfDMOption;
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
@@ -1556,22 +1528,6 @@ function getValidOptions(
 
             personalDetailsOptions.push(detail);
         }
-    }
-
-    let workspaceChats: OptionData[] = [];
-
-    if (shouldSeparateWorkspaceChat) {
-        workspaceChats = recentReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
-    }
-
-    let selfDMChat: OptionData | undefined;
-
-    if (shouldSeparateWorkspaceChat) {
-        recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
-    }
-    if (shouldSeparateSelfDMChat) {
-        selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
-        recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
     }
 
     return {
