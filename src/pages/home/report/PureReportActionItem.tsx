@@ -33,7 +33,6 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -46,8 +45,8 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session
 import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,6 +55,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAllReportActions,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -78,8 +78,9 @@ import {
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
-    isDeletedParentAction as isDeletedParentActionUtil,
+    isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
+    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -109,13 +110,21 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtil,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import type {IgnoreDirection} from '@userActions/ReportActions';
+import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
+import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
+import {expandURLPreview} from '@userActions/Report';
+import type {IgnoreDirection} from '@userActions/ReportActions';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {getLastModifiedExpense, revert} from '@userActions/Transaction';
+import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -125,8 +134,8 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
+import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
@@ -356,7 +365,7 @@ function PureReportActionItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
+    const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
 
@@ -365,23 +374,18 @@ function PureReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
-    const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
+    const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const reportScrollManager = useReportScrollManager();
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-    const originalMessage = getOriginalMessage(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const isDeletedParentAction = isDeletedParentActionUtil(action);
-    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
-    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
-    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
+    const isDeletedParentAction = isDeletedParentActionUtils(action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -399,13 +403,28 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
+    const onClose = () => {
+        let transactionID;
+        if (isMoneyRequestAction(action)) {
+            transactionID = getOriginalMessage(action)?.IOUTransactionID;
+            revert(transactionID, getLastModifiedExpense(reportID));
+        } else if (isModifiedExpenseAction(action)) {
+            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
+            revert(transactionID, getOriginalMessage(action));
+        }
+        if (transactionID) {
+            clearError(transactionID);
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    };
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
             // we should also hide them when the current component is destroyed
-            if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                ReportActionContextMenu.hideContextMenu();
-                ReportActionContextMenu.hideDeleteModal();
+            if (isActiveReportAction(action.reportActionID)) {
+                hideContextMenu();
+                hideDeleteModal();
             }
             if (isActive(action.reportActionID)) {
                 hideEmojiPicker(true);
@@ -449,7 +468,7 @@ function PureReportActionItem({
     }, [action, reportID]);
 
     useEffect(() => {
-        if (draftMessage === undefined || isDeletedAction(action)) {
+        if (draftMessage === undefined || !isDeletedAction(action)) {
             return;
         }
         deleteReportActionDraft(reportID, action);
@@ -479,7 +498,7 @@ function PureReportActionItem({
     }, [latestDecision, action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
-        setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
+        setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
@@ -498,7 +517,7 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            ReportActionContextMenu.showContextMenu(
+            showContextMenu(
                 CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
@@ -533,18 +552,6 @@ function PureReportActionItem({
             isThreadReportParentAction,
         ],
     );
-
-    // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
-    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
-    useEffect(() => {
-        if (index !== 0 || !isActionableWhisper) {
-            return;
-        }
-
-        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
-            reportScrollManager.scrollToIndex(index);
-        }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
@@ -965,7 +972,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtil(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -1162,13 +1169,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        clearError(transactionID);
-                                    }
-                                    clearAllRelatedReportActionErrors(reportID, action);
-                                }}
+                                onClose={onClose}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
