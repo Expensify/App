@@ -15,6 +15,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
@@ -479,6 +480,23 @@ function clearError(transactionID?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
+function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {
+    const modifiedExpenseActions = Object.values(ReportActionsUtils.getAllReportActions(reportID)).filter(ReportActionsUtils.isModifiedExpenseAction);
+    modifiedExpenseActions.sort((a, b) => Number(a.reportActionID) - Number(b.reportActionID));
+    return ReportActionsUtils.getOriginalMessage(modifiedExpenseActions.at(-1));
+}
+
+function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
+    const transaction = TransactionUtils.getTransaction(transactionID);
+
+    if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+            modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
+            modifiedCurrency: originalMessage.oldCurrency,
+        });
+    }
+}
+
 function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
     if (!transactionID || !transactionThreadReportID) {
         return;
@@ -574,4 +592,6 @@ export {
     sanitizeRecentWaypoints,
     getAllTransactionViolationsLength,
     getAllTransactions,
+    getLastModifiedExpense,
+    revert,
 };
