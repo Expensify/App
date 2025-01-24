@@ -74,7 +74,7 @@ import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
-import {isEmailPublicDomain} from './LoginUtils';
+import {areEmailsFromSamePrivateDomain, isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -4043,6 +4043,22 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
     return getPolicyName(report, false, invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
 }
 
+const getShortMentionIfFound = (displayText: string, userAccountID: string, userLogin = '') => {
+    // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
+    // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
+    if (userAccountID && userLogin !== displayText) {
+        return displayText;
+    }
+
+    // If the emails are not in the same private domain, we also return the displayText
+    if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails?.login ?? '')) {
+        return displayText;
+    }
+
+    // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+    return displayText.split('@').at(0);
+};
+
 /**
  * Parse html of reportAction into text
  */
@@ -4062,7 +4078,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         return text ?? '';
     }
 
-    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const mentionReportRegex = /<mention-report reportID="?(\d+)"? *\/>/gi;
     const matches = html.matchAll(mentionReportRegex);
 
     const reportIDToName: Record<string, string> = {};
@@ -4073,11 +4089,16 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         }
     }
 
-    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const mentionUserRegex = /<mention-user accountID="?(\d+)"? *\/>/gi;
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = getLoginsByAccountIDs(accountIDs);
-    accountIDs.forEach((id, index) => (accountIDToName[id] = logins.at(index) ?? ''));
+    accountIDs.forEach((id, index) => {
+        const login = logins.at(index);
+        const user = allPersonalDetails?.[id];
+        const displayName = formatPhoneNumber(login ?? '') || getDisplayNameOrDefault(user);
+        accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), login) ?? '';
+    });
 
     const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
     parsedReportActionMessageCache[key] = textMessage;
