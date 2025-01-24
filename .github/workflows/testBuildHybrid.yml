@@ -262,7 +262,7 @@ jobs:
         if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch
+          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
 
       - name: Configure MapBox SDK
@@ -314,9 +314,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./OldApp_AdHoc.mobileprovision OldApp_AdHoc
-          op document get --output ./OldApp_AdHoc_Share_Extension.mobileprovision OldApp_AdHoc_Share_Extension
-          op document get --output ./OldApp_AdHoc_Notification_Service.mobileprovision OldApp_AdHoc_Notification_Service
+          op read op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
 
       - name: Decrypt certificate
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg

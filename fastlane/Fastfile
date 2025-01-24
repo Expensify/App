@@ -443,9 +443,9 @@ platform :ios do
         export_options: {
           manageAppVersionAndBuildNumber: false,
           provisioningProfiles: {
-              "com.expensify.expensifylite.adhoc" => "(OldApp) AppStore",
-              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
-              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
           }
         }
       )
