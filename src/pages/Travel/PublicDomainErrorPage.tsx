@@ -19,7 +19,7 @@ function PublicDomainErrorPage() {
             shouldEnableMaxHeight
             testID={PublicDomainErrorPage.displayName}
         >
-            <HeaderWithBackButton />
+            <HeaderWithBackButton title={translate('travel.header')} />
             <View style={[styles.flex1]}>
                 <View style={[styles.mt3, styles.mr5, styles.ml5]}>
                     <Text style={styles.headerAnonymousFooter}>{`${translate('travel.publicDomainError.title')}`}</Text>
