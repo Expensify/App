@@ -19,7 +19,27 @@ jobs:
     name: Create comment
     runs-on: ubuntu-latest
     steps: 
+      - name: Check if comment already exists
+        id: comment-already-exist
+        uses: actions/github-script@v7
+        with: 
+          github-token: ${{ github.token }}
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.number }}
+            });
+
+            const botComments = comments.data.filter(comment => comment.user.type === 'Bot' && comment.user.login === 'github-actions[bot]');
+            const thisWorkflowComments = botComments.filter(comment => comment.body.includes("This PR is possibly changing native code."))
+
+            return thisWorkflowComments.length !== 0 ? 'true' : 'false'
+
+
+
       - name: Comment
+        if: steps.comment-already-exist.outputs.result != 'true'
         run: |
           gh pr comment ${{ github.event.number }} --repo Expensify/App --body \
           ":warning: This PR is possibly changing native code. It may cause problems in Hybrid App. Please ask Hybrid App team to review those changes in the Slack open-source channel. The C+ can help you with that. :warning:"
