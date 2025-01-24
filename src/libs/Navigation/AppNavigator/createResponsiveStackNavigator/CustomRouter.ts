@@ -13,6 +13,7 @@ import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import syncBrowserHistory from './syncBrowserHistory';
 
@@ -40,13 +41,8 @@ function insertRootRoute(state: State<RootStackParamList>, routeToInsert: Naviga
 }
 
 function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
-    // If the state of the last path is not defined the getPathFromState won't work correctly.
-    if (!state?.routes.at(-1)?.state) {
-        return;
-    }
-
     // We need to be sure that the bottom tab state is defined.
-    const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+    const topmostBottomTabRoute = getTopmostBottomTabRoute(state) ?? {name: SCREENS.HOME};
     const isNarrowLayout = getIsNarrowLayout();
 
     // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
@@ -61,7 +57,9 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
         // We will generate a template state and compare the current state with it.
         // If there is a difference in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
         const pathFromCurrentState = getPathFromState(state, linkingConfig.config);
-        const {adaptedState: templateState} = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
+        // If the state of the bottom tab has not been fully initialized, the generated path must be adjusted
+        const adjustedPath = pathFromCurrentState === `/${ROUTES.ROOT}` ? `/${ROUTES.REPORT}` : pathFromCurrentState;
+        const {adaptedState: templateState} = getAdaptedStateFromPath(adjustedPath, linkingConfig.config);
 
         if (!templateState) {
             return;

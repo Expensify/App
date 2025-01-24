@@ -33,21 +33,14 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {hideEmojiPicker, isActive} from '@libs/actions/EmojiPickerAction';
-import {acceptJoinRequest, declineJoinRequest} from '@libs/actions/Policy/Member';
-import {expandURLPreview} from '@libs/actions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session';
-import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,6 +49,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAllReportActions,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -78,8 +72,9 @@ import {
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
-    isDeletedParentAction as isDeletedParentActionReportActionUtils,
+    isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
+    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -110,13 +105,20 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
+import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
+import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {getLastModifiedExpense, revert} from '@userActions/Transaction';
+import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -370,19 +372,14 @@ function PureReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const reportScrollManager = useReportScrollManager();
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-    const originalMessage = getOriginalMessage(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const isDeletedParentAction = isDeletedParentActionReportActionUtils(action);
-    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
-    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
-    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
+    const isDeletedParentAction = isDeletedParentActionUtils(action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -399,6 +396,21 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const onClose = () => {
+        let transactionID;
+        if (isMoneyRequestAction(action)) {
+            transactionID = getOriginalMessage(action)?.IOUTransactionID;
+            revert(transactionID, getLastModifiedExpense(reportID));
+        } else if (isModifiedExpenseAction(action)) {
+            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
+            revert(transactionID, getOriginalMessage(action));
+        }
+        if (transactionID) {
+            clearError(transactionID);
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    };
 
     useEffect(
         () => () => {
@@ -534,18 +546,6 @@ function PureReportActionItem({
             isThreadReportParentAction,
         ],
     );
-
-    // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
-    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
-    useEffect(() => {
-        if (index !== 0 || !isActionableWhisper) {
-            return;
-        }
-
-        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
-            reportScrollManager.scrollToIndex(index);
-        }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
@@ -968,7 +968,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -1087,11 +1087,6 @@ function PureReportActionItem({
         return null;
     }
 
-    // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
-        return null;
-    }
-
     // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
     // This is a temporary solution needed for comment-linking.
     // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
@@ -1165,13 +1160,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        clearError(transactionID);
-                                    }
-                                    clearAllRelatedReportActionErrors(reportID, action);
-                                }}
+                                onClose={onClose}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
