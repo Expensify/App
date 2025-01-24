@@ -62,7 +62,6 @@ import {
     isReimbursementDeQueuedAction,
     isReimbursementQueuedAction,
     isReportPreviewAction,
-    isResolvedActionTrackExpense,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
@@ -381,8 +380,7 @@ Onyx.connect({
                     shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     !isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    !isResolvedActionTrackExpense(reportAction),
+                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
