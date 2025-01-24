@@ -44,14 +44,16 @@ function TopLevelBottomTabBar() {
         return SCREENS_WITH_BOTTOM_TAB_BAR.includes(focusedRoute?.name ?? '') || isSplitNavigatorName(focusedRoute?.name);
     });
 
+    // That means it's visible and it's not covered by the overlay.
     const isBottomTabVisibleDirectly = useIsBottomTabVisibleDirectly();
 
-    const shouldDisplayTopLevelBottomTabBar = isAfterClosingTransition && shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
+    const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
+    const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar;
 
     useEffect(() => {
         cancelAfterInteractions.current?.cancel();
 
-        if (!shouldDisplayTopLevelBottomTabBar) {
+        if (!shouldDisplayBottomBar) {
             // If the bottom tab is not visible, that means there is a screen covering it.
             // In that case we need to set the flag to true because there will be a transition for which we need to wait.
             setIsAfterClosingTransition(false);
@@ -61,16 +63,16 @@ function TopLevelBottomTabBar() {
                 setIsAfterClosingTransition(true);
             });
         }
-    }, [shouldDisplayTopLevelBottomTabBar]);
+    }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={styles.topLevelBottomTabBar(shouldDisplayTopLevelBottomTabBar, shouldUseNarrowLayout, paddingBottom)}>
+        <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
             {/* We are not rendering BottomTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
             <BottomTabBar
                 selectedTab={selectedTab}
-                isTooltipAllowed={shouldDisplayTopLevelBottomTabBar}
+                isTooltipAllowed={isReadyToDisplayBottomBar}
             />
         </View>
     );
