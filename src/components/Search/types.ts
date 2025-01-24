@@ -39,7 +39,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 /** Model of selected reports */
 type SelectedReports = {
     reportID: string;
-    policyID: string;
+    policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     total: number;
 };
