@@ -36,19 +36,20 @@ function ValidateCodeActionWithoutModal({
 
     useEffect(
         () => () => {
-            clearError();
             firstRenderRef.current = true;
         },
-        [clearError],
+        []
     );
 
     useEffect(() => {
         if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
-            return;
+            return () => {
+                clearError();
+            };
         }
         firstRenderRef.current = false;
         sendValidateCode();
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
