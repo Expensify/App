@@ -1484,6 +1484,7 @@ export {
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
+    isViolationDismissed,
 };
 
 export type {TransactionChanges};
