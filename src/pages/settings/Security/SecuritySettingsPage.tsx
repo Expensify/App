@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -34,6 +34,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
+import * as DelegateActions from '@userActions/Delegate';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -73,6 +74,10 @@ function SecuritySettingsPage() {
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    useEffect(() => {
+        DelegateActions.openSecuritySettingsPage();
+    }, []);
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
