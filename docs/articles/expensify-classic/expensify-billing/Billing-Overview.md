@@ -32,7 +32,7 @@ An active member is anyone who performs any of these actions in Expensify during
   - Control plan: $18 per member (vs. $36).  
 - Set your monthly active member count upfront and pay a fixed rate.
 
-**How It Works:**
+## How It Works:
 - You’ll be billed for the number of members set in your subscription.  
 - Extra active members beyond your subscription size are charged at the pay-per-use rate.
 
@@ -44,7 +44,7 @@ An active member is anyone who performs any of these actions in Expensify during
   - Cost for additional two members: $36/member = $72  
   - Total bill: $252
 
-**Adjustments:**
+## Adjustments:
 - You can increase your subscription size by extending your subscription period.  
 - Reductions are only allowed after your current subscription ends.  
 
