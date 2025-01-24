@@ -263,7 +263,7 @@ describe('CardUtils', () => {
         });
 
         it('Should return true for the custom mastercard feed with a number', () => {
-            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1` as CompanyCardFeedWithNumber;
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}3` as CompanyCardFeedWithNumber;
             const isCustomFeed = CardUtils.isCustomFeed(customFeed);
             expect(isCustomFeed).toBe(true);
         });
@@ -275,7 +275,7 @@ describe('CardUtils', () => {
         });
 
         it('Should return true for the custom amex feed with a number', () => {
-            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1` as CompanyCardFeedWithNumber;
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2` as CompanyCardFeedWithNumber;
             const isCustomFeed = CardUtils.isCustomFeed(customFeed);
             expect(isCustomFeed).toBe(true);
         });
