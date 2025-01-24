@@ -1,5 +1,6 @@
 import React from 'react';
 import type {FC} from 'react';
+import {Platform} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import type {SvgProps} from 'react-native-svg';
 import GlobalCreateIcon from '@assets/images/customEmoji/global-create.svg';
@@ -17,6 +18,7 @@ export const emojiMap: Record<string, FC<SvgProps>> = {
 function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const emojiKey = tnode.attributes.emoji;
+    const positionFix = Platform.OS !== 'web' && {height: '5%'};
 
     if (emojiMap[emojiKey]) {
         if ('pressablewithdefaultaction' in tnode.attributes) {
@@ -25,7 +27,7 @@ function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
 
         return (
             <ImageSVG
-                style={styles.customEmoji}
+                style={[styles.customEmoji, positionFix]}
                 src={emojiMap[emojiKey]}
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}

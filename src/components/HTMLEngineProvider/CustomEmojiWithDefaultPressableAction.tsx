@@ -1,4 +1,5 @@
 import React, {useContext} from 'react';
+import {Platform} from 'react-native';
 import {FABPopoverContext} from '@components/FABPopoverProvider';
 import ImageSVG from '@components/ImageSVG';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -12,6 +13,7 @@ type CustomEmojiWithDefaultPressableActionProps = {
 
 function CustomEmojiWithDefaultPressableAction({emojiKey}: CustomEmojiWithDefaultPressableActionProps) {
     const styles = useThemeStyles();
+    const positionFix = Platform.OS !== 'web' && {height: '5%'};
 
     const image = (
         <ImageSVG
@@ -26,16 +28,12 @@ function CustomEmojiWithDefaultPressableAction({emojiKey}: CustomEmojiWithDefaul
         return (
             <PressableWithoutFeedback
                 onPress={() => setIsCreateMenuActive(!isCreateMenuActive)}
-                style={styles.customEmoji}
+                style={[styles.customEmoji, positionFix]}
                 accessible
                 accessibilityRole="button"
                 accessibilityLabel="Press to create a new item"
             >
-                <ImageSVG
-                    src={emojiMap[emojiKey]}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                />
+                {image}
             </PressableWithoutFeedback>
         );
     }
