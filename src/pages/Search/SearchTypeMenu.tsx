@@ -77,6 +77,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
+                        shouldRenderTooltip={index === 0 && shouldShowProductTrainingTooltip}
+                        renderTooltipContent={renderProductTrainingTooltip}
                     />
                 ),
                 style: [styles.alignItemsCenter],

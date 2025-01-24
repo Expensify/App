@@ -378,6 +378,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
                         shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                         wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
+                        onTooltipPress={onFiltersButtonPress}
                     >
                         <Button
                             innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}

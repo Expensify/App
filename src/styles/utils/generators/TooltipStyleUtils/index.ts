@@ -245,7 +245,6 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
                 ...styles.userSelectNone,
-
                 // Hovering over a link tooltip in a chat message causes the "report action" hover state to reset to false.
                 // To prevent this, we disable pointer events for the tooltip.
                 // However, an exception is needed for educational tooltips since they are interactive.

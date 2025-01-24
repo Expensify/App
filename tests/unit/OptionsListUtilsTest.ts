@@ -148,11 +148,6 @@ describe('OptionsListUtils', () => {
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
-
-            // This indicates that the report is archived
-            stateNum: 2,
-            statusNum: 2,
-            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
@@ -432,6 +427,11 @@ describe('OptionsListUtils', () => {
         isPolicyExpenseChatEnabled: false,
     };
 
+    const reportNameValuePairs = {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -458,6 +458,7 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
 
     beforeEach(() => {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);

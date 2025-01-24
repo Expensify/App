@@ -1,6 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 
-function switchPolicyAfterInteractions(newPolicyID: string | undefined) {
+function switchPolicyAfterInteractions(newPolicyID: string | undefined, setActiveWorkspaceID: () => void) {
+    setActiveWorkspaceID();
     Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
 }
 

@@ -108,7 +108,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (updatedUserQuery || textInputValue.length > 0) {
+            if (updatedUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
@@ -132,9 +132,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
+            } else {
+                setTextInputValue(queryText);
+                setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
     );
 
     const onListItemPress = useCallback(
@@ -280,6 +283,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     onSubmit={() => {
+                        const focusedOption = listRef.current?.getFocusedOption();
+                        if (focusedOption) {
+                            return;
+                        }
                         submitSearch(textInputValue);
                     }}
                     autoFocus={false}
