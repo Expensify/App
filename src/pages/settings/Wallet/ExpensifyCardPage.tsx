@@ -16,17 +16,18 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+import {setDraftValues} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute} from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Card from '@userActions/Card';
-import * as Link from '@userActions/Link';
+import {revealVirtualCardDetails} from '@userActions/Card';
+import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +82,7 @@ function ExpensifyCardPage({
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
-            return CardUtils.getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy || !card?.nameValuePairs?.isVirtual) ?? [];
+            return getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy || !card?.nameValuePairs?.isVirtual) ?? [];
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
@@ -112,7 +113,7 @@ function ExpensifyCardPage({
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        Card.revealVirtualCardDetails(currentCardID, validateCode)
+        revealVirtualCardDetails(currentCardID, validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [currentCardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
@@ -135,7 +136,7 @@ function ExpensifyCardPage({
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
+    const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
@@ -144,13 +145,13 @@ function ExpensifyCardPage({
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
         if (!draftValues) {
-            updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(undefined, privatePersonalDetails, loginList);
+            updatedDraftValues = getUpdatedDraftValues(undefined, privatePersonalDetails, loginList);
             // Form draft data needs to be initialized with the private personal details
             // If no draft data exists
-            FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
+            setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
         }
 
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
+        goToNextPhysicalCardRoute(domain, getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
     };
 
     if (isNotFound) {
@@ -187,7 +188,7 @@ function ExpensifyCardPage({
                         <Button
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.reviewTransaction')}
-                            onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
+                            onPress={() => openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
                         />
                     </>
                 )}
@@ -214,7 +215,7 @@ function ExpensifyCardPage({
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (
                                     <CardDetails
                                         pan={cardsDetails[card.cardID]?.pan}
-                                        expiration={CardUtils.formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
+                                        expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
                                         domain={domain}
                                     />
@@ -222,7 +223,7 @@ function ExpensifyCardPage({
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.virtualCardNumber')}
-                                            title={CardUtils.maskCard('')}
+                                            title={maskCard('')}
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
@@ -259,7 +260,7 @@ function ExpensifyCardPage({
                                 <>
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardNumber')}
-                                        title={CardUtils.maskCard(card?.lastFourPAN)}
+                                        title={maskCard(card?.lastFourPAN)}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
                                     />
@@ -272,6 +273,18 @@ function ExpensifyCardPage({
                                 </>
                             );
                         })}
+                        <MenuItem
+                            icon={Expensicons.MoneySearch}
+                            title={translate('workspace.common.viewTransactions')}
+                            style={styles.mt3}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                    }),
+                                );
+                            }}
+                        />
                     </>
                 )}
             </ScrollView>

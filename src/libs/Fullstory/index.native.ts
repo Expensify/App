@@ -1,6 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isExpensifyTeam} from '@libs/PolicyUtils';
 import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
@@ -43,7 +43,7 @@ const FS = {
             // UserMetadata onyx key.
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || isExpensifyTeam(value?.email)) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
                     return;
                 }
                 FullStory.restart();

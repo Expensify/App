@@ -37,6 +37,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'deleted-action': HTMLElementModel.fromCustomModel({
+                tagName: 'alert-text',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},

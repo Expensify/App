@@ -15,6 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import FABPopoverProvider from './components/FABPopoverProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
+import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
@@ -100,6 +101,7 @@ function App({url}: AppProps) {
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 FABPopoverProvider,
+                                InputBlurContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

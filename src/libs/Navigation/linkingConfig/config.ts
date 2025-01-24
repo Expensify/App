@@ -30,7 +30,19 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+        [SCREENS.REPORT]: {
+            path: ROUTES.REPORT_WITH_ID.route,
+            // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+            // We want to avoid that situation, so we will return an empty string instead.
+            parse: {
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
+            },
+            stringify: {
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
+            },
+        },
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
             path: ROUTES.SETTINGS_PROFILE,
             exact: true,
@@ -242,6 +254,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
