@@ -1,6 +1,5 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
