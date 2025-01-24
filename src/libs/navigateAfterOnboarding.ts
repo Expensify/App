@@ -3,7 +3,14 @@ import Navigation from './Navigation/Navigation';
 import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from './ReportUtils';
 
-const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms: boolean | undefined, onboardingPolicyID?: string, activeWorkspaceID?: string, onboardingAdminsChatReportID?: string, shouldOpenAdminRoom?: boolean) => {
+const navigateAfterOnboarding = (
+    isSmallScreenWidth: boolean,
+    canUseDefaultRooms: boolean | undefined,
+    onboardingPolicyID?: string,
+    activeWorkspaceID?: string,
+    onboardingAdminsChatReportID?: string,
+    shouldOpenAdminRoom?: boolean,
+) => {
     Navigation.dismissModal();
 
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
