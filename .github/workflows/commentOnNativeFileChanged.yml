@@ -19,12 +19,9 @@ jobs:
     name: Create comment
     runs-on: ubuntu-latest
     steps: 
-      - name: Checkout
-        uses: actions/checkout@v4
-        
       - name: Comment
         run: |
-          gh pr comment ${{ github.event.number }} --body \
+          gh pr comment ${{ github.event.number }} --repo Expensify/App --body \
           ":warning: This PR is possibly changing native code. It may cause problems in Hybrid App. Please ask Hybrid App team to review those changes in the Slack open-source channel. The C+ can help you with that. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
