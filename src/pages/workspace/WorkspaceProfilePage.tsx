@@ -114,12 +114,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const policyDescription =
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        Parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
+        policy?.description || Parser.replace(translate('workspace.common.defaultDescription'));
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const isOwner = PolicyUtils.isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];

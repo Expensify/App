@@ -31,12 +31,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
         Parser.htmlToMarkdown(
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            policy?.description ||
-                Parser.replace(
-                    translate('workspace.common.welcomeNote', {
-                        workspaceName: policy?.name ?? '',
-                    }),
-                ),
+            policy?.description || Parser.replace(translate('workspace.common.defaultDescription')),
         ),
     );
 

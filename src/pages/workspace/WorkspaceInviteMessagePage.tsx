@@ -75,14 +75,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             workspaceInviteMessageDraft ??
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (Parser.htmlToMarkdown(policy?.description ?? '') ||
-                translate('workspace.common.welcomeNote', {
-                    workspaceName: policy?.name ?? '',
-                }))
+            translate('workspace.common.welcomeNote')
         );
-    }, [workspaceInviteMessageDraft, policy, translate, formData]);
+    }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
         if (isOnyxLoading) {
