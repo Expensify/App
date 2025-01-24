@@ -235,6 +235,7 @@ function addSubscriptionPaymentCard(
         addressZip,
         currency,
         isP2PDebitCard: false,
+        shouldClaimEarlyDiscountOffer: true,
     };
 
     const optimisticData: OnyxUpdate[] = [

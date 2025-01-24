@@ -27,13 +27,25 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, CompanyCardFeed} from '@src/types/onyx';
+import type {AccountData, Card, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+type PaymentMethodPressHandler = (
+    event?: GestureResponderEvent | KeyboardEvent,
+    accountType?: string,
+    accountData?: AccountData,
+    icon?: FormattedSelectedPaymentMethodIcon,
+    isDefault?: boolean,
+    methodID?: number,
+    description?: string,
+) => void;
+
+type CardPressHandler = (event?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => void;
 
 type PaymentMethodListProps = {
     /** Type of active/highlighted payment method */
@@ -88,14 +100,7 @@ type PaymentMethodListProps = {
     shouldShowRightIcon?: boolean;
 
     /** What to do when a menu item is pressed */
-    onPress: (
-        event?: GestureResponderEvent | KeyboardEvent,
-        accountType?: string,
-        accountData?: AccountData,
-        icon?: FormattedSelectedPaymentMethodIcon,
-        isDefault?: boolean,
-        methodID?: number,
-    ) => void;
+    onPress: PaymentMethodPressHandler | CardPressHandler;
 
     /** The policy invoice's transfer bank accountID */
     invoiceTransferBankAccountID?: number;
@@ -126,7 +131,7 @@ function dismissError(item: PaymentMethodItem) {
 
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
-    const paymentID = isBankAccount ? item.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID : item.accountData?.fundID ?? CONST.DEFAULT_NUMBER_ID;
+    const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
 
     if (!paymentID) {
         Log.info('Unable to clear payment method error: ', undefined, item);
@@ -146,21 +151,9 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: PaymentMethod, walletLinkedAccountID: number, isDefault = false): boolean {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false): boolean {
     if (!isDefault) {
         return false;
-    }
-    // Find all payment methods that are marked as default
-    const defaultPaymentMethods = filteredPaymentMethods.filter((method: PaymentMethod) => !!method.isDefault);
-
-    // If there is more than one payment method, show the default badge only for the most recently added default account.
-    if (defaultPaymentMethods.length > 1) {
-        if (item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            return item.accountData?.bankAccountID === walletLinkedAccountID;
-        }
-        if (item.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            return item.accountData?.fundID === walletLinkedAccountID;
-        }
     }
     const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
@@ -225,13 +218,14 @@ function PaymentMethodList({
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed);
 
                 if (!isExpensifyCard(card.cardID)) {
+                    const pressHandler = onPress as CardPressHandler;
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
-                        shouldShowRightIcon: false,
-                        interactive: false,
+                        interactive: true,
                         canDismissError: false,
+                        shouldShowRightIcon,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
@@ -242,6 +236,20 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
+                        iconRight: Expensicons.ThreeDots,
+                        isMethodActive: activePaymentMethodID === card.cardID,
+                        onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                            pressHandler(
+                                e,
+                                card,
+                                {
+                                    icon,
+                                    iconStyles: [styles.cardIcon],
+                                    iconWidth: variables.cardIconWidth,
+                                    iconHeight: variables.cardIconHeight,
+                                },
+                                card.cardID,
+                            ),
                     });
                     return;
                 }
@@ -305,11 +313,12 @@ function PaymentMethodList({
             );
         }
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
+            const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
             return {
                 ...paymentMethod,
                 onPress: (e: GestureResponderEvent) =>
-                    onPress(
+                    pressHandler(
                         e,
                         paymentMethod.accountType,
                         paymentMethod.accountData,
@@ -322,6 +331,7 @@ function PaymentMethodList({
                         },
                         paymentMethod.isDefault,
                         paymentMethod.methodID,
+                        paymentMethod.description,
                     ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -409,9 +419,7 @@ function PaymentMethodList({
                     badgeText={
                         shouldShowDefaultBadge(
                             filteredPaymentMethods,
-                            item,
-                            userWallet?.walletLinkedAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault,
+                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                         )
                             ? translate('paymentMethodList.defaultPaymentMethod')
                             : undefined
