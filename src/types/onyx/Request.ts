@@ -54,7 +54,14 @@ type RequestData = {
     /** Whether the app should skip the web proxy to connect to API endpoints */
     shouldSkipWebProxy?: boolean;
 
-    /** Whether the request is initiated offline */
+    /**
+     * Whether the request is initiated offline.
+     *
+     * This field is used to indicate if the app initiates the request while offline.
+     * It is particularly useful for scenarios such as receipts recreating, where
+     * the app needs to regenerate a blob once the user gets back online.
+     * More info https://github.com/Expensify/App/issues/51761
+     */
     initiatedOffline?: boolean;
 };
 
