@@ -193,15 +193,22 @@ type GetValidReportsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     loginsToExclude?: Record<string, boolean>;
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 } & GetValidOptionsSharedConfig;
+
+type GetValidReportsReturnTypeCombined = {
+    // selfDMOptions: OptionData[];
+    selfDMOption: OptionData | undefined;
+    workspaceOptions: OptionData[];
+    recentReports: OptionData[];
+};
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    shouldSeparateWorkspaceChat?: boolean;
-    shouldSeparateSelfDMChat?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -1244,7 +1251,26 @@ function getUserToInviteOption({
 
 function getValidReports(
     reports: OptionList['reports'],
-    {
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat: true},
+): GetValidReportsReturnTypeCombined;
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat: true; shouldSeparateWorkspaceChat?: false},
+): Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'>;
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat: true},
+): Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'>;
+
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig & {shouldSeparateSelfDMChat?: false; shouldSeparateWorkspaceChat?: false}): OptionData[];
+
+function getValidReports(
+    reports: OptionList['reports'],
+    config: GetValidReportsConfig,
+): GetValidReportsReturnTypeCombined | Omit<GetValidReportsReturnTypeCombined, 'workspaceOptions'> | Omit<GetValidReportsReturnTypeCombined, 'selfDMOptions'> | OptionData[] {
+    const {
         betas = [],
         includeMultipleParticipantReports = false,
         showChatPreviewLine = false,
@@ -1261,12 +1287,15 @@ function getValidReports(
         includeP2P = true,
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
-        loginsToExclude = {},
-    }: GetValidReportsConfig,
-) {
+        loginsToExclude = [],
+        shouldSeparateSelfDMChat,
+        shouldSeparateWorkspaceChat,
+    } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
     const validReportOptions: OptionData[] = [];
+    let workspaceChats: OptionData[] = [];
+    let selfDMChat: OptionData | undefined;
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
     for (let i = 0; i < reports.length; i++) {
@@ -1399,6 +1428,41 @@ function getValidReports(
         };
 
         validReportOptions.push(newReportOption);
+
+        if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
+            workspaceChats.push(newReportOption);
+        }
+
+        // if (shouldSeparateWorkspaceChat) {
+        //     recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
+        // }
+
+        if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
+            selfDMChat = newReportOption;
+            // recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
+        }
+    }
+
+    if (shouldSeparateSelfDMChat && shouldSeparateWorkspaceChat) {
+        return {
+            recentReports: validReportOptions,
+            workspaceOptions: workspaceChats,
+            selfDMOption: selfDMChat,
+        };
+    }
+
+    if (shouldSeparateSelfDMChat) {
+        return {
+            recentReports: validReportOptions,
+            selfDMOption: selfDMChat,
+        };
+    }
+
+    if (shouldSeparateWorkspaceChat) {
+        return {
+            recentReports: validReportOptions,
+            workspaceOptions: workspaceChats,
+        };
     }
 
     return validReportOptions;
