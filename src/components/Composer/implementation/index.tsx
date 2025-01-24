@@ -16,9 +16,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {isMobileSafari, isSafari} from '@libs/Browser';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -55,7 +55,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
-    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -78,7 +78,7 @@ function Composer(
 
     // On mobile safari, the cursor will move from right to left with inputMode set to none during report transition
     // To avoid that we should hide the cursor util the transition is finished
-    const [shouldTransparentCursor, setShouldTransparentCursor] = useState(!showSoftInputOnFocus && Browser.isMobileSafari());
+    const [shouldTransparentCursor, setShouldTransparentCursor] = useState(!showSoftInputOnFocus && isMobileSafari());
 
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
@@ -180,7 +180,7 @@ function Composer(
 
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
                     const src = embeddedImages[0].src;
-                    const file = FileUtils.base64ToFile(src, 'image.png');
+                    const file = base64ToFile(src, 'image.png');
                     onPasteFile(file);
                     return true;
                 }
@@ -239,6 +239,12 @@ function Composer(
         const handleWheel = (e: MouseEvent) => {
             if (isReportFlatListScrolling.current) {
                 e.preventDefault();
+                return;
+            }
+
+            // When the composer has no scrollable content, the stopPropagation will prevent the inverted wheel event handler on the Chat body
+            // which defaults to the browser wheel behavior. This causes the chat body to scroll in the opposite direction creating jerky behavior.
+            if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
                 return;
             }
             e.stopPropagation();
@@ -344,7 +350,7 @@ function Composer(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(isComposerFullSize),
-            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            isMobileSafari() || isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
@@ -358,7 +364,7 @@ function Composer(
         <RNMarkdownTextInput
             id={CONST.COMPOSER.NATIVE_ID}
             autoComplete="off"
-            autoCorrect={!Browser.isMobileSafari()}
+            autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
             ref={(el) => (textInput.current = el)}
             selection={selection}
