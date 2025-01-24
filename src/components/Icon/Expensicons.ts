@@ -72,7 +72,6 @@ import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
 import DownArrow from '@assets/images/down.svg';
 import Download from '@assets/images/download.svg';
-import Export from '@assets/images/export.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
@@ -89,6 +88,7 @@ import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-ve
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
@@ -270,7 +270,6 @@ export {
     DotIndicatorUnfilled,
     DownArrow,
     Download,
-    Export,
     DragAndDrop,
     DragHandles,
     EReceiptIcon,
@@ -285,6 +284,7 @@ export {
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
     Expand,
+    Export,
     Eye,
     EyeDisabled,
     FallbackAvatar,
