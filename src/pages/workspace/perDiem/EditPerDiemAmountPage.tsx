@@ -48,8 +48,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
 
             const newAmount = values.amount.trim();
             const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-
-            if (backendAmount === 0) {
+            if (backendAmount === 0 || newAmount === '-') {
                 errors.amount = translate('common.error.fieldRequired');
             }
 

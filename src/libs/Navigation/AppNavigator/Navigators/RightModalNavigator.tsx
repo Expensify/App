@@ -13,6 +13,7 @@ import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSid
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
@@ -53,6 +54,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         }
                         isExecutingRef.current = true;
                         navigation.goBack();
+                        setTimeout(() => {
+                            isExecutingRef.current = false;
+                        }, CONST.ANIMATED_TRANSITION);
                     }}
                 />
             )}
@@ -135,6 +139,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
+                        component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />
@@ -182,10 +190,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                         options={hideKeyboardOnSwipe}
-                    />
-                    <Stack.Screen
-                        name="ProcessMoneyRequestHold"
-                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}

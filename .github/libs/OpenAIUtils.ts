@@ -3,6 +3,11 @@ import OpenAI from 'openai';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
 import CONST from './CONST';
 
+type AssistantResponse = {
+    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
+    message: string;
+};
+
 const MAX_POLL_COUNT = Math.floor(CONST.OPENAI_POLL_TIMEOUT / CONST.OPENAI_POLL_RATE);
 
 class OpenAIUtils {
@@ -69,6 +74,52 @@ class OpenAIUtils {
     static isTextContentBlock(contentBlock: MessageContent): contentBlock is TextContentBlock {
         return contentBlock?.type === 'text';
     }
+
+    static sanitizeJSONStringValues(inputString: string): string {
+        function replacer(str: string): string {
+            return (
+                {
+                    '\\': '\\\\',
+                    '\t': '\\t',
+                    '\n': '\\n',
+                    '\r': '\\r',
+                    '\f': '\\f',
+                    '"': '\\"',
+                }[str] ?? ''
+            );
+        }
+
+        if (typeof inputString !== 'string') {
+            throw new TypeError('Input must be of type String.');
+        }
+
+        try {
+            const parsed = JSON.parse(inputString) as unknown;
+
+            // Function to recursively sanitize string values in an object
+            const sanitizeValues = (obj: unknown): unknown => {
+                if (typeof obj === 'string') {
+                    return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+                }
+                if (Array.isArray(obj)) {
+                    return obj.map((item) => sanitizeValues(item));
+                }
+                if (obj && typeof obj === 'object') {
+                    const result: Record<string, unknown> = {};
+                    for (const key of Object.keys(obj)) {
+                        result[key] = sanitizeValues((obj as Record<string, unknown>)[key]);
+                    }
+                    return result;
+                }
+                return obj;
+            };
+
+            return JSON.stringify(sanitizeValues(parsed));
+        } catch (e) {
+            throw new Error('Invalid JSON input.');
+        }
+    }
 }
 
 export default OpenAIUtils;
+export type {AssistantResponse};

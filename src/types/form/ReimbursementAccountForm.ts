@@ -67,11 +67,11 @@ const INPUT_IDS = {
             BANK_ADDRESS_LINE_1: 'bankAddress',
             BANK_STATEMENT: 'bankStatement',
             COMPANY_NAME: 'companyName',
-            COMPANY_STREET: 'companyStreet',
+            COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
-            COMPANY_ZIP_CODE: 'companyZipCode',
-            COMPANY_COUNTRY: 'companyCountry',
+            COMPANY_POSTAL_CODE: 'companyPostalCode',
+            COMPANY_COUNTRY_CODE: 'companyCountryCode',
             BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
             BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
             FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
@@ -80,8 +80,9 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
-            APPLICANT_TYPE_ID: 'applicantTypeID',
+            APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
+            PREFERRED_METHOD: 'preferredMethod',
             CURRENCY_NEEDED: 'currencyNeeded',
             TRADE_VOLUME: 'tradeVolume',
             ANNUAL_VOLUME: 'annualVolume',
@@ -193,8 +194,11 @@ type ReimbursementAccountProps = {
 
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
-    /** Country of the reimbursement account */
+    /** Country of the bank */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Preferred method of payment */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PREFERRED_METHOD]: string;
 
     /** Name of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
@@ -230,10 +234,10 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
 
     /** Company zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_POSTAL_CODE]: string;
 
     /** Company country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY_CODE]: Country | '';
 
     /** Business contact number */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
