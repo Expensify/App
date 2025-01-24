@@ -274,7 +274,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             testID={ContactMethodDetailsPage.displayName}
             focusTrapSettings={{
                 focusTrapOptions: {
-                    // It is added because input form's focusing bothers transition animation:
+                    //It is added because input form's focusing bothers transition animation:
                     // https://github.com/Expensify/App/issues/53884#issuecomment-2594568960
                     checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
                         return new Promise((resolve) => {

@@ -38,7 +38,7 @@ function ValidateCodeActionWithoutModal({
         () => () => {
             firstRenderRef.current = true;
         },
-        [],
+        []
     );
 
     useEffect(() => {
