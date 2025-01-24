@@ -1,3 +1,4 @@
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -20,16 +21,14 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             if (key === 'receipt' && initiatedOffline) {
                 const {uri: path = '', source} = value as File;
 
-                return import('@libs/fileDownload/FileUtils').then(({readFileAsync}) =>
-                    readFileAsync(source, path, () => {}).then((file) => {
-                        if (!file) {
-                            return;
-                        }
+                return readFileAsync(source, path, () => {}).then((file) => {
+                    if (!file) {
+                        return;
+                    }
 
-                        validateFormDataParameter(command, key, file);
-                        formData.append(key, file);
-                    }),
-                );
+                    validateFormDataParameter(command, key, file);
+                    formData.append(key, file);
+                });
             }
 
             validateFormDataParameter(command, key, value);
