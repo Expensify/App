@@ -90,7 +90,7 @@ function SearchRouterInput(
     return (
         <View style={[outerWrapperStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
-                <View style={styles.flex1}>
+                <View style={styles.flex1} fsClass="fs-unmask">
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
