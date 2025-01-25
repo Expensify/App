@@ -1,4 +1,4 @@
-import FocusTrap from 'focus-trap-react';
+import {FocusTrap} from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';

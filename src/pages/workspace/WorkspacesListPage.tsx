@@ -27,18 +27,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {checkIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
+import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -89,16 +91,16 @@ const workspaceFeatures: FeatureListItem[] = [
  */
 function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        Policy.clearDeleteWorkspaceError(policyID);
+        clearDeleteWorkspaceError(policyID);
         return;
     }
 
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Policy.removeWorkspace(policyID);
+        removeWorkspace(policyID);
         return;
     }
 
-    Policy.clearErrors(policyID);
+    clearErrors(policyID);
 }
 
 const stickyHeaderIndices = [0];
@@ -114,6 +116,7 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -125,17 +128,17 @@ function WorkspacesListPage() {
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete);
+    const workspaceAccountID = getWorkspaceAccountID(policyIDToDelete);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const policyToDelete = PolicyUtils.getPolicy(policyIDToDelete);
+    const policyToDelete = getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
 
-    const isSupportalAction = Session.isSupportAuthToken();
+    const isSupportalAction = isSupportAuthToken();
 
     const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
     const hideSupportalModal = () => {
@@ -146,13 +149,17 @@ function WorkspacesListPage() {
             return;
         }
 
-        Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policyIDToDelete) {
             setActiveWorkspaceID(undefined);
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
+            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
+            if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
+                Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
+            }
         }
     };
 
@@ -161,8 +168,9 @@ function WorkspacesListPage() {
      */
     const getMenuItem = useCallback(
         ({item, index}: GetMenuItem) => {
-            const isAdmin = PolicyUtils.isPolicyAdmin(item as unknown as PolicyType, session?.email);
+            const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
+            const isDefault = activePolicyID === item.policyID;
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
@@ -195,7 +203,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID)),
+                    onSelected: checkIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
                 });
             }
 
@@ -212,6 +220,14 @@ function WorkspacesListPage() {
                     icon: Expensicons.Hashtag,
                     text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
                     onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
+                });
+            }
+
+            if (!isDefault && !item?.isJoinRequestPending) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Star,
+                    text: translate('workspace.common.setAsDefault'),
+                    onSelected: () => updateDefaultPolicy(item.policyID, activePolicyID),
                 });
             }
 
@@ -245,6 +261,7 @@ function WorkspacesListPage() {
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
+                                isDefault={isDefault}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -261,6 +278,7 @@ function WorkspacesListPage() {
             styles.offlineFeedback.deleted,
             session?.accountID,
             session?.email,
+            activePolicyID,
             isSupportalAction,
         ],
     );
@@ -343,14 +361,14 @@ function WorkspacesListPage() {
         }
 
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, isOffline, session?.email))
+            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
             .map((policy): WorkspaceItem => {
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
                     const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
                     return {
                         title: policyInfo.name,
-                        icon: policyInfo?.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
                         disabled: true,
                         ownerAccountID: policyInfo.ownerAccountID,
                         type: policyInfo.type,
@@ -367,12 +385,12 @@ function WorkspacesListPage() {
                 }
                 return {
                     title: policy.name,
-                    icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator: !PolicyUtils.isPolicyAdmin(policy)
+                    brickRoadIndicator: !isPolicyAdmin(policy)
                         ? undefined
                         : reimbursementAccountBrickRoadIndicator ??
-                          PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                          getPolicyBrickRoadIndicatorStatus(
                               policy,
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
                           ),
@@ -399,7 +417,7 @@ function WorkspacesListPage() {
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
@@ -433,7 +451,7 @@ function WorkspacesListPage() {
                                 subtitle={translate('workspace.emptyWorkspace.subtitle')}
                                 ctaText={translate('workspace.new.newWorkspace')}
                                 ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                                onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
                                 illustration={LottieAnimations.WorkspacePlanet}
                                 // We use this style to vertically center the illustration, as the original illustration is not centered
                                 illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
