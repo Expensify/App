@@ -215,7 +215,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         transactions,
         previousTransactions,
         queryJSON,
-        offset,
+        // Set offset to 0 to retrieve the most recent chat messages.
+        offset: 0,
         reportActions,
         previousReportActions,
     });
