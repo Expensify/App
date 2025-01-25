@@ -18,11 +18,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {getCardDescription, isCard, isCardIssued, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -164,7 +164,7 @@ function SearchRouterList(
                 personalDetails: options.personalDetails,
             },
             {
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelfDM: true,
                 showChatPreviewLine: true,
                 shouldBoldTitleByDefault: false,
@@ -229,13 +229,17 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                 const filteredTags = autocompleteList
-                    .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag))
+                    .filter(
+                        (tag) => getCleanedTagName(tag).toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAG,
-                    text: tagName,
+                    text: getCleanedTagName(tagName),
+                    autocompleteID: tagName,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
@@ -338,7 +342,7 @@ function SearchRouterList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter((card) => isCard(card) && isCardIssued(card))
+                    .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
                     .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
                     .sort()
                     .slice(0, 10);

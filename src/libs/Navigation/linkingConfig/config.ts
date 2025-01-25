@@ -16,6 +16,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.UNLINK_LOGIN]: ROUTES.UNLINK_LOGIN,
         [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
         [SCREENS.CONNECTION_COMPLETE]: ROUTES.CONNECTION_COMPLETE,
+        [SCREENS.BANK_CONNECTION_COMPLETE]: ROUTES.BANK_CONNECTION_COMPLETE,
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
@@ -29,7 +30,19 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+        [SCREENS.REPORT]: {
+            path: ROUTES.REPORT_WITH_ID.route,
+            // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+            // We want to avoid that situation, so we will return an empty string instead.
+            parse: {
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
+            },
+            stringify: {
+                // eslint-disable-next-line
+                reportID: (reportID: string | undefined) => reportID ?? '',
+            },
+        },
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
             path: ROUTES.SETTINGS_PROFILE,
             exact: true,
@@ -87,6 +100,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.TRACK_TRAINING_MODAL,
                     exact: true,
                 },
+                [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
@@ -240,6 +254,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -1176,6 +1194,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
@@ -1363,11 +1386,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.REFERRAL]: {
                     screens: {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
-                    screens: {
-                        [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {

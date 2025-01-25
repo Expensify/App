@@ -36,6 +36,8 @@ function GenericTooltip({
     shouldUseOverlay: shouldUseOverlayProp = false,
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
+    isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -163,6 +165,7 @@ function GenericTooltip({
         <>
             {shouldRender && isRendered && (
                 <BaseGenericTooltip
+                    isEducationTooltip={isEducationTooltip}
                     // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation}
                     windowWidth={windowWidth}
@@ -185,6 +188,7 @@ function GenericTooltip({
                     shouldUseOverlay={shouldUseOverlay}
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
+                    onTooltipPress={onTooltipPress}
                 />
             )}
             {/* eslint-disable-next-line react-compiler/react-compiler */}
