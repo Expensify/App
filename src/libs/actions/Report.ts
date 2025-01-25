@@ -1379,7 +1379,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         return;
     }
 
-    const lastReadTime = DateUtils.getDBTime();
+    const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [
         {
