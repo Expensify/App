@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,11 +17,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Environment from '@libs/Environment/Environment';
+import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
-import * as Report from '@userActions/Report';
+import {openExternalLink} from '@userActions/Link';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -72,7 +72,7 @@ function AboutPage() {
                 icon: Expensicons.Eye,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.GITHUB_URL);
+                    openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
@@ -82,7 +82,7 @@ function AboutPage() {
                 icon: Expensicons.MoneyBag,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.UPWORK_URL);
+                    openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
@@ -90,7 +90,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
-                action: waitForNavigate(Report.navigateToConciergeChat),
+                action: waitForNavigate(navigateToConciergeChat),
             },
         ];
 
@@ -117,7 +117,7 @@ function AboutPage() {
                     selectable
                     style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
-                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                    v{isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
             </View>
         ),
