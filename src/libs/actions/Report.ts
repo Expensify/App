@@ -4062,7 +4062,11 @@ function prepareOnboardingOnyxData(
     }
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    const guidedSetupData: GuidedSetupData = shouldPostTasksInAdminsRoom && !!introSelected?.choice ? [] : [{type: 'message', ...textMessage}];
+    const guidedSetupData: GuidedSetupData = [];
+
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        guidedSetupData.push({type: 'message', ...textMessage});
+    }
 
     if ((!shouldPostTasksInAdminsRoom || !!introSelected?.choice) && 'video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
