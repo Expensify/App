@@ -51,7 +51,7 @@ type MenuItem = {
 function AboutPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
