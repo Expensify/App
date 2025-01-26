@@ -338,6 +338,9 @@ type MenuItemBaseProps = {
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
 
+    /** Callback to fire when the education tooltip is pressed */
+    onEducationTooltipPress?: () => void;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -462,6 +465,7 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        onEducationTooltipPress,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
         shouldIconUseAutoWidthStyle = false,
@@ -604,6 +608,7 @@ function MenuItem(
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
+                onTooltipPress={onEducationTooltipPress}
             >
                 <View>
                     <Hoverable>

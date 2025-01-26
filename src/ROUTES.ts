@@ -202,6 +202,7 @@ const ROUTES = {
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
@@ -533,7 +534,12 @@ const ROUTES = {
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
+        getRoute: (policyID: string | undefined, backTo = '') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route SETTINGS_TAGS_ROOT');
+            }
+            return getUrlWithBackToParam(`settings/${policyID}/tags`, backTo);
+        },
     },
     SETTINGS_TAGS_SETTINGS: {
         route: 'settings/:policyID/tags/settings',
@@ -668,8 +674,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_TAG: {
         route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(
+                `${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}${reportID ? `/${reportID}` : ''}${reportActionID ? `/${reportActionID}` : ''}`,
+                backTo,
+            ),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -1331,7 +1340,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
