@@ -2001,7 +2001,7 @@ const translations = {
             taxID: 'Please enter a valid tax ID number.',
             website: 'Please enter a valid website.',
             zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
-            phoneNumber: 'Please enter a valid phone number.',
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             email: 'Please enter a valid email address.',
             companyName: 'Please enter a valid business name.',
             addressCity: 'Please enter a valid city.',

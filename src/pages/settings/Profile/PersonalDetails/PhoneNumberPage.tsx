@@ -43,7 +43,9 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (phoneNumber !== values?.phoneNumber) {
-            PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '', currenPhoneNumber);
+            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values?.phoneNumber ?? '');
+            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            PersonalDetails.updatePhoneNumber(parsedPhoneNumber.number?.e164 ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -52,19 +54,35 @@ function PhoneNumberPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+
+            // Validate that the phone number field is not empty
             if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
+                return errors; // Early return if field is empty
             }
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
+
+            // Sanitize input: Remove all non-numeric characters except the leading '+'
+            const sanitizedPhoneNumber = values[INPUT_IDS.PHONE_NUMBER].replace(/[^+\d]/g, '');
+
+            // Append country code if missing
+            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(sanitizedPhoneNumber);
+
+            // Parse and validate the phone number
+            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+
+            // Validate if the phone number was parsed successfully
+            if (!parsedPhoneNumber || !parsedPhoneNumber.possible) {
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
+            } else if (!Str.isValidE164Phone(phoneNumberWithCountryCode)) {
+                // Additional check for E.164 format validity
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
 
-            // Clear the error when the user tries to validate the form and there are errors
-            if (validateLoginError && !!errors) {
+            // Clear the error if the user tries to validate the form and there are errors
+            if (validateLoginError && Object.keys(errors).length > 0) {
                 PersonalDetails.clearPhoneNumberError();
             }
+
             return errors;
         },
         [translate, validateLoginError],
