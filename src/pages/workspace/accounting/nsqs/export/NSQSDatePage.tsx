@@ -22,7 +22,7 @@ type Option = TupleToUnion<typeof Options>;
 function NSQSDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const exportDate = nsqsConfig?.exportDate ?? CONST.NSQS_EXPORT_DATE.LAST_EXPENSE;
 
@@ -36,6 +36,10 @@ function NSQSDatePage({policy}: WithPolicyProps) {
 
     const updateExportDate = useCallback(
         ({value}: SelectorType<Option>) => {
+            if (!policyID) {
+                return;
+            }
+
             if (value !== exportDate) {
                 updateNSQSExportDate(policyID, value, exportDate);
             }
@@ -58,12 +62,12 @@ function NSQSDatePage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
             onSelectRow={updateExportDate}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID))}
+            onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)) : undefined}
             title="common.date"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.EXPORT_DATE], nsqsConfig?.pendingFields)}
             errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORT_DATE)}
+            onClose={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORT_DATE) : undefined}
         />
     );
 }

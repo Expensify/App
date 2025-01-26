@@ -23,11 +23,19 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NSQSOAuth2Form';
 
 function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const {canUseNSQS} = usePermissions();
+
+    const goBack = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]));
+    }, [policyID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
@@ -42,6 +50,10 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
 
     const connectPolicy = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NSQS_OAUTH2_FORM>) => {
+            if (!policyID) {
+                return;
+            }
+
             connectPolicyToNSQS(policyID, formValues[INPUT_IDS.NSQS_ACCOUNT_ID]);
             Navigation.dismissModal();
         },
@@ -57,11 +69,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
             <FullPageNotFoundView shouldShow={!canUseNSQS}>
                 <HeaderWithBackButton
                     title={translate('workspace.nsqs.setup.title')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(
-                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]),
-                        )
-                    }
+                    onBackButtonPress={goBack}
                 />
                 <View style={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                     <FormProvider

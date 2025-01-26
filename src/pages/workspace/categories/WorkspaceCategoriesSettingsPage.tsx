@@ -13,14 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getCurrentConnectionName} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,11 +33,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentConnectionName(policy);
     const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
@@ -72,15 +72,15 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         };
     }, [currentPolicy]);
 
-    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
-    const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting;
+    const hasEnabledCategories = hasEnabledOptions(policyCategories ?? {});
+    const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const setNewCategory = (selectedCategory: ListItem) => {
         if (!selectedCategory.keyForList || !groupID) {
             return;
         }
         if (categoryID !== selectedCategory.keyForList) {
-            Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
+            setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
         }
         setIsSelectorModalVisible(false);
     };
@@ -111,7 +111,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         disabled={isToggleDisabled}
                         wrapperStyle={[styles.pv2, styles.mh5]}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
-                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
+                        onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />

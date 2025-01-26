@@ -21,12 +21,16 @@ import ROUTES from '@src/ROUTES';
 function NSQSProjectsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const importType = nsqsConfig?.syncOptions.mapping.projects ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const isImportEnabled = importType !== CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     const toggleImport = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
         const mapping = isImportEnabled ? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT : CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG;
         updateNSQSProjectsMapping(policyID, mapping, importType);
     }, [policyID, importType, isImportEnabled]);
@@ -40,7 +44,7 @@ function NSQSProjectsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5, styles.gap6]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID))}
+            onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)) : undefined}
         >
             <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.nsqs.import.importFields.projects.subtitle`))}</comment>`} />
             <View>
@@ -51,7 +55,7 @@ function NSQSProjectsPage({policy}: WithPolicyProps) {
                     onToggle={toggleImport}
                     pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.pendingFields)}
                     errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS)}
-                    onCloseError={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS)}
+                    onCloseError={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS) : undefined}
                 />
                 {isImportEnabled && (
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.pendingFields)}>
@@ -60,7 +64,7 @@ function NSQSProjectsPage({policy}: WithPolicyProps) {
                             description={translate(`workspace.common.displayedAs`)}
                             wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS.getRoute(policyID))}
+                            onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS.getRoute(policyID)) : undefined}
                             brickRoadIndicator={
                                 areSettingsInErrorFields([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                             }

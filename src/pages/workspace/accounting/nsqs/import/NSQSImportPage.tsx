@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 function NSQSImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const customersImportType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const projectsImportType = nsqsConfig?.syncOptions.mapping.projects ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
@@ -48,7 +48,7 @@ function NSQSImportPage({policy}: WithPolicyProps) {
                         description={translate('workspace.nsqs.import.importFields.customers.title')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID))}
+                        onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID)) : undefined}
                         brickRoadIndicator={
                             areSettingsInErrorFields([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                         }
@@ -60,7 +60,7 @@ function NSQSImportPage({policy}: WithPolicyProps) {
                         description={translate('workspace.nsqs.import.importFields.projects.title')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID))}
+                        onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID)) : undefined}
                         brickRoadIndicator={
                             areSettingsInErrorFields([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                         }

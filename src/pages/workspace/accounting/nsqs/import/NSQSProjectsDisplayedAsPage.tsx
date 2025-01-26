@@ -21,7 +21,7 @@ type Option = TupleToUnion<typeof Options>;
 function NSQSProjectsDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const importType = nsqsConfig?.syncOptions.mapping.projects ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
@@ -35,6 +35,10 @@ function NSQSProjectsDisplayedAsPage({policy}: WithPolicyProps) {
 
     const updateImportMapping = useCallback(
         ({value: mapping}: SelectorType<Option>) => {
+            if (!policyID) {
+                return;
+            }
+
             if (mapping !== importType) {
                 updateNSQSProjectsMapping(policyID, mapping, importType);
             }
@@ -54,12 +58,12 @@ function NSQSProjectsDisplayedAsPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
             onSelectRow={updateImportMapping}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID))}
+            onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.getRoute(policyID)) : undefined}
             title="workspace.common.displayedAs"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS], nsqsConfig?.pendingFields)}
             errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS)}
+            onClose={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS) : undefined}
         />
     );
 }

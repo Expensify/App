@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const exporter = nsqsConfig?.exporter ?? policyOwner;
@@ -52,6 +52,10 @@ function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
 
     const updateExporter = useCallback(
         ({value: email}: SelectorType) => {
+            if (!policyID) {
+                return;
+            }
+
             if (email !== exporter) {
                 updateNSQSExporter(policyID, email, exporter);
             }
@@ -83,12 +87,12 @@ function NSQSPreferredExporterPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
             onSelectRow={updateExporter}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID))}
+            onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)) : undefined}
             title="workspace.accounting.preferredExporter"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.EXPORTER], nsqsConfig?.pendingFields)}
             errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORTER)}
+            onClose={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.EXPORTER) : undefined}
         />
     );
 }

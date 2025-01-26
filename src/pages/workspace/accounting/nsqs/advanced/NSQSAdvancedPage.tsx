@@ -20,7 +20,7 @@ import type {NSQSAccount} from '@src/types/onyx/Policy';
 function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
@@ -39,6 +39,10 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const selectedApprovalAccount = [defaultApprovalAccount, ...otherApprovalAccounts].find((account) => account.id === approvalAccount);
 
     const toggleAutoSync = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
         updateNSQSAutoSync(policyID, !isAutoSyncEnabled);
     }, [policyID, isAutoSyncEnabled]);
 
@@ -62,7 +66,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                     onToggle={toggleAutoSync}
                     pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.AUTO_SYNC], nsqsConfig?.pendingFields)}
                     errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.AUTO_SYNC)}
-                    onCloseError={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.AUTO_SYNC)}
+                    onCloseError={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.AUTO_SYNC) : undefined}
                 />
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
@@ -70,7 +74,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                         description={translate(`workspace.nsqs.advanced.approvalAccount`)}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.getRoute(policyID))}
+                        onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.getRoute(policyID)) : undefined}
                         brickRoadIndicator={areSettingsInErrorFields([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>

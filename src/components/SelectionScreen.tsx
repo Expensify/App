@@ -59,10 +59,10 @@ type SelectionScreenProps<T = string> = {
     onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];

@@ -19,7 +19,7 @@ import type {NSQSAccount} from '@src/types/onyx/Policy';
 function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
     const nsqsData = policy?.connections?.nsqs?.data;
@@ -44,6 +44,10 @@ function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
 
     const updateApprovalAccount = useCallback(
         ({value}: SelectorType) => {
+            if (!policyID) {
+                return;
+            }
+
             if (value !== approvalAccount) {
                 updateNSQSApprovalAccount(policyID, value, approvalAccount);
             }
@@ -67,12 +71,12 @@ function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
             onSelectRow={updateApprovalAccount}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)) : undefined}
             title="workspace.nsqs.advanced.approvalAccount"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}
             errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT)}
+            onClose={policyID ? () => clearNSQSErrorField(policyID, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT) : undefined}
         />
     );
 }

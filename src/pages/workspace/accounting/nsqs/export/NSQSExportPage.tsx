@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 function NSQSExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const nsqsConfig = policy?.connections?.nsqs?.config;
     const exporter = nsqsConfig?.exporter ?? policyOwner;
@@ -39,7 +39,7 @@ function NSQSExportPage({policy}: WithPolicyProps) {
                     description={translate('workspace.accounting.preferredExporter')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER.getRoute(policyID))}
+                    onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER.getRoute(policyID)) : undefined}
                     brickRoadIndicator={areSettingsInErrorFields([CONST.NSQS_CONFIG.EXPORTER], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -50,7 +50,7 @@ function NSQSExportPage({policy}: WithPolicyProps) {
                     description={translate('common.date')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.getRoute(policyID))}
+                    onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.getRoute(policyID)) : undefined}
                     brickRoadIndicator={areSettingsInErrorFields([CONST.NSQS_CONFIG.EXPORT_DATE], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
