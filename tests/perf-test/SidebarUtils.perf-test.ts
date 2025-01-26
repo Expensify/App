@@ -76,12 +76,14 @@ describe('SidebarUtils', () => {
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
+        const reportNameValuePairs = {};
 
         await waitForBatchedUpdates();
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                reportNameValuePairs,
                 reportActions,
                 personalDetails,
                 preferredLocale,
