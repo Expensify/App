@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -55,7 +55,7 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
             onSelectRow={updateImportMapping}
             initiallyFocusedOptionKey={sectionData.find((option) => option.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.getRoute(policyID))}
-            title={`workspace.common.displayedAs`}
+            title="workspace.common.displayedAs"
             pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS], nsqsConfig?.pendingFields)}
             errors={getLatestErrorField(nsqsConfig, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
             errorRowStyles={[styles.ph5, styles.pv3]}

@@ -61,6 +61,7 @@ type NoIcon = {
 
 type MenuItemBaseProps = {
     /* View ref  */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     ref?: Ref<View>;
 
     /** Function to fire when component is pressed */

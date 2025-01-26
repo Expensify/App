@@ -1,7 +1,8 @@
 import React, {useCallback} from 'react';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionScreen, {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNSQSProjectsMapping} from '@libs/actions/connections/NSQS';

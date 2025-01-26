@@ -3337,7 +3337,7 @@ const translations = {
             },
             import: {
                 expenseCategories: 'Expense categories',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.', // s77rt check copy
                 importTypes: {
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite employee default',
@@ -3387,7 +3387,7 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
             },
             advanced: {
-                autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day.',
+                autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day.', // s77rt check if we should use the existing autoSyncDescription instead
                 defaultApprovalAccount: 'NetSuite default',
                 approvalAccount: 'A/P approval account',
                 approvalAccountDescription:

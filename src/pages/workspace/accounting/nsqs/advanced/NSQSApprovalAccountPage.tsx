@@ -14,7 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {NSQSAccount} from '@src/types/onyx/Policy';
+import type {NSQSAccount} from '@src/types/onyx/Policy';
 
 function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();

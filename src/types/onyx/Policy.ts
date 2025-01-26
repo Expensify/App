@@ -1072,6 +1072,9 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/**
+ *  NSQS Financial account (bank account, debit card, etc)
+ */
 type NSQSAccount = {
     /** GL code assigned to the financial account */
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1108,25 +1111,51 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
+    /** Configuration options pertaining to sync */
     syncOptions: {
+        /** Configuration of import settings from NSQS to Expensify */
         mapping: {
+            /** How NSQS customers are displayed as */
             customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+
+            /** How NSQS projects are displayed as */
             projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
         };
     };
 
+    /** The company currency */
     currency: string;
+
+    /** The e-mail of the exporter */
     exporter: string;
+
+    /** Export date type */
     exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
+
+    /** NSQS credentials */
     credentials: {
         // s77rt double check the field names (camel case)
+
+        /** Encrypted token for NSQS authentification */
         accessToken: string;
+
+        /** The company ID */
         companyID: string;
+
+        /** Token expiration date */
         expires: string;
+
+        /** The current scope of the NSQS connection */
         scope: string;
+
+        /** The access token type */
         tokenType: string;
     };
+
+    /** Whether the connection is configured */
     isConfigured: boolean;
+
+    /** The account used for approvals in NSQS */
     approvalAccount: string;
 
     /** Collections of form field errors */

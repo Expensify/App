@@ -41,7 +41,7 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
 
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
-    const integrations = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[multiConnectionName] ?? [];
+    const integrations = useMemo(() => CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[multiConnectionName] ?? [], [multiConnectionName]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(
         () =>
