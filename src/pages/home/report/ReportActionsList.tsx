@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes} from '@libs/Fullstory';
+import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
 import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
@@ -626,7 +626,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedNonExpenseReport(report);
+        const isArchivedReport = isArchivedNonExpenseReport(report, reportNameValuePairs);
         const hasNewMessagesInView = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -781,6 +781,9 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
