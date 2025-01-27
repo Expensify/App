@@ -31,6 +31,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
+<<<<<<< HEAD
         [SCREENS.REPORT]: {
             path: ROUTES.REPORT_WITH_ID.route,
             // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
@@ -42,6 +43,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
             },
         },
+=======
+        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+>>>>>>> 9388747 (Merge pull request #55815 from Expensify/andrew-revert-55528)
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
             path: ROUTES.SETTINGS_PROFILE,
             exact: true,
