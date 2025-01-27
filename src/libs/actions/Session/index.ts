@@ -54,7 +54,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -271,6 +270,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 [ONYXKEYS.CREDENTIALS]: stashedCredentials,
                 [ONYXKEYS.SESSION]: stashedSession,
             };
+        }
+        if (isSupportal && !shouldStashSession && !hasStashedSession()) {
+            Log.info('No stashed session found for supportal access, clearing the session');
         }
         redirectToSignIn().then(() => {
             Onyx.multiSet(onyxSetParams);
@@ -591,7 +593,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
             .finally(() => {
-                resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
+                resolve(`${route}${isSingleNewDotEntry === 'true' ? '?singleNewDotEntry=true' : ''}` as Route);
             });
     });
 
@@ -823,20 +825,11 @@ function clearSignInData() {
 }
 
 /**
- * Reset all current params of the Home route
+ * Reset navigation state after logout
  */
-function resetHomeRouteParams() {
+function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState()?.routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
-        });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        navigationRef.resetRoot(navigationRef.getRootState());
     });
 }
 
@@ -855,7 +848,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetHomeRouteParams();
+    resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });

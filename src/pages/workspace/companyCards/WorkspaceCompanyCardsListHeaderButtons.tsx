@@ -47,7 +47,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
-    const isSelectedFeedCustom = isCustomFeed(selectedFeed);
+    const isCommercialFeed = isCustomFeed(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = getBankName(selectedFeed);
@@ -79,7 +79,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                                 />
                             )}
                         </View>
-                        <Text style={styles.textLabelSupporting}>{translate(isSelectedFeedCustom ? 'workspace.companyCards.customFeed' : 'workspace.companyCards.directFeed')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
                     </View>
                 </PressableWithFeedback>
 
