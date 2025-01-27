@@ -1063,6 +1063,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
+                DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action

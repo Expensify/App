@@ -58,6 +58,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -880,6 +881,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',

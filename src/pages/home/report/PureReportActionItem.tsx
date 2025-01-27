@@ -11,7 +11,7 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -88,6 +88,7 @@ import {
 import {
     canWriteInReport,
     chatIncludesConcierge,
+    getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getIconsForParticipants,
     getIOUApprovedMessage,
@@ -860,6 +861,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
+            children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
@@ -1171,7 +1174,7 @@ function PureReportActionItem({
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
                                                 fill={theme.icon}
-                                                src={Expensicons.Eye}
+                                                src={Eye}
                                                 small
                                             />
                                         </View>

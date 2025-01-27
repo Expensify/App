@@ -64,7 +64,7 @@ import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
@@ -5136,6 +5136,17 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     return Str.htmlEncode(message);
 }
 
+function getDeletedTransactionMessage(action: ReportAction) {
+    const deletedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>) ?? {};
+    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0) / 100;
+    const currency = getCurrencySymbol(deletedTransactionOriginalMessage.currency ?? '');
+    const message = translateLocal('iou.deletedTransaction', {
+        amount: `${currency}${amount}`,
+        merchant: deletedTransactionOriginalMessage.merchant ?? '',
+    });
+    return message;
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -8971,6 +8982,7 @@ export {
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
+    getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
     getReportAutomaticallySubmittedMessage,
