@@ -7,6 +7,7 @@ import type {
     NativeSyntheticEvent,
     SectionListData,
     StyleProp,
+    TargetedEvent,
     TextInput,
     TextStyle,
     ViewStyle,
@@ -84,11 +85,18 @@ type CommonListItemProps<TItem extends ListItem> = {
     alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
-    onFocus?: () => void;
+    onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
+
+type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+
+type ExtendedTargetedEvent = TargetedEvent & {
+    /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
+    sourceCapabilities?: unknown;
+};
 
 type ListItem = {
     /** Text to display */
@@ -300,6 +308,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    titleContainerStyles?: StyleProp<ViewStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -485,6 +496,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
+    /** Whether to show the default confirm button disabled */
+    isConfirmButtonDisabled?: boolean;
+
     /** Whether to use the default theme for the confirm button */
     shouldUseDefaultTheme?: boolean;
 
@@ -568,6 +582,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles applid for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
     /** This may improve scroll performance for large lists */
     removeClippedSubviews?: boolean;
@@ -675,10 +692,12 @@ export type {
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
+    ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
+    ListItemFocusEventHandler,
     ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
