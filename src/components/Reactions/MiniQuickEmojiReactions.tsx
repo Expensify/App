@@ -9,11 +9,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Session from '@userActions/Session';
+import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
@@ -48,7 +48,7 @@ function MiniQuickEmojiReactions({
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        EmojiPickerAction.showEmojiPicker(
+        showEmojiPicker(
             onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
                 onEmojiSelected(emojiObject, emojiReactions);
@@ -66,24 +66,24 @@ function MiniQuickEmojiReactions({
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={Session.callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                    tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
+                    onPress={callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
-                        {EmojiUtils.getPreferredEmojiCode(emoji, preferredSkinTone)}
+                        {getPreferredEmojiCode(emoji, preferredSkinTone)}
                     </Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.callFnIfActionIsAllowed(() => {
-                    if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
+                onPress={callFnIfActionIsAllowed(() => {
+                    if (!emojiPickerRef.current?.isEmojiPickerVisible) {
                         openEmojiPicker();
                     } else {
-                        EmojiPickerAction.emojiPickerRef.current?.hideEmojiPicker();
+                        emojiPickerRef.current?.hideEmojiPicker();
                     }
                 })}
                 isDelayButtonStateComplete={false}
