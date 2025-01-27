@@ -3,7 +3,6 @@ import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,23 +16,27 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearOnfidoToken, openReimbursementAccountPage, setPlaidEvent, setReimbursementAccountLoading} from '@libs/actions/BankAccounts';
-import {
-    clearReimbursementAccountDraft,
-    goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
-    setBankAccountSubStep,
-    updateReimbursementAccountDraft,
-} from '@libs/actions/ReimbursementAccount';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
+import {
+    clearOnfidoToken,
+    goToWithdrawalAccountSetupStep,
+    hideBankAccountErrors,
+    openReimbursementAccountPage,
+    setBankAccountSubStep,
+    setPlaidEvent,
+    setReimbursementAccountLoading,
+    updateReimbursementAccountDraft,
+} from '@userActions/BankAccounts';
+import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -58,16 +61,6 @@ import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
-const ROUTE_NAMES = {
-    COMPANY: 'company',
-    PERSONAL_INFORMATION: 'personal-information',
-    BENEFICIAL_OWNERS: 'beneficial-owners',
-    CONTRACT: 'contract',
-    VALIDATE: 'validate',
-    ENABLE: 'enable',
-    NEW: 'new',
-};
-
 const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
 
 /**
@@ -76,42 +69,22 @@ const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURREN
  */
 function getStepToOpenFromRouteParams(route: PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
     switch (route.params.stepToOpen) {
-        case ROUTE_NAMES.NEW:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        case ROUTE_NAMES.COMPANY:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.COMPANY:
             return CONST.BANK_ACCOUNT.STEP.COMPANY;
-        case ROUTE_NAMES.PERSONAL_INFORMATION:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.PERSONAL_INFORMATION:
             return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-        case ROUTE_NAMES.BENEFICIAL_OWNERS:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.BENEFICIAL_OWNERS:
             return CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS;
-        case ROUTE_NAMES.CONTRACT:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.CONTRACT:
             return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
-        case ROUTE_NAMES.VALIDATE:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.VALIDATE:
             return CONST.BANK_ACCOUNT.STEP.VALIDATION;
-        case ROUTE_NAMES.ENABLE:
+        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.ENABLE:
             return CONST.BANK_ACCOUNT.STEP.ENABLE;
         default:
             return '';
-    }
-}
-
-function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof ROUTE_NAMES> {
-    switch (currentStep) {
-        case CONST.BANK_ACCOUNT.STEP.COMPANY:
-            return ROUTE_NAMES.COMPANY;
-        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-            return ROUTE_NAMES.PERSONAL_INFORMATION;
-        case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
-            return ROUTE_NAMES.BENEFICIAL_OWNERS;
-        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-            return ROUTE_NAMES.CONTRACT;
-        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-            return ROUTE_NAMES.VALIDATE;
-        case CONST.BANK_ACCOUNT.STEP.ENABLE:
-            return ROUTE_NAMES.ENABLE;
-        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-        default:
-            return ROUTE_NAMES.NEW;
     }
 }
 
