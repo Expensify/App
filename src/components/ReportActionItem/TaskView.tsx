@@ -89,7 +89,7 @@ function TaskView({report}: TaskViewProps) {
                                         <Checkbox
                                             onPress={callFnIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                if (isActiveTaskEditRoute(report.reportID)) {
+                                                if (isActiveTaskEditRoute(report?.reportID)) {
                                                     return;
                                                 }
                                                 if (isCompleted) {
