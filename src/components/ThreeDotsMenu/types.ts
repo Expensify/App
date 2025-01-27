@@ -47,6 +47,9 @@ type ThreeDotsMenuProps = {
 
     /** Should we render the tooltip */
     shouldShowProductTrainingTooltip?: boolean;
+
+    /** Is the menu nested? This prop is used to omit html warning when we nesting button inside button */
+    isNested?: boolean;
 };
 
 export default ThreeDotsMenuProps;
