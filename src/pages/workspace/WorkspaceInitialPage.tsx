@@ -21,6 +21,8 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,8 +44,6 @@ import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
-import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,10 +86,12 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformS
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
-function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+function dismissError(policyID: string | undefined, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         goBackFromInvalidPolicy();
-        removeWorkspace(policyID);
+        if (policyID) {
+            removeWorkspace(policyID);
+        }
     } else {
         clearErrors(policyID);
     }
@@ -154,7 +156,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const policyName = policy?.name ?? '';
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
@@ -351,8 +353,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
     const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
-    const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
     // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
@@ -461,9 +463,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                    onPress={() =>
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), CONST.NAVIGATION.TYPE.UP)
-                                    }
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP)}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
                                     shouldShowSubscriptAvatar

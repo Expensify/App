@@ -21,12 +21,6 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['src/pages/workspace/WorkspaceInitialPage.tsx', 'src/libs/SidebarUtils.ts'],
-            rules: {
-                'rulesdir/no-default-id-values': 'off',
-            },
-        },
-        {
             files: ['**/libs/**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-syntax': [
