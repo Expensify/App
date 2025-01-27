@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -266,7 +265,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 onConfirm={() => {
                     PolicyActions.setPolicyPreventSelfApproval(policyID, true);
 
-                    const defaultApprover = policy?.approver || policy?.owner;
+                    const defaultApprover = policy?.approver ?? policy?.owner;
                     if (!defaultApprover) {
                         setIsPreventSelfApprovalsModalVisible(false);
                         return;
@@ -295,7 +294,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                             approvers: newApprovers,
                             availableMembers: [...workflow.members, ...defaultWorkflowMembers],
                             members: newMembers,
-                            usedApproverEmails: usedApproverEmails,
+                            usedApproverEmails,
                             isDefault: workflow.isDefault ?? false,
                             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
                             errors: null,
