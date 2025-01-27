@@ -57,7 +57,11 @@ type PopoverMenuItem = MenuItemProps & {
     pendingAction?: PendingAction;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'> &
+    Pick<BottomDockedModalProps, 'animationInDelay'> & {
+        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
+        shouldUseNewModal?: boolean;
+    };
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -179,6 +183,7 @@ function PopoverMenu({
     shouldUseScrollView = false,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
+    shouldUseNewModal,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -365,8 +370,8 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
-            shouldUseNewModal
             testID={testID}
+            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>

@@ -220,6 +220,7 @@ function ButtonWithDropdownMenu<IValueType>({
                               },
                         shouldCallAfterModalHide: true,
                     }))}
+                    shouldUseNewModal={false}
                 />
             )}
         </View>

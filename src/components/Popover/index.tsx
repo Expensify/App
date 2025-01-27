@@ -108,7 +108,6 @@ function Popover(props: PopoverProps) {
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
-            shouldUseNewModal
         />
     );
 }
