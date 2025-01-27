@@ -4530,7 +4530,7 @@ const translations = {
                     `Any members currently approving their own expenses will be removed and replaced with the default approver for this workspace (${managerEmail}).`,
                 preventSelfApprovalsConfirmButton: 'Prevent self-approvals',
                 preventSelfApprovalsModalTitle: 'Prevent self-approvals?',
-                preventSelfApprovalsDisabledSubtitle: 'Self-approvals cannot be disabled because the workspace owner is the only approver. Add another approver first.',
+                preventSelfApprovalsDisabledSubtitle: 'Self approvals cannot be enabled until this workspace has at least two members.',
             },
             categoryRules: {
                 title: 'Category rules',
