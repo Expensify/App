@@ -497,18 +497,6 @@ If for some reason, you need to target the standalone NewDot application, you ca
 | `npm run ipad-standalone`        | Build **NewDot** for iPad in standalone mode.               |
 | `npm run ipad-sm-standalone`     | Build **NewDot** for small iPad in standalone mode.         |
 
-## Working with HybridApp
-Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
-
-The main difference is that the native code which runs React Native is located in `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` directories. It means, that changes in `./android` and `./ios` folders in the root **won't affect the HybridApp build**. 
-
-In that case, if you'd like to eg. remove `Pods`, you need to do it in `./Mobile-Expensify/iOS`. The same rule applies to Android builds - if you'd like to delete `.cxx`, `build` or `.gradle` directories, you need to go to `./Mobile-Expensify/android` first. 
-
-Additionally, If you'd like to open the HybridApp project in Android Studio or XCode, you **must choose a workspace located in the `Mobile-Expensify`** directory:
-
-- Android: `./Mobile-Expensify/Android`
-- iOS: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
-
 ### Working with HybridApp vs Standalone NewDot
 
 Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
