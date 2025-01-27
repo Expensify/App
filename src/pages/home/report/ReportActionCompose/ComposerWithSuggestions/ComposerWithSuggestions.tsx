@@ -783,9 +783,16 @@ function ComposerWithSuggestions(
         [measureParentContainer, cursorPositionValue, selection],
     );
 
+    const isTouchEndedRef = useRef(false);
+
     return (
         <>
-            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+            <View
+                style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}
+                onTouchEndCapture={() => {
+                    isTouchEndedRef.current = true;
+                }}
+            >
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
@@ -827,7 +834,12 @@ function ComposerWithSuggestions(
                             return;
                         }
                         if (Browser.isMobileSafari()) {
+                            isTouchEndedRef.current = false;
                             setTimeout(() => {
+                                if (!isTouchEndedRef.current) {
+                                    // Don't open the keyboard on long press so the callout menu can show.
+                                    return;
+                                }
                                 setShowSoftInputOnFocus(true);
                             }, CONST.ANIMATED_TRANSITION);
                             return;
