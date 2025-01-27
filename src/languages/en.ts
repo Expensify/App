@@ -3452,7 +3452,7 @@ const translations = {
             somethingMightBeBroken: 'Or something might be broken. Either way, if you have any questions, just',
             contactConcierge: 'contact Concierge',
             chooseTransactionStartDate: 'Choose a transaction start date',
-            startDateDescription: 'We'll import all transaction from this date onwards. If no date is specified, we’ll go as far back as your bank allows.',
+            startDateDescription: "We'll import all transaction from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             letsDoubleCheck: 'Let’s double check that everything looks right.',
