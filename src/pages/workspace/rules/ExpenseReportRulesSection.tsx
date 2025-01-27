@@ -137,11 +137,15 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         },
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
-            subtitle: workflowApprovalsUnavailable
-                ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
-                : isPreventSelfApprovalsDisabled
-                ? translate('workspace.rules.expenseReportRules.preventSelfApprovalsDisabledSubtitle')
-                : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
+            subtitle: (() => {
+                if (workflowApprovalsUnavailable) {
+                    return renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()});
+                }
+                if (isPreventSelfApprovalsDisabled) {
+                    return translate('workspace.rules.expenseReportRules.preventSelfApprovalsDisabledSubtitle');
+                }
+                return translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle');
+            })(),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
