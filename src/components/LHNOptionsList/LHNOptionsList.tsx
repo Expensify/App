@@ -11,12 +11,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import useEstimatedListSize from '@hooks/useEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -49,8 +49,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowHeight, windowWidth} = useWindowDimensions();
-    const listHeight = windowHeight - variables.bottomTabHeight;
+    const estimatedListSize = useEstimatedListSize();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -287,10 +286,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    estimatedListSize={{
-                        height: listHeight,
-                        width: windowWidth,
-                    }}
+                    estimatedListSize={estimatedListSize}
                 />
             )}
         </View>
