@@ -6,14 +6,14 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOU from '@libs/actions/IOU';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import * as IOUUtils from '@libs/IOUUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {isReportInGroupPolicy} from '@libs/ReportUtils';
+import {calculateTaxAmount, getCurrency, getDistanceInMeters, getRateID, getTaxValue, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -36,25 +36,24 @@ function IOURequestStepDistanceRate({
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
-
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const currentRateID = getRateID(transaction);
+    const transactionCurrency = getCurrency(transaction);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
@@ -85,20 +84,20 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID;
             const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
-            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-            taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
-            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount);
-            IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
+            const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
+            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
+            setMoneyRequestTaxAmount(transactionID, taxAmount);
+            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null);
         }
 
         if (currentRateID !== customUnitRateID) {
-            IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, IOUUtils.shouldUseTransactionDraft(action));
+            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
-            if (isEditing) {
-                IOU.updateMoneyRequestDistanceRate(transaction?.transactionID ?? '-1', reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);
+            if (isEditing && transaction?.transactionID) {
+                updateMoneyRequestDistanceRate(transaction.transactionID, reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);
             }
         }
 
