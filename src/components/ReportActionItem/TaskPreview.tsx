@@ -38,9 +38,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
+    policyID: string | undefined;
     /** The ID of the associated taskReport */
-    taskReportID: string;
+    taskReportID: string | undefined;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;
@@ -49,7 +49,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     action: OnyxEntry<ReportAction>;
 
     /** The chat report associated with taskReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: ContextMenuAnchor;
