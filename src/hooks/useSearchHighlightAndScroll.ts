@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -26,6 +27,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
+    const hasNewItemsRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
@@ -34,20 +36,29 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
-        const transactionsLength = transactions && Object.keys(transactions).length;
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+        const transactionsIDs = Object.keys(transactions ?? {});
 
-        const reportActionsLength = reportActions && Object.values(reportActions).reduce((sum, curr) => sum + Object.keys(curr ?? {}).length, 0);
-        const prevReportActionsLength = previousReportActions && Object.values(previousReportActions).reduce((sum, curr) => sum + Object.keys(curr ?? {}).length, 0);
-        // Return early if search was already triggered or there's no change in current and previous data length
-        if (searchTriggeredRef.current || (!isChat && previousTransactionsLength === transactionsLength) || (isChat && reportActionsLength === prevReportActionsLength)) {
+        const reportActionsIDs = Object.values(reportActions ?? {})
+            .map((actions) => Object.keys(actions ?? {}))
+            .flat();
+        const previousReportActionsIDs = Object.values(previousReportActions ?? {})
+            .map((actions) => Object.keys(actions ?? {}))
+            .flat();
+
+        if (searchTriggeredRef.current) {
             return;
         }
-        const newTransactionAdded = transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength;
-        const newReportActionAdded = reportActionsLength && typeof prevReportActionsLength === 'number' && reportActionsLength > prevReportActionsLength;
+        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
+        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
-        // Check if a new transaction or report action was added
-        if ((!isChat && !!newTransactionAdded) || (isChat && !!newReportActionAdded)) {
+        // Check if there is a change in the transactions or report actions list
+        if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange)) {
+            // We only want to highlight new items if the addition of transactions or report actions triggered the search.
+            // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
+            // We don't want to highlight these old items, even if they appear new in the current search results.
+            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
@@ -87,7 +98,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
             const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0) {
+            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasNewItemsRef.current) {
                 return;
             }
 
@@ -103,7 +114,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
             const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
+            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasNewItemsRef.current) {
                 return;
             }
 
@@ -216,3 +227,4 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 export default useSearchHighlightAndScroll;
+export type {UseSearchHighlightAndScroll};

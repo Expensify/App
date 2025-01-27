@@ -168,7 +168,7 @@ PODS:
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (11.0.2)
   - FullStory (1.52.0)
-  - fullstory_react-native (1.7.1):
+  - fullstory_react-native (1.7.2):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -3236,8 +3236,8 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
-  fullstory_react-native: 105a17188f7f20e394b14d7046c4ebb8d0268417
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
+  fullstory_react-native: 63a803cca04b0447a71daa73e4df3f7b56e1919d
+  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
