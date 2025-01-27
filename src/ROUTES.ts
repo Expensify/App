@@ -4,6 +4,7 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -112,7 +113,12 @@ const ROUTES = {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
+        getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
+            }
+            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
+        },
     },
     WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
@@ -782,7 +788,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route WORKSPACE_INITIAL');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INITIAL route');
             }
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
@@ -797,7 +803,12 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE route');
+            }
+            return `settings/workspaces/${policyID}/profile` as const;
+        },
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
@@ -979,7 +990,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS: {
         route: 'settings/workspaces/:policyID/workflows',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS route');
+            }
+            return `settings/workspaces/${policyID}/workflows` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'settings/workspaces/:policyID/workflows/approvals/new',
@@ -1012,7 +1028,12 @@ const ROUTES = {
     },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INVOICES route');
+            }
+            return `settings/workspaces/${policyID}/invoices` as const;
+        },
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
         route: 'settings/workspaces/:policyID/invoices/company-name',
@@ -1026,7 +1047,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route WORKSPACE_MEMBERS');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MEMBERS route');
             }
             return `settings/workspaces/${policyID}/members` as const;
         },
@@ -1043,8 +1064,9 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string | undefined, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route POLICY_ACCOUNTING');
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
             }
+
             let queryParams = '';
             if (newConnectionName) {
                 queryParams += `?newConnectionName=${newConnectionName}`;
@@ -1084,7 +1106,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route WORKSPACE_CATEGORIES');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CATEGORIES route');
             }
             return `settings/workspaces/${policyID}/categories` as const;
         },
@@ -1154,14 +1176,19 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/more-features',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID while building route WORKSPACE_MORE_FEATURES');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MORE_FEATURES route');
             }
             return `settings/workspaces/${policyID}/more-features` as const;
         },
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TAGS route');
+            }
+            return `settings/workspaces/${policyID}/tags` as const;
+        },
     },
     WORKSPACE_TAG_CREATE: {
         route: 'settings/workspaces/:policyID/tags/new',
@@ -1205,7 +1232,12 @@ const ROUTES = {
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TAXES route');
+            }
+            return `settings/workspaces/${policyID}/taxes` as const;
+        },
     },
     WORKSPACE_TAXES_SETTINGS: {
         route: 'settings/workspaces/:policyID/taxes/settings',
@@ -1270,7 +1302,12 @@ const ROUTES = {
     },
     WORKSPACE_REPORT_FIELDS: {
         route: 'settings/workspaces/:policyID/reportFields',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_REPORT_FIELDS route');
+            }
+            return `settings/workspaces/${policyID}/reportFields` as const;
+        },
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'settings/workspaces/:policyID/reportFields/new',
@@ -1346,7 +1383,12 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/expensify-card` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD route');
+            }
+            return `settings/workspaces/${policyID}/expensify-card` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
@@ -1386,7 +1428,12 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT route');
+            }
+            return `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
         route: 'settings/workspaces/:policyID/expensify-card/settings',
@@ -1410,11 +1457,21 @@ const ROUTES = {
     },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
+            }
+            return `settings/workspaces/${policyID}/rules` as const;
+        },
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_DISTANCE_RATES route');
+            }
+            return `settings/workspaces/${policyID}/distance-rates` as const;
+        },
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'settings/workspaces/:policyID/distance-rates/new',
@@ -1442,7 +1499,12 @@ const ROUTES = {
     },
     WORKSPACE_PER_DIEM: {
         route: 'settings/workspaces/:policyID/per-diem',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PER_DIEM route');
+            }
+            return `settings/workspaces/${policyID}/per-diem` as const;
+        },
     },
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'settings/workspaces/:policyID/per-diem/import',

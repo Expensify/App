@@ -86,10 +86,12 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformS
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
-function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+function dismissError(policyID: string | undefined, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         goBackFromInvalidPolicy();
-        removeWorkspace(policyID);
+        if (policyID) {
+            removeWorkspace(policyID);
+        }
     } else {
         clearErrors(policyID);
     }
@@ -154,7 +156,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const policyName = policy?.name ?? '';
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
@@ -461,9 +463,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                    onPress={() =>
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), CONST.NAVIGATION.TYPE.UP)
-                                    }
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP)}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
                                     shouldShowSubscriptAvatar
