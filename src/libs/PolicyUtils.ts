@@ -1220,28 +1220,8 @@ function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
     });
 }
 
-/**
- * Check if the policy has a default approver that is self-approving.
- * If so, we cannot enable the "Prevent Self Approvals" feature.
- */
-function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.employeeList || !policy.approver) {
-        return false;
-    }
-
-    const defaultApprover = policy.employeeList[policy.approver];
-    // If the default approver is missing or self-approving themselves,
-    // we have no valid fallback.
-    if (!defaultApprover || defaultApprover.submitsTo === policy.approver) {
-        return false;
-    }
-
-    return true;
-}
-
 export {
     canEditTaxRate,
-    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,

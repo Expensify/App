@@ -38,7 +38,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
-    const isPreventSelfApprovalsDisabled = !PolicyUtils.canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
     const selfApproversEmails = PolicyUtils.getAllSelfApprovers(policy);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
@@ -134,13 +133,11 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             subtitle: workflowApprovalsUnavailable
                 ? renderFallbackSubtitle({ featureName: translate('common.approvals').toLowerCase() })
-                : isPreventSelfApprovalsDisabled
-                    ? translate('workspace.rules.expenseReportRules.preventSelfApprovalsDisabledSubtitle')
-                    : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
+                : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
-            showLockIcon: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
+            disabled: workflowApprovalsUnavailable,
+            showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
             onToggle: (isEnabled: boolean) => handleTogglePreventSelfApprovals(isEnabled),
         },
