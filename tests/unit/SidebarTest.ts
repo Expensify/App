@@ -17,6 +17,9 @@ jest.mock('@src/libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('@src/components/Icon/Expensicons');
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';

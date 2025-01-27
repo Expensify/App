@@ -8,6 +8,10 @@ import type {Report, ReportAction, ReportActions, TransactionViolation, Transact
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({

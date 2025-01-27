@@ -4,6 +4,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 beforeAll(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
 });

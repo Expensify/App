@@ -16,6 +16,10 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const RootStack = createResponsiveStackNavigator<SettingsNavigatorParamList>();

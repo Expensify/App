@@ -15,6 +15,10 @@ jest.mock('@libs/GoogleTagManager');
 // Mock the Overlay since it doesn't work in tests
 jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('GoogleTagManagerTest', () => {
     const accountID = 123456;
 

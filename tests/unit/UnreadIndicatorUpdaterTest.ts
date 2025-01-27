@@ -3,6 +3,10 @@ import CONST from '../../src/CONST';
 import * as UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
 import * as TestHelper from '../utils/TestHelper';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
 

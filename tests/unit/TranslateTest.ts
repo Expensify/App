@@ -7,6 +7,10 @@ import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const originalTranslations = {...translations};
 
 asMutable(translations).default = {

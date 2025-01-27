@@ -4,6 +4,10 @@ import CheckboxWithLabel from '@src/components/CheckboxWithLabel';
 import type {CheckboxWithLabelProps} from '@src/components/CheckboxWithLabel';
 import Text from '@src/components/Text';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const LABEL = 'Agree to Terms';
 describe('CheckboxWithLabel Component', () => {
     const mockOnInputChange = jest.fn();

@@ -1,5 +1,9 @@
 import memoize from '../../src/libs/memoize';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('memoize test', () => {
     it('should return the memoized result', () => {
         const add = (a: number, b: number) => a + b;

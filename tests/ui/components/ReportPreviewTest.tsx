@@ -23,6 +23,10 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('ReportPreview', () => {
     afterEach(() => {
         jest.clearAllMocks();

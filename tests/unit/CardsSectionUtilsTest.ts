@@ -29,6 +29,10 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     getSubscriptionStatus: () => mockGetSubscriptionStatus() as BillingStatusResult,
 }));
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('getNextBillingDate', () => {
     beforeAll(() => {
         jest.useFakeTimers();

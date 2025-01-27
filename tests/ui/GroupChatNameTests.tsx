@@ -41,6 +41,10 @@ let transitionEndCB: () => void;
 
 jest.mock('@react-navigation/native');
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 TestHelper.setupApp();
 
 const REPORT_ID = '1';

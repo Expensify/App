@@ -26,6 +26,11 @@ jest.mock('@react-navigation/native', () => {
         triggerTransitionEnd: jest.fn(),
     };
 });
+
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 TestHelper.setupApp();
 
 async function signInAndGetApp(): Promise<void> {

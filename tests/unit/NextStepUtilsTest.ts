@@ -9,6 +9,10 @@ import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 Onyx.init({keys: ONYXKEYS});
 
 describe('libs/NextStepUtils', () => {

@@ -18,6 +18,10 @@ jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 

@@ -3,6 +3,10 @@ import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('CategoryOptionListUtils', () => {
     it('getCategoryListSections()', () => {
         const search = 'Food';

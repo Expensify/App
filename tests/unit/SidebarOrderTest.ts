@@ -19,6 +19,9 @@ jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@src/hooks/useIsCurrentRouteHome');
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
 
 describe('Sidebar', () => {
     beforeAll(() =>

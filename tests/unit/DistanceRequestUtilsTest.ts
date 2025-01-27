@@ -1,6 +1,10 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {Unit} from '@src/types/onyx/Policy';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('DistanceRequestUtils', () => {
     describe('getDistanceRequestAmount', () => {
         test.each([

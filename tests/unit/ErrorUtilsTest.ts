@@ -1,6 +1,10 @@
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('ErrorUtils', () => {
     test('should add a new error message for a given inputID', () => {
         const errors: Errors = {};

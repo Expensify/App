@@ -3,6 +3,10 @@ import CONST from '@src/CONST';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('ModifiedExpenseMessage', () => {
     describe('getForAction', () => {
         const report = createRandomReport(1);

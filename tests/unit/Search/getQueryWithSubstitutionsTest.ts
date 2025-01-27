@@ -2,6 +2,10 @@
 // we need "dirty" object key names in these tests
 import {getQueryWithSubstitutions} from '@src/components/Search/SearchRouter/getQueryWithSubstitutions';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('getQueryWithSubstitutions should compute and return correct new query', () => {
     test('when both queries contain no substitutions', () => {
         // given this previous query: "foo"

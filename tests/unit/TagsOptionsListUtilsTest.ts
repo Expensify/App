@@ -2,6 +2,10 @@ import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('TagsOptionsListUtils', () => {
     it('getTagListSections()', () => {
         const search = 'ing';

@@ -20,6 +20,10 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
 type PolicyReportFieldWithoutOfflineFeedback = Record<string, PolicyReportField>;
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 OnyxUpdateManager();
 describe('actions/ReportField', () => {
     function connectToFetchPolicy(policyID: string): Promise<OnyxEntry<PolicyType>> {

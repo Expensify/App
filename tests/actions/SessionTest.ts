@@ -23,6 +23,10 @@ HttpUtils.xhr = jest.fn<typeof HttpUtils.xhr>();
 // Mocked to ensure push notifications are subscribed/unsubscribed as the session changes
 jest.mock('@libs/Notification/PushNotification');
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 Onyx.init({
     keys: ONYXKEYS,
 });

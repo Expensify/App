@@ -8,6 +8,10 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 function initCurrencyList() {
     Onyx.init({
         keys: ONYXKEYS,

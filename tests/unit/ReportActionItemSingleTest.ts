@@ -6,6 +6,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',

@@ -2,6 +2,10 @@ import generateMonthMatrix from '@src/components/DatePicker/CalendarPicker/gener
 
 type MonthMatrix = Array<Array<number | undefined>>;
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('generateMonthMatrix', () => {
     it('returns the correct matrix for January 2022', () => {
         const expected: MonthMatrix = [

@@ -14,6 +14,9 @@ jest.mock('@libs/ReportUtils', () => {
         },
     };
 });
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
 
 const personalDetailsMock = {
     12345: {

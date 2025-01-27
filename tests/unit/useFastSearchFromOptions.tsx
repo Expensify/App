@@ -2,6 +2,10 @@ import {renderHook} from '@testing-library/react-native';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import type {Options} from '@libs/OptionsListUtils';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('useFastSearchFromOptions', () => {
     it('should return sub word matches', () => {
         const options = {

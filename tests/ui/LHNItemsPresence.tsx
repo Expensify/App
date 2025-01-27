@@ -24,6 +24,9 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useIsCurrentRouteHome');
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;

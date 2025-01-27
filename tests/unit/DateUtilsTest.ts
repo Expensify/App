@@ -8,6 +8,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
 describe('DateUtils', () => {

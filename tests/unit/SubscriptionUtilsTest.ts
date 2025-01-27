@@ -16,6 +16,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
 };

@@ -8,6 +8,10 @@ import type {ConflictActionData} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const request: Request = {
     command: 'ReconnectApp',
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],

@@ -1,5 +1,9 @@
 import {splitLongWord} from '@components/InlineCodeBlock/WrappedText';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('splitLongWord', () => {
     const testCases = [
         {

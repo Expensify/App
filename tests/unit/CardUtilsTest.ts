@@ -4,6 +4,10 @@ import * as CardUtils from '@src/libs/CardUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
 const shortDateHyphen = '09-24';

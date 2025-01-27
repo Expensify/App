@@ -20,6 +20,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const RootStack = createResponsiveStackNavigator<FullScreenNavigatorParamList>();

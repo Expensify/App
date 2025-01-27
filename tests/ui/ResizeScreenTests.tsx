@@ -21,6 +21,9 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@pages/settings/InitialSettingsPage');
 jest.mock('@pages/settings/Profile/ProfilePage');
 jest.mock('@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar');
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
     shouldUseNarrowLayout: true,

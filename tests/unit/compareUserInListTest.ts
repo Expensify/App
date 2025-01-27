@@ -1,5 +1,9 @@
 import {compareUserInList} from '@pages/home/report/ReportActionCompose/SuggestionMention';
 
+jest.mock('@libs/fileDownload/FileUtils', () => ({
+    readFileAsync: jest.fn(),
+}));
+
 describe('compareUserInList', () => {
     it('Should compare the weight if the weight is different', () => {
         const first = {login: 'John Doe', weight: 1, accountID: 1};
