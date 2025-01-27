@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -17,18 +18,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TaskUtils from '@libs/TaskUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
+import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+import {checkIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 type TaskViewProps = {
     /** The report currently being looked at */
-    report: Report;
+    report: OnyxEntry<Report>;
 };
 
 function TaskView({report}: TaskViewProps) {
@@ -37,17 +38,14 @@ function TaskView({report}: TaskViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     useEffect(() => {
-        Task.setTaskReport(report);
+        setTaskReport(report);
     }, [report]);
-    const taskTitle = convertToLTR(report.reportName ?? '');
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
-        false,
-    );
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const isCompleted = ReportUtils.isCompletedTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(report, currentUserPersonalDetails.accountID);
+    const taskTitle = convertToLTR(report?.reportName ?? '');
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
+    const isOpen = isOpenTaskReport(report);
+    const isCompleted = isCompletedTaskReport(report);
+    const canModifyTask = canModifyTaskUtil(report, currentUserPersonalDetails.accountID);
+    const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const {translate} = useLocalize();
@@ -56,14 +54,14 @@ function TaskView({report}: TaskViewProps) {
         <View>
             <OfflineWithFeedback
                 shouldShowErrorMessages
-                errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
-                onClose={() => Task.clearTaskErrors(report.reportID)}
+                errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
+                onClose={() => clearTaskErrors(report?.reportID)}
                 errorRowStyles={styles.ph5}
             >
                 <Hoverable>
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
-                            onPress={Session.checkIfActionIsAllowed((e) => {
+                            onPress={checkIfActionIsAllowed((e) => {
                                 if (isDisableInteractive) {
                                     return;
                                 }
@@ -71,7 +69,7 @@ function TaskView({report}: TaskViewProps) {
                                     (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -83,19 +81,19 @@ function TaskView({report}: TaskViewProps) {
                             disabled={isDisableInteractive}
                         >
                             {({pressed}) => (
-                                <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
+                                <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
                                     <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
-                                            onPress={Session.checkIfActionIsAllowed(() => {
+                                            onPress={checkIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                                                if (isActiveTaskEditRoute(report?.reportID)) {
                                                     return;
                                                 }
                                                 if (isCompleted) {
-                                                    Task.reopenTask(report);
+                                                    reopenTask(report);
                                                 } else {
-                                                    Task.completeTask(report);
+                                                    completeTask(report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -129,12 +127,12 @@ function TaskView({report}: TaskViewProps) {
                         </PressableWithSecondaryInteraction>
                     )}
                 </Hoverable>
-                <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
+                <OfflineWithFeedback pendingAction={report?.pendingFields?.description}>
                     <MenuItemWithTopDescription
                         shouldRenderAsHTML
                         description={translate('task.description')}
-                        title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
+                        title={report?.description ?? ''}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
                         shouldShowRightIcon={!isDisableInteractive}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -144,16 +142,16 @@ function TaskView({report}: TaskViewProps) {
                         shouldUseDefaultCursorWhenDisabled
                     />
                 </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
-                    {report.managerID ? (
+                <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
+                    {report?.managerID ? (
                         <MenuItem
                             label={translate('task.assignee')}
-                            title={ReportUtils.getDisplayNameForParticipant({accountID: report.managerID})}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
+                            title={getDisplayNameForParticipant({accountID: report.managerID})}
+                            icon={getAvatarsForAccountIDs([report?.managerID ?? CONST.DEFAULT_NUMBER_ID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -166,7 +164,7 @@ function TaskView({report}: TaskViewProps) {
                     ) : (
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}

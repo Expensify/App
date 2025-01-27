@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -18,10 +18,11 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds} from '@src/types/onyx';
+import type {Card, CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {AddNewCardFeedData, AddNewCardFeedStep, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -403,8 +404,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
 
 function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const optimisticFeedUpdates = {[bankName]: {errors: null}};
-    const failureFeedUpdates = {[bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -435,13 +434,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: null,
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: optimisticFeedUpdates},
             },
         },
     ];
@@ -502,13 +494,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: failureFeedUpdates},
             },
         },
     ];
@@ -740,6 +725,41 @@ function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
+/**
+ * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
+ *
+ * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
+ * @param workspaceAccountID the workspace account id we want to get cards for
+ */
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
+    if (!allCardsList) {
+        return;
+    }
+
+    return Object.entries(allCardsList).reduce((acc, [key, allCards]) => {
+        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            return acc;
+        }
+        const {cardList, ...feedCards} = allCards ?? {};
+        Object.assign(acc, feedCards);
+        return acc;
+    }, {});
+}
+
+/**
+ * Check if any feed card has a broken connection
+ *
+ * @param feedCards the list of the cards, related to one or several feeds
+ * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ */
+function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return false;
+    }
+
+    return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -757,4 +777,6 @@ export {
     clearAddNewCardFlow,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
+    checkIfFeedConnectionIsBroken,
+    flatAllCardsList,
 };

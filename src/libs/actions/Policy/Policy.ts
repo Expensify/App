@@ -1241,9 +1241,13 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
+function updateGeneralSettings(policyID: string | undefined, name: string, currencyValue?: string) {
+    if (!policyID) {
+        return;
+    }
+
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    if (!policy || !policyID) {
+    if (!policy) {
         return;
     }
 
@@ -3171,6 +3175,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: enabled,
+                    preventSelfApproval: false,
                     ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3195,6 +3200,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: !enabled,
+                    preventSelfApproval: policy?.preventSelfApproval,
                     ...(!enabled
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,

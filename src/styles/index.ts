@@ -5,6 +5,7 @@ import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
@@ -5359,6 +5360,20 @@ const styles = (theme: ThemeColors) =>
 
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
+        },
+
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
+            overflow: 'hidden',
+            marginBottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {
