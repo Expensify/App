@@ -1221,7 +1221,7 @@ function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
 }
 
 /**
- * Check if the policy has a default approver that is self-approving.
+ * Checks if the policy has a default approver that is self-approving and the workspace has only one user.
  * If so, we cannot enable the "Prevent Self Approvals" feature.
  */
 function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
@@ -1229,14 +1229,9 @@ function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
         return false;
     }
 
-    const defaultApprover = policy.employeeList[policy.approver];
-    // If the default approver is missing or self-approving themselves,
-    // we have no valid fallback.
-    if (!defaultApprover || defaultApprover.submitsTo === policy.approver) {
-        return false;
-    }
+    const employeeEmails = Object.keys(policy.employeeList);
 
-    return true;
+    return employeeEmails.length > 1;
 }
 
 export {
