@@ -1063,6 +1063,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
+                DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
@@ -2402,6 +2403,7 @@ const CONST = {
             TRACK: 'track',
         },
         AMOUNT_MAX_LENGTH: 8,
+        DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -3150,7 +3152,7 @@ const CONST = {
          * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
          * Group 3: Title is remaining characters
          */
-        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN}))?\\s*([\\s\\S]*)`,
+        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -6536,6 +6538,7 @@ const CONST = {
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
+        SCAN_TEST_TOOLTIP: 'scanTestTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
 } as const;

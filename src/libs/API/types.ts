@@ -107,8 +107,6 @@ const WRITE_COMMANDS = {
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
-    OPT_IN_TO_PUSH_NOTIFICATIONS: 'OptInToPushNotifications',
-    OPT_OUT_OF_PUSH_NOTIFICATIONS: 'OptOutOfPushNotifications',
     READ_NEWEST_ACTION: 'ReadNewestAction',
     MARK_AS_UNREAD: 'MarkAsUnread',
     TOGGLE_PINNED_CHAT: 'TogglePinnedChat',
@@ -540,9 +538,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
-    [WRITE_COMMANDS.OPT_IN_TO_PUSH_NOTIFICATIONS]: Parameters.OptInOutToPushNotificationsParams;
     [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
-    [WRITE_COMMANDS.OPT_OUT_OF_PUSH_NOTIFICATIONS]: Parameters.OptInOutToPushNotificationsParams;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
     [WRITE_COMMANDS.TOGGLE_PINNED_CHAT]: Parameters.TogglePinnedChatParams;
