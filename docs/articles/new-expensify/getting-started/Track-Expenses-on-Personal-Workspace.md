@@ -141,16 +141,19 @@ To add your bank account:
    <li>Enable <b> Make or track payments</b>.</li>
    <li>Click  <b>Connect bank account</b> 
 
-Note: You can only add corporate cards on a Control plan. To add your corporate card:
+Note: You can only add corporate cards on a Control plan. 
+
+To add your corporate card:
 
    <li>Click <b>Settings</b>.</li>
    <li>Click  <b>Workspaces</b> and select your workspace 
    <li>Click <b> More Features </b>.</li>
-   <li>Enable <b> Corporate Cards </b>.</li> [Corporate Cards will now be viewable on the left-hand menu] 
+   <li>Enable <b> Corporate Cards </b>.</li> 
+   [Corporate Cards will now be viewable on the left-hand menu] 
    <li>Click <b>Corporate Cards</b> 
    <li>Click <b>Add Cards</b> and follow the prompts 
 
-   # 5. Add categories
+# 5. Add categories
 
 Categories help you code your expenses. Although you're only tracking expenses for yourself, categorizing them will help show you what you're spending your money on! 
 
@@ -176,7 +179,7 @@ The items that appear in your left menu under each workspace are determined by t
 - Tags
 - Taxes 
 
-Once enabled, a new menu option for the feature will appear in the left menu with additional settings for the feature. 
+Once enabled, a new menu option with additional settings for the feature will appear in the left menu. 
 
 To add more features,
 
@@ -187,10 +190,3 @@ To add more features,
 </ol>
 
 Easily monitor when your Free Trial starts and how many days are left on your Subscription page. We’ll also notify you when your trial starts and ends, at which point you’ll add a billing card to continue using all your favorite features!
-
-![Hightlight the free trial start and end date]({{site.url}}/assets/images/ExpensifyHelp-FreeTrial-1.png){:width="100%"}
- 
-</div>
-   
-
-
