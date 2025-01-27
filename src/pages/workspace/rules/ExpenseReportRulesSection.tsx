@@ -9,13 +9,13 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, getAllSelfApprovers} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as PolicyActions from '@userActions/Policy/Policy';
-import * as Workflow from '@userActions/Workflow';
+import {setPolicyPreventSelfApproval, enablePolicyDefaultReportTitle, setPolicyPreventMemberCreatedTitle, enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit} from '@userActions/Policy/Policy';
+import {updateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,20 +33,20 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const customReportNamesUnavailable = !policy?.areReportFieldsEnabled;
     // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
-    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
-    const selfApproversEmails = PolicyUtils.getAllSelfApprovers(policy);
+    const selfApproversEmails = getAllSelfApprovers(policy);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
-            PolicyActions.setPolicyPreventSelfApproval(policyID, false);
+            setPolicyPreventSelfApproval(policyID, false);
             return;
         }
 
         if (selfApproversEmails.length === 0) {
-            PolicyActions.setPolicyPreventSelfApproval(policyID, true);
+            setPolicyPreventSelfApproval(policyID, true);
         } else {
             setIsPreventSelfApprovalsModalVisible(true);
         }
@@ -102,7 +102,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: customReportNamesUnavailable,
             showLockIcon: customReportNamesUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowCustomReportTitleOption,
-            onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) => enablePolicyDefaultReportTitle(policyID, isEnabled),
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.defaultValue ? reportTitlePendingFields.defaultValue : null}
@@ -124,7 +124,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                     titleStyle={styles.pv2}
                     isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
-                    onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
+                    onToggle={(isEnabled) => setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
                 />,
             ],
         },
@@ -151,7 +151,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enableAutoApprovalOptions(policyID, isEnabled);
+                enableAutoApprovalOptions(policyID, isEnabled);
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -160,7 +160,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
+                        title={convertToDisplayString(
                             policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
                             policy?.outputCurrency ?? CONST.CURRENCY.USD,
                         )}
@@ -192,7 +192,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
@@ -209,7 +209,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
+                        title={convertToDisplayString(
                             policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
                             policy?.outputCurrency ?? CONST.CURRENCY.USD,
                         )}
@@ -263,7 +263,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
                 cancelText={translate('common.cancel')}
                 onConfirm={() => {
-                    PolicyActions.setPolicyPreventSelfApproval(policyID, true);
+                    setPolicyPreventSelfApproval(policyID, true);
 
                     const defaultApprover = policy?.approver ?? policy?.owner;
                     if (!defaultApprover) {
@@ -302,7 +302,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
 
                         const membersToRemove: Member[] = [];
 
-                        Workflow.updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
+                        updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
                     });
                     setIsPreventSelfApprovalsModalVisible(false);
                 }}
