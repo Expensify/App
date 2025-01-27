@@ -1,7 +1,6 @@
 name: Verify HybridApp build
 
 on:
-  workflow_call:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
@@ -18,6 +17,8 @@ on:
       - 'android/AndroidManifest.xml'
       - 'ios/Podfile.lock'
       - 'ios/project.pbxproj'
+      # TODO: Remove, just here for debugging
+      - '*.yml'
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-verify-main
@@ -34,12 +35,11 @@ jobs:
           submodules: true
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
 
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          cd Mobile-Expensify
           git fetch
           git checkout main
 
@@ -71,12 +71,11 @@ jobs:
           submodules: true
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
 
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          cd Mobile-Expensify
           git fetch
           git checkout main
 
