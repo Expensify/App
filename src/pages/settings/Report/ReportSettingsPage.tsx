@@ -25,7 +25,7 @@ type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenPr
 
 function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
     const backTo = route.params.backTo;
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -33,7 +33,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
         notificationPreferenceValue && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue)

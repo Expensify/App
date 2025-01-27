@@ -62,12 +62,18 @@ function RoomInvitePage({
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
+        const res = {
+            ...CONST.EXPENSIFY_EMAILS_OBJECT,
+        };
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
             .filter(([, participant]) => participant && !ReportUtils.isHiddenForCurrentUser(participant.notificationPreference))
             .map(([accountID]) => Number(accountID));
-        return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
-            PhoneNumber.addSMSDomainIfPhoneNumber(participant),
-        );
+        PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs).forEach((participant) => {
+            const smsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(participant);
+            res[smsDomain] = true;
+        });
+
+        return res;
     }, [report.participants]);
 
     const defaultOptions = useMemo(() => {
@@ -215,17 +221,17 @@ function RoomInvitePage({
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
+        const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!inviteOptions.userToInvite && expensifyEmails.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers.includes(
+            excludedUsers[
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
-                    : searchValue,
-            )
+                    : searchValue
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }

@@ -13,8 +13,9 @@ import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachment
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
+import createRandomReport from '../utils/collections/reports';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -23,6 +24,16 @@ type LazyLoadLHNTestUtils = {
 };
 
 const mockedNavigate = jest.fn();
+
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    getFSAttributes: jest.fn(),
+    getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
+    parseFSAttributes: jest.fn(),
+}));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
@@ -71,11 +82,25 @@ const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
+
+const signUpWithTestUser = () => {
+    TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+};
+
+const report = createRandomReport(1);
+const parentReportAction = createRandomReportAction(1);
+
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.clear().then(waitForBatchedUpdates);
+    signUpWithTestUser();
+});
+
+afterEach(() => {
+    Onyx.clear();
 });
 
 function ReportActionsListWrapper() {
@@ -85,19 +110,18 @@ function ReportActionsListWrapper() {
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
-                        parentReportAction={createRandomReportAction(1)}
+                        parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={undefined}
                         sortedReportActions={reportActions}
                         sortedVisibleReportActions={reportActions}
-                        report={LHNTestUtilsModule.getFakeReport()}
+                        report={report}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
-                        transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
-                        reportActions={reportActions}
+                        transactionThreadReport={report}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
@@ -110,10 +134,5 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         await screen.findByTestId('report-actions-list');
     };
     await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
     await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
