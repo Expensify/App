@@ -46,7 +46,7 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
                     success
                     large
                     style={[styles.w100]}
-                    onPress={() => Navigation.goBack()}
+                    onPress={() => Navigation.closeRHPFlow()}
                     text={translate('common.buttonConfirm')}
                 />
             </FixedFooter>

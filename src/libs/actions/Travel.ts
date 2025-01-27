@@ -104,13 +104,12 @@ function handleProvisioningPermissionDeniedError(domain: string) {
 }
 
 function openTravelDotAfterProvisioning(spotnanaToken: string) {
-    Navigation.goBack();
+    Navigation.closeRHPFlow();
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
     Linking.openURL(buildTravelDotURL(spotnanaToken));
 }
 
 function provisionDomain(domain: string) {
-    Navigation.goBack();
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
     Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
 }
