@@ -730,18 +730,14 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
         return;
     }
 
-    let cards: Record<string, Card> = {};
-
-    Object.entries(allCardsList).forEach(([key, allCards]) => {
+    return Object.entries(allCardsList).reduce((acc, [key, allCards]) => {
         if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            return;
+            return acc;
         }
-
         const {cardList, ...feedCards} = allCards ?? {};
-        cards = {...cards, ...feedCards};
-    });
-
-    return cards;
+        Object.assign(acc, feedCards);
+        return acc;
+    }, {});
 }
 
 function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
@@ -749,13 +745,7 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
         return false;
     }
 
-    return !!Object.values(feedCards).find((card) => {
-        if (card.bank === feedToExclude) {
-            return false;
-        }
-
-        return card.lastScrapeResult !== 200;
-    });
+    return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
 export {

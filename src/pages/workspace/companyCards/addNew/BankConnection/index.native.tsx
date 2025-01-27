@@ -53,6 +53,7 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
     const handleBackButtonPress = () => {
         if (backTo) {
             Navigation.goBack(backTo);
+            return;
         }
         if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
