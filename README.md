@@ -475,7 +475,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 
 - Before building the app, you need to install dependencies. Run `npm install` from `Expensify/App` (this will also install dependencies for `Mobile-Expensify`)
 
-**At this point, the default behavior of some `npm` scripts will change to target HybridApp:**
+**At this point, the default behavior of some `npm` scripts will change to target HybridApp (the script that determines whether to use HybridApp or standalone scripts can be found in `scripts/is-hybrid-app.sh`):**
 | Command               | Description                        |
 | --------------------- | ---------------------------------- |
 | `npm run android`     | Build **HybridApp** for Android    |
