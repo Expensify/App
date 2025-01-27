@@ -253,7 +253,7 @@ function ExpensifyCardPage({
                             </>
                         ))}
                         {physicalCards.map((card) => {
-                            if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
+                            if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN && card.state !== CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) {
                                 return null;
                             }
 
