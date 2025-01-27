@@ -1,59 +1,71 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import type {ReactNode} from 'react';
+import React, {Fragment, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import CurrencySelectionListWithOnyx from './CurrencySelectionList';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import CurrencySelectionList from './CurrencySelectionList';
+import type {CurrencyListItem} from './CurrencySelectionList/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
-import type {ValuePickerItem, ValuePickerProps} from './ValuePicker/types';
 
 type CurrencyPickerProps = {
-    selectedCurrency?: string;
-};
-function CurrencyPicker({selectedCurrency, label = '', errorText = '', value, onInputChange, furtherDetails}: ValuePickerProps & CurrencyPickerProps, forwardedRef: ForwardedRef<View>) {
-    const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const {translate} = useLocalize();
+    /** Label for the input */
+    label: string;
 
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
+    /** Current value of the selected item */
+    value?: string;
+
+    /** Custom content to display in the header */
+    headerContent?: ReactNode;
+
+    /** Callback when the list item is selected */
+    onInputChange?: (value: string, key?: string) => void;
+
+    /** Form Error description */
+    errorText?: string;
+
+    /** List of currencies to exclude from the list */
+    excludeCurrencies?: string[];
+
+    /** Is the MenuItem interactive */
+    interactive?: boolean;
+
+    /** Should show the full page offline view (whenever the user is offline) */
+    shouldShowFullPageOfflineView?: boolean;
+};
+
+function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+    const {translate} = useLocalize();
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const styles = useThemeStyles();
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
 
-    const updateInput = (item: ValuePickerItem) => {
-        if (item.value !== selectedCurrency) {
-            onInputChange?.(item.value);
-        }
+    const updateInput = (item: CurrencyListItem) => {
+        onInputChange?.(item.currencyCode);
         hidePickerModal();
     };
 
-    const descStyle = !selectedCurrency || selectedCurrency.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const BlockingComponent = shouldShowFullPageOfflineView ? FullPageOfflineBlockingView : Fragment;
 
     return (
-        <View>
+        <>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
                 shouldShowRightIcon
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                title={value || ''}
-                descriptionTextStyle={descStyle}
+                title={value ? `${value} - ${getCurrencySymbol(value)}` : undefined}
                 description={label}
-                onPress={showPickerModal}
-                furtherDetails={furtherDetails}
+                onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
+                interactive={interactive}
             />
-
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={isPickerVisible}
@@ -61,29 +73,33 @@ function CurrencyPicker({selectedCurrency, label = '', errorText = '', value, on
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
                 useNativeDriver
-                onBackdropPress={hidePickerModal}
+                onBackdropPress={Navigation.dismissModal}
             >
                 <ScreenWrapper
-                    style={styles.pb0}
+                    style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
-                    testID={label}
+                    includeSafeAreaPaddingBottom
+                    testID={CurrencyPicker.displayName}
                 >
                     <HeaderWithBackButton
                         title={label}
+                        shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />
-                    <CurrencySelectionListWithOnyx
-                        onSelect={(item) => updateInput({value: item.currencyCode})}
-                        searchInputLabel={translate('common.currency')}
-                        initiallySelectedCurrencyCode={selectedCurrency}
-                    />
+                    <BlockingComponent>
+                        {!!headerContent && headerContent}
+                        <CurrencySelectionList
+                            initiallySelectedCurrencyCode={value}
+                            onSelect={updateInput}
+                            searchInputLabel={translate('common.search')}
+                            excludedCurrencies={excludeCurrencies}
+                        />
+                    </BlockingComponent>
                 </ScreenWrapper>
             </Modal>
-        </View>
+        </>
     );
 }
 
 CurrencyPicker.displayName = 'CurrencyPicker';
-
-export default forwardRef(CurrencyPicker);
+export default CurrencyPicker;
