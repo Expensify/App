@@ -313,6 +313,18 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
+    // Clear the form error if it's set to one among the list passed as an argument
+    const clearFormErrors = useCallback(
+        (errors: string[]) => {
+            if (!errors.includes(formError)) {
+                return;
+            }
+
+            setFormError('');
+        },
+        [formError, setFormError],
+    );
+
     const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
@@ -352,6 +364,32 @@ function MoneyRequestConfirmationList({
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+
+    useEffect(() => {
+        // We want this effect to run only when the transaction is moving from Self DM to a workspace chat
+        if (!transactionID || !isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
+            return;
+        }
+
+        const errorKey = 'iou.error.invalidRate';
+        const policyRates = DistanceRequestUtils.getMileageRates(policy);
+
+        // If the selected rate belongs to the policy, clear the error
+        if (customUnitRateID && Object.keys(policyRates).includes(customUnitRateID)) {
+            clearFormErrors([errorKey]);
+            return;
+        }
+
+        // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
+        const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
+        if (matchingRate?.customUnitRateID) {
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
+            return;
+        }
+
+        // If none of the above conditions are met, display the rate error
+        setFormError(errorKey);
+    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -693,7 +731,9 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || isMovingTransactionFromTrackExpense || !transactionID) {
+        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {
+            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
+            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
             return;
         }
 
@@ -716,6 +756,7 @@ function MoneyRequestConfirmationList({
         translate,
         toLocaleDigit,
         isDistanceRequest,
+        isPolicyExpenseChat,
         transaction,
         transactionID,
         action,
@@ -810,7 +851,7 @@ function MoneyRequestConfirmationList({
             if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = getCurrencyDecimals(iouCurrencyCode);
-                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals)) {
+                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }

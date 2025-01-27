@@ -28,19 +28,10 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    replaceReceipt,
-    requestMoney,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
-    startSplitBill,
-    trackExpense,
-    updateLastLocationPermissionPrompt,
-} from '@libs/actions/IOU';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {shouldStartLocationPermissionFlow as shouldStartLocationPermissionFlowFunc} from '@libs/IOUUtils';
+import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -51,6 +42,15 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import {
+    replaceReceipt,
+    requestMoney,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReceipt,
+    startSplitBill,
+    trackExpense,
+    updateLastLocationPermissionPrompt,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,7 +115,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !isArchivedReport(report, reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**
@@ -507,9 +507,9 @@ function IOURequestStepScan({
                     setFileSource(source);
                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                     if (gpsRequired) {
-                        const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowFunc();
+                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
 
-                        if (shouldStartLocationPermissionFlow) {
+                        if (beginLocationPermissionFlow) {
                             setStartLocationPermissionFlow(true);
                             return;
                         }
@@ -558,8 +558,8 @@ function IOURequestStepScan({
             setFileSource(source);
             const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
             if (gpsRequired) {
-                const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowFunc();
-                if (shouldStartLocationPermissionFlow) {
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                if (beginLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
                     return;
                 }

@@ -28,21 +28,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    replaceReceipt,
-    requestMoney,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
-    startSplitBill,
-    trackExpense,
-    updateLastLocationPermissionPrompt,
-} from '@libs/actions/IOU';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import {shouldStartLocationPermissionFlow as shouldStartLocationPermissionFlowFunc} from '@libs/IOUUtils';
+import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -52,6 +43,15 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import {
+    replaceReceipt,
+    requestMoney,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReceipt,
+    startSplitBill,
+    trackExpense,
+    updateLastLocationPermissionPrompt,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -106,7 +106,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !isArchivedReport(report, reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     const {translate} = useLocalize();
@@ -481,8 +481,8 @@ function IOURequestStepScan({
                 const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
                 if (gpsRequired) {
-                    const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowFunc();
-                    if (shouldStartLocationPermissionFlow) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;
                     }
@@ -553,8 +553,8 @@ function IOURequestStepScan({
                                     setFileSource(source);
                                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                                     if (gpsRequired) {
-                                        const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowFunc();
-                                        if (shouldStartLocationPermissionFlow) {
+                                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                                        if (beginLocationPermissionFlow) {
                                             setStartLocationPermissionFlow(true);
                                             return;
                                         }

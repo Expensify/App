@@ -6,6 +6,14 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
+import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getBankAccountRoute, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
+import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     requestMoney,
     resetSplitShares,
@@ -18,15 +26,7 @@ import {
     setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
-} from '@libs/actions/IOU';
-import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
-import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getBankAccountRoute, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
-import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -91,7 +91,7 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(isArchivedReport(report, reportNameValuePairs) || isPolicyExpenseChat(report));
+        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
@@ -180,7 +180,7 @@ function IOURequestStepAmount({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
