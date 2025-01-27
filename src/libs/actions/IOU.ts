@@ -151,6 +151,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
+    removeSettledAndApprovedTransactions,
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -6609,45 +6610,45 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     ];
 
     if (transactionViolations) {
-        TransactionUtils.removeSettledAndApprovedTransactions(
-            transactionViolations.find((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        ).forEach((duplicateID) => {
-            const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
-            if (!duplicateTransactionsViolations) {
-                return;
-            }
+        removeSettledAndApprovedTransactions(transactionViolations.find((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? []).forEach(
+            (duplicateID) => {
+                const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
+                if (!duplicateTransactionsViolations) {
+                    return;
+                }
 
-            const dulipcateViolation = duplicateTransactionsViolations.find((violation: OnyxTypes.TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    
-            if (!dulipcateViolation?.data?.duplicates) {
-                return;
-            }
-            
-            const duplicateTransactionIDs = dulipcateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-                value:
-                    duplicateTransactionIDs.length === 0
-                        ? duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-                        : [
-                              ...duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
-                              {
-                                  ...dulipcateViolation,
-                                  data: {
-                                      ...dulipcateViolation.data,
-                                      duplicates: duplicateTransactionIDs,
+                const dulipcateViolation = duplicateTransactionsViolations.find((violation: OnyxTypes.TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                if (!dulipcateViolation?.data?.duplicates) {
+                    return;
+                }
+
+                const duplicateTransactionIDs = dulipcateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                    value:
+                        duplicateTransactionIDs.length === 0
+                            ? duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                            : [
+                                  ...duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                                  {
+                                      ...dulipcateViolation,
+                                      data: {
+                                          ...dulipcateViolation.data,
+                                          duplicates: duplicateTransactionIDs,
+                                      },
                                   },
-                              },
-                          ],
-            });
+                              ],
+                });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-                value: duplicateTransactionsViolations,
-            });
-        });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                    value: duplicateTransactionsViolations,
+                });
+            },
+        );
     }
 
     if (shouldDeleteTransactionThread) {
