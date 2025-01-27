@@ -322,8 +322,12 @@ const ROUTES = {
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string, policyID: string, fieldID: string, backTo?: string) =>
-            getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo),
+        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
+            if (!policyID || !reportID) {
+                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {policyID, reportID});
+            }
+            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
+        },
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
@@ -400,11 +404,21 @@ const ROUTES = {
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo),
+        getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the SPLIT_BILL_DETAILS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
+        },
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/title` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the TASK_TITLE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/title` as const, backTo);
+        },
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
@@ -417,7 +431,12 @@ const ROUTES = {
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the TASK_ASSIGNEE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo);
+        },
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
@@ -1926,7 +1945,7 @@ const ROUTES = {
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
-        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
+        getRoute: (reportID: string | undefined) => `debug/report/${reportID}` as const,
     },
     DEBUG_REPORT_TAB_DETAILS: {
         route: 'debug/report/:reportID/details',
