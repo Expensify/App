@@ -21,7 +21,6 @@ function getShareMenuItem(report: OnyxReport, backTo?: string): ThreeDotsMenuIte
     return {
         icon: Expensicons.QrCode,
         text: translateLocal('common.share'),
-        // eslint-disable-next-line rulesdir/no-default-id-values
         onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '', backTo)),
     };
 }
