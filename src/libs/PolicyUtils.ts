@@ -1205,7 +1205,6 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
-
 /**
  * Returns an array of user emails who are currently self-approving:
  * i.e. user.submitsTo === their own email.
