@@ -21,7 +21,7 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 
 # Approve Travel
 
-![Screenshot of Expensify Travel approval email](https://help.expensify.com/assets/images/Travel_Email.png){:width="100%"}
+![Screenshot of Expensify Travel approval email](https://help.expensify.com/assets/images/travel-soft-approval.png){:width="100%"}
 
 ## Soft Approval
 
