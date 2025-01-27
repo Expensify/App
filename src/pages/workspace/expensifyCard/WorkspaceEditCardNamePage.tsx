@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,10 +20,10 @@ import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
+type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME>;
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {policyID, cardID} = route.params;
@@ -36,9 +36,16 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID];
 
+    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME;
+
+    const goBack = useCallback(
+        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
+        [isWorkspaceRhp, policyID, cardID],
+    );
+
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
         Card.updateExpensifyCardTitle(workspaceAccountID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
-        Navigation.goBack();
+        goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
@@ -63,7 +70,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.card.issueNewCard.cardName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
