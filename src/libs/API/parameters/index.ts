@@ -364,3 +364,4 @@ export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDel
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
+export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';

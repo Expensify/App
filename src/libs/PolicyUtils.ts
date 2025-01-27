@@ -40,6 +40,7 @@ import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -1202,6 +1203,67 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
+function getAdminsPrivateEmailDomains(policy?: Policy) {
+    if (!policy) {
+        return [];
+    }
+
+    const adminDomains = Object.entries(policy.employeeList ?? {}).reduce((domains, [email, employee]) => {
+        if (employee.role !== CONST.POLICY.ROLE.ADMIN) {
+            return domains;
+        }
+        domains.push(Str.extractEmailDomain(email).toLowerCase());
+        return domains;
+    }, [] as string[]);
+    const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
+
+    return [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+}
+
+/**
+ * Determines the most frequent domain from the `acceptedDomains` list
+ * that appears in the email addresses of policy members.
+ *
+ * @param acceptedDomains - List of domains to consider.
+ * @param policy - The policy object.
+ */
+function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
+    if (!policy) {
+        return undefined;
+    }
+    const domainOccurrences = {} as Record<string, number>;
+    Object.keys(policy.employeeList ?? {})
+        .concat(policy.owner)
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())
+        .forEach((memberDomain) => {
+            if (!acceptedDomains.includes(memberDomain)) {
+                return;
+            }
+            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        });
+    let mostFrequent = {domain: '', count: 0};
+    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+        if (count <= mostFrequent.count) {
+            return;
+        }
+        mostFrequent = {domain, count};
+    });
+    if (mostFrequent.count === 0) {
+        return undefined;
+    }
+    return mostFrequent.domain;
+}
+
+const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+    // A domain name containing a policyID indicates that this is a workspace feed
+    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    if (policyID) {
+        const policy = getPolicy(policyID.toUpperCase());
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+};
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1329,6 +1391,9 @@ export {
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
+    getAdminsPrivateEmailDomains,
+    getMostFrequentEmailDomain,
+    getDescriptionForPolicyDomainCard,
 };
 
 export type {MemberEmailsToAccountIDs};

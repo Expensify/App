@@ -1580,7 +1580,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
-    TRAVEL_TCS: 'travel/terms',
+    TRAVEL_TCS: {
+        route: 'travel/terms/:domain/accept',
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1591,6 +1594,12 @@ const ROUTES = {
         getRoute: (reportID: string, transactionID: string, reservationIndex: number, backTo?: string) =>
             getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
     },
+    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
+    TRAVEL_DOMAIN_PERMISSION_INFO: {
+        route: 'travel/domain-permission/:domain/info',
+        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
+    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
