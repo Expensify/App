@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import { InteractionManager } from 'react-native';
 import { Approver, Member } from '@src/types/onyx/ApprovalWorkflow';
+import { convertPolicyEmployeesToApprovalWorkflows } from '@libs/WorkflowUtils';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -30,43 +31,47 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const customReportNamesUnavailable = !policy?.areReportFieldsEnabled;
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
     const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
-    // const isPreventSelfApprovalsDisabled = !PolicyUtils.canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
-    const isPreventSelfApprovalsDisabled = false;
+    const isPreventSelfApprovalsDisabled = !PolicyUtils.canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
+    const selfApproversEmails = PolicyUtils.getAllSelfApprovers(policy);
 
-    /**
-     * Handle toggling of “Prevent Self Approvals”
-     * - If toggling OFF, we just call the action and skip any modal.
-     * - If toggling ON:
-     *    - If nobody is self-approving, enable immediately.
-     *    - Otherwise, show a modal for confirmation.
-     */
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
             PolicyActions.setPolicyPreventSelfApproval(policyID, false);
             return;
         }
-    
-        // Only check for self approvers when enabling the setting
-        const selfApprovers = PolicyUtils.getAllSelfApprovers(policy);
-        if (selfApprovers.length === 0) {
+        
+        if (selfApproversEmails.length === 0) {
             PolicyActions.setPolicyPreventSelfApproval(policyID, true);
         } else {
             setIsPreventSelfApprovalsModalVisible(true);
         }
     }
+
+    const { currentApprovalWorkflows, defaultWorkflowMembers, usedApproverEmails } = useMemo(() => {
+        if (!policy || !personalDetails) {
+            return {};
+        }
     
-    function isSelfApprover(email: string): boolean {
-        const employee = policy?.employeeList?.[email];
-        return !!(employee && employee.submitsTo === email);
-    }
+        const defaultApprover = policy?.approver ?? policy.owner;
+        const result = convertPolicyEmployeesToApprovalWorkflows({
+            employees: policy.employeeList ?? {},
+            defaultApprover,
+            personalDetails,
+        });
+    
+        return {
+            defaultWorkflowMembers: result.availableMembers,
+            usedApproverEmails: result.usedApproverEmails,
+            currentApprovalWorkflows: result.approvalWorkflows.filter((workflow) => !workflow.isDefault),
+        };
+    }, [personalDetails, policy]);
     
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
@@ -262,49 +267,62 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
                     cancelText={translate('common.cancel')}
                     onConfirm={() => {
-                    // First, enable the setting that blocks self-approvals.
-                    PolicyActions.setPolicyPreventSelfApproval(policyID, true);
+                        PolicyActions.setPolicyPreventSelfApproval(policyID, true);
 
-                    // Build a new workflow where all self-approvers are replaced by the policy owner.
-                    const newWorkflow: ApprovalWorkflow = {
-                            ...approvalWorkflow,
-                            // Remove any members who are self-approvers
-                            members: (approvalWorkflow?.members ?? []).filter((member) => !isSelfApprover(member.email)),
-                            // Add the policy owner as the first approver; filter out existing self-approvers
-                            approvers: [
-                                {
-                                    email: policy?.owner ?? '',
-                                    displayName: policy?.owner ?? '',
-                                },
-                                ...(approvalWorkflow?.approvers?.filter(
-                                    (approver: Approver) => approver && !isSelfApprover(approver.email),
-                                ) ?? []),
-                            ],
-                            // Assume this is the "default" workflow
-                            isDefault: approvalWorkflow?.isDefault ?? true,
-                        };
+                        const defaultApprover = policy?.approver || policy?.owner;
+                        if (!defaultApprover) {
+                            setIsPreventSelfApprovalsModalVisible(false);
+                            return;
+                        }
 
-                        // Compute which members and approvers were removed
-                        const membersToRemove =
-                            approvalWorkflow?.members?.filter(
-                                (oldMember: Member) => !newWorkflow.members.some((newMember) => newMember.email === oldMember.email),
-                            ) ?? [];
+                        currentApprovalWorkflows?.forEach((workflow: ApprovalWorkflow) => {
+                            const oldApprovers = workflow.approvers ?? [];
+                            const approversToRemove = oldApprovers.filter((approver: Approver) => 
+                                selfApproversEmails.includes(approver?.email)
+                            );
+                            const newApprovers = oldApprovers.filter(
+                                (approver: Approver) => !selfApproversEmails.includes(approver?.email),
+                            );
 
-                        const approversToRemove =
-                            approvalWorkflow?.approvers?.filter(
-                                (oldApprover: Approver) =>
-                                    oldApprover &&
-                                    !newWorkflow.approvers.some((newApprover) => newApprover.email === oldApprover.email),
-                            ) as Approver[] ?? [];
+                            if (!newApprovers.some((a) => a.email === defaultApprover)) {
+                                newApprovers.unshift({
+                                    email: defaultApprover,
+                                    displayName: defaultApprover,
+                                });
+                            }
 
-                        setIsPreventSelfApprovalsModalVisible(false);
+                            const oldMembers = workflow.members ?? [];
+                            const newMembers = oldMembers.map((member: Member) => {
+                                const isSelfApprover = selfApproversEmails.includes(member.email);
+                                return isSelfApprover
+                                    ? {...member, submitsTo: defaultApprover}
+                                    : member;
+                            });
 
-                        InteractionManager.runAfterInteractions(() => {
-                            Workflow.updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
+                            const newWorkflow = {
+                                ...workflow,
+                                approvers: newApprovers,
+                                availableMembers: [...workflow.members, ...defaultWorkflowMembers],
+                                members: newMembers,
+                                usedApproverEmails: usedApproverEmails,
+                                isDefault: workflow.isDefault ?? false,
+                                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                                errors: null,
+                            };
+
+                            const membersToRemove: Member[] = [];
+
+                            Workflow.updateApprovalWorkflow(
+                                policyID,
+                                newWorkflow,
+                                membersToRemove,
+                                approversToRemove,
+                            );
                         });
+                        setIsPreventSelfApprovalsModalVisible(false);
                     }}
-                    onCancel={() => setIsPreventSelfApprovalsModalVisible(false)}
-                />
+            onCancel={() => setIsPreventSelfApprovalsModalVisible(false)}
+            />
         </>
     );
 }
