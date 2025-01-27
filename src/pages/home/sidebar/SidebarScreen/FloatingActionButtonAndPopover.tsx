@@ -389,7 +389,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             const onSelected = () => {
                 interceptAnonymousUser(() => {
                     hideProductTrainingTooltip();
-                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                    navigateToQuickAction(isValidReport, quickActionReport?.reportID, quickAction, selectOption);
                 });
             };
             return [

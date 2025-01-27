@@ -2730,7 +2730,10 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
-function clearIOUError(reportID: string) {
+function clearIOUError(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 

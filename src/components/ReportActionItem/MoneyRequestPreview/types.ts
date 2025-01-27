@@ -10,7 +10,7 @@ type MoneyRequestPreviewProps = {
     iouReportID: string;
 
     /** The associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** The ID of the current report */
     reportID: string;

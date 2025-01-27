@@ -707,7 +707,7 @@ function PureReportActionItem({
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? '' : reportID}
+                    chatReportID={getOriginalMessage(action)?.IOUReportID ? report?.chatReportID : reportID}
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}

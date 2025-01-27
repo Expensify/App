@@ -400,7 +400,12 @@ const ROUTES = {
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo),
+        getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the SPLIT_BILL_DETAILS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
+        },
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
