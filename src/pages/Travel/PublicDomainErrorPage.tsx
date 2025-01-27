@@ -15,7 +15,6 @@ function PublicDomainErrorPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={PublicDomainErrorPage.displayName}
         >

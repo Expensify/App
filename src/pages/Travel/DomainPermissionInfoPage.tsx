@@ -23,7 +23,6 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={DomainPermissionInfoPage.displayName}
         >

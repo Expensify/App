@@ -45,7 +45,6 @@ function DomainSelectorPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={DomainSelectorPage.displayName}
         >
