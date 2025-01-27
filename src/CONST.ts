@@ -328,6 +328,9 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATED_PROGRESS_BAR_DELAY: 300,
+    ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
+    ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     ANIMATION_DIRECTION: {
         IN: 'in',
@@ -445,6 +448,9 @@ const CONST = {
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
     },
+
+    REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
+    HIDDEN_MESSAGE_ATTRIBUTE: 'is-hidden-message',
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -904,7 +910,6 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
-    EMPTY_STRING: '',
     DEFAULT_NUMBER_ID: 0,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
@@ -1707,6 +1712,10 @@ const CONST = {
         CONCIERGE: 'concierge',
         OTHER: 'other',
         WEB_PROP_ATTR: 'data-testid',
+        SHUTDOWN: 'shutdown',
+        RESTART: 'restart',
+        SET_IDENTITY: 'setIdentity',
+        OBSERVE: 'observe',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
