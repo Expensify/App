@@ -3958,7 +3958,23 @@ describe('actions/IOU', () => {
 
             // Given a convertedInvoiceReport is stored in Onyx
             const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
+
+            const invoiceReceiver = convertedInvoiceChat?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {
+                id: invoiceReceiver.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+
+            const iouReport = buildOptimisticIOUReport(
+                policy?.ownerAccountID ?? 0,
+                invoiceReceiver?.accountID,
+                transaction?.amount ?? 100,
+                convertedInvoiceChat.chatReportID,
+                transaction?.currency ?? 'USD',
+            );
 
             // And data for when a new invoice is sent to a user
             const currentUserAccountID = 32;
@@ -3976,7 +3992,12 @@ describe('actions/IOU', () => {
                 }),
                 expect.anything(),
             );
+
             writeSpy.mockRestore();
+
+            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy)).toBe(true);
+
+            expect(canIOUBePaid(iouReport, {...convertedInvoiceChat, private_isArchived: true} as unknown as Report, policy)).toBe(false);
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
@@ -3994,9 +4015,9 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
-                    callback: (transactions) => {
+                    callback: (allTransactions) => {
                         Onyx.disconnect(connection);
-                        const transaction = Object.values(transactions).at(0);
+                        const transaction = Object.values(allTransactions).at(0);
                         expect(transaction?.errors).not.toBeUndefined();
                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                         resolve();
