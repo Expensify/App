@@ -337,4 +337,48 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidLegalName('άλφα')).toBe(false);
         });
     });
+
+    describe('isValidPaymentZipCode', () => {
+        test('Is valid US zip code format (v1)', () => {
+            const validZip = '12345';
+            const isValid = ValidationUtils.isValidPaymentZipCode(validZip);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid US zip code format with hyphen (v2)', () => {
+            const validZip = '12345-6789';
+            const isValid = ValidationUtils.isValidPaymentZipCode(validZip);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format with space (v1)', () => {
+            const invalidDate = 'AB1 2CD';
+            const isValid = ValidationUtils.isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format with space (v2)', () => {
+            const invalidDate = 'AB12 3CD';
+            const isValid = ValidationUtils.isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format (v3)', () => {
+            const invalidDate = 'AB12CD';
+            const isValid = ValidationUtils.isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid AU / NZ zip code format', () => {
+            const invalidDate = '1234';
+            const isValid = ValidationUtils.isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is invalid zip code (other special characters)', () => {
+            const futureDate = "@ , : ; ' &";
+            const isValid = ValidationUtils.isValidPaymentZipCode(futureDate);
+            expect(isValid).toBe(false);
+        });
+    });
 });

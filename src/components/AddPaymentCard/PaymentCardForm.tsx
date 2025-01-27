@@ -165,8 +165,11 @@ function PaymentCardForm({
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate('bankAccount.error.zipCode');
+        // If tempered with, this can block users from adding payment cards so
+        // do not touch unless you are aware of the context.
+        // See issue: https://github.com/Expensify/App/issues/55493#issuecomment-2616349754
+        if (values.addressZipCode && !ValidationUtils.isValidPaymentZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
         }
 
         if (!values.acceptTerms) {
