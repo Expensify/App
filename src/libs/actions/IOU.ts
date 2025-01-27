@@ -80,6 +80,7 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticHoldReportAction,
@@ -8626,7 +8627,7 @@ function detachReceipt(transactionID: string | undefined) {
         },
     ];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const updatedReportAction = ReportUtils.buildOptimisticDetachReceipt(expenseReport?.reportID ?? '-1', transactionID, transaction?.merchant);
+    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID ?? '-1', transactionID, transaction?.merchant);
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -8664,7 +8665,7 @@ function detachReceipt(transactionID: string | undefined) {
         value: {
             [updatedReportAction.reportActionID]: {
                 ...(updatedReportAction as OnyxTypes.ReportAction),
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
             },
         },
     });

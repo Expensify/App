@@ -5584,7 +5584,7 @@ function buildOptimisticDetachReceipt(reportID: string, transactionID: string, m
             },
         ],
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: rand64(),
         reportID,
         shouldShow: true,
     };
