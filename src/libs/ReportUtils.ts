@@ -5783,7 +5783,7 @@ function buildOptimisticChatReport(
         parentReportID,
         participants,
         policyID,
-        reportID: optimisticReportID || generateReportID(),
+        reportID: optimisticReportID ?? generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
