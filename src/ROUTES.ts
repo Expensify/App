@@ -324,7 +324,7 @@ const ROUTES = {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
         getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
             if (!policyID || !reportID) {
-                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route');
+                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {policyID, reportID});
             }
             return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
         },

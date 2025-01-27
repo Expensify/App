@@ -1252,6 +1252,10 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 function clearTaskErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report

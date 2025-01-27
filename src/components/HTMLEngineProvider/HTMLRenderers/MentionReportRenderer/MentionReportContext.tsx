@@ -6,7 +6,7 @@ type MentionReportContextProps = {
 };
 
 const MentionReportContext = createContext<MentionReportContextProps>({
-    currentReportID: '',
+    currentReportID: undefined,
 });
 
 export default MentionReportContext;

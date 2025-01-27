@@ -4330,12 +4330,12 @@ function clearNewRoomFormError() {
 }
 
 function resolveActionableMentionWhisper(
-    reportId: string | undefined,
+    reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
 ) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction || !reportId) {
+    if (!message || !reportAction || !reportID) {
         return;
     }
 
@@ -4352,8 +4352,8 @@ function resolveActionableMentionWhisper(
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -4364,7 +4364,7 @@ function resolveActionableMentionWhisper(
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
                     message: [updatedMessage],
@@ -4376,7 +4376,7 @@ function resolveActionableMentionWhisper(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
@@ -4384,7 +4384,7 @@ function resolveActionableMentionWhisper(
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
                     message: [message],
@@ -4396,7 +4396,7 @@ function resolveActionableMentionWhisper(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
         },
     ];

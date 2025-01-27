@@ -50,7 +50,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action) ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`);
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
