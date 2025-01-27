@@ -319,6 +319,8 @@ type RequestMoneyTransactionParams = {
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
+    waypoints?: WaypointCollection;
+    customUnitRateID?: string;
 };
 
 type PerDiemExpenseTransactionParams = {
@@ -365,8 +367,6 @@ type RequestMoneyInformation = {
     action?: IOUAction;
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
-    validWaypoints?: WaypointCollection;
-    customUnitRateID?: string;
 };
 
 type MoneyRequestInformationParams = {
@@ -4350,7 +4350,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, validWaypoints, customUnitRateID} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const {
         amount,
@@ -4368,15 +4368,22 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
+        waypoints,
+        customUnitRateID,
     } = transactionParams;
 
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const existingTransactionID =
+        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
+            ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+            : undefined;
+    const existingTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const {
         payerAccountID,
@@ -4397,10 +4404,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         policyParams,
         transactionParams,
         moneyRequestReportID,
-        existingTransactionID:
-            isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
-                ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-                : undefined,
+        existingTransactionID,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
