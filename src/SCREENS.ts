@@ -70,6 +70,7 @@ const SCREENS = {
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -159,6 +160,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -326,6 +328,8 @@ const SCREENS = {
         EXPORT: 'Report_Details_Export',
     },
 
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
@@ -452,6 +456,7 @@ const SCREENS = {
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
+        COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
