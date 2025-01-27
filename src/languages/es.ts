@@ -4593,7 +4593,7 @@ const translations = {
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `y habilita ${featureName} para desbloquear esta función.`,
                 preventSelfApprovalsModalText: ({managerEmail}: {managerEmail: string}) =>
-                    `Cualquier miembro que apruebe sus propios gastos será eliminado y reemplazado con el aprobador predeterminado para este espacio de trabajo (${managerEmail}).`,
+                    `Todos los miembros que actualmente estén aprobando sus propios gastos serán eliminados y reemplazados con el aprobador predeterminado de este espacio de trabajo (${managerEmail}).`,
                 preventSelfApprovalsConfirmButton: 'Evitar autoaprobaciones',
                 preventSelfApprovalsModalTitle: '¿Evitar autoaprobaciones?',
             },
