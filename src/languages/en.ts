@@ -5691,6 +5691,16 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more!',
         },
+        scanTestTooltip: {
+            part1: 'Want to see how Scan works?',
+            part2: ' Try a test receipt!',
+            part3: 'Choose our',
+            part4: ' test manager',
+            part5: ' to try it out!',
+            part6: 'Now,',
+            part7: ' submit your expense',
+            part8: ' and watch the magic happen!',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

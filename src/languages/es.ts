@@ -6210,6 +6210,16 @@ const translations = {
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
         },
+        scanTestTooltip: {
+            part1: '¿Quieres ver cómo funciona Escanear?',
+            part2: ' ¡Prueba con un recibo de prueba!',
+            part3: '¡Elige a',
+            part4: ' nuestro gerente',
+            part5: ' de prueba para probarlo!',
+            part6: 'Ahora,',
+            part7: ' envía tu gasto y',
+            part8: ' ¡observa cómo ocurre la magia!',
+        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
