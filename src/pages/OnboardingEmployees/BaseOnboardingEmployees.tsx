@@ -13,11 +13,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {completeOnboarding} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
+import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
@@ -71,19 +71,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setError(translate('onboarding.errorSelection'));
                         return;
                     }
-                    Welcome.setOnboardingCompanySize(selectedCompanySize);
+                    setOnboardingCompanySize(selectedCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
                     // We need `adminsChatReportID` for `Report.completeOnboarding`, but at the same time, we don't want to call `Policy.createWorkspace` more than once.
                     // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
                     const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                        ? Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+                        ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
                         : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
                     if (shouldCreateWorkspace) {
-                        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-                        Welcome.setOnboardingPolicyID(policyID);
+                        setOnboardingAdminsChatReportID(adminsChatReportID);
+                        setOnboardingPolicyID(policyID);
                     }
 
                     // For MICRO companies (1-10 employees), we want to remain on NewDot.
@@ -95,7 +95,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // For other company sizes we want to complete onboarding here.
                     // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
                     if (onboardingPurposeSelected) {
-                        Report.completeOnboarding(
+                        completeOnboarding(
                             onboardingPurposeSelected,
                             CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                             undefined,
