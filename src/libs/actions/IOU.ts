@@ -8627,7 +8627,7 @@ function detachReceipt(transactionID: string | undefined) {
         },
     ];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID ?? '-1', transactionID, transaction?.merchant);
+    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,

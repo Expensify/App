@@ -5556,7 +5556,7 @@ function buildOptimisticModifiedExpenseReportAction(
 /**
  * Builds an optimistic DETACH_RECEIPT report action with a randomly generated reportActionID.
  */
-function buildOptimisticDetachReceipt(reportID: string, transactionID: string, merchant: string = CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+function buildOptimisticDetachReceipt(reportID: string | undefined, transactionID: string, merchant: string = CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
         actorAccountID: currentUserAccountID,
