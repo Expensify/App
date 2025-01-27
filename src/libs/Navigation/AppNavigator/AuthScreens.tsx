@@ -251,21 +251,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-<<<<<<< HEAD
-    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
-    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
-    const isLastOpenedPublicRoomIDLoadedRef = useRef(false);
-    const isInitialLastUpdateIDAppliedToClientLoadedRef = useRef(false);
-=======
-    const navigation = useNavigation();
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', () => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
-        return () => unsubscribe();
-    }, [navigation]);
->>>>>>> 9388747 (Merge pull request #55815 from Expensify/andrew-revert-55528)
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
