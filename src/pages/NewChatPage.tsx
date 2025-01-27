@@ -204,12 +204,12 @@ function NewChatPage() {
         (option: ListItem & Partial<OptionData>) => {
             const isOptionInList = !!option.isSelected;
 
-            let newSelectedOptions;
+            let newSelectedOptions = [...selectedOptions];
 
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+            } else if (option.reportID) {
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();

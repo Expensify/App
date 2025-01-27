@@ -39,7 +39,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
 
     const editedUserDimensionName: string = route.params.dimensionName;
     const policy = usePolicy(route.params.policyID);
-    const policyID: string = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);

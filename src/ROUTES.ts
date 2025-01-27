@@ -1840,36 +1840,75 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/collection-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/expense-report-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/vendor-bill-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/journal-entry-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType as string}` as const,
+        getRoute: (policyID: string | undefined, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
@@ -1905,7 +1944,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',

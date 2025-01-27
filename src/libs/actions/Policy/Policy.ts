@@ -656,7 +656,10 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearNetSuiteErrorField(policyID: string, fieldName: string) {
+function clearNetSuiteErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
 }
 

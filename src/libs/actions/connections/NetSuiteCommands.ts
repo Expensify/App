@@ -846,7 +846,11 @@ function updateNetSuiteAutoSync(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
-function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean) {
+function updateNetSuiteSyncReimbursedReports(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, value, !value);
 
     const parameters = {
@@ -856,7 +860,11 @@ function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
 }
 
-function updateNetSuiteSyncPeople(policyID: string, value: boolean) {
+function updateNetSuiteSyncPeople(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, !value);
 
     const parameters = {
@@ -866,7 +874,11 @@ function updateNetSuiteSyncPeople(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE, parameters, onyxData);
 }
 
-function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean) {
+function updateNetSuiteAutoCreateEntities(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES, value, !value);
 
     const parameters = {
@@ -876,7 +888,11 @@ function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_CREATE_ENTITIES, parameters, onyxData);
 }
 
-function updateNetSuiteEnableNewCategories(policyID: string, value: boolean) {
+function updateNetSuiteEnableNewCategories(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES, value, !value);
 
     const parameters = {
@@ -886,7 +902,11 @@ function updateNetSuiteEnableNewCategories(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boolean) {
+function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const data = {
         enabled: value,
     };
