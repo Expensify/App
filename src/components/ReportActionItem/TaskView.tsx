@@ -17,11 +17,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TaskUtils from '@libs/TaskUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
+import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtilAction, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -37,17 +37,14 @@ function TaskView({report}: TaskViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     useEffect(() => {
-        Task.setTaskReport(report);
+        setTaskReport(report);
     }, [report]);
     const taskTitle = convertToLTR(report.reportName ?? '');
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
-        false,
-    );
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const isCompleted = ReportUtils.isCompletedTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(report, currentUserPersonalDetails.accountID);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails), false);
+    const isOpen = isOpenTaskReport(report);
+    const isCompleted = isCompletedTaskReport(report);
+    const canModifyTask = canModifyTaskUtilAction(report, currentUserPersonalDetails.accountID);
+    const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const {translate} = useLocalize();
@@ -57,13 +54,13 @@ function TaskView({report}: TaskViewProps) {
             <OfflineWithFeedback
                 shouldShowErrorMessages
                 errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
-                onClose={() => Task.clearTaskErrors(report.reportID)}
+                onClose={() => clearTaskErrors(report.reportID)}
                 errorRowStyles={styles.ph5}
             >
                 <Hoverable>
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
-                            onPress={Session.callFnIfActionIsAllowed((e) => {
+                            onPress={callFnIfActionIsAllowed((e) => {
                                 if (isDisableInteractive) {
                                     return;
                                 }
@@ -87,15 +84,15 @@ function TaskView({report}: TaskViewProps) {
                                     <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
-                                            onPress={Session.callFnIfActionIsAllowed(() => {
+                                            onPress={callFnIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                                                if (isActiveTaskEditRoute(report.reportID)) {
                                                     return;
                                                 }
                                                 if (isCompleted) {
-                                                    Task.reopenTask(report);
+                                                    reopenTask(report);
                                                 } else {
-                                                    Task.completeTask(report);
+                                                    completeTask(report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -148,8 +145,8 @@ function TaskView({report}: TaskViewProps) {
                     {report.managerID ? (
                         <MenuItem
                             label={translate('task.assignee')}
-                            title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
+                            title={getDisplayNameForParticipant(report.managerID)}
+                            icon={getAvatarsForAccountIDs([report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}

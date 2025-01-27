@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
-import * as Session from '@userActions/Session';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
@@ -32,7 +32,7 @@ function SearchButton({style}: SearchButtonProps) {
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 // eslint-disable-next-line react-compiler/react-compiler
-                onPress={Session.callFnIfActionIsAllowed(() => {
+                onPress={callFnIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
 
                     Timing.start(CONST.TIMING.OPEN_SEARCH);
