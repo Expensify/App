@@ -147,7 +147,7 @@ type ShouldShow = (args: {
 type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
-    reportID: string;
+    reportID: string | undefined;
     report: OnyxEntry<ReportType>;
     draftMessage: string;
     selection: string;
@@ -630,6 +630,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport &&
             reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
+            if (!reportID) {
+                return;
+            }
+
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute)));

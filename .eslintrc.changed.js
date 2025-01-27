@@ -21,12 +21,6 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['src/pages/home/report/PureReportActionItem.tsx'],
-            rules: {
-                'rulesdir/no-default-id-values': 'off',
-            },
-        },
-        {
             files: ['**/libs/**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-syntax': [
