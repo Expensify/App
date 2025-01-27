@@ -11,10 +11,16 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable, getAllSelfApprovers} from '@libs/PolicyUtils';
+import {getAllSelfApprovers, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {setPolicyPreventSelfApproval, enablePolicyDefaultReportTitle, setPolicyPreventMemberCreatedTitle, enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit} from '@userActions/Policy/Policy';
+import {
+    enableAutoApprovalOptions,
+    enablePolicyAutoReimbursementLimit,
+    enablePolicyDefaultReportTitle,
+    setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
+} from '@userActions/Policy/Policy';
 import {updateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -160,10 +166,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={convertToDisplayString(
-                            policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
@@ -209,10 +212,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={convertToDisplayString(
-                            policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
