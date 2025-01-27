@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {openPlaidView, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
@@ -90,7 +91,7 @@ function BankAccountStep({
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, 'new', ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
     useEffect(() => {
