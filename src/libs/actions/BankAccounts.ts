@@ -94,6 +94,7 @@ function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: stri
         }
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     });
