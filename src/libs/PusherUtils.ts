@@ -54,7 +54,6 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
 }
 
 export default {
-    getUserChannelName,
     subscribeToPrivateUserChannelEvent,
     subscribeToMultiEvent,
     triggerMultiEventHandler,
