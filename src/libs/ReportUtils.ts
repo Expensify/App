@@ -75,6 +75,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
+// eslint-disable-next-line import/no-cycle
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -700,6 +701,12 @@ let isAnonymousUser = false;
 // to prevent unnecessary parsing when the report action is not changed/modified.
 // Example case: when we need to get a report name of a thread which is dependent on a report action message.
 const parsedReportActionMessageCache: Record<string, string> = {};
+
+let conciergeChatReportID: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => (conciergeChatReportID = value),
+});
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
@@ -1455,7 +1462,7 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
         return false;
     }
 
-    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING);
+    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING) || report?.reportID === conciergeChatReportID;
 }
 
 function findSelfDMReportID(): string | undefined {
@@ -3263,8 +3270,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const isReportSettled = isSettled(report?.reportID);
-    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID);
+    const reportFields = getReportFieldsByPolicyID(report?.policyID);
     const titleReportField = Object.values(reportFields ?? {}).find((reportField) => reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
 
     if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
@@ -4160,6 +4166,21 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
 const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
 /**
+ * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
+ */
+function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
+    const participantsWithoutCurrentUser: number[] = [];
+    Object.keys(report?.participants ?? {}).forEach((accountID) => {
+        const accID = Number(accountID);
+        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
+            participantsWithoutCurrentUser.push(accID);
+        }
+    });
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(
@@ -4321,16 +4342,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
-    formattedName = participantNames;
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
     if (reportID) {
         reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
@@ -8292,6 +8304,9 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy> | SearchPolicy): boolean {
     const policy = reportPolicy ?? getPolicy(report?.policyID);
+    if (!policy?.areRulesEnabled) {
+        return true;
+    }
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
     return !(policy?.preventSelfApproval && isOwner);
 }
@@ -8890,6 +8905,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
@@ -8978,6 +8994,7 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
+    getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,

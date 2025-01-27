@@ -1,9 +1,9 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {createOptionFromReport, createOptionList} from '@libs/OptionsListUtils';
+import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
+import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
@@ -62,7 +62,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return;
         }
         // Since reports updates can happen in bulk, and some reports depend on other reports, we need to recreate the whole list from scratch.
-        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
+        const newReports = createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
             const newOptions = {
@@ -90,7 +90,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
         const newReportOptions: Array<{
             replaceIndex: number;
-            newReportOption: OptionsListUtils.SearchOption<Report>;
+            newReportOption: SearchOption<Report>;
         }> = [];
 
         Object.keys(personalDetails).forEach((accountID) => {
@@ -102,12 +102,12 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
 
             Object.values(reports ?? {})
-                .filter((report) => !!Object.keys(report?.participants ?? {}).includes(accountID) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
+                .filter((report) => !!Object.keys(report?.participants ?? {}).includes(accountID) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
                 .forEach((report) => {
                     if (!report) {
                         return;
                     }
-                    const newReportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                    const newReportOption = createOptionFromReport(report, personalDetails);
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({
                         newReportOption,
@@ -117,7 +117,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = OptionsListUtils.createOptionList(personalDetails).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
@@ -131,7 +131,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails]);
 
     const loadOptions = useCallback(() => {
-        const optionLists = OptionsListUtils.createOptionList(personalDetails, reports);
+        const optionLists = createOptionList(personalDetails, reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
