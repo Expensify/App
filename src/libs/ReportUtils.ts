@@ -5749,11 +5749,11 @@ function buildOptimisticChatReport(
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>,
     writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    parentReportActionID = '',
-    parentReportID = '',
+    parentReportActionID?: string,
+    parentReportID?: string,
     description = '',
     avatarUrl = '',
-    optimisticReportID = '',
+    optimisticReportID?: string,
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {

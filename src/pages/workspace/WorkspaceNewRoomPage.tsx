@@ -105,8 +105,8 @@ function WorkspaceNewRoomPage() {
             visibility,
             writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            '',
-            '',
+            undefined,
+            undefined,
             parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
