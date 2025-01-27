@@ -1211,12 +1211,13 @@ function canModifyPlan(policyID?: string) {
  * i.e. user.submitsTo === their own email.
  */
 function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    if (!policy?.employeeList) {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
         return [];
     }
     return Object.keys(policy.employeeList).filter((email) => {
         const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email;
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
     });
 }
 
