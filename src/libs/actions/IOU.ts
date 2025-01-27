@@ -6600,6 +6600,56 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         value: null,
     });
 
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction ?? null,
+        },
+    ];
+
+    if (transactionViolations) {
+        TransactionUtils.removeSettledAndApprovedTransactions(
+            transactionViolations.find((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
+        ).forEach((duplicateID) => {
+            const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
+            if (!duplicateTransactionsViolations) {
+                return;
+            }
+
+            const dulipcateViolation = duplicateTransactionsViolations.find((violation: OnyxTypes.TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+    
+            if (!dulipcateViolation?.data?.duplicates) {
+                return;
+            }
+            
+            const duplicateTransactionIDs = dulipcateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                value:
+                    duplicateTransactionIDs.length === 0
+                        ? duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                        : [
+                              ...duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                              {
+                                  ...dulipcateViolation,
+                                  data: {
+                                      ...dulipcateViolation.data,
+                                      duplicates: duplicateTransactionIDs,
+                                  },
+                              },
+                          ],
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                value: duplicateTransactionsViolations,
+            });
+        });
+    }
+
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
             // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
@@ -6744,14 +6794,6 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
             value: null,
         });
     }
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
-        },
-    ];
 
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
