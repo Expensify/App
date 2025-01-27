@@ -103,7 +103,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 </View>
             </View>
             {isSelectedFeedConnectionBroken && !!bankName && (
-                <View style={[styles.flexRow, styles.ph5]}>
+                <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={Expensicons.DotIndicator}
                         fill={theme.danger}
