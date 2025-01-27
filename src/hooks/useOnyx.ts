@@ -84,26 +84,36 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
     return (getDataByPath(snapshotData?.data, key) ?? initialValue) as TReturnValue;
 };
 
+/**
+ * Custom hook for accessing and subscribing to Onyx data with search snapshot support
+ */
 const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const {isOnSearch, hashKey} = useSearchState();
-    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
-    const {selector, ...optionsWithoutSelector} = useOnyxOptions ?? {};
-    const [data, metadata] = originalUseOnyx(isOnSearch ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key, optionsWithoutSelector, dependencies);
+    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>>;
+    const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
-    // Extract the specific key data from snapshot if in search mode
+    // Determine if we should use snapshot data based on search state and key
+    const shouldUseSnapshot = isOnSearch && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
+
+    // Create selector function that handles both regular and snapshot data
+    const selector = selectorProp ? (data: OnyxValue<OnyxKey> | undefined) => selectorProp(shouldUseSnapshot ? getKeyData(data as SearchResults, key) : data) : undefined;
+
+    const onyxOptions = {...optionsWithoutSelector, selector};
+    const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
+
+    const [data, metadata] = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
+
+    // Extract and memoize the specific key data from snapshot if in search mode
     const result = useMemo((): OriginalUseOnyxReturnType => {
-        if (!isOnSearch || !data || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) || !CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey))) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            const selectedData = selector ? selector(data) : data;
-            return [selectedData, metadata] as OriginalUseOnyxReturnType;
+        if (!shouldUseSnapshot || !data) {
+            return [data, metadata] as OriginalUseOnyxReturnType;
         }
 
         const keyData = getKeyData(data as SearchResults, key, useOnyxOptions?.initialValue);
-        // eslint-disable-next-line react-compiler/react-compiler
-        const selectedKeyData = selector ? selector(keyData as OnyxValue<OnyxKey>) : keyData;
-        return [selectedKeyData, metadata] as OriginalUseOnyxReturnType;
-    }, [isOnSearch, key, data, metadata, useOnyxOptions?.initialValue, selector]);
+        return [keyData, metadata] as OriginalUseOnyxReturnType;
+    }, [shouldUseSnapshot, data, metadata, key, useOnyxOptions?.initialValue]);
 
     return result;
 };
+
 export default useOnyx;

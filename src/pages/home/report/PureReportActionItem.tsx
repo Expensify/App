@@ -992,7 +992,7 @@ function PureReportActionItem({
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={emojiReactions}
+                            emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
