@@ -3,14 +3,14 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as HeaderUtils from '@libs/HeaderUtils';
-import * as Localize from '@libs/Localize';
+import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
+import {translateLocal} from '@libs/Localize';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActions from '@userActions/Report';
-import * as Session from '@userActions/Session';
+import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -44,25 +44,25 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
 const PromotedActions = {
     pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...HeaderUtils.getPinMenuItem(report),
+        ...getPinMenuItem(report),
     }),
     share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report, backTo),
+        ...getShareMenuItem(report, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: Expensicons.ChatBubbles,
-        text: Localize.translateLocal('common.join'),
-        onSelected: Session.callFnIfActionIsAllowed(() => {
+        text: translateLocal('common.join'),
+        onSelected: callFnIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            ReportActions.joinRoom(report);
+            joinRoom(report);
         }),
     }),
     message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
-        text: Localize.translateLocal('common.message'),
+        text: translateLocal('common.message'),
         onSelected: () => {
             if (reportID) {
                 Navigation.dismissModal(reportID);
@@ -71,18 +71,18 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                ReportActions.navigateToAndOpenReport([login]);
+                navigateToAndOpenReport([login]);
                 return;
             }
             if (accountID) {
-                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+                navigateToAndOpenReportWithAccountIDs([accountID]);
             }
         },
     }),
     hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
-        text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
+        text: translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
             if (isDelegateAccessRestricted) {
                 setIsNoDelegateAccessMenuVisible(true); // Show the menu
@@ -96,11 +96,11 @@ const PromotedActions = {
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
             if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
+                changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
+            changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
