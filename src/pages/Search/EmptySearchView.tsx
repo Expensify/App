@@ -1,8 +1,9 @@
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -60,6 +61,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -133,7 +135,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     buttons: [
                         {
                             buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
+                            buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, setRootStatusBarEnabled, ctaErrorMessage),
                             success: true,
                         },
                     ],

@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -34,6 +35,7 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -55,7 +57,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage);
+                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, setRootStatusBarEnabled, ctaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}

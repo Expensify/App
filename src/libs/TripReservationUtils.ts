@@ -95,7 +95,12 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     }
 }
 
-function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
+function bookATrip(
+    translate: LocaleContextProps['translate'],
+    setCtaErrorMessage: Dispatch<SetStateAction<string>>,
+    setRootStatusBarEnabled: (isEnabled: boolean) => void,
+    ctaErrorMessage = '',
+): void {
     if (Str.isSMSLogin(primaryLogin)) {
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
@@ -120,6 +125,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
 
             Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
             NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+            setRootStatusBarEnabled(false);
         })
         ?.catch(() => {
             setCtaErrorMessage(translate('travel.errorMessage'));
