@@ -507,7 +507,7 @@ The primary difference is that the native code, which runs React Native, is loca
 
 ### Important Notes:
 1. **Root Folders Do Not Affect HybridApp Builds:**
-   Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
 
 2. **Modifying iOS Code for HybridApp:**
    - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
@@ -516,9 +516,9 @@ The primary difference is that the native code, which runs React Native, is loca
    - If you'd like to delete files such as `.cxx`, `build`, or `.gradle` directories, you need to navigate to **`./Mobile-Expensify/android`**.
 
 4. **Opening the HybridApp Project in IDEs:**
-   To open the HybridApp project in **Android Studio** or **Xcode**, you **must select the workspace located in the `Mobile-Expensify` directory**:
-   - **Android**: `./Mobile-Expensify/Android`
-   - **iOS**: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
+   - To open the HybridApp project in **Android Studio** or **Xcode**, you **must select the workspace located in the `Mobile-Expensify` directory**:
+     - **Android**: `./Mobile-Expensify/Android`
+     - **iOS**: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
 
 ### Updating the `Mobile-Expensify` Submodule
 
@@ -528,8 +528,6 @@ If you'd like to download the most recent changes from the `main` branch, please
 ```bash
 git submodule update --remote
 ```
-
-### Modifying Mobile-Expensify code
 
 It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
 
