@@ -143,7 +143,9 @@ const FS = {
                     Session.isSupportAuthToken()
                 ) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
-                    FullStory(CONST.FULL_STORY.SHUTDOWN);
+                    if (isInitialized()) {
+                        FullStory(CONST.FULL_STORY.SHUTDOWN);
+                    }
                     return;
                 }
                 FullStory(CONST.FULL_STORY.RESTART);

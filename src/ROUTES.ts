@@ -1291,6 +1291,15 @@ const ROUTES = {
             return `settings/workspaces/${policyID}/company-cards` as const;
         },
     },
+    WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
+        route: 'settings/workspaces/:policyID/company-cards/:bankName/bank-connection',
+        getRoute: (policyID: string | undefined, bankName: string, backTo: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bankName}/bank-connection`, backTo);
+        },
+    },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
@@ -1318,7 +1327,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
