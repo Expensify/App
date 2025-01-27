@@ -30,19 +30,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: {
-            path: ROUTES.REPORT_WITH_ID.route,
-            // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
-            // We want to avoid that situation, so we will return an empty string instead.
-            parse: {
-                // eslint-disable-next-line
-                reportID: (reportID: string | undefined) => reportID ?? '',
-            },
-            stringify: {
-                // eslint-disable-next-line
-                reportID: (reportID: string | undefined) => reportID ?? '',
-            },
-        },
+        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
             path: ROUTES.SETTINGS_PROFILE,
             exact: true,
