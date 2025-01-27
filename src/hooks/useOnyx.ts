@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
-import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxKey, OnyxValue, UseOnyxResult} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -50,6 +49,9 @@ type UseOnyxSelectorOption<TKey extends OnyxKey, TReturnValue> = {
 
 type UseOnyxOptions<TKey extends OnyxKey, TReturnValue> = BaseUseOnyxOptions & UseOnyxInitialValueOption<TReturnValue> & UseOnyxSelectorOption<TKey, TReturnValue>;
 
+type OriginalUseOnyx = typeof originalUseOnyx;
+type OriginalUseOnyxReturnType = ReturnType<OriginalUseOnyx>;
+
 const getDataByPath = (data: SearchResults['data'], path: string) => {
     // Handle prefixed collections
     for (const collection of Object.values(ONYXKEYS.COLLECTION)) {
@@ -67,59 +69,41 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey, initialValue?: TReturnValue): TReturnValue => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result: Record<string, any> = {};
+        const result: OnyxCollection<TKey> = {};
         const prefix = key;
 
         // Get all keys that start with the prefix
-        Object.entries(snapshotData?.data || {}).forEach(([dataKey, value]) => {
+        Object.entries(snapshotData?.data ?? {}).forEach(([dataKey, value]) => {
             if (!dataKey.startsWith(prefix)) {
                 return;
             }
-            result[dataKey] = value;
+            result[dataKey] = value as OnyxEntry<TKey>;
         });
         return (Object.keys(result).length > 0 ? result : initialValue) as TReturnValue;
     }
     return (getDataByPath(snapshotData?.data, key) ?? initialValue) as TReturnValue;
 };
 
-function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
-    key: TKey,
-    options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<TReturnValue> & Required<UseOnyxSelectorOption<TKey, TReturnValue>>,
-    dependencies?: DependencyList,
-): UseOnyxResult<TReturnValue>;
-function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
-    key: TKey,
-    options?: BaseUseOnyxOptions & UseOnyxInitialValueOption<NoInfer<TReturnValue>>,
-    dependencies?: DependencyList,
-): UseOnyxResult<TReturnValue>;
-function useOnyx<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
-    key: TKey,
-    options?: UseOnyxOptions<TKey, TReturnValue>,
-    dependencies: DependencyList = [],
-): UseOnyxResult<TReturnValue> {
+const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const {isOnSearch, hashKey} = useSearchState();
-
-    const {selector, ...optionsWithoutSelector} = options ?? {};
-    const [data, metadata] = originalUseOnyx(
-        isOnSearch ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as TKey) : key,
-        optionsWithoutSelector as (BaseUseOnyxOptions & UseOnyxInitialValueOption<OnyxValue<TKey>> & Required<UseOnyxSelectorOption<TKey, OnyxValue<TKey>>>) | undefined,
-        dependencies,
-    );
+    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
+    const {selector, ...optionsWithoutSelector} = useOnyxOptions ?? {};
+    const [data, metadata] = originalUseOnyx(isOnSearch ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key, optionsWithoutSelector, dependencies);
 
     // Extract the specific key data from snapshot if in search mode
-    const result = useMemo(() => {
+    const result = useMemo((): OriginalUseOnyxReturnType => {
         if (!isOnSearch || !data || key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) || !CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey))) {
+            // eslint-disable-next-line react-compiler/react-compiler
             const selectedData = selector ? selector(data) : data;
-            return [selectedData, metadata] as UseOnyxResult<TReturnValue>;
+            return [selectedData, metadata] as OriginalUseOnyxReturnType;
         }
 
-        const keyData = getKeyData(data as unknown as SearchResults, key, options?.initialValue);
-        const selectedKeyData = selector ? selector(keyData as OnyxValue<TKey>) : keyData;
-        return [selectedKeyData as TReturnValue | undefined, metadata] as UseOnyxResult<TReturnValue>;
-    }, [isOnSearch, key, data, metadata, options?.initialValue, selector]);
+        const keyData = getKeyData(data as SearchResults, key, useOnyxOptions?.initialValue);
+        // eslint-disable-next-line react-compiler/react-compiler
+        const selectedKeyData = selector ? selector(keyData as OnyxValue<OnyxKey>) : keyData;
+        return [selectedKeyData, metadata] as OriginalUseOnyxReturnType;
+    }, [isOnSearch, key, data, metadata, useOnyxOptions?.initialValue, selector]);
 
     return result;
-}
-
+};
 export default useOnyx;
