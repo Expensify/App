@@ -1,8 +1,10 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 
 /**
  * Fullstory React-Native lib adapter
@@ -41,7 +43,7 @@ const FS = {
             // UserMetadata onyx key.
             Environment.getEnvironment().then((envName: string) => {
                 const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) {
+                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(value.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
                     return;
                 }
                 FullStory.restart();
@@ -63,5 +65,45 @@ const FS = {
     },
 };
 
+/**
+ * Placeholder function for Mobile-Web compatibility.
+ */
+function parseFSAttributes(): void {
+    // pass
+}
+
+/*
+    prefix? if component name should be used as a prefix,
+    in case data-test-id attribute usage,
+    clean component name should be preserved in data-test-id.
+*/
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
+    if (!name && !prefix) {
+        return `${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
+    }
+    // prefixed for Native apps should contain only component name
+    if (prefix) {
+        return name;
+    }
+
+    return `${name},${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
+}
+
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
+    if (!name) {
+        return ['', ''];
+    }
+    if (isConciergeChatReport(report)) {
+        const formattedName = `${CONST.FULL_STORY.CONCIERGE}-${name}`;
+        return [`${formattedName}`, `${CONST.FULL_STORY.UNMASK},${formattedName}`];
+    }
+    if (shouldUnmaskChat(context, report)) {
+        const formattedName = `${CONST.FULL_STORY.CUSTOMER}-${name}`;
+        return [`${formattedName}`, `${CONST.FULL_STORY.UNMASK},${formattedName}`];
+    }
+    const formattedName = `${CONST.FULL_STORY.OTHER}-${name}`;
+    return [`${formattedName}`, `${CONST.FULL_STORY.MASK},${formattedName}`];
+}
+
 export default FS;
-export {FSPage};
+export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};

@@ -165,6 +165,8 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
+type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
+
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -417,6 +419,10 @@ type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string}
 
 type TrialStartedTitleParams = {numOfDays: number};
 
+type EarlyDiscountTitleParams = {discountType: number};
+
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
+
 type CardNextPaymentParams = {nextPaymentDate: string};
 
 type CardEndingParams = {cardNumber: string};
@@ -586,18 +592,6 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
-type FirstDayTextParams = {
-    hours: string;
-};
-
-type LastDayTextParams = {
-    hours: string;
-};
-
-type TripLengthTextParams = {
-    days: number;
-};
-
 type EditDestinationSubtitleParams = {
     destination: string;
 };
@@ -654,6 +648,8 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    EarlyDiscountTitleParams,
+    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -702,6 +698,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    MovedFromSelfDMParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -814,9 +811,6 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
-    FirstDayTextParams,
-    LastDayTextParams,
-    TripLengthTextParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
 };

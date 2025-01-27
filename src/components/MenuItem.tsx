@@ -10,12 +10,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {checkIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -335,13 +335,13 @@ type MenuItemBaseProps = {
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
 
+    /** Callback to fire when the education tooltip is pressed */
+    onEducationTooltipPress?: () => void;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
-
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
 
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
@@ -351,6 +351,9 @@ type MenuItemBaseProps = {
 
     /** Pressable component Test ID. Used to locate the component in tests. */
     pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -459,12 +462,13 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        onEducationTooltipPress,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
         pressableTestID,
+        shouldTeleportPortalToModalLayer,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -600,19 +604,19 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
+                onTooltipPress={onEducationTooltipPress}
             >
                 <View>
                     <Hoverable>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                onPress={shouldCheckActionAllowedOnPress ? checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
                                 testID={pressableTestID}
                                 style={({pressed}) =>

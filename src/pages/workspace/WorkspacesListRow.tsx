@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
@@ -17,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -65,6 +66,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** ID of the policy */
     policyID?: string;
+
+    /** is policy defualt */
+    isDefault?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -108,6 +112,7 @@ function WorkspacesListRow({
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
+    isDefault,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -115,7 +120,7 @@ function WorkspacesListRow({
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
+    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -139,6 +144,21 @@ function WorkspacesListRow({
                         icon={Expensicons.Hourglass}
                     />
                 </View>
+            )}
+            {!!isDefault && (
+                <Tooltip
+                    maxWidth={variables.w184}
+                    text={translate('workspace.common.defaultNote')}
+                    numberOfLines={4}
+                >
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <Badge
+                            text={translate('common.default')}
+                            textStyles={styles.textStrong}
+                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                        />
+                    </View>
+                </Tooltip>
             )}
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
@@ -206,7 +226,7 @@ function WorkspacesListRow({
                             <View style={styles.flex1}>
                                 <WorkspacesListRowDisplayName
                                     isDeleted={isDeleted}
-                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                    ownerName={getDisplayNameOrDefault(ownerDetails)}
                                 />
                                 <Text
                                     numberOfLines={1}
