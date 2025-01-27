@@ -101,7 +101,7 @@ function ChatListItem<TItem extends ListItem>({
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <AttachmentContext.Provider value={attachmentContextValue}>
                             <View style={styles.webViewStyles.tagStyles.ol}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                                     <Text style={styles.chatItemMessageHeaderPolicy}>In </Text>
                                     <TextLink
                                         fontSize={variables.fontSizeSmall}
