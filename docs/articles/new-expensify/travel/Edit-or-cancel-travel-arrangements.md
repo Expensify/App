@@ -13,11 +13,11 @@ Click **Get Support** on your emailed travel itinerary for real-time help with t
 You can review your travel arrangements any time by opening the Trip chat in your inbox. For example, if you booked a flight to San Francisco, a “Trip to San Francisco” chat will be automatically added to your chat inbox.  
 
 To edit or cancel a travel arrangement,
-1. Click your profile image or icon in the bottom left menu. 
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select the workspace the travel is booked under.
-4. Tap into the booking to see more details. 
-5. Click **Trip Support**.
+1. Open your Inbox.  
+2. Select the trip in the left hand panel. 
+3. Select the leg of the travel you want to update. 
+4. Click Modify Trip.
+5. Select Modify or Cancel. 
 
 If there is an unexpected change to the itinerary (for example, a flight cancellation), Expensify’s travel partner **Spotnana** will reach out to the traveler to provide updates on those changes. 
 
