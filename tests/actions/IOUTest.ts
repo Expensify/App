@@ -3969,7 +3969,7 @@ describe('actions/IOU', () => {
             });
 
             const iouReport = buildOptimisticIOUReport(
-                policy?.ownerAccountID ?? 0,
+                policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
                 invoiceReceiver?.accountID,
                 transaction?.amount ?? 100,
                 convertedInvoiceChat.chatReportID,
