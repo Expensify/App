@@ -1,4 +1,4 @@
-name: Build and deploy hybird apps for testing
+name: Build and deploy hybrid apps for testing
 
 on:
   workflow_dispatch:
@@ -6,16 +6,12 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
-      OLD_DOT_COMMIT:
-        description: The branch, tag or SHA to checkout on Old Dot side
-        required: false
   pull_request_target:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
 env:
   PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-  OLD_DOT_COMMIT: ${{ github.event.inputs.OLD_DOT_COMMIT }}
 
 jobs:
   validateActor:
@@ -63,6 +59,48 @@ jobs:
           echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  getOldDotPR:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    outputs:
+      OLD_DOT_PR: ${{ steps.old-dot-pr.outputs.result }}
+    steps:
+      - name: Check if author specifed Old Dot PR
+        id: old-dot-pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            const pullRequest = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: env.PULL_REQUEST_NUMBER,
+            });
+            
+            const body = pullRequest.data.body;
+            const regex = /MOBILE-EXPENSIFY:(?<prNumber>.*)/;
+            const found = body.match(regex)?.groups?.prNumber || "";
+
+            return found.trim();
+
+  getOldDotBranchRef:
+      runs-on: ubuntu-latest
+      needs: getOldDotPR
+      if: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
+      outputs:
+        OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
+      steps:
+        - name: Check if pull request number is correct
+          id: getHeadRef
+          run: |
+            set -e
+            echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 
   postGitHubCommentBuildStarted:
     runs-on: ubuntu-latest
@@ -84,7 +122,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    needs: [validateActor, getBranchRef]
+    needs: [validateActor, getBranchRef, getOldDotBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     outputs:
@@ -100,15 +138,16 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env: 
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
         run: |
           git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
 
+      - name: Checkout Old Dot to author specified branch or commit
+        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch
+          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+      
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -194,11 +233,11 @@ jobs:
         
   iosHybrid:
     name: Build and deploy iOS for testing
-    needs: [validateActor, getBranchRef]
+    needs: [validateActor, getBranchRef, getOldDotBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+    runs-on: macos-15-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -210,14 +249,15 @@ jobs:
           fetch-depth: 0
 
       - name: Update submodule to match main
-        env: 
-          OLD_DOT_COMMIT: ${{ env.OLD_DOT_COMMIT }}
         run: |
           git submodule update --init --remote
-          if [[ -z "$OLD_DOT_COMMIT" ]]; then
-            git fetch
-            git checkout ${{ env.OLD_DOT_COMMIT }} 
-          fi 
+
+      - name: Checkout Old Dot to author specified branch or commit
+        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch
+          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -235,7 +275,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
     
