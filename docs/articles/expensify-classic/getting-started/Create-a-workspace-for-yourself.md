@@ -74,7 +74,8 @@ Automatically capture receipt details like merchant, date, total, and currency w
 3. Enter details (e.g., trip distance, work time, or receipt info).
 4. Tap **Save**.
 
-More details on adding expenses can be found [here](https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense). 
+**More details on adding expenses can be found [here](https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense).**
+
 ---
 # 5. Connect Your Expense Accounts
 [Sync your bank accounts and credit cards](https://help.expensify.com/expensify-classic/hubs/connect-credit-cards/) to import transactions into Expensify. This feature automatically:
