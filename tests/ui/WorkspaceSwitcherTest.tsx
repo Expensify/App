@@ -2,10 +2,10 @@ import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import type Navigation from '@libs/Navigation/Navigation';
-import * as AppActions from '@userActions/App';
-import * as User from '@userActions/User';
+import {setSidebarLoaded} from '@userActions/App';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
@@ -38,7 +38,7 @@ async function signInAndGetApp(): Promise<void> {
     render(<App />);
     await waitForBatchedUpdatesWithAct();
 
-    const hintText = Localize.translateLocal('loginForm.loginForm');
+    const hintText = translateLocal('loginForm.loginForm');
     const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);
 
@@ -47,10 +47,10 @@ async function signInAndGetApp(): Promise<void> {
     });
     await waitForBatchedUpdatesWithAct();
 
-    User.subscribeToUserEvents();
+    subscribeToUserEvents();
     await waitForBatchedUpdates();
 
-    AppActions.setSidebarLoaded();
+    setSidebarLoaded();
 
     await waitForBatchedUpdatesWithAct();
 }

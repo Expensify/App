@@ -8,16 +8,16 @@ import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
+import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
 import FontUtils from '@styles/utils/FontUtils';
-import * as AppActions from '@userActions/App';
-import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
+import {setSidebarLoaded} from '@userActions/App';
+import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@userActions/Report';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +48,7 @@ beforeEach(() => {
 });
 
 function scrollUpToRevealNewMessagesBadge() {
-    const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
+    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -69,7 +69,7 @@ function scrollUpToRevealNewMessagesBadge() {
 }
 
 function isNewMessagesBadgeVisible(): boolean {
-    const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
+    const hintText = translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
     const badgeProps = badge?.props as {style: ViewStyle};
     const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
@@ -78,7 +78,7 @@ function isNewMessagesBadgeVisible(): boolean {
 }
 
 function navigateToSidebar(): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
+    const hintText = translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     if (reportHeaderBackButton) {
         fireEvent(reportHeaderBackButton, 'press');
@@ -87,7 +87,7 @@ function navigateToSidebar(): Promise<void> {
 }
 
 function areYouOnChatListScreen(): boolean {
-    const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
+    const hintText = translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
 
     return !sidebarLinks?.at(0)?.props?.accessibilityElementsHidden;
@@ -112,7 +112,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
-            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
@@ -122,7 +122,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
             return waitForBatchedUpdatesWithAct();
         })
         .then(() => {
-            User.subscribeToUserEvents();
+            subscribeToUserEvents();
             return waitForBatchedUpdates();
         })
         .then(async () => {
@@ -144,7 +144,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
-            const createdReportActionID = NumberUtils.rand64().toString();
+            const createdReportActionID = rand64().toString();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -179,7 +179,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            AppActions.setSidebarLoaded();
+            setSidebarLoaded();
             return waitForBatchedUpdatesWithAct();
         });
 }
@@ -204,17 +204,17 @@ describe('Unread Indicators', () => {
                 expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(1);
 
                 // And that the text is bold
-                const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
                 expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
@@ -224,15 +224,15 @@ describe('Unread Indicators', () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
-                const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
+                const welcomeMessageHintText = translateLocal('accessibilityHints.chatWelcomeMessage');
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
                 expect(createdAction).toBeTruthy();
-                const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
+                const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -248,7 +248,7 @@ describe('Unread Indicators', () => {
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             })
@@ -271,7 +271,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
@@ -279,7 +279,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
@@ -292,8 +292,8 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
-                const createdReportActionID = NumberUtils.rand64();
-                const commentReportActionID = NumberUtils.rand64();
+                const createdReportActionID = rand64();
+                const commentReportActionID = rand64();
                 PusherHelper.emitOnyxUpdate([
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
@@ -349,11 +349,11 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(2);
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
-                const displayNameHintTexts = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
@@ -371,7 +371,7 @@ describe('Unread Indicators', () => {
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
@@ -387,12 +387,12 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
+                markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -405,7 +405,7 @@ describe('Unread Indicators', () => {
             .then(navigateToSidebar)
             .then(() => {
                 // Verify the report is marked as unread in the sidebar
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
@@ -417,7 +417,7 @@ describe('Unread Indicators', () => {
             .then(() => navigateToSidebar())
             .then(() => {
                 // Verify the report is now marked as read
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
@@ -427,7 +427,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -447,16 +447,16 @@ describe('Unread Indicators', () => {
             })
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             }));
@@ -471,7 +471,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -480,16 +480,16 @@ describe('Unread Indicators', () => {
             })
             .then(() => navigateToSidebarOption(0))
             .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
+                markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -515,12 +515,12 @@ describe('Unread Indicators', () => {
                 .then(() => navigateToSidebarOption(0))
                 .then(() => {
                     // Leave a comment as the current user
-                    Report.addComment(REPORT_ID, 'Current User Comment 1');
+                    addComment(REPORT_ID, 'Current User Comment 1');
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
-                    lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+                    lastReportAction = reportActions ? lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: getReportActionText(lastReportAction),
                         lastActorAccountID: lastReportAction?.actorAccountID,
@@ -530,7 +530,7 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
-                    const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
 
@@ -538,12 +538,12 @@ describe('Unread Indicators', () => {
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
                     if (lastReportAction) {
-                        Report.deleteReportComment(REPORT_ID, lastReportAction);
+                        deleteReportComment(REPORT_ID, lastReportAction);
                     }
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
@@ -560,29 +560,29 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        Report.addComment(REPORT_ID, 'Comment 1');
+        addComment(REPORT_ID, 'Comment 1');
 
         await waitForBatchedUpdates();
 
-        const firstNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+        const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            Report.markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
+            markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
 
             await waitForBatchedUpdates();
 
-            Report.addComment(REPORT_ID, 'Comment 2');
+            addComment(REPORT_ID, 'Comment 2');
 
             await waitForBatchedUpdates();
 
-            Report.deleteReportComment(REPORT_ID, firstNewReportAction);
+            deleteReportComment(REPORT_ID, firstNewReportAction);
 
             await waitForBatchedUpdates();
         }
 
-        const secondNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+        const secondNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
-        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(1);
         const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -595,7 +595,7 @@ describe('Unread Indicators', () => {
         // Given a read report
         await signInAndGetAppWithUnreadChat();
 
-        Report.readNewestAction(REPORT_ID, true);
+        readNewestAction(REPORT_ID, true);
 
         await waitForBatchedUpdates();
 
@@ -607,7 +607,7 @@ describe('Unread Indicators', () => {
         });
 
         // Then the new line indicator shouldn't be displayed
-        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });

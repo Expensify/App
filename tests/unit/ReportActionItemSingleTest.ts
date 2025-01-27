@@ -1,5 +1,6 @@
 import {screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -46,7 +47,7 @@ describe('ReportActionItemSingle', () => {
             const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
-            const faceAccountId = fakeReportAction.actorAccountID ?? -1;
+            const faceAccountId = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const fakePersonalDetails: PersonalDetailsList = {
                 [faceAccountId]: {
                     accountID: faceAccountId,

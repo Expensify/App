@@ -2,7 +2,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {act} from 'react-test-renderer';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
@@ -26,7 +26,7 @@ TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
-    const hintText = Localize.translateLocal('sidebarScreen.buttonMySettings');
+    const hintText = translateLocal('sidebarScreen.buttonMySettings');
     const mySettingButton = screen.queryByAccessibilityHint(hintText);
     if (mySettingButton) {
         fireEvent(mySettingButton, 'press');
@@ -35,7 +35,7 @@ function navigateToSetting() {
 }
 
 function navigateToExpensifyClassicFlow() {
-    const hintText = Localize.translateLocal('exitSurvey.goToExpensifyClassic');
+    const hintText = translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
         fireEvent(switchToExpensifyClassicBtn, 'press');
@@ -48,7 +48,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
-            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
@@ -80,13 +80,13 @@ describe('Switch to Expensify Classic flow', () => {
 
     test('Should navigate to BookACall when dismissed is false', () => {
         signInAppAndEnterTestFlow(false).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
+            expect(screen.getAllByText(translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
         });
     });
 
     test('Should navigate to ConfirmPage when dismissed is true', () => {
         signInAppAndEnterTestFlow(true).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
+            expect(screen.getAllByText(translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
         });
     });
 });

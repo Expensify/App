@@ -1,6 +1,7 @@
+/* eslint-disable-next-line no-restricted-syntax */
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
+import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
     readFileAsync: jest.fn(),
@@ -297,22 +298,22 @@ describe('TagsOptionsListUtils', () => {
             },
         ];
 
-        const smallResult = TagsOptionsListUtils.getTagListSections({searchValue: emptySearch, tags: smallTagsList});
+        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList});
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: search, tags: smallTagsList});
+        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
+        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = TagsOptionsListUtils.getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags});
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags});
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = TagsOptionsListUtils.getTagListSections({
+        const largeWrongSearchResult = getTagListSections({
             searchValue: wrongSearch,
             selectedOptions,
             tags: largeTagsList,
@@ -328,13 +329,13 @@ describe('TagsOptionsListUtils', () => {
         const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
         const unorderedTags = createTagObjects(unorderedTagNames);
         const expectedOrder = createTagObjects(expectedOrderNames);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags)).toStrictEqual(expectedOrder);
+        expect(sortTags(unorderedTags)).toStrictEqual(expectedOrder);
 
         const unorderedTagNames2 = ['0', 'a1', '1', 'b1', '3', '10', 'b10', 'a', '2', 'c', '20', 'a20', 'b'];
         const expectedOrderNames2 = ['0', '1', '10', '2', '20', '3', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
         const unorderedTags2 = createTagObjects(unorderedTagNames2);
         const expectedOrder2 = createTagObjects(expectedOrderNames2);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
+        expect(sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
 
         const unorderedTagNames3 = [
             '61',
@@ -542,7 +543,7 @@ describe('TagsOptionsListUtils', () => {
         ];
         const unorderedTags3 = createTagObjects(unorderedTagNames3);
         const expectedOrder3 = createTagObjects(expectedOrderNames3);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
+        expect(sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
     });
 
     it('sortTags by object works the same', () => {
@@ -566,7 +567,7 @@ describe('TagsOptionsListUtils', () => {
             },
         };
 
-        const sorted = TagsOptionsListUtils.sortTags(tagsObject.tags);
+        const sorted = sortTags(tagsObject.tags);
         expect(Array.isArray(sorted)).toBe(true);
         // Expect to be sorted alphabetically
         expect(sorted.at(0)?.name).toBe('Car');

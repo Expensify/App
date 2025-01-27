@@ -1,5 +1,6 @@
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+// eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';

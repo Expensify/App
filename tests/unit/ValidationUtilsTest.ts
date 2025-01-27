@@ -1,5 +1,5 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import * as ValidationUtils from '@src/libs/ValidationUtils';
 
@@ -192,7 +192,7 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
-                Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
+                translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
 
@@ -200,14 +200,14 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
-                Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
+                translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
 
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toBe(Localize.translateLocal('common.error.dateInvalid'));
+            expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
 

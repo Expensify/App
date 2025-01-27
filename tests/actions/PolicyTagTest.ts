@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import * as Tag from '@userActions/Policy/Tag';
+import {createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTaglist, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
-import * as TestHelper from '../utils/TestHelper';
+import {getGlobalFetchMock} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -24,7 +24,7 @@ describe('actions/Policy', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
@@ -38,7 +38,7 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Tag.setPolicyRequiresTag(fakePolicy.id, true);
+                    setPolicyRequiresTag(fakePolicy.id, true);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -85,7 +85,7 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
+                    setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -133,7 +133,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     mockFetch?.fail?.();
-                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
+                    setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
 
@@ -174,7 +174,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.renamePolicyTaglist(
+                    renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
@@ -242,7 +242,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.renamePolicyTaglist(
+                    renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
@@ -292,7 +292,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.createPolicyTag(fakePolicy.id, newTagName);
+                    createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -354,7 +354,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.createPolicyTag(fakePolicy.id, newTagName);
+                    createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -401,7 +401,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -474,7 +474,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -520,7 +520,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.renamePolicyTag(
+                    renamePolicyTag(
                         fakePolicy.id,
                         {
                             oldName: oldTagName ?? '',
@@ -590,7 +590,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.renamePolicyTag(
+                    renamePolicyTag(
                         fakePolicy.id,
                         {
                             oldName: oldTagName,
@@ -639,7 +639,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -699,7 +699,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
