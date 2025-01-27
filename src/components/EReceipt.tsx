@@ -92,17 +92,16 @@ function EReceipt({transaction, transactionID, isThumbnail = false}: EReceiptPro
                     resizeMode="cover"
                 />
                 <View style={[styles.p4, styles.w100]}>
-                    <View>
+                    <View style={[styles.eReceiptBackgroundThumbnail]}>
                         <ImageSVG
-                            src={Expensicons.Incors}
-                            width={"100%"}
+                            src={Expensicons.ReceiptBody}
                             fill={theme.white}
                         />
                     </View>
-                    <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter, styles.pt3]}>
                         <View
                             style={[
-                                StyleUtils.getWidthAndHeightStyle(72, 72),
+                                StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconWidth),
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
                                 styles.borderRadiusComponentLarge,
@@ -169,13 +168,6 @@ function EReceipt({transaction, transactionID, isThumbnail = false}: EReceiptPro
                                 </View>
                             </View>
                         </View>
-                    </View>
-                    <View>
-                        <ImageSVG
-                            src={Expensicons.Incors2}
-                            width={"100%"}
-                            fill={theme.white}
-                        />
                     </View>
                 </View>
             </View>

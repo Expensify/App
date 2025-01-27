@@ -211,11 +211,14 @@ import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 import Incors from '@assets/images/incors.svg';
 import Incors2 from '@assets/images/invert-incors.svg';
+import ReceiptBody from '@assets/images/receipt-body.svg';
+
 
 
 export {
     Incors,
     Incors2,
+    ReceiptBody,
     ActiveRoomAvatar,
     AddReaction,
     AdminRoomAvatar,
