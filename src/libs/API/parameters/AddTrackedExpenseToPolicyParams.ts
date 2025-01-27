@@ -11,6 +11,9 @@ type AddTrackedExpenseToPolicyParams = {
     taxCode: string;
     taxAmount: number;
     billable: boolean | undefined;
+    receipt: Receipt | undefined;
+    waypoints?: string;
+    customUnitRateID?: string;
     policyID: string;
     transactionID: string;
     actionableWhisperReportActionID: string;
@@ -19,7 +22,6 @@ type AddTrackedExpenseToPolicyParams = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
-    receipt: Receipt | undefined;
 };
 
 export default AddTrackedExpenseToPolicyParams;

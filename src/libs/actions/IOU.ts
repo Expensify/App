@@ -365,6 +365,8 @@ type RequestMoneyInformation = {
     action?: IOUAction;
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
+    validWaypoints?: WaypointCollection;
+    customUnitRateID?: string;
 };
 
 type MoneyRequestInformationParams = {
@@ -4133,6 +4135,8 @@ type ConvertTrackedWorkspaceParams = {
     billable: boolean | undefined;
     policyID: string;
     receipt: Receipt | undefined;
+    waypoints?: string;
+    customUnitRateID?: string;
 };
 
 type AddTrackedExpenseToPolicyParam = {
@@ -4346,7 +4350,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, validWaypoints, customUnitRateID} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const {
         amount,
@@ -4365,6 +4369,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
     } = transactionParams;
+
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -4405,7 +4411,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             }
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
-                    ? {receipt: receipt instanceof Blob ? receipt : undefined, category, tag, taxCode, taxAmount, billable, policyID: chatReport.policyID}
+                    ? {
+                          receipt: receipt instanceof Blob ? receipt : undefined,
+                          category,
+                          tag,
+                          taxCode,
+                          taxAmount,
+                          billable,
+                          policyID: chatReport.policyID,
+                          waypoints: sanitizedWaypoints,
+                          customUnitRateID,
+                      }
                     : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
