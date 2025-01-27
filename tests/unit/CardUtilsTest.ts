@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as CardUtils from '@src/libs/CardUtils';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -11,6 +12,17 @@ const longDateSlashed = '09/2024';
 const longDateHyphen = '09-2024';
 const expectedMonth = '09';
 const expectedYear = '2024';
+
+const directFeedBanks = [
+    CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.BREX,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO,
+];
 
 const companyCardsCustomFeedSettings = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
@@ -232,14 +244,43 @@ describe('CardUtils', () => {
     });
 
     describe('isCustomFeed', () => {
-        it('Should return true for the custom feed', () => {
+        it('Should return true for the custom visa feed with no number', () => {
             const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const isCustomFeed = CardUtils.isCustomFeed(customFeed);
             expect(isCustomFeed).toBe(true);
         });
 
-        it('Should return false for the direct feed', () => {
-            const directFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+        it('Should return true for the custom visa feed with a number', () => {
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1` as CompanyCardFeedWithNumber;
+            const isCustomFeed = CardUtils.isCustomFeed(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the custom mastercard feed with no number', () => {
+            const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
+            const isCustomFeed = CardUtils.isCustomFeed(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the custom mastercard feed with a number', () => {
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}3` as CompanyCardFeedWithNumber;
+            const isCustomFeed = CardUtils.isCustomFeed(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the custom amex feed with no number', () => {
+            const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const isCustomFeed = CardUtils.isCustomFeed(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the custom amex feed with a number', () => {
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2` as CompanyCardFeedWithNumber;
+            const isCustomFeed = CardUtils.isCustomFeed(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        test.each(directFeedBanks)('Should return false for the direct feed %s', (directFeed) => {
             const isCustomFeed = CardUtils.isCustomFeed(directFeed);
             expect(isCustomFeed).toBe(false);
         });

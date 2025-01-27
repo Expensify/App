@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -363,7 +362,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
         for (const tag of Object.values(policyTagList.tags ?? {})) {
-            uniqueTagNames.add(getCleanedTagName(tag.name));
+            uniqueTagNames.add(tag.name);
         }
     }
     return Array.from(uniqueTagNames);
@@ -1146,10 +1145,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
-    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
-}
-
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1233,7 +1228,6 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     shouldShowSyncError,
-    hasPolicyFeedsError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
