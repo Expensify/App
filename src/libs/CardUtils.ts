@@ -437,9 +437,9 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
     const cards = {};
-    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+    for (const [key, values] of Object.entries(allCardList ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
             Object.assign(cards, rest);
