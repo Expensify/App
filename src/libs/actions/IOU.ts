@@ -4785,7 +4785,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
 
     // Check if the report is available locally if we do have one
     const existingSplitChatOnyxData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    let existingSplitChatReport = existingChatReportID ? existingSplitChatOnyxData && {...existingSplitChatOnyxData} : null;
+    let existingSplitChatReport = existingChatReportID && existingSplitChatOnyxData ? {...existingSplitChatOnyxData} : undefined;
 
     const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
     if (!existingSplitChatReport) {
