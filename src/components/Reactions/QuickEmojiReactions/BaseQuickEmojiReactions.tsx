@@ -6,8 +6,8 @@ import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as Session from '@userActions/Session';
+import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
+import {callFnIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './types';
@@ -28,14 +28,14 @@ function BaseQuickEmojiReactions({
         <View style={styles.quickReactionsContainer}>
             {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
                 <Tooltip
-                    text={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
+                    text={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
                     key={emoji.name}
                 >
                     <View>
                         <EmojiReactionBubble
-                            emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, preferredSkinTone)]}
+                            emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={Session.callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                            onPress={callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                         />
                     </View>
                 </Tooltip>
