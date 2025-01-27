@@ -1491,8 +1491,8 @@ const ROUTES = {
     },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
-        route: 'travel/terms/:domain',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}`, backTo),
+        route: 'travel/terms/:domain/accept',
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
     },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
@@ -1506,8 +1506,8 @@ const ROUTES = {
     },
     TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
     TRAVEL_DOMAIN_PERMISSION_INFO: {
-        route: 'travel/domain-permission-info/:domain',
-        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission-info/${domain}`, backTo),
+        route: 'travel/domain-permission/:domain/info',
+        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
     TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     ONBOARDING_ROOT: {
