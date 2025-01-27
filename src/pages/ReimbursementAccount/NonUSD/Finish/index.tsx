@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -21,12 +21,12 @@ function Finish() {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
 
     return (
         <ScreenWrapper
@@ -65,7 +65,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID)));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                             },
                             icon: Expensicons.Shield,
                             shouldShowRightIcon: true,

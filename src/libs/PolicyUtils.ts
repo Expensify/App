@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -211,17 +210,17 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 
 /**
  * Check if the policy can be displayed
- * If offline, always show the policy pending deletion.
- * If online, show the policy pending deletion only if there is an error.
+ * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
+ * If shouldShowPendingDeletePolicy is false, show the policy pending deletion only if there is an error.
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
             policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
 }
@@ -363,7 +362,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
         for (const tag of Object.values(policyTagList.tags ?? {})) {
-            uniqueTagNames.add(getCleanedTagName(tag.name));
+            uniqueTagNames.add(tag.name);
         }
     }
     return Array.from(uniqueTagNames);
@@ -1146,10 +1145,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
-    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
-}
-
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1170,7 +1165,9 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
-    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+    return (
+        !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
@@ -1233,7 +1230,6 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     shouldShowSyncError,
-    hasPolicyFeedsError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
