@@ -1,7 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,6 +35,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
 
@@ -106,6 +108,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
 
                     NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    setRootStatusBarEnabled(false);
                 }}
                 pressOnEnter
             />
