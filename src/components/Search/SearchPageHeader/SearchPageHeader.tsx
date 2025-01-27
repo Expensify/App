@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -302,6 +302,57 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
         styles.textWrap,
     ]);
 
+    const onFiltersButtonPress = useCallback(() => {
+        hideProductTrainingTooltip();
+        const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        updateAdvancedFilters(filterFormValues);
+
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+
+    const InputRightComponent = useMemo(() => {
+        return headerButtonsOptions.length > 0 ? (
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
+                options={headerButtonsOptions}
+                isSplitButton={false}
+                shouldUseStyleUtilityForAnchorPosition
+            />
+        ) : (
+            <EducationalTooltip
+                shouldRender={shouldShowProductTrainingTooltip}
+                anchorAlignment={{
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                }}
+                shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                renderTooltipContent={renderProductTrainingTooltip}
+                onTooltipPress={onFiltersButtonPress}
+            >
+                <Button
+                    innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}
+                    icon={Expensicons.Filters}
+                    onPress={onFiltersButtonPress}
+                />
+            </EducationalTooltip>
+        );
+    }, [
+        headerButtonsOptions,
+        onFiltersButtonPress,
+        renderProductTrainingTooltip,
+        selectedTransactionsKeys.length,
+        shouldShowProductTrainingTooltip,
+        styles.bgTransparent,
+        styles.borderNone,
+        styles.productTrainingTooltipWrapper,
+        styles.searchRouterInputResults,
+        translate,
+    ]);
+
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
         return (
             <View>
@@ -343,51 +394,14 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
         );
     }
 
-    const onFiltersButtonPress = () => {
-        hideProductTrainingTooltip();
-        const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-        updateAdvancedFilters(filterFormValues);
-
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    };
-
     return (
         <>
             <SearchPageHeaderInput
                 searchRouterListVisible={searchRouterListVisible}
                 onSearchRouterFocus={onSearchRouterFocus}
                 queryJSON={queryJSON}
-            >
-                {headerButtonsOptions.length > 0 ? (
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        shouldUseStyleUtilityForAnchorPosition
-                    />
-                ) : (
-                    <EducationalTooltip
-                        shouldRender={shouldShowProductTrainingTooltip}
-                        anchorAlignment={{
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        }}
-                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
-                        wrapperStyle={styles.productTrainingTooltipWrapper}
-                        renderTooltipContent={renderProductTrainingTooltip}
-                        onTooltipPress={onFiltersButtonPress}
-                    >
-                        <Button
-                            innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}
-                            icon={Expensicons.Filters}
-                            onPress={onFiltersButtonPress}
-                        />
-                    </EducationalTooltip>
-                )}
-            </SearchPageHeaderInput>
+                inputRightComponent={InputRightComponent}
+            />
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}

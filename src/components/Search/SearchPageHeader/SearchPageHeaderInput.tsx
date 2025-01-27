@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isCannedSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,10 +42,10 @@ type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     searchRouterListVisible?: boolean;
     onSearchRouterFocus?: () => void;
-    children: React.ReactNode;
+    inputRightComponent: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, children}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, inputRightComponent}: SearchPageHeaderInputProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
@@ -56,13 +56,13 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
 
     // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isCannedQuery ? '' : queryText);
+    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isCannedQuery ? '' : queryText);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
@@ -87,12 +87,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         }
 
         registerSearchPageInput(textInputRef.current);
-    }, [isCannedQuery, isFocused, registerSearchPageInput, displayNarrowHeader]);
+    }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
-        setTextInputValue(isCannedQuery ? '' : queryText);
-        setAutocompleteQueryValue(isCannedQuery ? '' : queryText);
-    }, [isCannedQuery, queryText]);
+        setTextInputValue(isDefaultQuery ? '' : queryText);
+        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
+    }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
@@ -191,7 +191,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
           }
         : undefined;
 
-    const inputRowWidth = useSharedValue(0);
     const animatedPadding = useDerivedValue(() => {
         return withTiming(searchRouterListVisible ? 0 : 52, {duration: ANIMATION_DURATION});
     }, [searchRouterListVisible]);
@@ -208,12 +207,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                 style={[styles.flex1]}
             >
                 <View style={[styles.appBG, styles.flex1]}>
-                    <View
-                        style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: 52}]}
-                        onLayout={(event) => {
-                            inputRowWidth.set(event.nativeEvent.layout.width);
-                        }}
-                    >
+                    <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
                         <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyleTest]}>
                             <SearchRouterInput
                                 value={textInputValue}
@@ -229,7 +223,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                                 }}
                                 wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                                 wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                                rightComponent={children}
+                                rightComponent={inputRightComponent}
                                 routerListRef={listRef}
                                 ref={textInputRef}
                             />
@@ -295,7 +289,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                     wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                    rightComponent={children}
+                    rightComponent={inputRightComponent}
                     routerListRef={listRef}
                     ref={textInputRef}
                 />
