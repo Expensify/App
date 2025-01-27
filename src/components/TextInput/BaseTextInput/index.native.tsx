@@ -17,12 +17,12 @@ import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -60,12 +60,15 @@ function BaseTextInput(
         multiline = false,
         autoCorrect = true,
         prefixCharacter = '',
+        suffixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
+        suffixContainerStyle = [],
+        suffixStyle = [],
         contentWidth,
         loadingSpinnerStyle,
         ...props
@@ -86,7 +89,7 @@ function BaseTextInput(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
-    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
     const isMultiline = multiline || autoGrowHeight;
 
     const [isFocused, setIsFocused] = useState(false);
@@ -100,18 +103,16 @@ function BaseTextInput(
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
-    // AutoFocus which only works on mount:
+    useHtmlPaste(input, undefined, isMarkdownEnabled);
+
+    // AutoFocus with delay is executed manually, otherwise it's handled by the TextInput's autoFocus native prop
     useEffect(() => {
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
+        if (!autoFocus || !shouldDelayFocus || !input.current) {
             return;
         }
 
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
-        input.current.focus();
+        const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(focusTimeout);
         // We only want this to run on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -138,13 +139,13 @@ function BaseTextInput(
     const deactivateLabel = useCallback(() => {
         const inputValue = value ?? '';
 
-        if (!!forceActiveLabel || inputValue.length !== 0 || prefixCharacter) {
+        if (!!forceActiveLabel || inputValue.length !== 0 || prefixCharacter || suffixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
+    }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         inputProps.onFocus?.(event);
@@ -247,7 +248,7 @@ function BaseTextInput(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
-    const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
@@ -260,7 +261,10 @@ function BaseTextInput(
     ]);
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
+    // Height fix is needed only for Text single line inputs
+    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
     return (
         <>
             <View style={[containerStyles]}>
@@ -302,7 +306,7 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
@@ -338,6 +342,7 @@ function BaseTextInput(
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={theme.placeholderText}
@@ -348,9 +353,12 @@ function BaseTextInput(
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
+                                    inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    !isMultiline && {height, lineHeight: undefined},
+                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                    // once it exceeds the input space on iOS (See https://github.com/Expensify/App/issues/13802)
+                                    shouldApplyHeight && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -369,7 +377,7 @@ function BaseTextInput(
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
-                                keyboardType={getSecureEntryKeyboardType(inputProps.keyboardType, inputProps.secureTextEntry ?? false, passwordHidden ?? false)}
+                                keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
                                 value={value}
                                 selection={inputProps.selection}
@@ -377,6 +385,17 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
+                            {!!suffixCharacter && (
+                                <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
+                                    <Text
+                                        tabIndex={-1}
+                                        style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        {suffixCharacter}
+                                    </Text>
+                                </View>
+                            )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator

@@ -35,10 +35,13 @@ type IssueNewCardFlowData = {
 
     /** Data required to be sent to issue a new card */
     data?: Partial<IssueNewCardData>;
+
+    /** ID of the policy */
+    policyID: string | undefined;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
-    const cardID = card?.cardID ?? -1;
+    const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -57,7 +60,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: null,
             },
@@ -94,7 +97,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     ...card,
@@ -381,19 +384,19 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step, errors: null});
+function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
 }
 
-function clearIssueNewCardFlow() {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+function clearIssueNewCardFlow(policyID: string | undefined) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
     });
 }
 
-function clearIssueNewCardError(issueNewCard: IssueNewCardFlowData) {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {...issueNewCard, errors: null});
+function clearIssueNewCardError(policyID: string | undefined) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
@@ -610,7 +613,7 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 
 function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
-    const cardID = card?.cardID ?? -1;
+    const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
 
     if (!authToken) {
         return;
@@ -664,7 +667,7 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
-function startIssueNewCardFlow(policyID: string) {
+function startIssueNewCardFlow(policyID: string | undefined) {
     const parameters: StartIssueNewCardFlowParams = {
         policyID,
     };
@@ -725,7 +728,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -735,7 +738,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -747,7 +750,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -758,7 +761,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -875,7 +878,11 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
-function updateSelectedFeed(feed: CompanyCardFeed, policyID: string) {
+function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.MERGE,

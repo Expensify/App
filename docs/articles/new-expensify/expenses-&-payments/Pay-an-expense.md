@@ -28,6 +28,8 @@ To pay an expense,
 {% include end-option.html %}
 {% include end-selector.html %}
 
+![Click Pay Button]({{site.url}}/assets/images/Reports_PayExpense_02.png){:width="100%"}
+
 # Pay back friends and family
 
 You'll need to [set up your wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet) to send and receive personal payments within Expensify. The wallet is currently available to customers in the US-only.

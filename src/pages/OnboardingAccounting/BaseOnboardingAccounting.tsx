@@ -18,13 +18,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
+import {completeOnboarding} from '@libs/actions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -44,7 +44,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
@@ -53,6 +53,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
@@ -60,16 +61,26 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     useEffect(() => {
-        const filteredPolicies = Object.values(allPolicies ?? {}).filter(PolicyUtils.isPaidGroupPolicy);
-        if (!isVsb || filteredPolicies.length > 0 || isLoadingOnyxValue(allPoliciesResult)) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isVsb || paidGroupPolicy || isLoadingOnyxValue(allPoliciesResult)) {
             return;
         }
 
-        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-        Welcome.setOnboardingPolicyID(policyID);
-    }, [isVsb, allPolicies, allPoliciesResult]);
+        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        setOnboardingAdminsChatReportID(adminsChatReportID);
+        setOnboardingPolicyID(policyID);
+    }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
+
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
+    useEffect(() => {
+        if (!paidGroupPolicy || onboardingPolicyID) {
+            return;
+        }
+        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
+        setOnboardingPolicyID(paidGroupPolicy.id);
+    }, [paidGroupPolicy, onboardingPolicyID]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
@@ -156,7 +167,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         return;
                     }
 
-                    Report.completeOnboarding(
+                    completeOnboarding(
                         onboardingPurposeSelected,
                         CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                         undefined,
@@ -169,10 +180,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     );
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
-                        Welcome.setOnboardingAdminsChatReportID();
-                        Welcome.setOnboardingPolicyID();
+                        setOnboardingAdminsChatReportID();
+                        setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
+                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
                 }}
                 pressOnEnter
             />
@@ -187,7 +198,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={75}
+                progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
             <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>

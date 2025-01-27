@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
+import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Text from '@components/Text';
@@ -22,19 +23,14 @@ type TopBarProps = {
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayCancelSearch?: boolean;
-
-    /**
-     * Callback used to keep track of the workspace switching process in the BaseSidebarScreen.
-     * Passed to the WorkspaceSwitcherButton component.
-     */
-    onSwitchWorkspace?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false, onSwitchWorkspace}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
@@ -53,10 +49,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
-                    <WorkspaceSwitcherButton
-                        policy={policy}
-                        onSwitchWorkspace={onSwitchWorkspace}
-                    />
+                    <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs
@@ -83,6 +76,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 )}
                 {displaySearch && <SearchButton />}
             </View>
+            <LoadingBar shouldShow={isLoadingReportData ?? false} />
         </View>
     );
 }

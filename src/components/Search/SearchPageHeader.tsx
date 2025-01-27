@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,17 +9,26 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
+import {
+    approveMoneyRequestOnSearch,
+    deleteMoneyRequestOnSearch,
+    exportSearchItemsToCSV,
+    payMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+    updateAdvancedFilters,
+} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getAllTaxRates, hasVBBA} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -47,7 +57,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -56,7 +68,23 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
+    );
+
     const {status, hash} = queryJSON;
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -66,7 +94,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         }
 
         setIsDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+        deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
@@ -106,7 +134,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                 },
             });
         }
@@ -145,9 +173,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                             return;
                         }
 
-                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
+                        const hasPolicyVBBA = hasVBBA(policyID);
 
-                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
+                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
                             return;
                         }
@@ -163,7 +191,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                               }))
                     ) as PaymentData[];
 
-                    SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
                 },
             });
         }
@@ -180,8 +208,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 }
 
                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                SearchActions.exportSearchItemsToCSV(
-                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
+                exportSearchItemsToCSV(
+                    {
+                        query: status,
+                        jsonQuery: JSON.stringify(queryJSON),
+                        reportIDList,
+                        transactionIDList: selectedTransactionsKeys,
+                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                    },
                     () => {
                         setIsDownloadErrorModalVisible(true);
                     },
@@ -222,7 +256,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         return;
                     }
 
-                    SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
         }
@@ -265,20 +299,20 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         return options;
     }, [
-        queryJSON,
-        status,
         selectedTransactionsKeys,
         selectedTransactions,
+        isOffline,
+        selectedReports,
         translate,
         hash,
+        lastPaymentMethods,
+        status,
+        queryJSON,
+        activeWorkspaceID,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        isOffline,
-        activeWorkspaceID,
-        selectedReports,
         styles.textWrap,
-        lastPaymentMethods,
     ]);
 
     if (shouldUseNarrowLayout) {
@@ -326,13 +360,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     }
 
     const onFiltersButtonPress = () => {
-        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
-        SearchActions.updateAdvancedFilters(filterFormValues);
+        hideProductTrainingTooltip();
+        const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
 
     return (
         <>
@@ -348,12 +383,24 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shouldUseStyleUtilityForAnchorPosition
                     />
                 ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onFiltersButtonPress}
-                    />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        anchorAlignment={{
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        }}
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                        onTooltipPress={onFiltersButtonPress}
+                    >
+                        <Button
+                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onFiltersButtonPress}
+                        />
+                    </EducationalTooltip>
                 )}
             </SearchPageHeaderInput>
             <ConfirmModal

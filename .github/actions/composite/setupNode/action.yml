@@ -1,6 +1,12 @@
 name: Set up Node
 description: Set up Node
 
+inputs:
+  IS_HYBRID_BUILD:
+    description: "Indicates if node is set up for hybrid app"
+    required: false
+    default: 'false'
+
 outputs:
   cache-hit:
     description: Was there a cache hit on the main node_modules?
@@ -25,7 +31,14 @@ runs:
       uses: actions/cache@v4
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json', 'patches/**') }}
+        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
+    
+    - id: cache-old-dot-node-modules
+      if: inputs.IS_HYBRID_BUILD == 'true'
+      uses: actions/cache@v4
+      with:
+        path: Mobile-Expensify/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
 
     - id: cache-desktop-node-modules
       uses: actions/cache@v4
@@ -33,8 +46,13 @@ runs:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
 
+    - name: Remove ND node_modules if needed for hybrid app build
+      if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: rm -rf node_modules
+
     - name: Install root project node packages
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      if:  steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
       uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30

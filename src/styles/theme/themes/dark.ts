@@ -81,7 +81,7 @@ const darkTheme = {
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
     tooltipHighlightBG: colors.green100,
-    tooltipHighlightText: colors.green500,
+    tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     trialBannerBackgroundColor: colors.green700,
@@ -95,6 +95,7 @@ const darkTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.

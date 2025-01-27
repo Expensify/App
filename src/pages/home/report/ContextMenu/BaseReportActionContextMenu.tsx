@@ -16,12 +16,21 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    chatIncludesChronosWithID,
+    getSourceIDFromReportAction,
+    isArchivedNonExpenseReport,
+    isArchivedNonExpenseReportWithID,
+    isInvoiceReport as ReportUtilsIsInvoiceReport,
+    isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
+    isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
+} from '@libs/ReportUtils';
 import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
-import * as Session from '@userActions/Session';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
@@ -131,11 +140,12 @@ function BaseReportActionContextMenu({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canEvict: false,
     });
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
+    const transactionID = getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
-    const policyID = ReportUtils.getReport(reportID)?.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policyID = report?.policyID;
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
@@ -146,23 +156,23 @@ function BaseReportActionContextMenu({
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
-    const sourceID = ReportUtils.getSourceIDFromReportAction(reportAction);
+    const sourceID = getSourceIDFromReportAction(reportAction);
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
-    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
-    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
+    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', paginatedReportActions ?? [], isOffline),
+        () => getOneTransactionThreadReportID(childReport?.reportID, paginatedReportActions ?? [], isOffline),
         [childReport?.reportID, paginatedReportActions, isOffline],
     );
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
-    const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(childReport), [childReport]);
-    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(childReport), [childReport]);
+    const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
+    const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -176,16 +186,19 @@ function BaseReportActionContextMenu({
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
+    const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
-    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
-    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
+    const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
+    const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
     const areHoldRequirementsMet =
-        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+        !isInvoiceReport &&
+        isMoneyRequestOrReport &&
+        !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? childReportNameValuePairs : parentReportNameValuePairs);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -240,11 +253,11 @@ function BaseReportActionContextMenu({
      * shows the sign in modal. Else, executes the callback.
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (Session.isAnonymousUser() && !isAnonymousAction) {
+        if (isAnonymousUser() && !isAnonymousAction) {
             hideContextMenu(false);
 
             InteractionManager.runAfterInteractions(() => {
-                Session.signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn();
             });
         } else {
             callback();
@@ -268,6 +281,7 @@ function BaseReportActionContextMenu({
         },
         {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
     );
+    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
         showContextMenu(
@@ -284,8 +298,8 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoomWithID(originalReportID),
-            ReportUtils.chatIncludesChronosWithID(originalReportID),
+            isArchivedNonExpenseReportWithID(originalReportID),
+            chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
             filteredContextMenuActions,
@@ -296,16 +310,16 @@ function BaseReportActionContextMenu({
         );
     };
 
-    const cardIssuedActionOriginalMessage = ReportActionsUtils.isActionOfType(
+    const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
         CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
     )
-        ? ReportActionsUtils.getOriginalMessage(reportAction)
+        ? getOriginalMessage(reportAction)
         : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
 
     return (
@@ -321,6 +335,7 @@ function BaseReportActionContextMenu({
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
+                            report,
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),

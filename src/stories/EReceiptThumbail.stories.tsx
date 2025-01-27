@@ -2,7 +2,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import {View} from 'react-native';
-import type {EReceiptThumbnailOnyxProps, EReceiptThumbnailProps} from '@components/EReceiptThumbnail';
+import type {EReceiptThumbnailProps} from '@components/EReceiptThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 
 type EReceiptThumbnailStory = StoryFn<typeof EReceiptThumbnail>;
@@ -17,7 +17,7 @@ const story: Meta<typeof EReceiptThumbnail> = {
     component: EReceiptThumbnail,
 };
 
-function Template(props: Omit<EReceiptThumbnailProps, keyof EReceiptThumbnailOnyxProps>) {
+function Template(props: EReceiptThumbnailProps) {
     return (
         <View style={{display: 'flex', flexDirection: 'column', gap: 12}}>
             <View>

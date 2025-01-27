@@ -7,6 +7,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
+import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
@@ -32,6 +33,7 @@ import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
@@ -42,6 +44,7 @@ import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
+import ChatBubbleSlash from '@assets/images/chatbubble-slash.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
@@ -187,6 +190,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -218,6 +222,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    ArrowsLeftRight,
     ArrowUpLong,
     ArrowDownLong,
     AttachmentNotFound,
@@ -234,6 +239,7 @@ export {
     Briefcase,
     Bug,
     Building,
+    Buildings,
     Calendar,
     Camera,
     Car,
@@ -387,6 +393,7 @@ export {
     Linkedin,
     Instagram,
     ChatBubbleAdd,
+    ChatBubbleSlash,
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
@@ -413,5 +420,6 @@ export {
     Star,
     QBDSquare,
     GalleryNotFound,
+    Train,
     boltSlash,
 };

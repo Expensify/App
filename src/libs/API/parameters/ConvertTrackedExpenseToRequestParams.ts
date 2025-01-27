@@ -1,5 +1,3 @@
-import type {Receipt} from '@src/types/onyx/Transaction';
-
 type ConvertTrackedExpenseToRequestParams = {
     amount: number;
     currency: string;
@@ -10,10 +8,9 @@ type ConvertTrackedExpenseToRequestParams = {
     chatReportID: string;
     transactionID: string;
     actionableWhisperReportActionID: string;
-    createdChatReportActionID: string;
-    receipt?: Receipt;
+    createdChatReportActionID?: string;
     moneyRequestReportID: string;
-    moneyRequestCreatedReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
     reportPreviewReportActionID: string;
 };

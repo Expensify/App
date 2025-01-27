@@ -13,10 +13,10 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as Link from './actions/Link';
+import {openTravelDotLink} from './actions/Link';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
-import * as PolicyUtils from './PolicyUtils';
+import {getPolicy} from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -50,7 +50,7 @@ Onyx.connect({
     },
 });
 
-function getTripReservationIcon(reservationType: ReservationType): IconAsset {
+function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return Expensicons.Plane;
@@ -58,16 +58,27 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
             return Expensicons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return Expensicons.CarWithKey;
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return Expensicons.Train;
         default:
             return Expensicons.Luggage;
     }
 }
 
-function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
+
+function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
-        .map((item) => item?.receipt?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+        .flatMap(
+            (item) =>
+                item?.receipt?.reservationList?.map((reservation, reservationIndex) => ({
+                    reservation,
+                    transactionID: item.transactionID,
+                    reportID: item.reportID,
+                    reservationIndex,
+                })) ?? [],
+        )
+        .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
 function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
@@ -89,9 +100,9 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    const policy = PolicyUtils.getPolicy(activePolicyID);
+    const policy = getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         return;
     }
     if (!travelSettings?.hasAcceptedTerms) {
@@ -101,7 +112,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     if (ctaErrorMessage) {
         setCtaErrorMessage('');
     }
-    Link.openTravelDotLink(activePolicyID)
+    openTravelDotLink(activePolicyID)
         ?.then(() => {
             if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                 return;
@@ -115,3 +126,4 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         });
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
+export type {ReservationData};

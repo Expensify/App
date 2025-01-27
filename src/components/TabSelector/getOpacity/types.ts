@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 
 /**
@@ -27,7 +28,7 @@ type GetOpacityConfig = {
     /**
      * Scene's position, value which we would like to interpolate.
      */
-    position: Animated.AnimatedInterpolation<number>;
+    position: Animated.AnimatedInterpolation<number> | undefined;
 
     /**
      * Whether the tab is active.
