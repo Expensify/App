@@ -10,6 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import User from '@src/types/onyx/User';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
@@ -34,6 +35,17 @@ Onyx.connect({
     },
 });
 
+let user: User;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+        user = value;
+    },
+});
+
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
@@ -55,6 +67,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    const isUserFromPublicDomain = user?.isFromPublicDomain;
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -64,8 +77,9 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-
-    if (!isPrivateDomain && (canUsePrivateDomainOnboardingCheck ?? false)) {
+    console.log('(canUsePrivateDomainOnboardingCheck ?? false) && isUserFromPublicDomain', (canUsePrivateDomainOnboardingCheck ?? false) && isUserFromPublicDomain);
+    console.log('canUsePrivateDomainOnboardingCheck', canUsePrivateDomainOnboardingCheck);
+    if ((true ?? false) && isUserFromPublicDomain) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 

@@ -25,16 +25,15 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
+    const workEmail = onboardingEmail?.onboardingWorkEmail;
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-
-    const email = session?.email ?? '';
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
@@ -56,11 +55,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             />
             <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={styles.textHeadlineH1}>{'Verify your work email'}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{'Please enter the magic code sent to <work email user is trying to verify>. It should arrive in a minute or two'}</Text>
+                <Text style={[styles.textAlignLeft, styles.mt5]}>{`Please enter the magic code sent to ${workEmail}. It should arrive in a minute or two`}</Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
-                        Session.MergeIntoAccountAndLogin('test@test.com', code, '123456');
+                        Session.MergeIntoAccountAndLogin(workEmail, code, session?.accountID);
                     }}
                     sendValidateCode={sendValidateCode}
                     clearError={() => {}}

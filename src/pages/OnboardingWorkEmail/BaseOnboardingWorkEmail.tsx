@@ -1,6 +1,6 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -54,23 +54,27 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const validatePrivateDomain = useCallback(
-        (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
-            Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
+    useEffect(() => {
+        if (onboardingValues?.shouldValidate === undefined) {
+            return;
+        }
 
-            if (onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
-                return;
-            }
+        if (onboardingValues.shouldValidate) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            return;
+        }
 
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-                return;
-            }
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
 
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-        },
-        [isVsb, onboardingValues],
-    );
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    }, [onboardingValues]);
+
+    const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
+        Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
+    }, []);
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
         if (!shouldValidateOnChange) {

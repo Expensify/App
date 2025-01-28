@@ -73,6 +73,8 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    shouldRenderFooterAboveSubmit?: boolean;
+
     /** Whether the form is loading */
     isLoading?: boolean;
 };
@@ -89,6 +91,7 @@ function FormProvider(
         shouldTrimValues = true,
         allowHTML = false,
         isLoading = false,
+        shouldRenderFooterAboveSubmit = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -421,6 +424,7 @@ function FormProvider(
                 errors={errors}
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>

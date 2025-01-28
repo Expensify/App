@@ -1258,6 +1258,13 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -1269,6 +1276,13 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -1278,6 +1292,14 @@ function AddWorkEmail(workEmail: string) {
             value: {
                 onboardingWorkEmail: null,
                 isLoading: false,
+            },
+        },
+
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: 'onboarding.error',
             },
         },
     ];
@@ -1293,14 +1315,13 @@ function AddWorkEmail(workEmail: string) {
     );
 }
 
-function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accountID: string) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: null,
-                isLoading: true,
             },
         },
     ];
@@ -1311,7 +1332,6 @@ function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accou
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: null,
-                isLoading: false,
             },
         },
     ];
@@ -1322,7 +1342,6 @@ function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accou
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: 'onboarding.error',
-                isLoading: false,
             },
         },
     ];

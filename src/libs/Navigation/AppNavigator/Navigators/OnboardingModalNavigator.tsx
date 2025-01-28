@@ -71,20 +71,20 @@ function OnboardingModalNavigator() {
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL}
-                                component={OnboardingWorkEmail}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
-                                component={OnboardingWorkEmailValidation}
-                            />
-                            <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                component={OnboardingWorkEmail}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
