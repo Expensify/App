@@ -28,7 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileWebkit} from '@libs/Browser';
+import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -826,14 +826,14 @@ function ComposerWithSuggestions(
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
-                    shouldContainScroll={isMobileWebkit()}
+                    shouldContainScroll={isMobileWebKit()}
                     isGroupPolicyReport={isGroupPolicyReport}
                     showSoftInputOnFocus={showSoftInputOnFocus}
                     onTouchStart={() => {
                         if (showSoftInputOnFocus) {
                             return;
                         }
-                        if (isMobileWebkit()) {
+                        if (isMobileWebKit()) {
                             isTouchEndedRef.current = false;
                             setTimeout(() => {
                                 if (!isTouchEndedRef.current) {
