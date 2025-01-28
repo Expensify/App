@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -33,6 +35,7 @@ type ContinueBankAccountStepProps = {
 };
 
 function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimbursementAccount, onContinuePress}: ContinueBankAccountStepProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const errors = reimbursementAccount?.errors ?? {};
@@ -53,14 +56,16 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
             <ScrollView style={styles.flex1}>
                 <Section
                     title={translate('workspace.bankAccount.almostDone')}
-                    icon={Illustrations.BankArrow}
+                    illustration={LottieAnimations.FastMoney}
+                    illustrationBackgroundColor={theme.fallbackIconColor}
+                    isCentralPane
                 >
                     <OfflineWithFeedback
                         errors={errors}
                         shouldShowErrorMessages
                         onClose={BankAccounts.resetReimbursementAccount}
                     >
-                        <Text>{translate('workspace.bankAccount.youreAlmostDone')}</Text>
+                        <Text style={styles.mt3}>{translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
                             iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={translate('workspace.bankAccount.continueWithSetup')}
@@ -76,6 +81,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                         <MenuItem
                             title={translate('workspace.bankAccount.startOver')}
                             icon={Expensicons.RotateLeft}
+                            iconFill={theme.iconMenu}
                             onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                             shouldShowRightIcon
                             wrapperStyle={[styles.cardMenuItem]}

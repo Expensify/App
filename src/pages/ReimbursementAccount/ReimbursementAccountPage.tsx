@@ -184,6 +184,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
 
+    /** Returns true if user passed first step of flow for non USD VBBA */
+    function hasInProgressNonUSDVBBA(): boolean {
+        return !!achData?.bankAccountID && !!achData?.created;
+    }
+
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
@@ -205,6 +210,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(() => getShouldShowContinueSetupButtonInitialValue());
+    const [shouldShowNonUSDContinueSetupButton, setShouldShowNonUSDContinueSetupButton] = useState(() => hasInProgressNonUSDVBBA());
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -353,6 +359,28 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         });
     };
 
+    const continueNonUSDVBBASetup = () => {
+        setShouldShowNonUSDContinueSetupButton(false);
+        if (achData?.created && achData?.corpay?.companyName === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+            return;
+        }
+
+        if (achData?.corpay?.companyName && achData?.corpay?.anyIndividualOwn25PercentOrMore === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+            return;
+        }
+
+        if (achData?.corpay?.anyIndividualOwn25PercentOrMore !== undefined && achData?.corpay?.signerFullName === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+            return;
+        }
+
+        if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+        }
+    };
+
     const goBack = () => {
         const subStep = achData?.subStep;
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
@@ -467,6 +495,16 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
         if (hasForeignCurrency) {
+            if (shouldShowNonUSDContinueSetupButton) {
+                return (
+                    <ContinueBankAccountSetup
+                        reimbursementAccount={reimbursementAccount}
+                        onContinuePress={continueNonUSDVBBASetup}
+                        policyName={policyName}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                );
+            }
             switch (nonUSDBankAccountStep) {
                 case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
                     return (

@@ -129,38 +129,14 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
     /** Bank statement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
-
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
-
     /** Are the more owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
-
     /** Entity chart files */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]?: FileObject[];
-};
-
-/** Model of Additional data */
-type AdditionalData = {
-    /** Account holder name */
-    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
-    /** Account holder address - street */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
-    /** Account holder address - city */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
-    /** Account holder address - state (US and CA only) */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]?: string;
-    /** Account holder address - zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
-    /** Account holder address - country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: string;
-    /** Country user selects in first step */
-    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
-    /** Corpay fields */
-    corpay: Corpay;
 };
 
 /** Model of ACH data */
@@ -204,8 +180,32 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank Account setup type (plaid or manual) */
     setupType?: string;
 
-    /** Additional data for the non USD account in setup */
-    additionalData?: AdditionalData;
+    /** Account holder name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
+
+    /** Account holder address - street */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
+
+    /** Account holder address - city */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
+
+    /** Account holder address - state (US and CA only) */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]?: string;
+
+    /** Account holder address - zip code */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
+
+    /** Account holder address - country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
+
+    /** Country user selects in first step */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Corpay fields */
+    corpay: Corpay;
+
+    /** Date the corpay bank account was created */
+    created?: string;
 };
 
 /** The step in an reimbursement account's ach data */
