@@ -7,7 +7,7 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -19,20 +19,20 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startMoneyRequest} from '@libs/actions/IOU';
+import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
+import {bookATrip} from '@libs/actions/Travel';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
-import {bookATrip} from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
-import {startMoneyRequest} from '@userActions/IOU';
-import {openExternalLink, openOldDotLink} from '@userActions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@userActions/Task';
-import {setSelfTourViewed} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -42,11 +42,11 @@ type EmptySearchViewProps = {
 
 const tripsFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.PiggyBank,
+        icon: PiggyBank,
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Illustrations.Alert,
+        icon: Alert,
         translationKey: 'travel.features.alerts',
     },
 ];
@@ -59,7 +59,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
@@ -120,8 +120,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isTaskModifiable = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const isTaskActionable = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
         switch (type) {
@@ -155,7 +155,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -195,7 +195,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -239,15 +239,15 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
         subtitleComponent,
-        hasResults,
+        hasSeenTour,
         setRootStatusBarEnabled,
         ctaErrorMessage,
-        hasSeenTour,
         navatticURL,
-        viewTourTaskReport,
-        isTaskModifiable,
-        isTaskActionable,
         shouldRedirectToExpensifyClassic,
+        hasResults,
+        viewTourTaskReport,
+        canModifyTheTask,
+        canActionTheTask,
     ]);
 
     return (
