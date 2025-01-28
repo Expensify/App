@@ -30,19 +30,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: {
-            path: ROUTES.REPORT_WITH_ID.route,
-            // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
-            // We want to avoid that situation, so we will return an empty string instead.
-            parse: {
-                // eslint-disable-next-line
-                reportID: (reportID: string | undefined) => reportID ?? '',
-            },
-            stringify: {
-                // eslint-disable-next-line
-                reportID: (reportID: string | undefined) => reportID ?? '',
-            },
-        },
+        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
         [SCREENS.SETTINGS.PROFILE.ROOT]: {
             path: ROUTES.SETTINGS_PROFILE,
             exact: true,
@@ -619,6 +607,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
@@ -1391,7 +1382,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
-                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {
                             path: ROUTES.TRAVEL_TRIP_DETAILS.route,
@@ -1399,6 +1390,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
+                        [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
+                        [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
+                        [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
