@@ -11,6 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
+import {getContactMethod} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,14 +24,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
     callback: (val) => {
         travelSettings = val;
-    },
-});
-
-let primaryLogin: string;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        primaryLogin = val?.primaryLogin ?? '';
     },
 });
 
@@ -107,7 +100,7 @@ function provisionDomain(domain: string) {
 }
 
 function bookATrip(policy: Policy, translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
-    if (Str.isSMSLogin(primaryLogin)) {
+    if (Str.isSMSLogin(getContactMethod())) {
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
