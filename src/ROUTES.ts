@@ -180,6 +180,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
     },
+    SETTINGS_REPORT_FRAUD_CONFIRMATION: {
+        route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
+    },
     SETTINGS_DOMAINCARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
