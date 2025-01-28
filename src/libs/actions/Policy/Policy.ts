@@ -1,5 +1,4 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
-import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -67,6 +66,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1558,40 +1558,48 @@ function removeWorkspace(policyID: string) {
  */
 function generateDefaultWorkspaceName(email = ''): string {
     const emailParts = email ? email.split('@') : sessionEmail.split('@');
-    let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
-        return defaultWorkspaceName;
+        return '';
     }
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
     const displayName = userDetails?.displayName?.trim();
+    let displayNameForWorkspace = '';
 
-    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0) ?? '')}'s Workspace`;
+    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain)) {
+        displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
     } else if (displayName) {
-        defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
-    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
+        displayNameForWorkspace = Str.UCFirst(displayName);
+    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain)) {
+        displayNameForWorkspace = Str.UCFirst(username);
     } else {
-        defaultWorkspaceName = userDetails?.phoneNumber ?? '';
+        displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
-        defaultWorkspaceName = 'My Group Workspace';
+    if (`@${domain}` === CONST.SMS.DOMAIN) {
+        return translateLocal('workspace.new.myGroupWorkspace');
     }
 
     if (isEmptyObject(allPolicies)) {
-        return defaultWorkspaceName;
+        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
-    // find default named workspaces and increment the last number
-    const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
-    const parsedWorkspaceNumbers = Object.values(allPolicies ?? {})
-        .filter((policy) => policy?.name && numberRegEx.test(policy.name))
-        .map((policy) => Number(numberRegEx.exec(policy?.name ?? '')?.[1] ?? '1')); // parse the number at the end
-    const lastWorkspaceNumber = Math.max(...parsedWorkspaceNumbers);
-    return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
+    // Dynamically include the username in the regex
+    const escapedName = displayNameForWorkspace.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const englishRegex = new RegExp(`${escapedName}'s Workspace(?:\\s(\\d+))?$`, 'i');
+    const spanishRegex = new RegExp(`Espacio de trabajo(?:\\s(\\d+))? de ${escapedName}$`, 'i');
+
+    const workspaceNumbers = Object.values(allPolicies)
+        .map((policy) => englishRegex.exec(policy?.name ?? '') ?? spanishRegex.exec(policy?.name ?? ''))
+        .filter(Boolean) // Remove null matches
+        .map((match) => Number(match?.[1] ?? '1'));
+
+    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : -Infinity;
+
+    return lastWorkspaceNumber !== -Infinity
+        ? translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber + 1})
+        : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
 }
 
 /**

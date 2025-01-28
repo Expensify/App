@@ -208,6 +208,8 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
+type NewWorksacepNameParams = {userName: string; workspaceNumber?: number};
+
 type WelcomeNoteParams = {workspaceName: string};
 
 type RoomNameReservedErrorParams = {reservedName: string};
@@ -819,4 +821,5 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    NewWorksacepNameParams,
 };
