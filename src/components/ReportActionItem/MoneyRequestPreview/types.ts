@@ -7,13 +7,13 @@ type MoneyRequestPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     // The iouReportID is used inside withOnyx HOC
     // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: string;
+    iouReportID: string | undefined;
 
     /** The associated chatReport */
     chatReportID: string | undefined;
 
     /** The ID of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Callback for the preview pressed */
     onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;

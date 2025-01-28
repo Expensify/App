@@ -674,6 +674,16 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
+            it('its trip room', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
             it('its paid Expense report', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
