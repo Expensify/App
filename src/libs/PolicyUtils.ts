@@ -1063,12 +1063,6 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function navigateWhenEnableFeature(policyID: string) {
-    setTimeout(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
-}
-
 function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
@@ -1303,7 +1297,6 @@ export {
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
-    navigateWhenEnableFeature,
     goBackWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,

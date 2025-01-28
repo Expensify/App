@@ -22,7 +22,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
@@ -692,7 +692,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
