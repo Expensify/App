@@ -89,6 +89,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                         <Button
                             success
                             large
+                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                             isDisabled={isOffline}
                             style={[styles.w100, styles.mt2]}
                             onPress={handleConfirmation}
