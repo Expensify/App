@@ -6,10 +6,10 @@ description: Direct feeds
 Direct feeds are a quick and reliable way to import company card expenses. Connect your bank to Expensify with your login credentials to be up and running in minutes!
 
 # Prerequisites for enabling a direct feed 
-If you haven't already, you need to create a workspace before setting up a direct feed. Go to *Settings > Workspaces > New workspace* to create one.
-Additionally, you’ll need to enable company cards on your workspace by navigating to *Settings > Workspaces > [your workspace] > More features*, and toggling on *Company cards*. Note that upgrading to the Control plan is required to access this feature.
+If you haven't already, you need to create a workspace before setting up a direct feed. Go to **Settings > Workspaces > New workspace** to create one.
+Additionally, you’ll need to enable company cards on your workspace by navigating to **Settings > Workspaces > [your workspace] > More features**, and toggling on **Company cards**. Note that upgrading to the Control plan is required to access this feature.
 # How to set up a direct feed
-After creating a Control plan workspace, you can add a direct feed by going to *Settings > Workspaces > [your workspace] > Company cards* and selecting *Add cards*. 
+After creating a Control plan workspace, you can add a direct feed by going to **Settings > Workspaces > [your workspace] > Company cards** and selecting **Add cards**. 
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
@@ -17,7 +17,7 @@ Select your bank from the list. If your bank isn’t there, check out [commercia
 
 ![Select your bank and click Next]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_02.png){:width="100%"}
 
-Select *Direct feed*. 
+Select **Direct feed**. 
 
 ![Select your feed type and click next]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_03.png){:width="100%"}
 
@@ -26,7 +26,7 @@ Log into your bank’s website using the master credentials (typically those of 
 ![Login to your bank]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_04.png){:width="100%"}
 
 # How to assign company cards
-Once your feed is connected, you can assign cards to employees. To do this, navigate to *Settings > Workspaces > [your workspace] > Company cards*.
+Once your feed is connected, you can assign cards to employees. To do this, navigate to **Settings > Workspaces > [your workspace] > Company cards**.
 
 ![Click company cards in the workspace editor to open the feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_05.png){:width="100%"}
 
@@ -34,7 +34,7 @@ If you have multiple feeds, click the feed name at the top left to select the ap
 
 ![Click the feed name in the top left to open the feed selector where you can select a feed from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_06.png){:width="100%"}
 
-Click *Assign card* to begin the process. Often, you’ll be prompted to log into your bank before you can assign cards. Select an employee. All workspace members appear in the list.
+Click **Assign card** to begin the process. Often, you’ll be prompted to log into your bank before you can assign cards. Select an employee. All workspace members appear in the list.
 
 ![Click assign card to begin the flow. Start by selecting a member from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images
 /directfeeds_07.png){:width="100%"}
@@ -44,17 +44,17 @@ Select the card you want to assign. Cards only appear if they have recent transa
 ![Select a card from the list]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_08.png){:width="100%"}
 
 Choose a start date:
-- *From the beginning*: Imports all available transactions (typically 30-90 days).
-- *Custom start date*: Allows you to specify a date.
+- **From the beginning**: Imports all available transactions (typically 30-90 days).
+- **Custom start date**: Allows you to specify a date.
   
 ![Choose a transaction start date]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_09.png){:width="100%"}
 
-Review the details and click *Assign card*. Transactions will import immediately.
+Review the details and click **Assign card**. Transactions will import immediately.
 
 ![Check your selections and assign the card]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_10.png){:width="100%"}
 
 # Managing cards 
-Clicking an assigned card opens the *Card details* page, where you can:
+Clicking an assigned card opens the **Card details** page, where you can:
 
 - Change the card name.
 - Select a card-specific export account (if connected to accounting software like QuickBooks, NetSuite, Xero, etc.).
@@ -78,22 +78,22 @@ Direct feeds use login credentials for quick setup, but can require re-authentic
 
 ## What if Expensify doesn’t support direct feeds for my bank?
 If direct feeds aren’t available for your bank, commercial feeds are the best option for importing company card transactions. Currently, Expensify supports direct feeds for:
-American Express
-Bank of America
-Brex
-Capital One
-Chase
-Citibank
-Stripe
-Wells Fargo
+- American Express
+- Bank of America
+- Brex
+- Capital One
+- Chase
+- Citibank
+- Stripe
+- Wells Fargo
 ## Can direct feeds have maintenance/downtime?
 Yes, occasionally. Banks may update their systems to enhance security, which can temporarily affect connections. Expensify’s engineering team works closely with banks to monitor and promptly update connections as needed.
 
 ## My direct feed connection is broken, how do I fix it?
-Direct feed connections may break if your bank login credentials, card numbers, or security questions change. To fix this, go to *Settings > Workspaces > [your workspace] > Company cards* > select *log into your bank* on the error message and follow the steps to fix the connection.
+Direct feed connections may break if your bank login credentials, card numbers, or security questions change. To fix this, go to **Settings > Workspaces > [your workspace] > Company cards** > select **log into your bank** on the error message and follow the steps to fix the connection.
 
 ## Can I connect several direct feeds with the same bank on one workspace?
-No, only one direct feed per bank can be connected to a workspace. If you have multiple card programs with the same bank under different credentials, request that your bank consolidates them under one set of credentials. This allows you to connect all card programs through a single direct feed.
+No, only one direct feed per bank can be connected to a workspace. If you have multiple card programs with the same bank under different credentials, request that your bank consolidate them under one set of credentials. This allows you to connect all card programs through a single direct feed.
 
 You can, however, connect multiple direct feeds to a workspace if they’re from different banks.
 {% include faq-end.md %}
