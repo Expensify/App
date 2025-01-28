@@ -13,12 +13,13 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning} from '@libs/actions/Travel';
+import {acceptSpotnanaTerms, cleanupTravelProvisioningSession, openTravelDotAfterProvisioning} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
@@ -35,7 +36,8 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-            handleProvisioningPermissionDeniedError(domain);
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+            cleanupTravelProvisioningSession();
         }
         if (travelProvisioning?.spotnanaToken) {
             openTravelDotAfterProvisioning(travelProvisioning.spotnanaToken);

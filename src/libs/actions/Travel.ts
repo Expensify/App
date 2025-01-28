@@ -7,7 +7,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {buildTravelDotURL} from './Link';
 
 /**
@@ -58,11 +57,6 @@ function acceptSpotnanaTerms(domain?: string) {
     API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
 
-function handleProvisioningPermissionDeniedError(domain: string) {
-    Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
-}
-
 function openTravelDotAfterProvisioning(spotnanaToken: string) {
     Navigation.closeRHPFlow();
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
@@ -74,4 +68,4 @@ function cleanupTravelProvisioningSession() {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, cleanupTravelProvisioningSession};
+export {acceptSpotnanaTerms, openTravelDotAfterProvisioning, cleanupTravelProvisioningSession};
