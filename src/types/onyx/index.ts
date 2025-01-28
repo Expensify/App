@@ -100,6 +100,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type User from './User';
@@ -248,4 +249,5 @@ export type {
     CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
+    TravelProvisioning,
 };
