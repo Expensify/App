@@ -31,16 +31,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
-import * as ComposerUtils from '@libs/ComposerUtils';
+import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
-import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
@@ -48,10 +48,10 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
-import * as InputFocus from '@userActions/InputFocus';
-import * as Modal from '@userActions/Modal';
-import * as Report from '@userActions/Report';
+import {OnEmojiSelected, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import {inputFocusChange} from '@userActions/InputFocus';
+import {areAllModalsHidden} from '@userActions/Modal';
+import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -155,7 +155,7 @@ type SwitchToCurrentReportProps = {
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
     isFocused: () => boolean;
     /**
@@ -174,7 +174,7 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
     (reportID: string) => {
-        Report.broadcastUserIsTyping(reportID);
+        broadcastUserIsTyping(reportID);
     },
     1000,
     {
@@ -247,7 +247,7 @@ function ComposerWithSuggestions(
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
         if (draftComment) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
+            emojisPresentBefore.current = extractEmojis(draftComment);
         }
         return draftComment;
     });
@@ -255,7 +255,7 @@ function ComposerWithSuggestions(
     const commentRef = useRef(value);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const lastTextRef = useRef(value);
@@ -266,7 +266,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -307,7 +307,7 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                Report.saveReportDraftComment(selectedReportID, newComment);
+                saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
         [],
@@ -319,7 +319,7 @@ function ComposerWithSuggestions(
                 callback();
                 return;
             }
-            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
         });
 
         return () => {
@@ -350,7 +350,7 @@ function ComposerWithSuggestions(
 
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
+                const commonSuffixLength = findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 if (commonSuffixLength > 0 || (selection?.end ?? 0) - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
@@ -374,11 +374,11 @@ function ComposerWithSuggestions(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
+            const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
+            const {text: newComment, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
             if (emojis.length) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
                     // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
                     if (suggestionsRef.current) {
@@ -417,7 +417,7 @@ function ComposerWithSuggestions(
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportDraftComment(reportID, newCommentConverted);
+                saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -433,7 +433,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -441,7 +441,7 @@ function ComposerWithSuggestions(
     const handleKeyPress = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             const webEvent = event as unknown as KeyboardEvent;
-            if (!webEvent || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+            if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
 
@@ -461,7 +461,7 @@ function ComposerWithSuggestions(
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
-                    Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -544,7 +544,7 @@ function ComposerWithSuggestions(
         if (!suggestionsRef.current) {
             return false;
         }
-        InputFocus.inputFocusChange(false);
+        inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -579,7 +579,7 @@ function ComposerWithSuggestions(
      */
     const checkComposerVisibility = useCallback(() => {
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
-        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
+        const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
     }, [isMenuVisible, modal, isFocused]);
 
@@ -590,7 +590,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            if (!ReportUtils.shouldAutoFocusOnKeyPress(e)) {
+            if (!shouldAutoFocusOnKeyPress(e)) {
                 return;
             }
 
@@ -622,21 +622,21 @@ function ComposerWithSuggestions(
     }, []);
 
     useEffect(() => {
-        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
-            KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
             ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
-        KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+        addKeyDownPressListener(focusComposerOnKeyPress);
 
         setUpComposeFocusManager();
 
         return () => {
             ReportActionComposeFocusManager.clear();
 
-            KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
+            removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
@@ -672,7 +672,7 @@ function ComposerWithSuggestions(
         }
 
         if (editFocused) {
-            InputFocus.inputFocusChange(false);
+            inputFocusChange(false);
             return;
         }
         focus(true);
@@ -863,7 +863,7 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {ReportUtils.isValidReportIDFromPath(reportID) && (
+            {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
