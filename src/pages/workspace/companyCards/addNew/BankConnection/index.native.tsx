@@ -3,7 +3,6 @@ import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
-import type {ValueOf} from 'type-fest';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,17 +16,21 @@ import {checkIfNewFeedConnected} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type BankConnectionStepProps = {
     policyID?: string;
+    route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
 };
 
-function BankConnection({policyID}: BankConnectionStepProps) {
+function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -35,7 +38,9 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
+    const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
+    const policyID = policyIDFromProps ?? policyIDFromRoute;
+    const bankName = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
     const url = getCompanyCardBankConnection(policyID, bankName);
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -46,6 +51,10 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     const handleBackButtonPress = () => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
@@ -85,7 +94,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={!backTo ? translate('workspace.companyCards.addCards') : undefined}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>
