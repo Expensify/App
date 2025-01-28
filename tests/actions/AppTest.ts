@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import * as App from '@libs/actions/App';
 import DateUtils from '@libs/DateUtils';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as App from '../../src/libs/actions/App';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

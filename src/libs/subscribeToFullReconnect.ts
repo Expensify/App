@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as App from './actions/App';
+import {reconnectApp} from './actions/App';
 import Log from './Log';
 
 let lastFullReconnectTime = '';
@@ -27,5 +27,5 @@ function doFullReconnectIfNecessary() {
     }
 
     Log.info('Full reconnect triggered', false, {lastFullReconnectTime, reconnectAppIfFullReconnectBefore});
-    App.reconnectApp();
+    reconnectApp();
 }
