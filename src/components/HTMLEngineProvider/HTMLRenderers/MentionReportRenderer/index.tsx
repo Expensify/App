@@ -26,7 +26,7 @@ type MentionReportRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');
 
-const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report>, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report>, reports: OnyxCollection<Report>, tnode: TText | TPhrasing, policyID?: string) => {
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
@@ -41,7 +41,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
 
         // eslint-disable-next-line rulesdir/prefer-early-return
         Object.values(reports ?? {}).forEach((report) => {
-            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
+            if (report?.policyID === (currentReport?.policyID ?? policyID) && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
                 reportID = report?.reportID;
             }
         });
@@ -56,7 +56,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
-    const {currentReportID: currentReportIDContext, exactlyMatch} = useContext(MentionReportContext);
+    const {currentReportID: currentReportIDContext, exactlyMatch, policyID} = useContext(MentionReportContext);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const currentReportID = useCurrentReportID();
@@ -65,9 +65,12 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
+    const isGroupPolicyReport = useMemo(
+        () => policyID ?? (currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE),
+        [currentReport, policyID],
+    );
 
-    const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
+    const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode, policyID);
     if (!mentionDetails) {
         return null;
     }

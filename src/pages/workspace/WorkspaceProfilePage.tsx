@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -181,6 +182,8 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
+    const mentionReportContextValue = useMemo(() => ({policyID: policy?.id, currentReportID: undefined}), [policy]);
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -278,15 +281,17 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     Policy.clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
                                 }}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                <MentionReportContext.Provider value={mentionReportContextValue}>
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        shouldShowRightIcon={!readOnly}
+                                        interactive={!readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldRenderAsHTML
+                                    />
+                                </MentionReportContext.Provider>
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback
