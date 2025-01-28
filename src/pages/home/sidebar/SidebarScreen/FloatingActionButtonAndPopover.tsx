@@ -470,7 +470,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                animationInDelay={200}
+                animationInDelay={150}
                 menuItems={[
                     ...expenseMenuItems,
                     {

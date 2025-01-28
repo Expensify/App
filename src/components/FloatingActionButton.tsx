@@ -94,21 +94,8 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
             backgroundColor,
-            borderRadius,
         };
     });
-
-    const animatedProps = useAnimatedProps(
-        () => {
-            const fill = interpolateColor(sharedValue.get(), [0, 1], [textLight, textDark]);
-
-            return {
-                fill,
-            };
-        },
-        undefined,
-        Platform.OS === 'web' ? undefined : adapter,
-    );
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         hideProductTrainingTooltip();
@@ -144,14 +131,14 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 role={role}
                 shouldUseHapticsOnLongPress={false}
             >
-                <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
+                <Animated.View style={[styles.floatingActionButton, {borderRadius}, animatedStyle]}>
                     <Svg
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     >
                         <AnimatedPath
                             d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                            animatedProps={animatedProps}
+                            fill={textLight}
                         />
                     </Svg>
                 </Animated.View>
