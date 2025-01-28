@@ -21,7 +21,6 @@ import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
-import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -118,11 +117,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-            testID={WorkspaceConfirmationForm.displayName}
-        >
+        <>
             <HeaderWithBackButton
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={onBackButtonPress}
@@ -202,7 +197,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     </View>
                 </FormProvider>
             </ScrollView>
-        </ScreenWrapper>
+        </>
     );
 }
 

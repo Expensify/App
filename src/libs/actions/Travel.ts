@@ -167,5 +167,4 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, bookATrip};

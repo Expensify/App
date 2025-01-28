@@ -1,4 +1,5 @@
 import React from 'react';
+import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
@@ -14,10 +15,16 @@ function WorkspaceConfirmationPage() {
     const policyOwnerEmail = currentUrl ? new URL(currentUrl).searchParams.get('ownerEmail') ?? '' : '';
 
     return (
-        <WorkspaceConfirmationForm
-            policyOwnerEmail={policyOwnerEmail}
-            onSubmit={onSubmit}
-        />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+            testID={WorkspaceConfirmationPage.displayName}
+        >
+            <WorkspaceConfirmationForm
+                policyOwnerEmail={policyOwnerEmail}
+                onSubmit={onSubmit}
+            />
+        </ScreenWrapper>
     );
 }
 

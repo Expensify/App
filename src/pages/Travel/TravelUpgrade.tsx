@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
@@ -28,6 +29,10 @@ function TravelUpgrade() {
         createWorkspace('', false, params.name, params.policyID, '', params.currency, params.avatarFile as File);
     };
 
+    const onClose = () => {
+        setShouldShowConfirmation(false);
+    };
+
     if (shouldShowConfirmation) {
         return <WorkspaceConfirmationForm onSubmit={onSubmit} />;
     }
@@ -40,10 +45,29 @@ function TravelUpgrade() {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={() => Navigation.goBack()}
             />
+            <Modal
+                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                isVisible={shouldShowConfirmation}
+                onClose={onClose}
+                onModalHide={onClose}
+                hideModalContentWhileAnimating
+                useNativeDriver
+                onBackdropPress={Navigation.dismissModal}
+            >
+                <ScreenWrapper
+                    style={[styles.pb0]}
+                    includePaddingTop={false}
+                    includeSafeAreaPaddingBottom={false}
+                    testID={TravelUpgrade.displayName}
+                >
+                    <WorkspaceConfirmationForm
+                        onSubmit={onSubmit}
+                        onBackButtonPress={onClose}
+                    />
+                </ScreenWrapper>
+            </Modal>
             {!!isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={() => Navigation.goBack()}
