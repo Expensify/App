@@ -10,7 +10,6 @@ import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
-import {getContactMethod} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,9 +29,11 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const primaryLogin = account?.primaryLogin;
 
     const bookATrip = useCallback(() => {
-        if (Str.isSMSLogin(getContactMethod())) {
+        if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
             setErrorMessage(translate('travel.phoneError'));
             return;
         }
@@ -75,7 +76,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             }
             Navigation.navigate(routeToNavigateTo);
         }
-    }, [policy, isSingleNewDotEntry, travelSettings, translate, errorMessage]);
+    }, [policy, isSingleNewDotEntry, travelSettings, translate, errorMessage, primaryLogin]);
 
     return (
         <>
