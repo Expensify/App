@@ -241,4 +241,15 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxAmount).toBe(5);
         });
     });
+
+    describe('shouldShowRTERViolationMessage', () => {
+        it('should return true if transaction is receipt being scanned', () => {
+            const transaction = generateTransaction({
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                },
+            });
+            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
+        });
+    });
 });
