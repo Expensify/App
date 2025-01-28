@@ -122,12 +122,20 @@ function BaseGenericTooltip({
 
     let content;
     if (renderTooltipContent) {
-        content = <View ref={viewRef(contentRef)}>{renderTooltipContent()}</View>;
+        content = (
+            <View
+                ref={viewRef(contentRef)}
+                fsClass="fs-unmask"
+            >
+                {renderTooltipContent()}
+            </View>
+        );
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
+                fsClass="fs-unmask"
             >
                 <Text
                     style={textStyle}
