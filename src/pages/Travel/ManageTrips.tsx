@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import BookTravelButton from '@components/BookTravelButton';
+import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -60,12 +62,21 @@ function ManageTrips() {
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}
                     illustrationStyle={[styles.mv4]}
-                    secondaryButtonText={translate('travel.bookDemo')}
-                    secondaryButtonAccessibilityLabel={translate('travel.bookDemo')}
-                    onSecondaryButtonPress={navigateToBookTravelDemo}
                     illustrationBackgroundColor={colors.blue600}
                     titleStyles={styles.textHeadlineH1}
                     contentPaddingOnLargeScreens={styles.p5}
+                    footer={
+                        <>
+                            <Button
+                                text={translate('travel.bookDemo')}
+                                onPress={navigateToBookTravelDemo}
+                                accessibilityLabel={translate('travel.bookDemo')}
+                                style={[styles.w100, styles.mb3]}
+                                large
+                            />
+                            <BookTravelButton text={translate('travel.bookTravel')} />
+                        </>
+                    }
                 />
             </View>
         </ScrollView>

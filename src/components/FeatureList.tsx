@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +7,6 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
-import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
@@ -73,13 +72,9 @@ type FeatureListProps = {
 function FeatureList({
     title,
     subtitle = '',
-    ctaText = '',
-    ctaAccessibilityLabel = '',
-    onCtaPress = () => {},
-    secondaryButtonText = '',
-    secondaryButtonAccessibilityLabel = '',
-    onSecondaryButtonPress = () => {},
-    ctaErrorMessage,
+    ctaText,
+    ctaAccessibilityLabel,
+    onCtaPress,
     menuItems,
     illustration,
     illustrationStyle,
@@ -126,30 +121,16 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
-                {!!secondaryButtonText && (
+                {!!ctaText && (
                     <Button
-                        text={secondaryButtonText}
-                        onPress={onSecondaryButtonPress}
-                        accessibilityLabel={secondaryButtonAccessibilityLabel}
-                        style={[styles.w100, styles.mb3]}
+                        text={ctaText}
+                        onPress={onCtaPress}
+                        accessibilityLabel={ctaAccessibilityLabel}
+                        style={styles.w100}
+                        success
                         large
                     />
                 )}
-                {!!ctaErrorMessage && (
-                    <DotIndicatorMessage
-                        style={styles.mb1}
-                        messages={{error: ctaErrorMessage}}
-                        type="error"
-                    />
-                )}
-                <Button
-                    text={ctaText}
-                    onPress={onCtaPress}
-                    accessibilityLabel={ctaAccessibilityLabel}
-                    style={styles.w100}
-                    success
-                    large
-                />
                 {!!footer && <>{footer}</>}
             </View>
         </Section>
