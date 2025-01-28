@@ -55,7 +55,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -168,6 +167,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
+    const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT);
+        Timing.start(CONST.TIMING.OPEN_REPORT);
+
+        event?.preventDefault();
+        // Enable Composer to focus on clicking the same chat after opening the context menu.
+        ReportActionComposeFocusManager.focus();
+        hideProductTrainingTooltip();
+        onSelectRow(optionItem, popoverAnchor);
+    };
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -186,22 +196,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={shouldShowWokspaceChatTooltip ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
                 shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
+                onTooltipPress={onOptionPress}
             >
                 <View>
                     <Hoverable>
                         {(hovered) => (
                             <PressableWithSecondaryInteraction
                                 ref={popoverAnchor}
-                                onPress={(event) => {
-                                    Performance.markStart(CONST.TIMING.OPEN_REPORT);
-                                    Timing.start(CONST.TIMING.OPEN_REPORT);
-
-                                    event?.preventDefault();
-                                    // Enable Composer to focus on clicking the same chat after opening the context menu.
-                                    ReportActionComposeFocusManager.focus();
-                                    hideProductTrainingTooltip();
-                                    onSelectRow(optionItem, popoverAnchor);
-                                }}
+                                onPress={onOptionPress}
                                 onMouseDown={(event) => {
                                     // Allow composer blur on right click
                                     if (!event) {

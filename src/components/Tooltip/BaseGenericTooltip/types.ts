@@ -36,7 +36,10 @@ type BaseGenericTooltipProps = {
 
     /** Whether it is education tooltip */
     isEducationTooltip?: boolean;
-} & Pick<SharedTooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay'>;
+} & Pick<
+    SharedTooltipProps,
+    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onTooltipPress'
+>;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {BaseGenericTooltipProps};

@@ -93,6 +93,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Used to set the element that should receive the initial focus */
     initialFocus?: FocusTrapOptions['initialFocus'];
+
+    /** Whether to prevent the focus trap from scrolling the element into view. */
+    shouldPreventScrollOnFocus?: boolean;
 };
 
 export default BaseModalProps;
