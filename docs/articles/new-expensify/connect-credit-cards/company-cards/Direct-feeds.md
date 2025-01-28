@@ -9,7 +9,7 @@ Direct feeds are a quick and reliable way to import company card expenses. Conne
 If you haven't already, you need to create a workspace before setting up a direct feed. Go to **Settings > Workspaces > New workspace** to create one.
 Additionally, you’ll need to enable company cards on your workspace by navigating to **Settings > Workspaces > [your workspace] > More features**, and toggling on **Company cards**. Note that upgrading to the Control plan is required to access this feature.
 # How to set up a direct feed
-After creating a Control plan workspace, you can add a direct feed by going to **Settings > Workspaces > [your workspace] > Company cards** and selecting **Add cards**. 
+After creating a Control workspace, you can add a direct feed by going to **Settings > Workspaces > [your workspace] > Company cards** and selecting **Add cards**. 
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
@@ -68,7 +68,7 @@ Clicking an assigned card opens the **Card details** page, where you can:
 Make sure you used your bank's master credentials when connecting. Also, note that cards will only appear for assignment if they’re active and have at least one recent transaction. If a card meeting these conditions doesn’t appear, reach out to your account manager or email concierge@expensify.com.
  
 ## Are direct bank connections the best option for connecting credit cards to Expensify?
-Direct bank connections are a great option if Expensify supports your bank. For enhanced stability and added functionality, consider setting up a commercial card feed with your bank or using the [Expensify Card](https://use.expensify.com/company-credit-card).
+Direct bank connections are a great option if Expensify supports your bank. For enhanced stability and added functionality, consider setting up a [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds) with your bank or using the [Expensify Card](https://use.expensify.com/company-credit-card).
 
 ## Is there an extra fee for using direct feeds? 
 No, direct feeds are included with the Control plan at no additional cost.
@@ -86,6 +86,7 @@ If direct feeds aren’t available for your bank, commercial feeds are the best 
 - Citibank
 - Stripe
 - Wells Fargo
+  
 ## Can direct feeds have maintenance/downtime?
 Yes, occasionally. Banks may update their systems to enhance security, which can temporarily affect connections. Expensify’s engineering team works closely with banks to monitor and promptly update connections as needed.
 
