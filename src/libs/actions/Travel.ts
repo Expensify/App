@@ -14,7 +14,7 @@ import {getAdminsPrivateEmailDomains, getPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TravelSettings} from '@src/types/onyx';
+import type {Policy, TravelSettings} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildTravelDotURL, openTravelDotLink} from './Link';
 
@@ -114,22 +114,19 @@ function provisionDomain(domain: string) {
     Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
 }
 
-function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
-    if (!activePolicyID) {
-        return;
-    }
+function bookATrip(policy: Policy, translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
     if (Str.isSMSLogin(primaryLogin)) {
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    const policy = getPolicy(activePolicyID);
-    if (isEmptyObject(policy?.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
+
+    if (isEmptyObject(policy.address)) {
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy.id, Navigation.getActiveRoute()));
         return;
     }
 
-    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
-    if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
+    const isPolicyProvisioned = policy.travelSettings?.spotnanaCompanyID ?? policy.travelSettings?.associatedTravelDomainAccountID;
+    if (policy.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
         openTravelDotLink(activePolicyID)
             ?.then(() => {
                 if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {

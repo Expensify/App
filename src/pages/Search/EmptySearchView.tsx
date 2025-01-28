@@ -60,6 +60,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -133,7 +134,13 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     buttons: [
                         {
                             buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
+                            buttonAction: () => {
+                                const activePolicy = ((allPolicies as OnyxCollection<Policy>) ?? {})[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+                                if (!activePolicy) {
+                                    return;
+                                }
+                                bookATrip(activePolicy, translate, setCtaErrorMessage, ctaErrorMessage);
+                            },
                             success: true,
                         },
                     ],
@@ -245,6 +252,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
+        activePolicyID,
     ]);
 
     return (
