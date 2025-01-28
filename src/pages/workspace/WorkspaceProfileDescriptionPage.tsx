@@ -9,12 +9,12 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -44,7 +44,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             const errors = {};
 
             if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
             }
 
             return errors;
@@ -58,7 +58,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                 return;
             }
 
-            Policy.updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
+            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
