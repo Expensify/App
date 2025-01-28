@@ -2,19 +2,19 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
@@ -23,27 +23,18 @@ type BeneficialOwnersListProps = {
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
 
-    /** Method called when user presses on ownership chart push row */
-    handleOwnershipChartEdit: () => void;
-
     /** List of owner keys */
     ownerKeys: string[];
 };
 
-const {ENTITY_CHART} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-
-function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, handleOwnershipChartEdit}: BeneficialOwnersListProps) {
+function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: BeneficialOwnersListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const ownershipChartValue = reimbursementAccount?.achData?.additionalData?.corpay?.[ENTITY_CHART] ?? reimbursementAccountDraft?.[ENTITY_CHART] ?? [];
-
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
+    const error = getLatestErrorMessage(reimbursementAccount);
 
     const owners =
         reimbursementAccountDraft &&
@@ -56,7 +47,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
-                    icon={Expensicons.FallbackAvatar}
+                    icon={FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleOwnerEdit(ownerKey);
@@ -87,21 +78,20 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                             {owners}
                         </View>
                     )}
-                    {currency === CONST.CURRENCY.AUD && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.certified')}
-                            title={ownershipChartValue.map((file) => file.name).join(', ') || ''}
-                            shouldShowRightIcon
-                            onPress={handleOwnershipChartEdit}
-                            style={[areThereOwners ? styles.mt8 : styles.mt0]}
-                        />
-                    )}
-                    <View style={styles.mtAuto}>
+                    <View style={[styles.mtAuto, styles.p5]}>
+                        {!!error && error.length > 0 && (
+                            <DotIndicatorMessage
+                                textStyles={[styles.formError]}
+                                type="error"
+                                messages={{error}}
+                            />
+                        )}
                         <Button
                             success
                             large
+                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                             isDisabled={isOffline}
-                            style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
+                            style={[styles.w100, styles.mt2]}
                             onPress={handleConfirmation}
                             text={translate('common.confirm')}
                         />

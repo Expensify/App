@@ -58,6 +58,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -880,6 +881,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
@@ -2382,6 +2384,21 @@ const translations = {
         selectCountry: 'Seleccionar país',
         findCountry: 'Buscar país',
         address: 'Dirección',
+        chooseFile: 'Elige archivo',
+        uploadDocuments: 'Sube documentación adicional',
+        pleaseUpload:
+            'Por favor, sube la documentación adicional a continuación para ayudarnos a verificar tu identidad como propietario directo o indirecto del 25% o más de la entidad empresarial.',
+        acceptedFiles: 'Formatos de archivo aceptados: PDF, PNG, JPEG. El tamaño total del archivo para cada sección no puede superar los 5 MB.',
+        proofOfBeneficialOwner: 'Prueba del propietario beneficiario',
+        proofOfBeneficialOwnerDescription:
+            'Por favor, proporciona una declaración firmada y un organigrama de un contador público, notario o abogado que verifique la propiedad del 25% o más del negocio. Debe estar fechado dentro de los últimos tres meses e incluir el número de licencia del firmante.',
+        copyOfID: 'Copia de la identificación del propietario beneficiario',
+        copyOfIDDescription: 'Ejemplos: Pasaporte, licencia de conducir, etc.',
+        proofOfAddress: 'Prueba de la dirección del propietario beneficiario',
+        proofOfAddressDescription: 'Ejemplos: Factura de servicios, contrato de alquiler, etc.',
+        codiceFiscale: 'Codice fiscale/ID fiscal',
+        codiceFiscaleDescription:
+            'Por favor, sube un video de una visita al sitio o una llamada grabada con el oficial firmante. El oficial debe proporcionar: nombre completo, fecha de nacimiento, nombre de la empresa, número de registro, número de código fiscal, dirección registrada, naturaleza del negocio y propósito de la cuenta.',
     },
     validationStep: {
         headerTitle: 'Validar cuenta bancaria',
@@ -2588,6 +2605,23 @@ const translations = {
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        domainSelector: {
+            title: 'Dominio',
+            subtitle: 'Elige un dominio para configurar Expensify Travel.',
+            recommended: 'Recomendado',
+        },
+        domainPermissionInfo: {
+            title: 'Dominio',
+            restrictionPrefix: `No tienes permiso para habilitar Expensify Travel para el dominio`,
+            restrictionSuffix: `Tendrás que pedir a alguien de ese dominio que habilite Travel por ti.`,
+            accountantInvitationPrefix: `Si eres contador, considera unirte al`,
+            accountantInvitationLink: `programa de contadores ExpensifyApproved!`,
+            accountantInvitationSuffix: `para habilitar Travel para este dominio.`,
+        },
+        publicDomainError: {
+            title: 'Comienza con Expensify Travel',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
+        },
     },
     workspace: {
         common: {
@@ -6209,6 +6243,16 @@ const translations = {
             part1: 'Crea gastos',
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
+        },
+        scanTestTooltip: {
+            part1: '¿Quieres ver cómo funciona Escanear?',
+            part2: ' ¡Prueba con un recibo de prueba!',
+            part3: '¡Elige a',
+            part4: ' nuestro gerente',
+            part5: ' de prueba para probarlo!',
+            part6: 'Ahora,',
+            part7: ' envía tu gasto y',
+            part8: ' ¡observa cómo ocurre la magia!',
         },
     },
     discardChangesConfirmation: {

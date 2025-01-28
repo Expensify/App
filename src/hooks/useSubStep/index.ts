@@ -69,8 +69,8 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         [screenIndex, lastScreenIndex, skipSteps, onFinished, onNextSubStep],
     );
 
-    const moveTo = useCallback((step: number) => {
-        isEditing.current = true;
+    const moveTo = useCallback((step: number, turnOnEditMode?: boolean) => {
+        isEditing.current = !(turnOnEditMode !== undefined && !turnOnEditMode);
         setScreenIndex(step);
     }, []);
 

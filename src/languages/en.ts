@@ -59,6 +59,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -881,6 +882,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report,  ${merchant} - ${amount}`,
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
@@ -2358,6 +2360,20 @@ const translations = {
         selectCountry: 'Select country',
         findCountry: 'Find country',
         address: 'Address',
+        chooseFile: 'Choose file',
+        uploadDocuments: 'Upload additional documentation',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a direct or indirect owner of 25% or more of the business entity.',
+        acceptedFiles: 'Accepted file formats: PDF, PNG, JPEG. Total file size for each section cannot exceed 5 MB.',
+        proofOfBeneficialOwner: 'Proof of beneficial owner',
+        proofOfBeneficialOwnerDescription:
+            "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
+        copyOfID: 'Copy of ID for beneficial owner',
+        copyOfIDDescription: "Examples: Passport, driver's license, etc.",
+        proofOfAddress: 'Address proof for beneficial owner',
+        proofOfAddressDescription: 'Examples: Utility bill, rental agreement, etc.',
+        codiceFiscale: 'Codice fiscale/Tax ID',
+        codiceFiscaleDescription:
+            'Please upload a video of a site visit or a recorded call with the signing officer. The officer must provide: full name, date of birth, company name, registered number, fiscal code number, registered address, nature of business and purpose of account.',
     },
     validationStep: {
         headerTitle: 'Validate bank account',
@@ -2564,6 +2580,23 @@ const translations = {
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: 'To book travel, your default contact method must be a valid email',
+        domainSelector: {
+            title: 'Domain',
+            subtitle: 'Choose a domain for Expensify Travel setup.',
+            recommended: 'Recommended',
+        },
+        domainPermissionInfo: {
+            title: 'Domain',
+            restrictionPrefix: `You don't have permission to enable Expensify Travel for the domain`,
+            restrictionSuffix: `You'll need to ask someone from that domain to enable travel instead.`,
+            accountantInvitationPrefix: `If you're an accountant, consider joining the`,
+            accountantInvitationLink: `ExpensifyApproved! accountants program`,
+            accountantInvitationSuffix: `to enable travel for this domain.`,
+        },
+        publicDomainError: {
+            title: 'Get started with Expensify Travel',
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
+        },
     },
     workspace: {
         common: {
@@ -5690,6 +5723,16 @@ const translations = {
             part1: 'Create expenses',
             part2: ', start chatting,',
             part3: '\nand more!',
+        },
+        scanTestTooltip: {
+            part1: 'Want to see how Scan works?',
+            part2: ' Try a test receipt!',
+            part3: 'Choose our',
+            part4: ' test manager',
+            part5: ' to try it out!',
+            part6: 'Now,',
+            part7: ' submit your expense',
+            part8: ' and watch the magic happen!',
         },
     },
     discardChangesConfirmation: {

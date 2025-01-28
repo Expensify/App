@@ -77,8 +77,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
-    /** Entity chart files */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]?: FileObject[];
     /** Signer full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME]: string;
     /** Signer DOB */
@@ -135,8 +133,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
-    /** Entity chart files */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]?: FileObject[];
 };
 
 /** Model of ACH data */
@@ -233,6 +229,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are saving the company data via the API */
     isSavingCorpayOnboardingCompanyFields?: boolean;
+
+    /** Whether we are saving the beneficial owners data via the API */
+    isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;

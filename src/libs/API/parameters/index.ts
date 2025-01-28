@@ -93,7 +93,6 @@ export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuth
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
-export type {default as OptInOutToPushNotificationsParams} from './OptInOutToPushNotificationsParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -365,3 +364,5 @@ export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDel
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
+export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
+export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';

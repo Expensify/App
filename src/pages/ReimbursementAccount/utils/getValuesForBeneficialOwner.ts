@@ -41,14 +41,14 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
     } as const;
 
     return {
-        firstName: reimbursementAccountDraft[INPUT_KEYS.firstName] ?? '',
-        lastName: reimbursementAccountDraft[INPUT_KEYS.lastName] ?? '',
-        dob: reimbursementAccountDraft[INPUT_KEYS.dob] ?? '',
-        ssnLast4: reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? '',
-        street: reimbursementAccountDraft[INPUT_KEYS.street] ?? '',
-        city: reimbursementAccountDraft[INPUT_KEYS.city] ?? '',
-        state: reimbursementAccountDraft[INPUT_KEYS.state] ?? '',
-        zipCode: reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? '',
+        firstName: String(reimbursementAccountDraft[INPUT_KEYS.firstName] ?? ''),
+        lastName: String(reimbursementAccountDraft[INPUT_KEYS.lastName] ?? ''),
+        dob: String(reimbursementAccountDraft[INPUT_KEYS.dob] ?? ''),
+        ssnLast4: String(reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? ''),
+        street: String(reimbursementAccountDraft[INPUT_KEYS.street] ?? ''),
+        city: String(reimbursementAccountDraft[INPUT_KEYS.city] ?? ''),
+        state: String(reimbursementAccountDraft[INPUT_KEYS.state] ?? ''),
+        zipCode: String(reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? ''),
     };
 }
 

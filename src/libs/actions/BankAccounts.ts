@@ -8,6 +8,7 @@ import type {
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
+    SaveCorpayOnboardingBeneficialOwnerParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -501,8 +502,50 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, formattedParams, onyxData);
 }
 
+function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBeneficialOwnerParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters, onyxData);
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
+function clearCorpayBankAccountFields() {
+    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
 function clearReimbursementAccountBankCreation() {
@@ -511,6 +554,10 @@ function clearReimbursementAccountBankCreation() {
 
 function clearReimbursementAccountSaveCorpayOnboardingCompanyDetails() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingCompanyFields: null});
+}
+
+function clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingBeneficialOwnersFields: null});
 }
 
 /**
@@ -584,7 +631,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
  * Add beneficial owners for the bank account and verify the accuracy of the information provided
  * @param params - Beneficial Owners step form params
  */
-function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string) {
+function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT,
         {
@@ -796,6 +843,9 @@ export {
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingBeneficialOwners,
+    clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearCorpayBankAccountFields,
 };
 
 export type {BusinessAddress, PersonalAddress};

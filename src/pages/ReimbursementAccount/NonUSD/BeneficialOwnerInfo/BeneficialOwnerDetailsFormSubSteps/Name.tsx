@@ -20,8 +20,8 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
     const stepFields = useMemo(() => [firstNameInputID, lastNameInputID], [firstNameInputID, lastNameInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourName' : 'ownershipInfoStep.whatsTheOwnersName');
     const defaultValues = {
-        firstName: reimbursementAccountDraft?.[firstNameInputID] ?? '',
-        lastName: reimbursementAccountDraft?.[lastNameInputID] ?? '',
+        firstName: String(reimbursementAccountDraft?.[firstNameInputID] ?? ''),
+        lastName: String(reimbursementAccountDraft?.[lastNameInputID] ?? ''),
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
