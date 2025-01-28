@@ -78,11 +78,6 @@
                      restorationHandler:restorationHandler];
 }
 
-- (NSDictionary<NSString *, Class<RCTComponentViewProtocol>> *)thirdPartyFabricComponents
-{
-  return self.dependencyProvider.thirdPartyFabricComponents;
-}
-
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
   return [self bundleURL];

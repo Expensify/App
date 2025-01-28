@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-reanimated/android/build.gradle b/node_modules/react-native-reanimated/android/build.gradle
+index 6129944..edbec91 100644
+--- a/node_modules/react-native-reanimated/android/build.gradle
++++ b/node_modules/react-native-reanimated/android/build.gradle
+@@ -259,6 +259,7 @@ android {
+                         "-DIS_REANIMATED_EXAMPLE_APP=${isReanimatedExampleApp()}",
+                         "-DREANIMATED_VERSION=${REANIMATED_VERSION}"
+                 abiFilters (*reactNativeArchitectures())
++                targets("reanimated", "worklets")
+             }
+         }
+ 

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
-index 46c9d27..58be1c1 100644
+index 46c9d27..8afddcc 100644
 --- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
 +++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
 @@ -12,6 +12,7 @@ import android.text.TextPaint;
@@ -33,35 +33,41 @@ index 46c9d27..58be1c1 100644
  
    private MarkdownUtils markdownUtils;
  
-@@ -86,15 +94,49 @@ public class CustomMountingManager extends MountingManager {
-       text = sb;
-     }
+@@ -77,24 +85,48 @@ public class CustomMountingManager extends MountingManager {
+       TextAttributeProps.getHyphenationFrequency(
+         paragraphAttributes.getString(TextLayoutManager.PA_KEY_HYPHENATION_FREQUENCY));
  
--    Layout.Alignment alignment = TextLayoutManager.getTextAlignment(attributedString, text);
- 
--    markdownUtils.applyMarkdownFormatting((SpannableStringBuilder)text);
+-    // StaticLayout returns wrong metrics for the last line if it's empty, add something to the
+-    // last line so it's measured correctly
+-    if (text.toString().endsWith("\n")) {
+-      SpannableStringBuilder sb = new SpannableStringBuilder(text);
+-      sb.append("I");
 +    try {
 +      Class<TextLayoutManager> textLayoutManagerClass = TextLayoutManager.class;
-+
+ 
+-      text = sb;
+-    }
 +      Method getTextAlignmentAttrMethod = textLayoutManagerClass.getDeclaredMethod("getTextAlignmentAttr", MapBuffer.class);
 +      getTextAlignmentAttrMethod.setAccessible(true);
  
--    BoringLayout.Metrics boring = BoringLayout.isBoring(text, sTextPaintInstance);
+-    Layout.Alignment alignment = TextLayoutManager.getTextAlignment(attributedString, text);
 +      String textAlignmentAttr = (String)getTextAlignmentAttrMethod.invoke(null, attributedString);
  
--    Class<TextLayoutManager> mapBufferClass = TextLayoutManager.class;
--    try {
--      Method createLayoutMethod = mapBufferClass.getDeclaredMethod("createLayout", Spannable.class, BoringLayout.Metrics.class, float.class, YogaMeasureMode.class, boolean.class, int.class, int.class, Layout.Alignment.class);
+-    markdownUtils.applyMarkdownFormatting((SpannableStringBuilder)text);
 +      Method getTextAlignmentMethod = textLayoutManagerClass.getDeclaredMethod("getTextAlignment", MapBuffer.class, Spannable.class, String.class);
 +      getTextAlignmentMethod.setAccessible(true);
-+
+ 
+-    BoringLayout.Metrics boring = BoringLayout.isBoring(text, sTextPaintInstance);
 +      Layout.Alignment alignment = (Layout.Alignment)getTextAlignmentMethod.invoke(
 +              null,
 +              attributedString,
 +              text,
 +              textAlignmentAttr
 +      );
-+
+ 
+-    Class<TextLayoutManager> mapBufferClass = TextLayoutManager.class;
+-    try {
+-      Method createLayoutMethod = mapBufferClass.getDeclaredMethod("createLayout", Spannable.class, BoringLayout.Metrics.class, float.class, YogaMeasureMode.class, boolean.class, int.class, int.class, Layout.Alignment.class);
 +      Method getTextJustificationModeMethod = textLayoutManagerClass.getDeclaredMethod("getTextJustificationMode", String.class);
 +      getTextJustificationModeMethod.setAccessible(true);
 +
@@ -89,7 +95,7 @@ index 46c9d27..58be1c1 100644
        createLayoutMethod.setAccessible(true);
  
        Layout layout = (Layout)createLayoutMethod.invoke(
-@@ -106,7 +148,9 @@ public class CustomMountingManager extends MountingManager {
+@@ -106,7 +138,9 @@ public class CustomMountingManager extends MountingManager {
          includeFontPadding,
          textBreakStrategy,
          hyphenationFrequency,

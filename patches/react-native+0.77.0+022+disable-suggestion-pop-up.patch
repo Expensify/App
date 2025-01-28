@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
-index 0973ae8..d5e6cee 100644
+index 865ccb2..4bedac9 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
-@@ -169,6 +169,7 @@ const RCTTextInputViewConfig = {
+@@ -170,6 +170,7 @@ const RCTTextInputViewConfig = {
        onChangeSync: true,
        onKeyPressSync: true,
      }),
@@ -11,7 +11,7 @@ index 0973ae8..d5e6cee 100644
  };
  
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 47cdcfc..22c42ae 100644
+index 214ccc0..2112772 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 @@ -136,6 +136,11 @@ export interface DocumentSelectionState extends EventEmitter {
@@ -27,10 +27,10 @@ index 47cdcfc..22c42ae 100644
     * enum('never', 'while-editing', 'unless-editing', 'always')
     * When the clear button should appear on the right side of the text view
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-index 2f35731..a1455e7 100644
+index 64a5b99..2a7660c 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-@@ -224,6 +224,12 @@ export type enterKeyHintType =
+@@ -228,6 +228,12 @@ export type enterKeyHintType =
  type PasswordRules = string;
  
  type IOSProps = $ReadOnly<{|
@@ -44,10 +44,10 @@ index 2f35731..a1455e7 100644
     * When the clear button should appear on the right side of the text view.
     * This property is supported only for single-line TextInput component.
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 2ffb38b..40e732f 100644
+index 0684516..a077ccc 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-@@ -267,6 +267,12 @@ export type enterKeyHintType =
+@@ -272,6 +272,12 @@ export type enterKeyHintType =
  type PasswordRules = string;
  
  type IOSProps = $ReadOnly<{|
@@ -61,12 +61,12 @@ index 2ffb38b..40e732f 100644
     * When the clear button should appear on the right side of the text view.
     * This property is supported only for single-line TextInput component.
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.h b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.h
-index 205f994..3b528d2 100644
+index e176ff3..be946f8 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.h
-@@ -38,6 +38,8 @@ NS_ASSUME_NONNULL_BEGIN
- 
+@@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
  @property (nonatomic, strong, nullable) NSString *inputAccessoryViewID;
+ @property (nonatomic, strong, nullable) NSString *inputAccessoryViewButtonLabel;
  
 +@property (nonatomic, assign) BOOL disableKeyboardShortcuts;
 +
@@ -122,10 +122,10 @@ index 065a819..b521dd9 100644
  
  - (void)setFont:(UIFont *)font
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
-index cc51013..26a112f 100644
+index e3df41a..1f1af7e 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
-@@ -51,6 +51,8 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -52,6 +52,8 @@ NS_ASSUME_NONNULL_BEGIN
  // Use `attributedText.string` instead.
  @property (nonatomic, copy, nullable) NSString *text NS_UNAVAILABLE;
  
@@ -135,7 +135,7 @@ index cc51013..26a112f 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-index 6047486..5d1e97b 100644
+index 4d82c72..0d6f8aa 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 @@ -30,6 +30,8 @@ @implementation RCTBaseTextInputView {
@@ -147,7 +147,7 @@ index 6047486..5d1e97b 100644
  }
  
  - (void)reactUpdateResponderOffsetForScrollView:(RCTScrollView *)scrollView
-@@ -64,6 +66,8 @@ - (instancetype)initWithBridge:(RCTBridge *)bridge
+@@ -65,6 +67,8 @@ - (instancetype)initWithBridge:(RCTBridge *)bridge
      _bridge = bridge;
      _eventDispatcher = bridge.eventDispatcher;
      [self initializeReturnKeyType];
@@ -156,8 +156,8 @@ index 6047486..5d1e97b 100644
    }
  
    return self;
-@@ -374,6 +378,25 @@ - (void)setShowSoftInputOnFocus:(BOOL)showSoftInputOnFocus
-   }
+@@ -394,6 +398,25 @@ - (void)setInputAccessoryViewButtonLabel:(NSString *)inputAccessoryViewButtonLab
+   self.backedTextInputView.inputAccessoryViewButtonLabel = inputAccessoryViewButtonLabel;
  }
  
 +- (void)setDisableKeyboardShortcuts:(BOOL)disableKeyboardShortcuts
@@ -183,10 +183,10 @@ index 6047486..5d1e97b 100644
  
  - (BOOL)textInputShouldBeginEditing
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-index e367394..08ec761 100644
+index ec05595..4b43542 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-@@ -70,6 +70,8 @@ @implementation RCTBaseTextInputViewManager {
+@@ -71,6 +71,8 @@ @implementation RCTBaseTextInputViewManager {
  
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
@@ -196,10 +196,10 @@ index e367394..08ec761 100644
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
  RCT_EXPORT_SHADOW_PROPERTY(onContentSizeChange, RCTDirectEventBlock)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.h b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.h
-index 91f8eb0..fbf9f32 100644
+index 13c0b22..fe6d957 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.h
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.h
-@@ -33,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
  @property (nonatomic, assign, readonly) CGFloat zoomScale;
  @property (nonatomic, assign, readonly) CGPoint contentOffset;
  @property (nonatomic, assign, readonly) UIEdgeInsets contentInset;
@@ -256,12 +256,12 @@ index 667e646..617f05f 100644
  
  - (NSDictionary<NSAttributedStringKey, id> *)_placeholderTextAttributes
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index 2e7b1a1..abd91ef 100644
+index 91aff1a..673043c 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -278,6 +278,11 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
-   if (newTextInputProps.inputAccessoryViewID != oldTextInputProps.inputAccessoryViewID) {
-     _backedTextInputView.inputAccessoryViewID = RCTNSStringFromString(newTextInputProps.inputAccessoryViewID);
+@@ -290,6 +290,11 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
+     _backedTextInputView.inputAccessoryViewButtonLabel =
+         RCTNSStringFromString(newTextInputProps.inputAccessoryViewButtonLabel);
    }
 +
 +  if (newTextInputProps.disableKeyboardShortcuts != oldTextInputProps.disableKeyboardShortcuts) {
@@ -272,7 +272,7 @@ index 2e7b1a1..abd91ef 100644
  
    [self setDefaultInputAccessoryView];
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.mm
-index 6345758..92c56b4 100644
+index 2b0278d..6e562ad 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.mm
 @@ -45,6 +45,7 @@ void RCTCopyBackedTextInput(
@@ -284,42 +284,39 @@ index 6345758..92c56b4 100644
    [toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];
  }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-index ec0f350..56c3b4f 100644
+index 80cbdc5..5acaa45 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-@@ -102,7 +102,13 @@ BaseTextInputProps::BaseTextInputProps(
-           rawProps,
+@@ -103,6 +103,12 @@ BaseTextInputProps::BaseTextInputProps(
            "autoCapitalize",
            sourceProps.autoCapitalize,
--          {})) {}
-+          {})),
+           {})),
 +      disableKeyboardShortcuts(convertRawProp(
 +          context,
 +          rawProps,
 +          "disableKeyboardShortcuts",
 +          sourceProps.disableKeyboardShortcuts,
-+          {false})) {}
- 
- void BaseTextInputProps::setProp(
-     const PropsParserContext& context,
-@@ -180,6 +186,7 @@ void BaseTextInputProps::setProp(
++          {false})),
+       editable(convertRawProp(
+           context,
+           rawProps,
+@@ -204,6 +210,7 @@ void BaseTextInputProps::setProp(
      RAW_SET_PROP_SWITCH_CASE_BASIC(text);
      RAW_SET_PROP_SWITCH_CASE_BASIC(mostRecentEventCount);
      RAW_SET_PROP_SWITCH_CASE_BASIC(autoCapitalize);
 +    RAW_SET_PROP_SWITCH_CASE_BASIC(disableKeyboardShortcuts);
-   }
- }
- 
+     RAW_SET_PROP_SWITCH_CASE_BASIC(editable);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(readOnly);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(submitBehavior);
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
-index bff69fe..27782a1 100644
+index 36c199b..3fb7fa5 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
-@@ -63,6 +63,8 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
-   bool autoFocus{false};
+@@ -65,6 +65,7 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
  
    std::string autoCapitalize{};
-+
-+  bool disableKeyboardShortcuts{false};
- };
  
- } // namespace facebook::react
++  bool disableKeyboardShortcuts{false};
+   bool editable{true};
+   bool readOnly{false};
+ 
