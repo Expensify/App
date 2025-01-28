@@ -341,10 +341,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
         getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID){
+            if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS_SHARE_CODE route');
             }
-            return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo)
+            return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
         },
     },
     ATTACHMENTS: {
