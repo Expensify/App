@@ -10,7 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import User from '@src/types/onyx/User';
+import type User from '@src/types/onyx/User';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
@@ -77,8 +77,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-    console.log('(canUsePrivateDomainOnboardingCheck ?? false) && isUserFromPublicDomain', (canUsePrivateDomainOnboardingCheck ?? false) && isUserFromPublicDomain);
-    console.log('canUsePrivateDomainOnboardingCheck', canUsePrivateDomainOnboardingCheck);
+
     if ((true ?? false) && isUserFromPublicDomain) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }

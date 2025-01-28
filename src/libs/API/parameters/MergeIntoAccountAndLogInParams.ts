@@ -1,7 +1,7 @@
 type MergeIntoAccountAndLogInParams = {
-    workEmail: string;
+    workEmail: string | undefined;
     validateCode: string;
-    accountID: string;
+    accountID: number | undefined;
 };
 
 export default MergeIntoAccountAndLogInParams;

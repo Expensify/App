@@ -13,9 +13,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
 import * as Session from '@userActions/Session';
+import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import * as User from '@userActions/User';
+import {resendValidateCode} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -39,7 +40,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         if (!credentials?.login) {
             return;
         }
-        User.resendValidateCode(credentials.login);
+        resendValidateCode(credentials.login);
     }, [credentials?.login]);
 
     return (
@@ -54,15 +55,16 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
                 onBackButtonPress={Navigation.goBack}
             />
             <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={styles.textHeadlineH1}>{'Verify your work email'}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{`Please enter the magic code sent to ${workEmail}. It should arrive in a minute or two`}</Text>
+                <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
+                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
-                        Session.MergeIntoAccountAndLogin(workEmail, code, session?.accountID);
+                        MergeIntoAccountAndLogin(workEmail, code, session?.accountID);
                     }}
                     sendValidateCode={sendValidateCode}
                     clearError={() => {}}
+                    hideSubmitButton
                 />
                 <View style={[styles.flex2, styles.justifyContentEnd]}>
                     <Button

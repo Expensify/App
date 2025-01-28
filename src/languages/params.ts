@@ -559,6 +559,10 @@ type WorkspaceYouMayJoin = {
     email: string;
 };
 
+type WorkEmailResendCodeParams = {
+    workEmail: string | undefined;
+};
+
 type WorkspaceMemberList = {
     employeeCount: number;
     policyOwner: string;
@@ -819,4 +823,5 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    WorkEmailResendCodeParams,
 };

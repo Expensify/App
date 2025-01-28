@@ -1,6 +1,6 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,10 +18,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
-import * as Welcome from '@userActions/Welcome';
+import {AddWorkEmail} from '@userActions/Session';
+import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const ICON_SIZE = 48;
 
     useEffect(() => {
-        Welcome.setOnboardingErrorMessage('');
+        setOnboardingErrorMessage('');
     }, []);
 
     useEffect(() => {
@@ -70,10 +70,10 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues]);
+    }, [onboardingValues, isVsb]);
 
     const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
-        Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
+        AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
     }, []);
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
@@ -87,11 +87,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const domain = emailParts.at(1) ?? '';
 
         if ((PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, 'Please enter a valid work email from a private domain e.g. mitch@company.com');
+            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }
 
         if (isOffline ?? false) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, "We couldn't add your work email as you appear to be offline");
+            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.offline'));
         }
 
         return errors;
