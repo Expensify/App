@@ -467,6 +467,9 @@ const ONYXKEYS = {
     /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
     CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
 
+    /** Information about travel provisioning process */
+    TRAVEL_PROVISIONING: 'travelProvisioning',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1055,6 +1058,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
+    [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

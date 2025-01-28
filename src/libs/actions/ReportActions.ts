@@ -4,20 +4,21 @@ import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreat
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {deleteReport} from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
 
-let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
-let allReports: OnyxCollection<OnyxTypes.Report>;
+let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
