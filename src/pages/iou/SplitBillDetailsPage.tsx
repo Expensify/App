@@ -6,6 +6,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +21,7 @@ import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/Options
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -42,8 +43,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const IOUTransactionID = originalMessage?.IOUTransactionID;
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`);
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -111,38 +112,40 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 />
                             </View>
                         )}
-                        {!!participants.length && (
-                            <MoneyRequestConfirmationList
-                                payeePersonalDetails={payeePersonalDetails}
-                                selectedParticipants={participantsExcludingPayee}
-                                iouAmount={splitAmount ?? 0}
-                                iouCurrencyCode={splitCurrency}
-                                iouComment={splitComment}
-                                iouCreated={splitCreated}
-                                shouldDisplayReceipt
-                                iouMerchant={splitMerchant}
-                                iouCategory={splitCategory}
-                                iouIsBillable={splitBillable}
-                                iouType={CONST.IOU.TYPE.SPLIT}
-                                isReadOnly={!isEditingSplitBill}
-                                shouldShowSmartScanFields
-                                receiptPath={transaction?.receipt?.source}
-                                receiptFilename={transaction?.filename}
-                                isEditingSplitBill={isEditingSplitBill}
-                                hasSmartScanFailed={hasSmartScanFailed}
-                                reportID={reportID}
-                                reportActionID={reportAction?.reportActionID}
-                                transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={onConfirm}
-                                isPolicyExpenseChat={isPolicyExpenseChat(report)}
-                                policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
-                                action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
-                                onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, {billable});
-                                }}
-                                isConfirmed={isConfirmed}
-                            />
-                        )}
+                        <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest(transaction)}>
+                            {!!participants.length && (
+                                <MoneyRequestConfirmationList
+                                    payeePersonalDetails={payeePersonalDetails}
+                                    selectedParticipants={participantsExcludingPayee}
+                                    iouAmount={splitAmount ?? 0}
+                                    iouCurrencyCode={splitCurrency}
+                                    iouComment={splitComment}
+                                    iouCreated={splitCreated}
+                                    shouldDisplayReceipt
+                                    iouMerchant={splitMerchant}
+                                    iouCategory={splitCategory}
+                                    iouIsBillable={splitBillable}
+                                    iouType={CONST.IOU.TYPE.SPLIT}
+                                    isReadOnly={!isEditingSplitBill}
+                                    shouldShowSmartScanFields
+                                    receiptPath={transaction?.receipt?.source}
+                                    receiptFilename={transaction?.filename}
+                                    isEditingSplitBill={isEditingSplitBill}
+                                    hasSmartScanFailed={hasSmartScanFailed}
+                                    reportID={reportID}
+                                    reportActionID={reportAction?.reportActionID}
+                                    transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
+                                    onConfirm={onConfirm}
+                                    isPolicyExpenseChat={isPolicyExpenseChat(report)}
+                                    policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
+                                    action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
+                                    onToggleBillable={(billable) => {
+                                        setDraftSplitTransaction(transaction?.transactionID, {billable});
+                                    }}
+                                    isConfirmed={isConfirmed}
+                                />
+                            )}
+                        </ImageBehaviorContextProvider>
                     </View>
                 </DragAndDropProvider>
             </FullPageNotFoundView>

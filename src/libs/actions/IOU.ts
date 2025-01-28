@@ -5749,12 +5749,8 @@ function completeSplitBill(
     reportAction: OnyxTypes.ReportAction,
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
-    sessionEmail: string | undefined,
+    sessionEmail?: string,
 ) {
-    if (!sessionEmail) {
-        return;
-    }
-
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -5995,7 +5991,7 @@ function completeSplitBill(
 
 function setDraftSplitTransaction(transactionID: string | undefined, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!transactionID) {
-        return;
+        return undefined;
     }
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
