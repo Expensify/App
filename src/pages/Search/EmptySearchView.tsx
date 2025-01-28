@@ -130,7 +130,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    subtitle: subtitleComponent,
+                    body: subtitleComponent,
                     buttons: [
                         {
                             buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
@@ -267,6 +267,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}
+                body={content.body}
                 buttons={content.buttons}
                 headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
                 lottieWebViewStyles={content.lottieWebViewStyles}
