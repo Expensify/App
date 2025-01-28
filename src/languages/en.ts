@@ -4431,6 +4431,8 @@ const translations = {
                     benefit2: 'Smart expense rules',
                     benefit3: 'Multi-level approval workflows',
                     benefit4: 'Enhanced security controls',
+                    toUpgrade: 'To upgrade, click',
+                    selectWorkspace: 'select a workspace, and change the plan type to',
                 },
             },
         },
@@ -4447,6 +4449,9 @@ const translations = {
                     benefit2: 'Smart expense rules',
                     benefit3: 'Multi-level approval workflows',
                     benefit4: 'Enhanced security controls',
+                    headsUp: 'Heads up!',
+                    multiWorkspaceNote: 'You’ll need to downgrade all your workspaces before your first monthly payment to begin a subscription at the Collect rate. Click',
+                    selectStep: '> select each workspace > change the plan type to',
                 },
             },
             completed: {
