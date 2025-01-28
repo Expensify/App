@@ -463,6 +463,13 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
+- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    ```
+    [submodule "Mobile-Expensify"]
+        ignore = all
+    ```
+    This ensures that submodule changes are ignored unless you deliberately update them.
+
 
 > [!Note]  
 > #### For external contributors
