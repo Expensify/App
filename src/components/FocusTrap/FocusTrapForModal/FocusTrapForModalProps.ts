@@ -6,6 +6,7 @@ type FocusTrapForModalProps = {
     children: React.ReactNode;
     active: boolean;
     initialFocus?: FocusTrapOptions['initialFocus'];
+    shouldPreventScroll?: boolean;
 };
 
 export default FocusTrapForModalProps;
