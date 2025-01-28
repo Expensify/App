@@ -1,10 +1,19 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+const FadeIn = new Keyframe({
+    from: {opacity: 0},
+    to: {opacity: 0.72},
+});
+
+const FadeOut = new Keyframe({
+    from: {opacity: 0.72},
+    to: {opacity: 0},
+});
 
 function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 300, animationOutTiming = 300, animationInDelay = 100}: BackdropProps) {
     const styles = useThemeStyles();
@@ -15,8 +24,9 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
             <Animated.View
                 entering={FadeIn.delay(animationInDelay).duration(animationInTiming)}
                 exiting={FadeOut.duration(animationOutTiming)}
+                style={[styles.modalBackdrop, style]}
             >
-                <View style={[styles.modalBackdrop, style]}>{!!customBackdrop && customBackdrop}</View>
+                {!!customBackdrop && customBackdrop}
             </Animated.View>
         ),
         [animationInDelay, animationInTiming, animationOutTiming, customBackdrop, style, styles.modalBackdrop],

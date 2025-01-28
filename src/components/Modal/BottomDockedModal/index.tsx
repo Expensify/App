@@ -19,7 +19,6 @@ function BottomDockedModal({
     children,
     hasBackdrop = true,
     backdropColor = 'black',
-    backdropOpacity = 0.7,
     backdropTransitionInTiming = 300,
     backdropTransitionOutTiming = 300,
     customBackdrop = null,
@@ -115,9 +114,8 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
-            opacity: backdropOpacity,
         };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
+    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
