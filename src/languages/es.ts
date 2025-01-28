@@ -58,6 +58,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -879,6 +880,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
@@ -2587,6 +2589,23 @@ const translations = {
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        domainSelector: {
+            title: 'Dominio',
+            subtitle: 'Elige un dominio para configurar Expensify Travel.',
+            recommended: 'Recomendado',
+        },
+        domainPermissionInfo: {
+            title: 'Dominio',
+            restrictionPrefix: `No tienes permiso para habilitar Expensify Travel para el dominio`,
+            restrictionSuffix: `Tendrás que pedir a alguien de ese dominio que habilite Travel por ti.`,
+            accountantInvitationPrefix: `Si eres contador, considera unirte al`,
+            accountantInvitationLink: `programa de contadores ExpensifyApproved!`,
+            accountantInvitationSuffix: `para habilitar Travel para este dominio.`,
+        },
+        publicDomainError: {
+            title: 'Comienza con Expensify Travel',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
+        },
     },
     workspace: {
         common: {
@@ -5485,12 +5504,12 @@ const translations = {
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
-        deletedReport: '[Informe eliminado]',
-        deletedMessage: '[Mensaje eliminado]',
-        deletedExpense: '[Gasto eliminado]',
-        reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminada]',
-        hiddenMessage: '[Mensaje oculto]',
+        deletedReport: 'Informe eliminado',
+        deletedMessage: 'Mensaje eliminado',
+        deletedExpense: 'Gasto eliminado',
+        reversedTransaction: 'Transacción anulada',
+        deletedTask: 'Tarea eliminada',
+        hiddenMessage: 'Mensaje oculto',
     },
     threads: {
         thread: 'Hilo',
@@ -6208,6 +6227,16 @@ const translations = {
             part1: 'Crea gastos',
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
+        },
+        scanTestTooltip: {
+            part1: '¿Quieres ver cómo funciona Escanear?',
+            part2: ' ¡Prueba con un recibo de prueba!',
+            part3: '¡Elige a',
+            part4: ' nuestro gerente',
+            part5: ' de prueba para probarlo!',
+            part6: 'Ahora,',
+            part7: ' envía tu gasto y',
+            part8: ' ¡observa cómo ocurre la magia!',
         },
     },
     discardChangesConfirmation: {

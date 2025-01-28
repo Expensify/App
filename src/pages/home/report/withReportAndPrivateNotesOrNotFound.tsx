@@ -4,9 +4,9 @@ import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import * as Report from '@libs/actions/Report';
+import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,7 +47,7 @@ export default function (pageTitle: TranslationPaths) {
                     return;
                 }
 
-                Report.getReportPrivateNote(report?.reportID);
+                getReportPrivateNote(report?.reportID);
                 // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
@@ -56,7 +56,7 @@ export default function (pageTitle: TranslationPaths) {
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
                 // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
-                if (ReportUtils.isArchivedReport(reportNameValuePairs) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
+                if (isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)) {
                     return true;
                 }
 
