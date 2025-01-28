@@ -198,7 +198,6 @@ type GetValidReportsConfig = {
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
-    // selfDMOptions: OptionData[];
     selfDMOption: OptionData | undefined;
     workspaceOptions: OptionData[];
     recentReports: OptionData[];
@@ -1406,16 +1405,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             isBold,
             lastIOUCreationDate,
         };
-
-        // validReportOptions.push(newReportOption);
-
-        // if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
-        //     workspaceChats.push(newReportOption);
-        // }
-
-        // if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
-        //     selfDMChat = newReportOption;
-        // }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
             workspaceChats.push(newReportOption);
