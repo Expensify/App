@@ -37,7 +37,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
         perDiemUnits[perDiemDestination[i]].subRates?.push({
             id: PerDiem.generateCustomUnitID(),
             name: perDiemSubRate.at(i) ?? '',
-            rate: Number(perDiemAmount.at(i)) ?? 0,
+            rate: (Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
     }
     return Object.values(perDiemUnits);
