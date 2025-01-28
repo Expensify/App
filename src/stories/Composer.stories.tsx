@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import Composer from '@components/Composer';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -33,6 +33,7 @@ function Default(props: ComposerProps) {
     const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
     const [comment, setComment] = useState(props.defaultValue);
     const renderedHTML = parser.replace(comment ?? '');
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: props.defaultValue?.length ?? 0, end: props.defaultValue?.length ?? 0, positionX: 0, positionY: 0}));
 
     return (
         <View>
@@ -41,8 +42,13 @@ function Default(props: ComposerProps) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     multiline
+                    value={comment}
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
+                    selection={selection}
+                    onSelectionChange={(e: CustomSelectionChangeEvent) => {
+                        setSelection(e.nativeEvent.selection);
+                    }}
                     style={[defaultStyles.textInputCompose, defaultStyles.w100, defaultStyles.verticalAlignTop]}
                 />
             </View>
