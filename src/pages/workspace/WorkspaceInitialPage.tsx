@@ -122,8 +122,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
@@ -361,8 +359,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
-        cardSettings?.errors,
-        cardsList?.cardList?.errorFields,
         featureStates,
         hasGeneralSettingsError,
         hasMembersError,
@@ -374,6 +370,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowProtectedItems,
         singleExecution,
         waitForNavigate,
+        allFeedsCards,
+        workspaceAccountID,
     ]);
 
     // We only update feature states if they aren't pending.
