@@ -71,8 +71,8 @@ jobs:
           else
             echo "✅ Build succeeded. Printing Gradle profile report:"
             # Print the latest generated profile report
-            PROFILE_REPORT=$(ls -Art ./build/reports/profile | head -n 1)
-            cat ./build/reports/profile/$PROFILE_REPORT
+            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+            cat "$PROFILE_REPORT"
           fi
 
   buildStandaloneAndroid:
@@ -106,6 +106,6 @@ jobs:
           else
             echo "✅ Build succeeded. Printing Gradle profile report:"
             # Print the latest generated profile report
-            PROFILE_REPORT=$(ls -Art ./build/reports/profile | head -n 1)
-            cat ./build/reports/profile/$PROFILE_REPORT
+            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+            cat "$PROFILE_REPORT"
           fi
