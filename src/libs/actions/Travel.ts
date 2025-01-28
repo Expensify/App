@@ -145,5 +145,9 @@ function bookATrip(policy: Policy, translate: LocaleContextProps['translate'], s
     }
 }
 
+function cleanupTravelProvisioningSession() {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, bookATrip};
+export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, bookATrip, cleanupTravelProvisioningSession};

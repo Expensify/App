@@ -1,4 +1,5 @@
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -32,15 +33,6 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
-    /** Text of the secondary button button */
-    secondaryButtonText?: string;
-
-    /** Accessibility label for the secondary button */
-    secondaryButtonAccessibilityLabel?: string;
-
-    /** Action to call on secondary button press */
-    onSecondaryButtonPress?: () => void;
-
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
@@ -58,9 +50,6 @@ type FeatureListProps = {
 
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** The error message to display for the CTA button */
-    ctaErrorMessage?: string;
 
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
@@ -131,7 +120,7 @@ function FeatureList({
                         large
                     />
                 )}
-                {!!footer && <>{footer}</>}
+                {!!footer && footer}
             </View>
         </Section>
     );
