@@ -126,7 +126,7 @@ function AttachmentCarouselPager(
         >
             <CarouselItem
                 item={item}
-                isFocused={index === activePageIndex && activeSource === item.source}
+                isFocused={index === activePageIndex && activeSource === (item.reportActionID ?? item.source)}
             />
         </View>
     ));

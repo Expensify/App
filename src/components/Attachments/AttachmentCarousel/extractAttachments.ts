@@ -27,10 +27,6 @@ function extractAttachments(
     const attachments: Attachment[] = [];
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
-    // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
-    // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
-    const uniqueSourcesAndLinks = new Set();
-
     let currentLink = '';
 
     const htmlParser = new HtmlParser({
@@ -40,11 +36,7 @@ function extractAttachments(
             }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-                if (uniqueSourcesAndLinks.has(source)) {
-                    return;
-                }
 
-                uniqueSourcesAndLinks.add(source);
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
@@ -61,13 +53,6 @@ function extractAttachments(
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
-                const sourceLinkKey = `${source}|${currentLink}`;
-
-                if (uniqueSourcesAndLinks.has(sourceLinkKey)) {
-                    return;
-                }
-
-                uniqueSourcesAndLinks.add(sourceLinkKey);
 
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 

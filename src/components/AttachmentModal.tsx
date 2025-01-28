@@ -69,6 +69,9 @@ type AttachmentModalProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
+    /** The report action id linked to the attachment. */
+    reportActionID?: string;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
 
@@ -161,6 +164,7 @@ function AttachmentModal({
     isLoading = false,
     shouldShowNotFoundPage = false,
     type = undefined,
+    reportActionID,
     accountID = undefined,
     shouldDisableSendButton = false,
     attachmentLink = '',
@@ -552,6 +556,7 @@ function AttachmentModal({
                                 <AttachmentCarousel
                                     accountID={accountID}
                                     type={type}
+                                    reportActionID={reportActionID}
                                     report={report}
                                     onNavigate={onNavigate}
                                     onClose={closeModal}

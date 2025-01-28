@@ -110,7 +110,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, action?.reportActionID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
