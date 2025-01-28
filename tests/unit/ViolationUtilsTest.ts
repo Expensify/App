@@ -393,79 +393,60 @@ describe('getViolations', () => {
     afterEach(() => Onyx.clear());
 
     it('should check if violation is dismissed or not', async () => {
-        const transaction1 = getFakeTransaction('123', {
+        const transaction = getFakeTransaction('123', {
             dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
         });
 
         const transactionCollectionDataSet: TransactionCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction1.transactionID, smartScanFailedViolation);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction1.transactionID, duplicatedTransactionViolation);
+        const isSmartScanDismissed = isViolationDismissed(transaction.transactionID, smartScanFailedViolation);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction.transactionID, duplicatedTransactionViolation);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
     });
 
     it('should return filtered out dismissed violations', async () => {
-        const transaction1 = getFakeTransaction('123', {
+        const transaction = getFakeTransaction('123', {
             dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
         });
 
         const transactionCollectionDataSet: TransactionCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
         };
 
         const transactionViolationsCollection: TransactionViolationsCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
-        };
-
-        await Onyx.multiSet({...transactionCollectionDataSet, ...transactionViolationsCollection});
-
-        const filteredViolations = getTransactionViolations(transaction1.transactionID);
-        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
-    });
-
-    it('should return filtered out dismissed violations', async () => {
-        const transaction1 = getFakeTransaction('123', {
-            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
-        });
-
-        const transactionCollectionDataSet: TransactionCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-        };
-
-        const transactionViolationsCollection: TransactionViolationsCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet, ...transactionViolationsCollection});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction1.transactionID);
+        const filteredViolations = getTransactionViolations(transaction.transactionID);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
-    it('checks if transaction has notice type violation after filtering dismissed violations', async () => {
-        const transaction1 = getFakeTransaction('123', {
+    it('checks if transaction has warning type violation after filtering dismissed violations', async () => {
+        const transaction = getFakeTransaction('123', {
             dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
         });
 
         const transactionCollectionDataSet: TransactionCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
         };
 
         const transactionViolationsCollection = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation and return true, duplicatedTransactionViolation is a warning type violation but it's not considered in hasWarningTypeViolation
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction1.transactionID, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction.transactionID, transactionViolationsCollection);
         expect(hasWarningTypeViolationRes).toBeFalsy();
     });
 });
