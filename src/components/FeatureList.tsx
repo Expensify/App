@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -65,6 +65,9 @@ type FeatureListProps = {
 
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
+
+    /** Custom content to display in the footer */
+    footer?: ReactNode;
 };
 
 function FeatureList({
@@ -84,6 +87,7 @@ function FeatureList({
     illustrationContainerStyle,
     titleStyles,
     contentPaddingOnLargeScreens,
+    footer,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -146,6 +150,7 @@ function FeatureList({
                     success
                     large
                 />
+                {!!footer && <>{footer}</>}
             </View>
         </Section>
     );
