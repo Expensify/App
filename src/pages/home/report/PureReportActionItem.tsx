@@ -79,6 +79,7 @@ import {
     isReimbursementDeQueuedAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isResolvedActionableWhisper,
     isTagModificationAction,
     isTaskAction,
     isTripPreview,
@@ -372,6 +373,7 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    const isActionableWhisperResolved = isResolvedActionableWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -1105,6 +1107,9 @@ function PureReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
+    if (isActionableWhisper && isActionableWhisperResolved) {
+        return null;
+    }
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
