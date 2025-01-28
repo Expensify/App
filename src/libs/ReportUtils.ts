@@ -6590,7 +6590,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
+function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
     // Include archived rooms
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         return true;
@@ -6610,9 +6610,42 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
     return Permissions.canUseDefaultRooms(betas ?? []);
 }
 
-function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
+function canSeeDefaultRoomOptimized(reportFlags: ReportFlagValue, betas: OnyxEntry<Beta[]>): boolean {
+    // Include archived rooms
+    if (reportFlags & REPORT_FLAGS.IS_ARCHIVED_NON_EXPENSE_REPORT) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (reportFlags & REPORT_FLAGS.HAS_EXPENSIFY_GUIDED_EMAILS) {
+        return true;
+    }
+
+    // Include any admins and announce rooms, since only non partner-managed domain rooms are on the beta now.
+    if (reportFlags & REPORT_FLAGS.IS_ADMIN_ROOM || reportFlags & REPORT_FLAGS.IS_ANNOUNCE_ROOM) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas ?? []);
+}
+
+function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, betas)) {
+        return false;
+    }
+
+    if (report?.errorFields?.notFound) {
+        return false;
+    }
+
+    return true;
+}
+
+function canAccessReportOptimized(reportFlags: ReportFlagValue, report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
+    // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+    if (reportFlags & REPORT_FLAGS.IS_DEFAULT_ROOM && !canSeeDefaultRoomOptimized(reportFlags, betas)) {
         return false;
     }
 
@@ -6628,15 +6661,28 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
     return !!report?.errorFields?.notFound;
 }
 
+function hasComments(reportID: string): boolean {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
+    return Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
+}
+
 /**
- * Check if the report is the parent report of the currently viewed report or at least one child report has report action
+ * Check if the report is either …
+ *  … the parent report of the currently viewed report or
+ *  … at least one child report has report action
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
+    const isChildReportHasComment = report?.reportID ? hasComments(report.reportID) : false;
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
+}
+
+function shouldHideReportOptimized(reportID: string, reportFlags: ReportFlagValue, currentReportId: string | undefined): boolean {
+    const currentReport = getReportOrDraftReport(currentReportId);
+    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
+    const isChildReportHasComment = reportFlags & REPORT_FLAGS.HAS_COMMENTS;
+    return parentReport?.reportID !== reportID && !isChildReportHasComment;
 }
 
 /**
@@ -6831,9 +6877,15 @@ const REPORT_FLAGS = {
     IS_ONE_TRANSACTION_THREAD: 1 << 20,
     IS_EXPENSE_REQUEST: 1 << 21,
     IS_EXPENSE_REPORT: 1 << 22,
-    SHOULD_HIDE_REPORT: 1 << 23,
-    SHOULD_ADMIN_ROOM_BE_VISIBLE: 1 << 24,
-    IS_POLICY_EXPENSE_CHAT: 1 << 25,
+    IS_DEFAULT_ROOM: 1 << 23,
+    IS_CHAT_REPORT: 1 << 24,
+    SHOULD_ADMIN_ROOM_BE_VISIBLE: 1 << 25,
+    IS_POLICY_EXPENSE_CHAT: 1 << 26,
+    IS_ARCHIVED_NON_EXPENSE_REPORT: 1 << 27,
+    HAS_EXPENSIFY_GUIDED_EMAILS: 1 << 28,
+    IS_ANNOUNCE_ROOM: 1 << 29,
+    HAS_COMMENTS: 1 << 30, // has thread replies
+    // NOTE: WE CAN'T HAVE MORE THAN 31 FLAGS (due to numbers being 32-bit signed integers)
 } as const;
 
 // Type for the flags
@@ -6846,16 +6898,20 @@ const reportFlagsCache = new Map<string, ReportFlagValue>();
 /**
  * Computes the flags for a report and caches the result
  */
-function computeReportFlags(report: Report, policies: ShouldReportBeInOptionListParams['policies'], betas: ShouldReportBeInOptionListParams['betas']): number {
+function computeReportFlags(report: Report): number {
     let flags = 0;
 
     if (isChatRoom(report)) {
         flags |= REPORT_FLAGS.IS_CHAT_ROOM;
     }
-    if (isChatThread(report)) {
-        flags |= REPORT_FLAGS.IS_CHAT_THREAD;
+    if (isChatReport(report)) {
+        flags |= REPORT_FLAGS.IS_CHAT_REPORT;
+        if (isChatThread(report)) {
+            flags |= REPORT_FLAGS.IS_CHAT_THREAD;
+        }
     }
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
         flags |= REPORT_FLAGS.IS_ARCHIVED;
     }
     if (isMoneyRequestReport(report)) {
@@ -6888,10 +6944,8 @@ function computeReportFlags(report: Report, policies: ShouldReportBeInOptionList
             flags & REPORT_FLAGS.IS_SYSTEM_CHAT ||
             flags & REPORT_FLAGS.IS_GROUP_CHAT)
     ) {
-        console.log('it has a valid structure!!!');
         flags |= REPORT_FLAGS.HAS_VALID_STRUCTURE;
     } else {
-        console.log('report has no valid structure');
         // if the report has no valid structure we don't need to continue computing other flags.
         // other checking sites should check first if the report has a valid structure before checking other flags.
         return flags;
@@ -6918,13 +6972,14 @@ function computeReportFlags(report: Report, policies: ShouldReportBeInOptionList
     if (hasValidDraftComment(report.reportID)) {
         flags |= REPORT_FLAGS.HAS_DRAFT_COMMENT;
     }
-    // TODO: think about this, this might be a bit duplicated work…
+    // TODO: think about these two which are O(1) access, this might be a bit duplicated work…
     if (report.isPinned) {
         flags |= REPORT_FLAGS.IS_PINNED;
     }
     if (report.errorFields?.addWorkspaceRoom) {
         flags |= REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR;
     }
+
     if (isUnread(report)) {
         flags |= REPORT_FLAGS.IS_UNREAD;
     }
@@ -6942,53 +6997,43 @@ function computeReportFlags(report: Report, policies: ShouldReportBeInOptionList
         flags |= REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT;
     }
 
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
+        flags |= REPORT_FLAGS.IS_ARCHIVED_NON_EXPENSE_REPORT;
+    }
+
+    // TODO: typescript Object.keys
+    if (hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}))) {
+        flags |= REPORT_FLAGS.HAS_EXPENSIFY_GUIDED_EMAILS;
+    }
+
+    if (isAnnounceRoom(report)) {
+        flags |= REPORT_FLAGS.IS_ANNOUNCE_ROOM;
+    }
+
+    if (isDefaultRoom(report)) {
+        flags |= REPORT_FLAGS.IS_DEFAULT_ROOM;
+    }
+    // TODO: IT MIGHT BE VERY STUPID TO RUN THIS ONE ON EVERY REPORT (but we did this before anyways?)
+    // This is one of the things that would need to be reevaluated with every new report comment :thinking:
+    if (hasComments(report.reportID)) {
+        flags |= REPORT_FLAGS.HAS_COMMENTS;
+    }
+
     return flags;
 }
 
-function getReportFlags(
-    report: Report,
-    policies: ShouldReportBeInOptionListParams['policies'],
-    betas: ShouldReportBeInOptionListParams['betas'],
-    forceRecompute = process.env.NODE_ENV === 'test',
-): number {
+function getReportFlags(report: Report, forceRecompute = process.env.NODE_ENV === 'test'): number {
     const cacheKey = report.reportID;
     const cachedData = reportFlagsCache.get(cacheKey);
 
     // Cache miss or force recompute
     if (!cachedData || forceRecompute) {
-        const flags = computeReportFlags(report, policies, betas);
+        const flags = computeReportFlags(report);
         reportFlagsCache.set(cacheKey, flags);
         return flags;
     }
 
     return cachedData;
-}
-
-function getVisibilityRequirements(params: ShouldReportBeInOptionListParams): {
-    requiredFlags: number;
-    excludedFlags: number;
-} {
-    const {isInFocusMode, excludeEmptyChats, includeSelfDM, includeDomainEmail} = params;
-
-    let requiredFlags = REPORT_FLAGS.HAS_VALID_STRUCTURE | REPORT_FLAGS.IS_SUPPORTED_TYPE;
-    let excludedFlags = 0;
-
-    // Focus mode requirements
-    if (isInFocusMode) {
-        requiredFlags |= REPORT_FLAGS.IS_UNREAD;
-    }
-
-    // Empty chat exclusion
-    if (excludeEmptyChats) {
-        excludedFlags |= REPORT_FLAGS.IS_EMPTY_CHAT;
-    }
-
-    // Self DM handling
-    if (!includeSelfDM) {
-        excludedFlags |= REPORT_FLAGS.IS_SELF_DM;
-    }
-
-    return {requiredFlags, excludedFlags};
 }
 
 type ShouldReportBeInOptionListParams = {
@@ -7031,18 +7076,8 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
-    const flags = getReportFlags(report, policies, betas, forceRecompute);
-    // const {requiredFlags, excludedFlags} = getVisibilityRequirements(params);
+    const flags = getReportFlags(report, forceRecompute);
 
-    // // Check if report meets basic requirements
-    // if ((flags & requiredFlags) !== requiredFlags) {
-    //     return null;
-    // }
-
-    // // Check if report has any excluded flags
-    // if (flags & excludedFlags) {
-    //     return null;
-    // }
     if (!(flags & REPORT_FLAGS.HAS_VALID_STRUCTURE)) {
         return null;
     }
@@ -7058,7 +7093,10 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         return null;
     }
 
-    // TODO: can access report
+    if (!canAccessReportOptimized(flags, report, betas)) {
+        return null;
+    }
+
     const parentReportAction =
         flags & REPORT_FLAGS.IS_CHAT_THREAD ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
@@ -7092,8 +7130,10 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         }
     }
 
+    const shouldHideReport = shouldHideReportOptimized(report.reportID, flags, currentReportId);
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && flags & REPORT_FLAGS.SHOULD_HIDE_REPORT) {
+    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && shouldHideReport) {
         return null;
     }
 
@@ -7122,11 +7162,12 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
     if (
         excludeEmptyChats &&
         flags & REPORT_FLAGS.IS_EMPTY_CHAT &&
+        flags & REPORT_FLAGS.IS_CHAT_REPORT &&
         !(flags & REPORT_FLAGS.IS_CHAT_ROOM) &&
         !(flags & REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT) &&
         !(flags & REPORT_FLAGS.IS_SYSTEM_CHAT) &&
         !(flags & REPORT_FLAGS.IS_GROUP_CHAT) &&
-        flags & REPORT_FLAGS.SHOULD_HIDE_REPORT
+        shouldHideReport
     ) {
         return null;
     }
