@@ -18,7 +18,7 @@ type GetPhysicalCardAddressProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function GetPhysicalCardAddress({
     route: {
-        params: {country: countryFromUrl, domain},
+        params: {country: countryFromUrl, domain, backTo},
     },
 }: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
@@ -104,6 +104,7 @@ function GetPhysicalCardAddress({
             renderContent={renderContent}
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}
+            backTo={backTo}
         />
     );
 }
