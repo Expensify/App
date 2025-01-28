@@ -38,30 +38,29 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {getCompanyFeeds} from '@libs/CardUtils';
+import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    shouldShowPolicy as checkIfShouldShowPolicy,
     getWorkspaceAccountID,
     goBackFromInvalidPolicy,
     hasPolicyCategoriesError,
-    hasPolicyFeedsError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     shouldShowEmployeeListError,
-    shouldShowPolicy,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,10 +104,12 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformS
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
-function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+function dismissError(policyID: string | undefined, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         goBackFromInvalidPolicy();
-        removeWorkspace(policyID);
+        if (policyID) {
+            removeWorkspace(policyID);
+        }
     } else {
         clearErrors(policyID);
     }
@@ -120,7 +121,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const workspaceAccountID = getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -173,7 +174,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const policyName = policy?.name ?? '';
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
@@ -197,7 +198,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
-    const isPaidGroupPolicyValue = isPaidGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
@@ -342,69 +342,31 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             routeName: SCREENS.WORKSPACE.MORE_FEATURES,
         });
 
-        const menuItems: WorkspaceMenuItem[] = [
-            {
-                translationKey: 'workspace.common.profile',
-                icon: Building,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
-                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                routeName: SCREENS.WORKSPACE.PROFILE,
-            },
-            {
-                translationKey: 'workspace.common.members',
-                icon: Users,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
-                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                routeName: SCREENS.WORKSPACE.MEMBERS,
-            },
-            ...(isPaidGroupPolicyValue && shouldShowProtectedItems ? protectedMenuItems : []),
-        ];
-
-        return menuItems;
-    }, [
-        cardFeeds,
-        cardSettings?.errors,
-        cardsList?.cardList?.errorFields,
-        featureStates,
-        hasGeneralSettingsError,
-        hasMembersError,
-        hasPolicyCategoryError,
-        hasSyncError,
-        highlightedFeature,
-        isPaidGroupPolicyValue,
-        policy,
-        policyID,
-        shouldShowProtectedItems,
-        singleExecution,
-        waitForNavigate,
-    ]);
-
-    // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
-    useEffect(() => {
-        setFeatureStates((currentFeatureStates) => {
-            const newFeatureStates = {} as PolicyFeatureStates;
-            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
-                const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
-                newFeatureStates[key] =
-                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
-            });
-
-            setHighlightedFeature(Object.keys(newFeatureStates).at(0));
-            return {
-                ...policyFeatureStates,
-                ...newFeatureStates,
-            };
-        });
-    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
-
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    const menuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.common.profile',
+            icon: Expensicons.Building,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.PROFILE,
+        },
+        {
+            translationKey: 'workspace.common.members',
+            icon: Expensicons.Users,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.MEMBERS,
+        },
+        ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+    ];
 
     const prevPolicy = usePrevious(policy);
+    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
+    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
+
+    const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
     const actualShouldShowPolicy = useMemo(() => shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
     // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy) || (!actualShouldShowPolicy && !prevShouldShowPolicy);
@@ -513,9 +475,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                    onPress={() =>
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), CONST.NAVIGATION.TYPE.UP)
-                                    }
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP)}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
                                     shouldShowSubscriptAvatar

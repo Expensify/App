@@ -1,10 +1,9 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {ComponentType, EffectCallback} from 'react';
+import type {EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -57,22 +56,6 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         hideEmojiPicker: jest.fn(),
         isActive: () => true,
     };
-});
-
-jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
-    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                isFocused={false}
-            />
-        );
-    }
-
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
 });
 
 beforeAll(() =>
