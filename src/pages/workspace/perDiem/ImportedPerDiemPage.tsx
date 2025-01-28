@@ -95,7 +95,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
-    const importPerDiemRates = useCallback(() => {
+    const importRates = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -149,7 +149,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
-                importFunction={importPerDiemRates}
+                importFunction={importRates}
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingPerDiemRates}
