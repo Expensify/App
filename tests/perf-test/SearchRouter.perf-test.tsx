@@ -1,14 +1,12 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
-import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import SearchRouterInput from '@components/Search/SearchRouter/SearchRouterInput';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
@@ -69,22 +67,6 @@ jest.mock('@react-navigation/native', () => {
             routes: [],
         }),
     };
-});
-
-jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
-    function WithNavigationFocus(props: WithNavigationFocusProps) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                isFocused={false}
-            />
-        );
-    }
-
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
 });
 
 const getMockedReports = (length = 100) =>
