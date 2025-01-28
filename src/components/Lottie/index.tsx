@@ -8,8 +8,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import {isMobile} from '@libs/Browser';
+import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
@@ -52,7 +51,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    const browser = Browser.getBrowser();
+    const browser = getBrowser();
     const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const navigator = useContext(NavigationContext);
