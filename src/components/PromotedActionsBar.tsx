@@ -92,7 +92,7 @@ const PromotedActions = {
             }
             const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
 
-            if (isSearchTopmostFullScreenRoute() && isTextHold) {
+            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
                 ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }
