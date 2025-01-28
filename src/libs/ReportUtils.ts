@@ -64,7 +64,7 @@ import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
@@ -75,6 +75,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
+// eslint-disable-next-line import/no-cycle
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -700,6 +701,12 @@ let isAnonymousUser = false;
 // to prevent unnecessary parsing when the report action is not changed/modified.
 // Example case: when we need to get a report name of a thread which is dependent on a report action message.
 const parsedReportActionMessageCache: Record<string, string> = {};
+
+let conciergeChatReportID: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => (conciergeChatReportID = value),
+});
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
@@ -1358,7 +1365,7 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
 function getBankAccountRoute(report: OnyxEntry<Report>): Route {
-    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
 /**
@@ -1455,7 +1462,7 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
         return false;
     }
 
-    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING);
+    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING) || report?.reportID === conciergeChatReportID;
 }
 
 function findSelfDMReportID(): string | undefined {
@@ -3226,10 +3233,10 @@ function getReportFieldsByPolicyID(policyID: string | undefined): Record<string,
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
-function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: PolicyReportField[]): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
-    const reportFields = Object.values(report.fieldList ?? {});
-    const reportIsSettled = isSettled(report.reportID);
+    const reportFields = Object.values(report?.fieldList ?? {});
+    const reportIsSettled = isSettled(report?.reportID);
 
     // If the report is settled, we don't want to show any new field that gets added to the policy.
     if (reportIsSettled) {
@@ -3263,8 +3270,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const isReportSettled = isSettled(report?.reportID);
-    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID);
+    const reportFields = getReportFieldsByPolicyID(report?.policyID);
     const titleReportField = Object.values(reportFields ?? {}).find((reportField) => reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
 
     if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
@@ -4160,6 +4166,21 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
 const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
 /**
+ * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
+ */
+function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
+    const participantsWithoutCurrentUser: number[] = [];
+    Object.keys(report?.participants ?? {}).forEach((accountID) => {
+        const accID = Number(accountID);
+        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
+            participantsWithoutCurrentUser.push(accID);
+        }
+    });
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(
@@ -4321,16 +4342,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
-    formattedName = participantNames;
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
     if (reportID) {
         reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
@@ -5122,6 +5134,17 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
     const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
     const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
     return Str.htmlEncode(message);
+}
+
+function getDeletedTransactionMessage(action: ReportAction) {
+    const deletedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>) ?? {};
+    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0) / 100;
+    const currency = getCurrencySymbol(deletedTransactionOriginalMessage.currency ?? '');
+    const message = translateLocal('iou.deletedTransaction', {
+        amount: `${currency}${amount}`,
+        merchant: deletedTransactionOriginalMessage.merchant ?? '',
+    });
+    return message;
 }
 
 /**
@@ -7293,8 +7316,8 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * as a participant of the report.
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
-    // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedReportWithID(report?.reportID)) {
+    // In any thread, task report or trip room, we do not allow any new expenses
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedReportWithID(report?.reportID) || isTripRoom(report)) {
         return [];
     }
 
@@ -7321,19 +7344,6 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         options = [CONST.IOU.TYPE.TRACK];
     }
 
-    // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
-    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Expense option.
-    // Your own workspace chats will have the split expense option.
-    if (
-        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && otherParticipants.length > 0) ||
-        (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
-    ) {
-        options = [CONST.IOU.TYPE.SPLIT];
-    }
-
     if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.SUBMIT];
         if (!filterDeprecatedTypes) {
@@ -7344,6 +7354,19 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
+    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Expense option.
+    // Your own workspace chats will have the split expense option.
+    if (
+        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
+        (isDM(report) && otherParticipants.length > 0) ||
+        (isGroupChat(report) && otherParticipants.length > 0) ||
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
+    ) {
+        options = [...options, CONST.IOU.TYPE.SPLIT];
     }
 
     // Pay someone option should be visible only in 1:1 DMs
@@ -8292,6 +8315,9 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy> | SearchPolicy): boolean {
     const policy = reportPolicy ?? getPolicy(report?.policyID);
+    if (!policy?.areRulesEnabled) {
+        return true;
+    }
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
     return !(policy?.preventSelfApproval && isOwner);
 }
@@ -8890,6 +8916,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
@@ -8955,6 +8982,7 @@ export {
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
+    getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
     getReportAutomaticallySubmittedMessage,
@@ -8978,6 +9006,7 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
+    getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
