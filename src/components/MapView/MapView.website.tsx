@@ -1,5 +1,6 @@
 import React, {forwardRef, lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -40,15 +41,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
                 />
             }
         >
-            <Suspense
-                fallback={
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
-                    />
-                }
-            >
+            <Suspense fallback={<FullScreenLoadingIndicator />}>
                 <MapViewImpl
                     ref={ref}
                     // eslint-disable-next-line react/jsx-props-no-spreading
