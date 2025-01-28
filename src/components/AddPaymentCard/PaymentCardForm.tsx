@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -132,7 +133,7 @@ function PaymentCardForm({
     currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const {translate} = useLocalize();
     const route = useRoute();
@@ -204,7 +205,7 @@ function PaymentCardForm({
         setCardNumber(validCardNumber);
     }, []);
 
-    if (!shouldShowPaymentCardForm) {
+    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata)) {
         return null;
     }
 
