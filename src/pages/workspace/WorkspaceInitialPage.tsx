@@ -120,7 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
@@ -199,6 +199,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         !isEmptyObject(policy?.errorFields?.address ?? {});
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
+
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
@@ -220,21 +221,19 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: ExpensifyCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
                 routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
-                brickRoadIndicator:
-                    !isEmptyObject(cardsList?.cardList?.errorFields ?? {}) || !isEmptyObject(cardSettings?.errors ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
             });
         }
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-            const hasPolicyFeedsErrorValue = hasPolicyFeedsError(getCompanyFeeds(cardFeeds));
+            const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID));
 
             protectedMenuItems.push({
                 translationKey: 'workspace.common.companyCards',
                 icon: CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasPolicyFeedsErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
@@ -342,34 +341,71 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             routeName: SCREENS.WORKSPACE.MORE_FEATURES,
         });
 
-    const menuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.profile',
-            icon: Expensicons.Building,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.PROFILE,
-        },
-        {
-            translationKey: 'workspace.common.members',
-            icon: Expensicons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
-            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.MEMBERS,
-        },
-        ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-    ];
+        const menuItems: WorkspaceMenuItem[] = [
+            {
+                translationKey: 'workspace.common.profile',
+                icon: Building,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
+                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                routeName: SCREENS.WORKSPACE.PROFILE,
+            },
+            {
+                translationKey: 'workspace.common.members',
+                icon: Users,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
+                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                routeName: SCREENS.WORKSPACE.MEMBERS,
+            },
+            ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedMenuItems : []),
+        ];
+
+        return menuItems;
+    }, [
+        cardSettings?.errors,
+        cardsList?.cardList?.errorFields,
+        featureStates,
+        hasGeneralSettingsError,
+        hasMembersError,
+        hasPolicyCategoryError,
+        hasSyncError,
+        highlightedFeature,
+        policy,
+        policyID,
+        shouldShowProtectedItems,
+        singleExecution,
+        waitForNavigate,
+    ]);
+
+    // We only update feature states if they aren't pending.
+    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
+    useEffect(() => {
+        setFeatureStates((currentFeatureStates) => {
+            const newFeatureStates = {} as PolicyFeatureStates;
+            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
+                const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
+                newFeatureStates[key] =
+                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
+            });
+
+            setHighlightedFeature(Object.keys(newFeatureStates).at(0));
+            return {
+                ...policyFeatureStates,
+                ...newFeatureStates,
+            };
+        });
+    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+
+    useEffect(() => {
+        confirmReadyToOpenApp();
+    }, []);
 
     const prevPolicy = usePrevious(policy);
-    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
-    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
-    const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
-    const actualShouldShowPolicy = useMemo(() => shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
     // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEmptyObject(policy) || (!actualShouldShowPolicy && !prevShouldShowPolicy);
+    const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
 
     useEffect(() => {
         if (isEmptyObject(prevPolicy) || isPendingDeletePolicy(prevPolicy) || !isPendingDeletePolicy(policy)) {
@@ -419,7 +455,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.resetToHome}
                 shouldShow={shouldShowNotFoundPage}
-                subtitleKey={actualShouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
+                subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
             >
                 <HeaderWithBackButton
                     title={policyName}
@@ -447,7 +483,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping workspaceMenuItems.
+                                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
                             {workspaceMenuItems.map((item) => (
                                 <HighlightableMenuItem
