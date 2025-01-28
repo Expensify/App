@@ -521,7 +521,7 @@ describe('SubscriptionUtils', () => {
             expect(shouldShowDiscountBanner()).toBeTruthy();
         });
 
-        it('should return false if user is on free trial but has no workspaces', async () => {
+        it("should return false if user's trial is during the discount period but has no workspaces", async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
