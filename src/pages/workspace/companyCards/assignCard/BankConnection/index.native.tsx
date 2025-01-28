@@ -33,6 +33,7 @@ function BankConnection({policyID, feed}: BankConnectionStepProps) {
     const url = getCompanyCardBankConnection(policyID, bankName);
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+
     // This does not apply for custom feeds, this is used to check if the feed is expired to push user to reauthenticate
     const isFeedExpired = isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 

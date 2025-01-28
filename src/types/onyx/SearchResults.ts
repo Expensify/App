@@ -151,7 +151,6 @@ type SearchReport = {
     unheldTotal?: number;
 
     /** Whether the report is archived */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
 
     /** Whether the action is loading */
@@ -204,6 +203,9 @@ type SearchPolicy = {
 
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
+
+    /** Whether the rules feature is enabled */
+    areRulesEnabled?: boolean;
 
     /**
      * The scheduled submit frequency set up on this policy.
