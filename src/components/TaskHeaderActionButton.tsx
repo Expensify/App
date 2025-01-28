@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -31,7 +31,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 success
                 isDisabled={!canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
                 text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={callFnIfActionIsAllowed(() => {
+                onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                     if (isActiveTaskEditRoute(report.reportID)) {
                         return;

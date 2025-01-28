@@ -41,7 +41,7 @@ import type {ProfileNavigatorParamList} from '@navigation/types';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFnIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -302,7 +302,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
                                 isAnonymousAction={false}
-                                onPress={callFnIfActionIsAllowed(() => {
+                                onPress={callFunctionIfActionIsAllowed(() => {
                                     openExternalLink(guideCalendarLink);
                                 })}
                             />

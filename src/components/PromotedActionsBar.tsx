@@ -10,7 +10,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -54,7 +54,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: Expensicons.ChatBubbles,
         text: translateLocal('common.join'),
-        onSelected: callFnIfActionIsAllowed(() => {
+        onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
             joinRoom(report);
         }),

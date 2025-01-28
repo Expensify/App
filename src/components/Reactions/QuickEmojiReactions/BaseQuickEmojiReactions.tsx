@@ -7,7 +7,7 @@ import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './types';
@@ -35,7 +35,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                         />
                     </View>
                 </Tooltip>

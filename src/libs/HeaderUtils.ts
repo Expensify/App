@@ -3,7 +3,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import {togglePinnedState} from './actions/Report';
-import {callFnIfActionIsAllowed} from './actions/Session';
+import {callFunctionIfActionIsAllowed} from './actions/Session';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 
@@ -13,7 +13,7 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     return {
         icon: Expensicons.Pin,
         text: translateLocal(isPinned ? 'common.unPin' : 'common.pin'),
-        onSelected: callFnIfActionIsAllowed(() => togglePinnedState(report.reportID, isPinned)),
+        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, isPinned)),
     };
 }
 

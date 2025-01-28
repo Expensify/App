@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -63,7 +63,7 @@ function TaskView({report}: TaskViewProps) {
                 <Hoverable>
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
-                            onPress={callFnIfActionIsAllowed((e) => {
+                            onPress={callFunctionIfActionIsAllowed((e) => {
                                 if (isDisableInteractive) {
                                     return;
                                 }
@@ -87,7 +87,7 @@ function TaskView({report}: TaskViewProps) {
                                     <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
-                                            onPress={callFnIfActionIsAllowed(() => {
+                                            onPress={callFunctionIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                 if (isActiveTaskEditRoute(report?.reportID)) {
                                                     return;

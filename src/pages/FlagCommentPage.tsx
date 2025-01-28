@@ -16,7 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import {canFlagReportAction, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
 import {flagComment as flagCommentUtil} from '@userActions/Report';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
@@ -122,7 +122,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callFnIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity))}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

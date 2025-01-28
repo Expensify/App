@@ -13,7 +13,7 @@ import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
-import {callFnIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
@@ -67,7 +67,7 @@ function MiniQuickEmojiReactions({
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFnIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
@@ -79,7 +79,7 @@ function MiniQuickEmojiReactions({
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={callFnIfActionIsAllowed(() => {
+                onPress={callFunctionIfActionIsAllowed(() => {
                     if (!emojiPickerRef.current?.isEmojiPickerVisible) {
                         openEmojiPicker();
                     } else {
