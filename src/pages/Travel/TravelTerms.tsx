@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {Linking, NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -13,7 +13,8 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {acceptSpotnanaTerms, cleanupTravelProvisioningSession, openTravelDotAfterProvisioning} from '@libs/actions/Travel';
+import {buildTravelDotURL} from '@libs/actions/Link';
+import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -40,7 +41,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
         }
         if (travelProvisioning?.spotnanaToken) {
-            openTravelDotAfterProvisioning(travelProvisioning.spotnanaToken);
+            Navigation.closeRHPFlow();
+            cleanupTravelProvisioningSession();
+            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));

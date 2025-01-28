@@ -1,13 +1,10 @@
-import {Linking} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {buildTravelDotURL} from './Link';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
@@ -57,15 +54,9 @@ function acceptSpotnanaTerms(domain?: string) {
     API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
 
-function openTravelDotAfterProvisioning(spotnanaToken: string) {
-    Navigation.closeRHPFlow();
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
-    Linking.openURL(buildTravelDotURL(spotnanaToken));
-}
-
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {acceptSpotnanaTerms, openTravelDotAfterProvisioning, cleanupTravelProvisioningSession};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession};
