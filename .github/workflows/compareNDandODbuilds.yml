@@ -2,9 +2,6 @@ name: Build and profile Android apps
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    types: [opened, synchronize, labeled]
-    branches: ['*compare-android-build-times**']
 
 jobs:
   validateActor:
@@ -83,7 +80,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
