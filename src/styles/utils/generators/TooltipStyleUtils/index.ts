@@ -142,18 +142,6 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight)) ||
                 anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
 
-            // Determine if we need to shift the tooltip horizontally to prevent it
-            // from displaying too near to the edge of the screen.
-            horizontalShift = computeHorizontalShift(windowWidth, xOffset, tooltipTargetWidth, tooltipWidth, manualShiftHorizontal);
-
-            // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
-            // We shift it to the right a bit if the tooltip is positioned on the extreme left
-            // and shift it to left a bit if the tooltip is positioned on the extreme right.
-            horizontalShiftPointer =
-                horizontalShift > 0
-                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + pointerWidth / 2 + variables.componentBorderRadiusSmall)
-                    : Math.min(-horizontalShift, tooltipWidth / 2 - pointerWidth / 2 - variables.componentBorderRadiusSmall);
-
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
             // we will use yOffset to position the tooltip relative to the Wrapped Component
@@ -184,10 +172,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // To shift the tooltip left, we'll give `left` a negative value.
             //
             // So we'll:
-            //   1) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
-            //   2) Add the manual horizontal shift passed in as a parameter.
-            //   3a) Horizontally align left: No need for shifting.
-            //   3b) Horizontally align center:
+            //   1) Add the manual horizontal shift passed in as a parameter.
+            //   2a) Horizontally align left: No need for shifting.
+            //   2b) Horizontally align center:
             //      - Shift the tooltip right (+) to the center of the component,
             //        so the left edge lines up with the component center.
             //      - Shift it left (-) to by half the tooltip's width,
@@ -203,21 +190,38 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             //        so the pointer's center lines up with the tooltipWidth's center.
             //      - Remove the wrapper's horizontalShift to maintain the pointer
             //        at the center of the hovered component.
-            rootWrapperLeft = xOffset + horizontalShift + manualShiftHorizontal;
+
+            rootWrapperLeft = xOffset + manualShiftHorizontal;
             switch (anchorAlignment.horizontal) {
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
                     pointerWrapperLeft = pointerWidth / 2;
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                    pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth - pointerWidth * 1.5);
+                    pointerWrapperLeft = tooltipWidth - pointerWidth * 1.5;
                     rootWrapperLeft += tooltipTargetWidth - tooltipWidth;
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 default:
-                    pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - pointerWidth / 2);
+                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2;
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
 
+            // Determine if we need to shift the tooltip horizontally to prevent it
+            // from displaying too near to the edge of the screen.
+            horizontalShift = computeHorizontalShift(windowWidth, rootWrapperLeft, tooltipWidth);
+            // Add the horizontal shift (left or right) computed above to keep it out of the gutters.
+            rootWrapperLeft += horizontalShift;
+
+            // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
+            // We shift it to the right a bit if the tooltip is positioned on the extreme left
+            // and shift it to left a bit if the tooltip is positioned on the extreme right.
+            horizontalShiftPointer =
+                horizontalShift > 0
+                    ? Math.max(-horizontalShift, -(tooltipWidth / 2) + pointerWidth / 2 + variables.componentBorderRadiusSmall)
+                    : Math.min(-horizontalShift, tooltipWidth / 2 - pointerWidth / 2 - variables.componentBorderRadiusSmall);
+
+            // Horizontally align left: No need for shifting.
+            pointerWrapperLeft += anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? 0 : horizontalShiftPointer;
             pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
 
             // React Native's measure() is asynchronous, we temporarily hide the tooltip until its bound is calculated
@@ -241,7 +245,10 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
                 ...styles.userSelectNone,
-                ...styles.pointerEventsNone,
+                // Hovering over a link tooltip in a chat message causes the "report action" hover state to reset to false.
+                // To prevent this, we disable pointer events for the tooltip.
+                // However, an exception is needed for educational tooltips since they are interactive.
+                ...(!isEducationTooltip ? styles.pointerEventsNone : {}),
             },
             textStyle: {
                 color: theme.textReversed,
