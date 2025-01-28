@@ -1107,9 +1107,11 @@ function PureReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper && isActionableWhisperResolved) {
         return null;
     }
+
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
