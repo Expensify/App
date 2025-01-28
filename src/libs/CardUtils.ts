@@ -17,7 +17,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getPolicy} from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -284,8 +283,11 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
-function isCustomFeed(feed: CompanyCardFeed): boolean {
-    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
+/**
+ * Verify if the feed is a custom feed. Those are also refered to as commercial feeds.
+ */
+function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
+    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
 function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
@@ -445,16 +447,6 @@ function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
     return cards;
 }
 
-const getDescriptionForPolicyDomainCard = (domainName: string): string => {
-    // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
-    if (policyID) {
-        const policy = getPolicy(policyID.toUpperCase());
-        return policy?.name ?? domainName;
-    }
-    return domainName;
-};
-
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
@@ -508,7 +500,6 @@ export {
     getDefaultCardName,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
     isCardIssued,
     isCardHiddenFromSearch,
