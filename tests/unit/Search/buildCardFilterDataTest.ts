@@ -2,25 +2,24 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {buildCardFeedsData, buildIndividualCardsData} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
-import type {CardList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/PolicyUtils', () => {
-    return {
-        getPolicy(policyID: string) {
-            switch (policyID) {
-                case '1':
-                    return {name: ''};
-                case '2':
-                    return {name: 'test1'};
-                case '3':
-                    return {name: 'test2'};
-                default:
-                    return {name: ''};
-            }
-        },
-    };
+// Use jest.spyOn to mock the implementation
+jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Policy => {
+    switch (policyID) {
+        case '1':
+            return {name: ''} as Policy;
+        case '2':
+            return {name: 'test1'} as Policy;
+        case '3':
+            return {name: 'test2'} as Policy;
+        default:
+            return {name: ''} as Policy;
+    }
 });
 
 const workspaceCardFeeds = {

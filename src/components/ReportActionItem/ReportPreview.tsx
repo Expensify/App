@@ -96,13 +96,13 @@ type ReportPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
     /** The report's policyID, used for Onyx subscription */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
