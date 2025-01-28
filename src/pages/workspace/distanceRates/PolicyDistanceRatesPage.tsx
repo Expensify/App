@@ -79,12 +79,16 @@ function PolicyDistanceRatesPage({
 
     const dismissError = useCallback(
         (item: RateForList) => {
-            if (customUnitRates[item.value].errors) {
-                clearDeleteDistanceRateError(policyID, customUnit?.customUnitID, item.value);
+            if (!customUnit?.customUnitID) {
                 return;
             }
 
-            clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID, item.value);
+            if (customUnitRates[item.value].errors) {
+                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, item.value);
+                return;
+            }
+
+            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -110,7 +114,7 @@ function PolicyDistanceRatesPage({
                 return;
             }
             const rate = customUnit?.rates?.[rateID];
-            // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
+            // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete actions
             const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
                 (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
