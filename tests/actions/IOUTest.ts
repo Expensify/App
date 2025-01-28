@@ -3979,8 +3979,8 @@ describe('actions/IOU', () => {
             const invoiceReceiver = convertedInvoiceChat?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
 
             const iouReport = buildOptimisticInvoiceReport(
-                convertedInvoiceChat?.chatReportID ?? '',
-                policy?.id ?? '',
+                convertedInvoiceChat.reportID,
+                policy?.id,
                 invoiceReceiver?.accountID,
                 '',
                 transaction?.amount ?? 100,
