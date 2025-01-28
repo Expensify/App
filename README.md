@@ -472,7 +472,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 
 
 > [!Note]  
-> #### For external contributors
+> #### For external agencies and C+ contributors only
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
 >
