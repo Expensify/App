@@ -21,6 +21,7 @@ function readOnyxFile(fileUri: string) {
         if (!exists) {
             throw new Error('File does not exist');
         }
+        console.timeEnd('Read Onyx file');
         return ReactNativeBlobUtil.fs.readFile(filePath, 'utf8');
     });
 }
@@ -34,6 +35,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 function applyStateInChunks(state: OnyxValues) {
+    console.time('applyStateInChunks');
     const entries = Object.entries(state);
     const chunks = chunkArray(entries, CHUNK_SIZE);
 
@@ -42,7 +44,7 @@ function applyStateInChunks(state: OnyxValues) {
         const partialOnyxState = Object.fromEntries(chunk) as Partial<OnyxValues>;
         promise = promise.then(() => Onyx.multiSet(partialOnyxState));
     });
-
+    console.timeEnd('applyStateInChunks');
     return promise;
 }
 
@@ -56,18 +58,25 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
         }
 
         setIsLoading(true);
+        console.time('Read Onyx file');
         readOnyxFile(file.uri)
             .then((fileContent: string) => {
+                console.time('Clean and transform state');
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
+                console.timeEnd('Clean and transform state');
+                console.time('current user session copy');
                 const currentUserSessionCopy = {...session};
+                console.timeEnd('current user session copy');
                 setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
+                console.time('Onyx clear and apply in chunks');
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {
                     applyStateInChunks(transformedState).then(() => {
                         setIsUsingImportedState(true);
                         Navigation.navigate(ROUTES.HOME);
                     });
                 });
+                console.timeEnd('Onyx clear and apply in chunks');
             })
             .catch(() => {
                 setIsErrorModalVisible(true);
