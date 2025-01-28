@@ -4596,7 +4596,7 @@ const translations = {
                     `Todos los miembros que actualmente estén aprobando sus propios gastos serán eliminados y reemplazados con el aprobador predeterminado de este espacio de trabajo (${managerEmail}).`,
                 preventSelfApprovalsConfirmButton: 'Evitar autoaprobaciones',
                 preventSelfApprovalsModalTitle: '¿Evitar autoaprobaciones?',
-                preventSelfApprovalsDisabledSubtitle: 'No se pueden habilitar las autoaprobaciones hasta que este espacio de trabajo tenga al menos dos miembros.',
+                preventSelfApprovalsDisabledSubtitle: 'Las aprobaciones propias no pueden habilitarse hasta que este espacio de trabajo tenga al menos dos miembros.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
