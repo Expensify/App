@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as App from '@libs/actions/App';
+import DateUtils from '@libs/DateUtils';
+import '@libs/Navigation/AppNavigator/AuthScreens';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -48,5 +50,25 @@ describe('actions/App', () => {
 
         // The lastFullReconnectTime should NOT be updated
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
+    });
+
+    test('trigger full reconnect', async () => {
+        const reconnectApp = jest.spyOn(App, 'reconnectApp');
+
+        // When OpenApp runs
+        App.openApp();
+        App.confirmReadyToOpenApp();
+        await waitForBatchedUpdates();
+
+        // The lastFullReconnectTime should be updated
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
+
+        // And when a new reconnectAppIfFullReconnectBefore is received
+        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, DateUtils.getDBTime());
+        await waitForBatchedUpdates();
+
+        // Then ReconnectApp should get called with no updateIDFrom to perform a full reconnect
+        expect(reconnectApp).toHaveBeenCalledTimes(1);
+        expect(reconnectApp).toHaveBeenCalledWith();
     });
 });
