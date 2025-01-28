@@ -10,7 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains, getPolicy} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,14 +23,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
     callback: (val) => {
         travelSettings = val;
-    },
-});
-
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (val) => {
-        activePolicyID = val;
     },
 });
 
@@ -127,7 +119,7 @@ function bookATrip(policy: Policy, translate: LocaleContextProps['translate'], s
 
     const isPolicyProvisioned = policy.travelSettings?.spotnanaCompanyID ?? policy.travelSettings?.associatedTravelDomainAccountID;
     if (policy.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-        openTravelDotLink(activePolicyID)
+        openTravelDotLink(policy.id)
             ?.then(() => {
                 if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                     return;

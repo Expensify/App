@@ -135,7 +135,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                         {
                             buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                             buttonAction: () => {
-                                const activePolicy = ((allPolicies as OnyxCollection<Policy>) ?? {})[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+                                const activePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
                                 if (!activePolicy) {
                                     return;
                                 }
@@ -252,6 +252,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
+        allPolicies,
         activePolicyID,
     ]);
 
