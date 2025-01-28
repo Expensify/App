@@ -27,7 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
-import {composerFocusKeepFocusOn, callback as inputFocusCallback, inputFocusChange} from '@libs/actions/InputFocus';
+import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -35,7 +35,6 @@ import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
@@ -98,7 +97,6 @@ function ReportActionItemMessageEdit(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const isInitialMount = useRef(true);
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
@@ -110,11 +108,14 @@ function ReportActionItemMessageEdit(
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
-    const [modal, setModal] = useState<OnyxTypes.Modal>({
-        willAlertModalBecomeVisible: false,
-        isVisible: false,
-    });
-    const [onyxFocused, setOnyxFocused] = useState<boolean>(false);
+
+    const [
+        modal = {
+            willAlertModalBecomeVisible: false,
+            isVisible: false,
+        },
+    ] = useOnyx(ONYXKEYS.MODAL);
+    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -136,34 +137,8 @@ function ReportActionItemMessageEdit(
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
-        composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
-    }, [isFocused, modal, onyxFocused]);
-
-    useEffect(() => {
-        const unsubscribeOnyxModal = onyxSubscribe({
-            key: ONYXKEYS.MODAL,
-            callback: (modalArg) => {
-                if (modalArg === undefined) {
-                    return;
-                }
-                setModal(modalArg);
-            },
-        });
-
-        const unsubscribeOnyxFocused = onyxSubscribe({
-            key: ONYXKEYS.INPUT_FOCUSED,
-            callback: (modalArg) => {
-                if (modalArg === undefined) {
-                    return;
-                }
-                setOnyxFocused(modalArg);
-            },
-        });
-        return () => {
-            unsubscribeOnyxModal();
-            unsubscribeOnyxFocused();
-        };
-    }, []);
+        composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
+    }, [isFocused, modal, onyxInputFocused]);
 
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
@@ -201,38 +176,6 @@ function ReportActionItemMessageEdit(
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
         }, true);
     }, [focus]);
-
-    useEffect(
-        () => {
-            if (isInitialMount.current) {
-                isInitialMount.current = false;
-                return;
-            }
-
-            return () => {
-                inputFocusCallback(() => setIsFocused(false));
-                inputFocusChange(false);
-
-                // Skip if the current report action is not active
-                if (!isActive()) {
-                    return;
-                }
-
-                if (isEmojiPickerActive(action.reportActionID)) {
-                    clearActive();
-                }
-                if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                    ReportActionContextMenu.clearActiveReportAction();
-                }
-
-                // Show the main composer when the focused message is deleted from another client
-                // to prevent the main composer stays hidden until we switch to another chat.
-                setShouldShowComposeInputKeyboardAware(true);
-            };
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
-        [action.reportActionID],
-    );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => setShouldShowComposeInput(true), []);
