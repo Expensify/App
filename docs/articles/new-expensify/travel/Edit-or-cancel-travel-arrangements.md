@@ -15,7 +15,7 @@ You can review your travel arrangements any time by opening the Trip chat in you
 To edit or cancel a travel arrangement,
 1. Open your Inbox.  
 2. Select the trip in the left hand panel. 
-3. Select the leg of the travel you want to update. 
+3. Select the leg of the travel you want to update, or click **View details**
 4. Click Modify Trip.
 5. Select Modify or Cancel. 
 
