@@ -14,7 +14,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const subtitle = (
+    const body = (
         <Text>
             {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
             <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>.
@@ -30,7 +30,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
             headerContentStyles={styles.pendingStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
-            subtitle={subtitle}
+            body={body}
         />
     );
 }
