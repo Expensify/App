@@ -49,7 +49,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
                     height={48}
                 />
             </View>
-            <View style={styles.mb4}>
+            <View style={policyID ? styles.mb5 : styles.mb4}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
                 {benefits.map((benefit) => (
