@@ -39,6 +39,7 @@
     "detectRedirectCycle": "ts-node .github/scripts/detectRedirectCycle.ts",
     "desktop-build-adhoc": "./scripts/build-desktop.sh adhoc",
     "ios-build": "bundle exec fastlane ios build_unsigned",
+    "ios-hybrid-build": "bundle exec fastlane ios build_unsigned_hybrid",
     "android-build": "bundle exec fastlane android build_local",
     "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",

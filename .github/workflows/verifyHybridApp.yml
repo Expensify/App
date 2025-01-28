@@ -124,16 +124,7 @@ jobs:
           export RCT_NO_LAUNCH_PACKAGER=1
           
           # Build iOS using xcodebuild
-          if ! xcodebuild \
-            -workspace Mobile-Expensify/iOS/Expensify.xcworkspace \
-            -scheme Expensify \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -arch x86_64 \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            build | xcpretty 
+          if ! npm run ios-hybrid-build
           then
             echo "❌ iOS HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
             exit 1
