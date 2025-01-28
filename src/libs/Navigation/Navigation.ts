@@ -486,19 +486,23 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
  * Closes the modal navigator (RHP, LHP, onboarding).
  */
 const dismissModal = (reportID?: string, ref = navigationRef) => {
-    ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-    if (!reportID) {
-        return;
-    }
-    isNavigationReady().then(() => navigateToReportWithPolicyCheck({reportID}));
+    isNavigationReady().then(() => {
+        ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        if (!reportID) {
+            return;
+        }
+        navigateToReportWithPolicyCheck({reportID});
+    });
 };
 
 /**
  * Dismisses the modal and opens the given report.
  */
-const dismissModalWithReport = (report: OnyxEntry<Report>) => {
-    dismissModal();
-    isNavigationReady().then(() => navigateToReportWithPolicyCheck({report}));
+const dismissModalWithReport = (report: OnyxEntry<Report>, ref = navigationRef) => {
+    isNavigationReady().then(() => {
+        ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        navigateToReportWithPolicyCheck({report});
+    });
 };
 
 /**
