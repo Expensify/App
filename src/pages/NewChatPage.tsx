@@ -204,7 +204,7 @@ function NewChatPage() {
         (option: ListItem & Partial<OptionData>) => {
             const isOptionInList = !!option.isSelected;
 
-            let newSelectedOptions = [...selectedOptions];
+            let newSelectedOptions;
 
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
