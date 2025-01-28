@@ -23,7 +23,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as Report from './Report';
+import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
@@ -335,7 +335,7 @@ function createTaskAndNavigate(
         clearOutTaskInfo();
         Navigation.dismissModal(parentReportID);
     }
-    Report.notifyNewAction(parentReportID, currentUserAccountID);
+    notifyNewAction(parentReportID, currentUserAccountID);
 }
 
 /**
@@ -1014,7 +1014,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): stri
     }
 
     // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = Report.getMostRecentReportID(report);
+    const mostRecentReportID = getMostRecentReportID(report);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
     }
@@ -1162,7 +1162,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    Report.notifyNewAction(report.reportID, currentUserAccountID);
+    notifyNewAction(report.reportID, currentUserAccountID);
 
     const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {
@@ -1221,7 +1221,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedReport(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
@@ -1251,14 +1251,18 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
-function clearTaskErrors(reportID: string) {
+function clearTaskErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        Report.navigateToConciergeChatAndDeleteReport(reportID);
+        navigateToConciergeChatAndDeleteReport(reportID);
         return;
     }
 
