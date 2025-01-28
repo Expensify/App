@@ -38,6 +38,7 @@ import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 
@@ -67,6 +68,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }`,
     );
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -138,9 +140,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     return (
-        <View style={[styles.pl0]}>
+        <View style={[styles.pl0, styles.borderBottom]}>
             <HeaderWithBackButton
-                shouldShowBorderBottom={!statusBarProps && !isOnHold}
+                shouldShowBorderBottom={false}
                 shouldShowReportAvatarWithDisplay
                 shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
@@ -206,13 +208,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 </View>
             )}
             {!!statusBarProps && (
-                <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                <View style={[styles.ph5, styles.pb3]}>
                     <MoneyRequestHeaderStatusBar
                         icon={statusBarProps.icon}
                         description={statusBarProps.description}
                     />
                 </View>
             )}
+            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
         </View>
     );
 }

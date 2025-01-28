@@ -59,7 +59,10 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
+    EarlyDiscountSubtitleParams,
+    EarlyDiscountTitleParams,
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
@@ -879,6 +882,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report,  ${merchant} - ${amount}`,
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
@@ -2562,6 +2566,23 @@ const translations = {
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: 'To book travel, your default contact method must be a valid email',
+        domainSelector: {
+            title: 'Domain',
+            subtitle: 'Choose a domain for Expensify Travel setup.',
+            recommended: 'Recommended',
+        },
+        domainPermissionInfo: {
+            title: 'Domain',
+            restrictionPrefix: `You don't have permission to enable Expensify Travel for the domain`,
+            restrictionSuffix: `You'll need to ask someone from that domain to enable travel instead.`,
+            accountantInvitationPrefix: `If you're an accountant, consider joining the`,
+            accountantInvitationLink: `ExpensifyApproved! accountants program`,
+            accountantInvitationSuffix: `to enable travel for this domain.`,
+        },
+        publicDomainError: {
+            title: 'Get started with Expensify Travel',
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
+        },
     },
     workspace: {
         common: {
@@ -4972,12 +4993,12 @@ const translations = {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
-        deletedReport: '[Deleted report]',
-        deletedMessage: '[Deleted message]',
-        deletedExpense: '[Deleted expense]',
-        reversedTransaction: '[Reversed transaction]',
-        deletedTask: '[Deleted task]',
-        hiddenMessage: '[Hidden message]',
+        deletedReport: 'Deleted report',
+        deletedMessage: 'Deleted message',
+        deletedExpense: 'Deleted expense',
+        reversedTransaction: 'Reversed transaction',
+        deletedTask: 'Deleted task',
+        hiddenMessage: 'Hidden message',
     },
     threads: {
         thread: 'Thread',
@@ -5363,6 +5384,19 @@ const translations = {
                 title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
+            earlyDiscount: {
+                claimOffer: 'Claim Offer',
+                noThanks: 'No thanks',
+                subscriptionPageTitle: {
+                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
+                    phrase2: `Just add a payment card and start an annual subscription!`,
+                },
+                onboardingChatTitle: {
+                    phrase1: 'Limited time offer:',
+                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
+                },
+                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
+            },
         },
         cardSection: {
             title: 'Payment',
@@ -5675,6 +5709,16 @@ const translations = {
             part1: 'Create expenses',
             part2: ', start chatting,',
             part3: '\nand more!',
+        },
+        scanTestTooltip: {
+            part1: 'Want to see how Scan works?',
+            part2: ' Try a test receipt!',
+            part3: 'Choose our',
+            part4: ' test manager',
+            part5: ' to try it out!',
+            part6: 'Now,',
+            part7: ' submit your expense',
+            part8: ' and watch the magic happen!',
         },
     },
     discardChangesConfirmation: {
