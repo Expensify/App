@@ -11,14 +11,14 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
-const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {STREET, CITY, STATE, ZIP_CODE, NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
-    const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const inputKeys = {
         street: `${PREFIX}_${ownerBeingModifiedID}_${STREET}`,
         city: `${PREFIX}_${ownerBeingModifiedID}_${CITY}`,
