@@ -22,6 +22,10 @@ describe('actions/App', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('lastFullReconnectTime - openApp', async () => {
         // When Open App runs
         App.openApp();
@@ -70,5 +74,26 @@ describe('actions/App', () => {
         // Then ReconnectApp should get called with no updateIDFrom to perform a full reconnect
         expect(reconnectApp).toHaveBeenCalledTimes(1);
         expect(reconnectApp).toHaveBeenCalledWith();
+    });
+
+    test("don't trigger full reconnect", async () => {
+        const reconnectApp = jest.spyOn(App, 'reconnectApp');
+
+        // When OpenApp runs
+        App.openApp();
+        App.confirmReadyToOpenApp();
+        await waitForBatchedUpdates();
+
+        // The lastFullReconnectTime should be updated
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
+
+        // And when a reconnectAppIfFullReconnectBefore is received with a timestamp in the past
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, DateUtils.getDBTime(yesterday.toISOString()));
+        await waitForBatchedUpdates();
+
+        // Then ReconnectApp should NOT get called
+        expect(reconnectApp).toHaveBeenCalledTimes(0);
     });
 });
