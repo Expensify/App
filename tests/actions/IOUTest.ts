@@ -40,7 +40,14 @@ import {
     isActionOfType,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticInvoiceReport,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildTransactionThread,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    isIOUReport,
+} from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -3551,8 +3558,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
 
                                     Onyx.merge(`report_${expenseReport?.reportID}`, {
                                         statusNum: 0,
@@ -3573,8 +3582,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
 
                                     // Verify report is a draft
                                     expect(expenseReport?.stateNum).toBe(0);
@@ -3600,8 +3611,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
 
                                     // Report is closed since the default policy settings is Submit and Close
                                     expect(expenseReport?.stateNum).toBe(2);
@@ -3621,16 +3634,16 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.POLICY,
+                                key: ONYXKEYS.COLLECTION.REPORT,
                                 waitForCollectionCallback: true,
-                                callback: (allPolicies) => {
+                                callback: (allReports) => {
                                     Onyx.disconnect(connection);
-                                    policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.name === "Carlos's Workspace");
+                                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                    expect(policy).toBeTruthy();
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -3709,8 +3722,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
 
                                     Onyx.merge(`report_${expenseReport?.reportID}`, {
                                         statusNum: 0,
@@ -3756,8 +3771,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
 
                                     // Report was submitted with some fail
                                     expect(expenseReport?.stateNum).toBe(0);
@@ -3961,20 +3978,18 @@ describe('actions/IOU', () => {
 
             const invoiceReceiver = convertedInvoiceChat?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {
-                id: invoiceReceiver.policyID,
-                role: CONST.POLICY.ROLE.ADMIN,
-            });
-
-            const iouReport = buildOptimisticIOUReport(
-                policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            const iouReport = buildOptimisticInvoiceReport(
+                convertedInvoiceChat?.chatReportID ?? '',
+                policy?.id ?? '',
                 invoiceReceiver?.accountID,
+                '',
                 transaction?.amount ?? 100,
-                convertedInvoiceChat.chatReportID,
                 transaction?.currency ?? 'USD',
             );
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
             // And data for when a new invoice is sent to a user
             const currentUserAccountID = 32;
@@ -3995,9 +4010,17 @@ describe('actions/IOU', () => {
 
             writeSpy.mockRestore();
 
-            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy)).toBe(true);
+            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], false, undefined, undefined, false)).toBe(true);
+            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], false, undefined, undefined, true)).toBe(true);
+            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], true, undefined, undefined, false)).toBe(true);
+            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], true, undefined, undefined, true)).toBe(true);
 
-            expect(canIOUBePaid(iouReport, {...convertedInvoiceChat, private_isArchived: true} as unknown as Report, policy)).toBe(false);
+            const archivedChatReport = {...convertedInvoiceChat, private_isArchived: true} as unknown as Report;
+
+            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], false, undefined, undefined, true)).toBe(false);
+            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], true, undefined, undefined, false)).toBe(false);
+            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], true, undefined, undefined, true)).toBe(false);
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
