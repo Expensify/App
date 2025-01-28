@@ -7344,19 +7344,6 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         options = [CONST.IOU.TYPE.TRACK];
     }
 
-    // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
-    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Expense option.
-    // Your own workspace chats will have the split expense option.
-    if (
-        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && otherParticipants.length > 0) ||
-        (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
-    ) {
-        options = [CONST.IOU.TYPE.SPLIT];
-    }
-
     if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.SUBMIT];
         if (!filterDeprecatedTypes) {
@@ -7367,6 +7354,19 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
+    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Expense option.
+    // Your own workspace chats will have the split expense option.
+    if (
+        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
+        (isDM(report) && otherParticipants.length > 0) ||
+        (isGroupChat(report) && otherParticipants.length > 0) ||
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
+    ) {
+        options = [...options, CONST.IOU.TYPE.SPLIT];
     }
 
     // Pay someone option should be visible only in 1:1 DMs

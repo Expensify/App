@@ -64,6 +64,7 @@ import {
     isReportApproved,
     isReportOwner,
     isSettled,
+    isTripRoom as isTripRoomReportUtils,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -215,6 +216,7 @@ function ReportPreview({
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
+    const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
@@ -368,7 +370,7 @@ function ReportPreview({
         }
 
         let payerOrApproverName;
-        if (isPolicyExpenseChat) {
+        if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
@@ -390,17 +392,18 @@ function ReportPreview({
     }, [
         isScanning,
         isPolicyExpenseChat,
-        policy,
-        chatReport,
+        isTripRoom,
         isInvoiceRoom,
-        invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
-        managerID,
         isApproved,
         iouSettled,
         iouReport?.isWaitingOnBankAccount,
         hasNonReimbursableTransactions,
         translate,
+        chatReport,
+        policy,
+        invoiceReceiverPolicy,
+        invoiceReceiverPersonalDetail,
+        managerID,
     ]);
 
     const bankAccountRoute = getBankAccountRoute(chatReport);
