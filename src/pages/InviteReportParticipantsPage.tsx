@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -19,6 +18,7 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -38,7 +38,7 @@ type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigat
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
 function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
-    const route = useRoute<RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -56,21 +56,28 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true)), ...CONST.EXPENSIFY_EMAILS],
-        [report],
-    );
+    const excludedUsers = useMemo(() => {
+        const res = {
+            ...CONST.EXPENSIFY_EMAILS_OBJECT,
+        };
+        const participantsAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true);
+        const loginsByAccountIDs = PersonalDetailsUtils.getLoginsByAccountIDs(participantsAccountIDs);
+        for (const login of loginsByAccountIDs) {
+            res[login] = true;
+        }
+        return res;
+    }, [report]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return OptionsListUtils.getEmptyOptions();
         }
 
-        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, false, options.reports, true);
+        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(
-        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
         [debouncedSearchTerm, defaultOptions, excludedUsers],
     );
 
@@ -185,17 +192,17 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
-        const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
+        const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!inviteOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers.includes(
+            excludedUsers[
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(processedLogin)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(processedLogin))
-                    : processedLogin,
-            )
+                    : processedLogin
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
@@ -222,7 +229,6 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}

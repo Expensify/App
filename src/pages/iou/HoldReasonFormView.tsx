@@ -33,7 +33,7 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={HoldReasonFormView.displayName}
         >

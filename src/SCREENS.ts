@@ -22,17 +22,28 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     CONNECTION_COMPLETE: 'ConnectionComplete',
+    BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
+        TRIP_SUMMARY: 'Travel_TripSummary',
+        TRIP_DETAILS: 'Travel_TripDetails',
+        DOMAIN_SELECTOR: 'Travel_DomainSelector',
+        DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
+        PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
+        ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
+        ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
+        ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
+        ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
@@ -62,6 +73,7 @@ const SCREENS = {
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -151,6 +163,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -199,6 +212,7 @@ const SCREENS = {
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
+        STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',
@@ -222,6 +236,12 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_DESTINATION: 'Money_Request_Destination',
+        STEP_TIME: 'Money_Request_Time',
+        STEP_SUBRATE: 'Money_Request_SubRate',
+        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        STEP_TIME_EDIT: 'Money_Request_Time_Edit',
+        STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -310,6 +330,8 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
+
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -437,6 +459,7 @@ const SCREENS = {
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
+        COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
@@ -497,6 +520,7 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
+        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -546,7 +570,14 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         PER_DIEM: 'Per_Diem',
+        PER_DIEM_IMPORT: 'Per_Diem_Import',
+        PER_DIEM_IMPORTED: 'Per_Diem_Imported',
         PER_DIEM_SETTINGS: 'Per_Diem_Settings',
+        PER_DIEM_DETAILS: 'Per_Diem_Details',
+        PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
+        PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
+        PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
     },
 
     EDIT_REQUEST: {
@@ -571,8 +602,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {
@@ -581,6 +614,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

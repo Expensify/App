@@ -1,10 +1,10 @@
-import type FocusTrap from 'focus-trap-react';
+import type {FocusTrapProps} from 'focus-trap-react';
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
+type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
 type PopoverAnchorPosition = {
     top?: number;
@@ -35,9 +35,6 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
-
-    /** Callback method fired when the user requests to submit the modal content. */
-    onSubmit?: () => void;
 
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
@@ -96,6 +93,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Used to set the element that should receive the initial focus */
     initialFocus?: FocusTrapOptions['initialFocus'];
+
+    /** Whether to prevent the focus trap from scrolling the element into view. */
+    shouldPreventScrollOnFocus?: boolean;
 };
 
 export default BaseModalProps;

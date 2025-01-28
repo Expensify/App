@@ -9,7 +9,6 @@ export default function createRandomReport(index: number): Report {
         currency: randCurrencyCode(),
         ownerAccountID: index,
         isPinned: randBoolean(),
-        isOptimisticReport: randBoolean(),
         isOwnPolicyExpenseChat: randBoolean(),
         isWaitingOnBankAccount: randBoolean(),
         policyID: index.toString(),

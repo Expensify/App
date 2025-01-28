@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -15,6 +14,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -37,7 +37,7 @@ type RoomDescriptionPageProps = {
 };
 
 function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
-    const route = useRoute<RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(ReportUtils.getReportDescription(report)));
@@ -51,7 +51,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     }, []);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)));
     }, [report.reportID, backTo]);
 
     const submitForm = useCallback(() => {
@@ -80,7 +80,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={RoomDescriptionPage.displayName}
         >
             <HeaderWithBackButton
@@ -111,7 +111,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                                     return;
                                 }
                                 if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el);
+                                    updateMultilineInputRange(el, false);
                                 }
                                 reportDescriptionInputRef.current = el;
                             }}

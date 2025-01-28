@@ -12,7 +12,7 @@ index d7d98c2..2f59c7a 100644
            runOnJS(onDragEnd)({
              from: activeIndexAnim.value,
 diff --git a/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx b/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
-index ea21575..66c5eed 100644
+index ea21575..dc6b095 100644
 --- a/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
 +++ b/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
 @@ -1,14 +1,14 @@
@@ -32,14 +32,13 @@ index ea21575..66c5eed 100644
    cellDataRef: React.MutableRefObject<Map<string, CellData>>;
    keyToIndexRef: React.MutableRefObject<Map<string, number>>;
    containerRef: React.RefObject<Animated.View>;
-@@ -54,8 +54,8 @@ function useSetupRefs<T>({
+@@ -54,8 +54,7 @@ function useSetupRefs<T>({
      ...DEFAULT_PROPS.animationConfig,
      ...animationConfig,
    } as WithSpringConfig;
 -  const animationConfigRef = useRef(animConfig);
 -  animationConfigRef.current = animConfig;
 +  const animationConfigRef = useSharedValue(animConfig);
-+  animationConfigRef.value = animConfig;
  
    const cellDataRef = useRef(new Map<string, CellData>());
    const keyToIndexRef = useRef(new Map<string, number>());
@@ -57,7 +56,7 @@ index ce4ab68..efea240 100644
  
    return translate;
 diff --git a/node_modules/react-native-draggable-flatlist/src/hooks/useOnCellActiveAnimation.ts b/node_modules/react-native-draggable-flatlist/src/hooks/useOnCellActiveAnimation.ts
-index 7c20587..857c7d0 100644
+index 7c20587..33042e9 100644
 --- a/node_modules/react-native-draggable-flatlist/src/hooks/useOnCellActiveAnimation.ts
 +++ b/node_modules/react-native-draggable-flatlist/src/hooks/useOnCellActiveAnimation.ts
 @@ -1,8 +1,9 @@
@@ -72,18 +71,17 @@ index 7c20587..857c7d0 100644
  } from "react-native-reanimated";
  import { DEFAULT_ANIMATION_CONFIG } from "../constants";
  import { useAnimatedValues } from "../context/animatedValueContext";
-@@ -15,8 +16,8 @@ type Params = {
+@@ -15,8 +16,7 @@ type Params = {
  export function useOnCellActiveAnimation(
    { animationConfig }: Params = { animationConfig: {} }
  ) {
 -  const animationConfigRef = useRef(animationConfig);
 -  animationConfigRef.current = animationConfig;
 +  const animationConfigRef = useSharedValue(animationConfig);
-+  animationConfigRef.value = animationConfig;
  
    const isActive = useIsActive();
  
-@@ -26,7 +27,7 @@ export function useOnCellActiveAnimation(
+@@ -26,7 +26,7 @@ export function useOnCellActiveAnimation(
      const toVal = isActive && isTouchActiveNative.value ? 1 : 0;
      return withSpring(toVal, {
        ...DEFAULT_ANIMATION_CONFIG,

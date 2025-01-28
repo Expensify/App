@@ -10,12 +10,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {checkIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -224,6 +224,9 @@ type MenuItemBaseProps = {
     /** Whether the secondary right avatar should show as a subscript */
     shouldShowSubscriptRightAvatar?: boolean;
 
+    /** Whether the secondary avatar should show as a subscript */
+    shouldShowSubscriptAvatar?: boolean;
+
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -332,22 +335,37 @@ type MenuItemBaseProps = {
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
 
+    /** Callback to fire when the education tooltip is pressed */
+    onEducationTooltipPress?: () => void;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
-
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
 
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
 
     /** Should break word for room title */
     shouldBreakWord?: boolean;
+
+    /** Pressable component Test ID. Used to locate the component in tests. */
+    pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
+const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+    if (isPressed) {
+        return pressedBackgroundColor;
+    }
+    if (isHovered) {
+        return hoveredBackgroundColor;
+    }
+};
 function MenuItem(
     {
         interactive = true,
@@ -410,6 +428,7 @@ function MenuItem(
         floatRightAvatars = [],
         floatRightAvatarSize,
         shouldShowSubscriptRightAvatar = false,
+        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -443,11 +462,13 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        onEducationTooltipPress,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
+        pressableTestID,
+        shouldTeleportPortalToModalLayer,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -461,7 +482,7 @@ function MenuItem(
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstIcon = floatRightAvatars.at(0);
+    const firstRightIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -477,6 +498,9 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
+    const shouldShowAvatar = !!icon && Array.isArray(icon);
+    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
+    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -580,20 +604,21 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
+                onTooltipPress={onEducationTooltipPress}
             >
                 <View>
                     <Hoverable>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                onPress={shouldCheckActionAllowedOnPress ? checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
+                                testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
@@ -626,7 +651,7 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {!!icon && Array.isArray(icon) && (
+                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
                                                         <MultipleAvatars
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
@@ -637,6 +662,14 @@ function MenuItem(
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
+                                                        />
+                                                    )}
+                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
+                                                        <SubscriptAvatar
+                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            mainAvatar={firstIcon as IconType}
+                                                            secondaryAvatar={(icon as IconType[]).at(1)}
+                                                            size={avatarSize}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -807,12 +840,12 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstIcon}
+                                                                mainAvatar={firstRightIcon}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />

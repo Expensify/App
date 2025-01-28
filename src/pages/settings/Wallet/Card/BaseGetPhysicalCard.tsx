@@ -69,8 +69,9 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
         <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
+            submitButtonStyles={styles.mh5}
             onSubmit={onSubmit}
-            style={[styles.flex1, styles.mh5]}
+            style={styles.flex1}
             validate={onValidate}
         >
             {children}
@@ -167,25 +168,27 @@ function BaseGetPhysicalCard({
         (validateCode: string) => {
             setCurrentCardID(cardToBeIssued?.cardID.toString());
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
-            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? CONST.DEFAULT_NUMBER_ID, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
         },
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
+    const handleBackButtonPress = useCallback(() => {
+        if (currentCardID) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
+            return;
+        }
+        Navigation.goBack();
+    }, [currentCardID]);
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicator={false}
             testID={BaseGetPhysicalCard.displayName}
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={() => {
-                    if (currentCardID) {
-                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
-                    }
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={handleBackButtonPress}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}

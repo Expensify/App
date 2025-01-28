@@ -1,7 +1,5 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -12,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -22,23 +21,18 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
-import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
+type GroupChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
+    report?: ReportOnyxType;
 };
 
-type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
-    Partial<StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
-        report?: ReportOnyxType;
-    };
-
-function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
+function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
     // In this case its better to use empty string as the reportID if there is no reportID
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -69,20 +63,22 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                     Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
-                Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));
+
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                 Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
             }
-            Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
         },
         [isUpdatingExistingReport, reportID, currentChatName],
     );
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
             testID={GroupChatNameEditPage.displayName}
             shouldEnableMaxHeight
@@ -117,8 +113,4 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
 
 GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
-export default withOnyx<GroupChatNameEditPageProps, GroupChatNameEditPageOnyxProps>({
-    groupChatDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-})(GroupChatNameEditPage);
+export default GroupChatNameEditPage;

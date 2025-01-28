@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,16 +9,26 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
+import {
+    approveMoneyRequestOnSearch,
+    deleteMoneyRequestOnSearch,
+    exportSearchItemsToCSV,
+    payMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+    updateAdvancedFilters,
+} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getAllTaxRates, hasVBBA} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -26,7 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {SearchQueryJSON} from './types';
+import type {PaymentData, SearchQueryJSON} from './types';
 
 type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
@@ -46,15 +57,34 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
+    );
+
     const {status, hash} = queryJSON;
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -64,7 +94,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         }
 
         setIsDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+        deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
@@ -79,6 +109,92 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
+        const shouldShowApproveOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+
+        if (shouldShowApproveOption) {
+            options.push({
+                icon: Expensicons.ThumbsUp,
+                text: translate('search.bulkActions.approve'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const reportIDList = !selectedReports.length
+                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
+                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                },
+            });
+        }
+
+        const shouldShowPayOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                : selectedTransactionsKeys.every(
+                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                  ));
+
+        if (shouldShowPayOption) {
+            options.push({
+                icon: Expensicons.MoneyBag,
+                text: translate('search.bulkActions.pay'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const activeRoute = Navigation.getActiveRoute();
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+                    for (const item of items) {
+                        const policyID = item.policyID;
+                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+
+                        if (!lastPolicyPaymentMethod) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+
+                        const hasPolicyVBBA = hasVBBA(policyID);
+
+                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+                    }
+
+                    const paymentData = (
+                        selectedReports.length
+                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            : Object.values(selectedTransactions).map((transaction) => ({
+                                  reportID: transaction.reportID,
+                                  amount: transaction.amount,
+                                  paymentType: lastPaymentMethods[transaction.policyID],
+                              }))
+                    ) as PaymentData[];
+
+                    payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                },
+            });
+        }
 
         options.push({
             icon: Expensicons.Download,
@@ -91,9 +207,15 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = selectedReports.filter((report): report is string => !!report) ?? [];
-                SearchActions.exportSearchItemsToCSV(
-                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                exportSearchItemsToCSV(
+                    {
+                        query: status,
+                        jsonQuery: JSON.stringify(queryJSON),
+                        reportIDList,
+                        transactionIDList: selectedTransactionsKeys,
+                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                    },
                     () => {
                         setIsDownloadErrorModalVisible(true);
                     },
@@ -134,7 +256,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         return;
                     }
 
-                    SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
         }
@@ -177,18 +299,19 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         return options;
     }, [
-        queryJSON,
-        status,
         selectedTransactionsKeys,
         selectedTransactions,
+        isOffline,
+        selectedReports,
         translate,
         hash,
+        lastPaymentMethods,
+        status,
+        queryJSON,
+        activeWorkspaceID,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        isOffline,
-        activeWorkspaceID,
-        selectedReports,
         styles.textWrap,
     ]);
 
@@ -237,13 +360,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     }
 
     const onFiltersButtonPress = () => {
-        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
-        SearchActions.updateAdvancedFilters(filterFormValues);
+        hideProductTrainingTooltip();
+        const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
 
     return (
         <>
@@ -259,12 +383,24 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shouldUseStyleUtilityForAnchorPosition
                     />
                 ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onFiltersButtonPress}
-                    />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        anchorAlignment={{
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        }}
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                        onTooltipPress={onFiltersButtonPress}
+                    >
+                        <Button
+                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onFiltersButtonPress}
+                        />
+                    </EducationalTooltip>
                 )}
             </SearchPageHeaderInput>
             <ConfirmModal

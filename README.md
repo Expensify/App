@@ -438,6 +438,135 @@ export default withOnyx({
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via [`react-native-onyx`](https://github.com/Expensify/react-native-onyx).
 
 ----
+# HybridApp
+
+Currently, the production Expensify app contains both "Expensify Classic" and "New Expensify". The file structure is as follows:
+
+- 📂 [**App**](https://github.com/Expensify/App)
+    - 📂 [**android**](https://github.com/Expensify/App/tree/main/android): New Expensify Android specific code (not a part of HybridApp native code)
+    - 📂 [**ios**](https://github.com/Expensify/App/tree/main/ios): New Expensify iOS specific code (not a part of HybridApp native code)
+    - 📂 [**src**](https://github.com/Expensify/App/tree/main/src): New Expensify TypeScript logic
+    - 📂 [**Mobile-Expensify**](https://github.com/Expensify/Mobile-Expensify): `git` submodule that is pointed to [Mobile-Expensify](https://github.com/Expensify/Mobile-Expensify)
+        - 📂 [**Android**](https://github.com/Expensify/Mobile-Expensify/tree/main/Android): Expensify Classic Android specific code
+        - 📂 [**iOS**](https://github.com/Expensify/Mobile-Expensify/tree/main/iOS): Expensify Classic iOS specific code
+        - 📂 [**app**](https://github.com/Expensify/Mobile-Expensify/tree/main/app): Expensify Classic JavaScript logic (aka YAPL)
+
+You can only build HybridApp if you have been granted access to [`Mobile-Expensify`](https://github.com/Expensify/Mobile-Expensify). For most contributors, you will be working on the standalone NewDot application.
+
+## Getting started with HybridApp
+
+1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
+2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
+- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+
+    ```
+    [url "https://github.com/"]
+        insteadOf = ssh://git@github.com/
+    ```
+- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    ```
+    [submodule "Mobile-Expensify"]
+        ignore = all
+    ```
+    This ensures that submodule changes are ignored unless you deliberately update them.
+
+
+> [!Note]  
+> #### For external agencies and C+ contributors only
+>
+> If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
+>
+> `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
+>
+> This way, you'll attach the submodule to your fork repository.
+
+- Before building the app, you need to install dependencies. Run `npm install` from `Expensify/App` (this will also install dependencies for `Mobile-Expensify`)
+
+**At this point, the default behavior of some `npm` scripts will change to target HybridApp (the script that determines whether to use HybridApp or standalone scripts can be found in `scripts/is-hybrid-app.sh`):**
+| Command               | Description                        |
+| --------------------- | ---------------------------------- |
+| `npm run android`     | Build **HybridApp** for Android    |
+| `npm run ios`         | Build **HybridApp** for iOS        |
+| `npm run ipad`        | Build **HybridApp** for iPad       |
+| `npm run ipad-sm`     | Build **HybridApp** for small iPad |
+| `npm run pod-install` | Install pods for **HybridApp**     |
+| `npm run clean`       | Clean native code of **HybridApp** |
+
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
+
+| Command                          | Description                                                 |
+| -------------------------------- | ----------------------------------------------------------- |
+| `npm run install-standalone`     | Install standalone **NewDot** node modules (`npm install`). |
+| `npm run clean-standalone`       | Clean native code for standalone **NewDot**.                |
+| `npm run android-standalone`     | Build **NewDot** for Android in standalone mode.            |
+| `npm run ios-standalone`         | Build **NewDot** for iOS in standalone mode.                |
+| `npm run pod-install-standalone` | Install pods for standalone **NewDot**.                     |
+| `npm run ipad-standalone`        | Build **NewDot** for iPad in standalone mode.               |
+| `npm run ipad-sm-standalone`     | Build **NewDot** for small iPad in standalone mode.         |
+
+### Working with HybridApp vs Standalone NewDot
+
+Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
+The primary difference is that the native code, which runs React Native, is located in the following directories:  
+
+- `./Mobile-Expensify/Android`
+- `./Mobile-Expensify/iOS`
+
+### Important Notes:
+1. **Root Folders Do Not Affect HybridApp Builds:**
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+
+2. **Modifying iOS Code for HybridApp:**
+   - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
+
+3. **Modifying Android Builds for HybridApp:**
+   - If you'd like to delete files such as `.cxx`, `build`, or `.gradle` directories, you need to navigate to **`./Mobile-Expensify/android`**.
+
+4. **Opening the HybridApp Project in IDEs:**
+   - To open the HybridApp project in **Android Studio** or **Xcode**, you **must select the workspace located in the `Mobile-Expensify` directory**:
+     - **Android**: `./Mobile-Expensify/Android`
+     - **iOS**: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
+
+### Updating the `Mobile-Expensify` Submodule
+
+The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
+
+If you'd like to download the most recent changes from the `main` branch, please use the following command:
+```bash
+git submodule update --remote
+```
+
+It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+
+### Adding HybridApp-related patches
+
+Applying patches from the `patches` directory is performed automatically with the `npm install` command executed in `Expensify/App`.
+
+If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
+
+`npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
+
+### HybridApp troubleshooting
+
+#### Cleaning the repo
+- `npm run clean` - deep clean of all HybridApp artifacts (including NewDot's `node_modules`)
+- `npm run clean -- --ios` - clean only iOS HybridApp artifacts (`Pods`, `build` folder, `DerivedData`)
+- `npm run clean -- --android` - clean only Android HybridApp artifacts (`.cxx`, `build`, and `.gradle` folders, execute `./gradlew clean`)
+
+If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
+
+#### Common errors
+1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
+2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
+
+3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
+    ```
+    - signingConfig signingConfigs.release
+    + signingConfig signingConfigs.debug
+    ```
+4. **Build service could not create build operation: unknown error while handling message: MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")** - reopen XCode
+
+----
 
 # Philosophy
 This application is built with the following principles.
@@ -509,22 +638,22 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Excepting the above, anybody can remove themselves from any object**
 
 1. ### DM
-    |  | Member
-    | :---: | :---:
-    | **Invite** | ❌
-    | **Remove** | ❌
-    | **Leave**  | ❌
-    | **Can be removed**  | ❌
+    |                    | Member |
+    | :----------------: | :----: |
+    |     **Invite**     |   ❌    |
+    |     **Remove**     |   ❌    |
+    |     **Leave**      |   ❌    |
+    | **Can be removed** |   ❌    |
 - DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 2. ### Workspace
     1. #### Workspace
-        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: | :---:
-        | **Invite** | ✅ |  ❌ |  ✅ | ❌
-        | **Remove** | ✅ |  ❌ |  ✅ | ❌
-        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
-        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+        |                    | Creator | Member(Employee/User) | Admin | Auditor? |
+        | :----------------: | :-----: | :-------------------: | :---: | :------: |
+        |     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌     |
+        |     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌     |
+        |     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅     |
+        | **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅     |
 
         - Creator can't leave or be removed from their own workspace
         - Admins can't leave from the workspace
@@ -533,43 +662,43 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Members and Auditors cannot invite or remove anyone from the workspace
 
     2. #### Workspace #announce room
-        |   |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---:
-        | **Invite** | ❌ |  ❌ |  ❌
-        | **Remove** | ❌ |  ❌ |  ❌
-        | **Leave**  | ❌ |  ❌ |  ❌
-        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+        |                    | Member(Employee/User) | Admin | Auditor? |
+        | :----------------: | :-------------------: | :---: | :------: |
+        |     **Invite**     |           ❌           |   ❌   |    ❌     |
+        |     **Remove**     |           ❌           |   ❌   |    ❌     |
+        |     **Leave**      |           ❌           |   ❌   |    ❌     |
+        | **Can be removed** |           ❌           |   ❌   |    ❌     |
 
        - No one can leave or be removed from the #announce room
 
     3. #### Workspace #admin room
-        |   |  Admin |
-        | :---: | :---:
-        | **Invite** | ❌
-        | **Remove** | ❌
-        | **Leave**  | ❌
-        | **Can be removed**  | ❌
+        |                    | Admin |
+        | :----------------: | :---: |
+        |     **Invite**     |   ❌   |
+        |     **Remove**     |   ❌   |
+        |     **Leave**      |   ❌   |
+        | **Can be removed** |   ❌   |
 
         - Admins can't leave or be removed from #admins
 
     4. #### Workspace rooms
-        |   |  Creator | Member | Guest(outside of the workspace)
-        | :---: | :---:  |  :---: | :---:
-        | **Invite** | ✅ | ✅ | ✅
-        | **Remove** | ✅ | ✅ | ❌
-        | **Leave**  | ✅ | ✅ | ✅
-        | **Can be removed**  | ✅ | ✅ | ✅
+        |                    | Creator | Member | Guest(outside of the workspace) |
+        | :----------------: | :-----: | :----: | :-----------------------------: |
+        |     **Invite**     |    ✅    |   ✅    |                ✅                |
+        |     **Remove**     |    ✅    |   ✅    |                ❌                |
+        |     **Leave**      |    ✅    |   ✅    |                ✅                |
+        | **Can be removed** |    ✅    |   ✅    |                ✅                |
 
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
     4. #### Workspace chats
-        |   |  Admin | Member(default) | Member(invited)
-        | :---: | :---:  |  :---:  |  :---:
-        | **Invite** | ✅ |  ✅ | ❌
-        | **Remove** | ✅ |  ✅ | ❌
-        | **Leave**  | ❌ |  ❌  | ✅
-        | **Can be removed**  | ❌ | ❌ | ✅
+        |                    | Admin | Member(default) | Member(invited) |
+        | :----------------: | :---: | :-------------: | :-------------: |
+        |     **Invite**     |   ✅   |        ✅        |        ❌        |
+        |     **Remove**     |   ✅   |        ✅        |        ❌        |
+        |     **Leave**      |   ❌   |        ❌        |        ✅        |
+        | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
         - Admins are not able to leave/be removed from the workspace chat
         - Default members(automatically invited) are not able to leave/be removed from the workspace chat
@@ -578,20 +707,20 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
-    |   |  Member
-    | :---: | :---:
-    | **Remove** | ❌
-    | **Leave**  | ❌
-    | **Can be removed**  | ❌
+    |                    | Member |
+    | :----------------: | :----: |
+    |     **Remove**     |   ❌    |
+    |     **Leave**      |   ❌    |
+    | **Can be removed** |   ❌    |
 
 - Domain members can't leave or be removed from their domain chat
 
 4. ### Reports
-    |   |  Submitter | Manager
-    | :---: | :---:  | :---:
-    | **Remove** | ❌ | ❌
-    | **Leave**  | ❌ | ❌
-    | **Can be removed**  | ❌ | ❌
+    |                    | Submitter | Manager |
+    | :----------------: | :-------: | :-----: |
+    |     **Remove**     |     ❌     |    ❌    |
+    |     **Leave**      |     ❌     |    ❌    |
+    | **Can be removed** |     ❌     |    ❌    |
 
 - Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
 - Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
@@ -696,20 +825,6 @@ The commands used to compile a production or staging desktop build are `npm run 
 HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
 
 ```diff
-diff --git a/config/electronBuilder.config.js b/config/electronBuilder.config.js
-index e4ed685f65..4c7c1b3667 100644
---- a/config/electronBuilder.config.js
-+++ b/config/electronBuilder.config.js
-@@ -42,9 +42,6 @@ module.exports = {
-         entitlements: 'desktop/entitlements.mac.plist',
-         entitlementsInherit: 'desktop/entitlements.mac.plist',
-         type: 'distribution',
--        notarize: {
--            teamId: '368M544MTT',
--        },
-     },
-     dmg: {
-         title: 'New Expensify',
 diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
 index 791f59d733..526306eec1 100755
 --- a/scripts/build-desktop.sh

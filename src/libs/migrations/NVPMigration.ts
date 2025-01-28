@@ -9,7 +9,6 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 const migrations = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     nvp_lastPaymentMethod: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    isFirstTimeNewExpensifyUser: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     preferredLocale: ONYXKEYS.NVP_PREFERRED_LOCALE,
     preferredEmojiSkinTone: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     frequentlyUsedEmojis: ONYXKEYS.FREQUENTLY_USED_EMOJIS,

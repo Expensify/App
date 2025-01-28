@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import ExportOnyxState from './common';
+import * as ExportOnyxState from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise<Record<string, unknown>>((resolve) => {

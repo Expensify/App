@@ -108,6 +108,7 @@ function TroubleshootPage() {
                 shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
+                shouldUseHeadlineHeader
             />
             {isLoading && <FullScreenLoadingIndicator />}
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -144,10 +145,7 @@ function TroubleshootPage() {
                                     />
                                 </TestToolRow>
                             </View>
-                            <ImportOnyxState
-                                setIsLoading={setIsLoading}
-                                isLoading={isLoading}
-                            />
+                            <ImportOnyxState setIsLoading={setIsLoading} />
                             <MenuItemList
                                 menuItems={menuItems}
                                 shouldUseSingleExecution

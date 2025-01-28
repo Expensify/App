@@ -55,9 +55,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const saveSelection = useCallback(
         ({value}: SelectorType) => {
-            if (value !== qboConfig?.reimbursementAccountID) {
-                QuickbooksOnline.updateQuickbooksOnlineReimbursementAccountID(policyID, value, qboConfig?.reimbursementAccountID);
-            }
+            QuickbooksOnline.updateQuickbooksOnlineReimbursementAccountID(policyID, value, qboConfig?.reimbursementAccountID);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
         [policyID, qboConfig?.reimbursementAccountID],

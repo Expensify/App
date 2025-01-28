@@ -31,7 +31,8 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
             if (!textInput) {
                 return;
             }
-            textInput.focus();
+            // When the closing modal has a focused text input focus() needs a delay to properly work.
+            setTimeout(() => textInput.focus(), 0);
             if (forcedSelectionRange) {
                 setTextInputSelection(textInput, forcedSelectionRange);
             }

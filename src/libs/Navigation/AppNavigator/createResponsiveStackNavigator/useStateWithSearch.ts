@@ -1,4 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
+import {useMemo} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import type {CustomStateHookProps, PlatformStackNavigationState, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,50 +29,52 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
 }
 
 function useStateWithSearch({state}: CustomStateHookProps) {
-    const routes = reduceCentralPaneRoutes(state.routes);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    return useMemo(() => {
+        const routes = reduceCentralPaneRoutes(state.routes);
 
-    if (shouldUseNarrowLayout) {
-        const isSearchCentralPane = (route: PlatformStackRouteProp<ParamListBase>) =>
-            getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+        if (shouldUseNarrowLayout) {
+            const isSearchCentralPane = (route: PlatformStackRouteProp<ParamListBase>) =>
+                getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-        const lastRoute = routes.at(-1);
-        const lastSearchCentralPane = lastRoute && isSearchCentralPane(lastRoute) ? lastRoute : undefined;
-        const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
+            const lastRoute = routes.at(-1);
+            const lastSearchCentralPane = lastRoute && isSearchCentralPane(lastRoute) ? lastRoute : undefined;
+            const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
 
-        // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
-        if (lastSearchCentralPane) {
-            const filteredRoute = filteredRoutes.at(0);
-            if (filteredRoute) {
-                return {
-                    stateToRender: {
-                        ...state,
-                        index: 0,
-                        routes: [filteredRoute],
-                    },
-                    searchRoute: lastSearchCentralPane,
-                };
+            // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
+            if (lastSearchCentralPane) {
+                const filteredRoute = filteredRoutes.at(0);
+                if (filteredRoute) {
+                    return {
+                        stateToRender: {
+                            ...state,
+                            index: 0,
+                            routes: [filteredRoute],
+                        },
+                        searchRoute: lastSearchCentralPane,
+                    };
+                }
             }
+
+            return {
+                stateToRender: {
+                    ...state,
+                    index: filteredRoutes.length - 1,
+                    routes: filteredRoutes,
+                },
+                searchRoute: undefined,
+            };
         }
 
         return {
             stateToRender: {
                 ...state,
-                index: filteredRoutes.length - 1,
-                routes: filteredRoutes,
+                index: routes.length - 1,
+                routes: [...routes],
             },
             searchRoute: undefined,
         };
-    }
-
-    return {
-        stateToRender: {
-            ...state,
-            index: routes.length - 1,
-            routes: [...routes],
-        },
-        searchRoute: undefined,
-    };
+    }, [state, shouldUseNarrowLayout]);
 }
 
 export default useStateWithSearch;

@@ -1,6 +1,6 @@
 ---
-title: Quickbooks Online Troubleshooting
-description: Quickbooks Online Troubleshooting
+title: QuickBooks Online Troubleshooting
+description: QuickBooks Online Troubleshooting
 ---
 
 # ExpensiError QBO022: When exporting billable expenses, please make sure the account in QuickBooks Online has been marked as billable.

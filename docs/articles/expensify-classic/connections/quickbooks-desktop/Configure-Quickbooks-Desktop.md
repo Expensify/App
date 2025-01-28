@@ -1,6 +1,6 @@
 ---
-title: Configure Quickbooks Desktop
-description: Configure Quickbooks Desktop
+title: Configure QuickBooks Desktop
+description: Configure QuickBooks Desktop
 ---
 Our new QuickBooks Desktop integration allows you to automate the import and export process with Expensify.
 
@@ -22,17 +22,17 @@ The following steps will determine how data will be exported from Expensify to Q
         - **Check**: A single itemized check for each Expensify report.
         - **Journal Entry**: A single itemized journal entry for each Expensify report.
 - **Non-reimbursable expenses**: Non-reimbursable options include:
+        - **Credit Card**: Each expense appears as a separate credit card transaction with a post date that matches your credit card statement. If you centrally manage company cards through your domain, you can export expenses from each card to a specific QuickBooks account by clicking Edit Exports next to each user’s card. To display the merchant name in the payee field in QuickBooks Desktop, ensure that a matching Vendor exists in QuickBooks. Expensify searches for an exact match during export. If no match is found, the payee is mapped to a Credit Card Misc. Vendor created by Expensify.
+        - **Check**: Expenses are exported as individual itemized checks for each Expensify report. The check is written to the “vendor,” which is the person who created or submitted the report in Expensify.
         - **Vendor Bill**: Each Expensify report results in a single itemized vendor bill. The bill is associated with the “vendor,” which is the individual responsible for creating or submitting the report in Expensify.
-        - **Credit Card expenses**: Each expense appears as a separate credit card transaction with a post date that matches your credit card statement. If you centrally manage company cards through your domain, you can export expenses from each card to a specific QuickBooks account by clicking Edit Exports next to each user’s card. To display the merchant name in the payee field in QuickBooks Desktop, ensure that a matching Vendor exists in QuickBooks. Expensify searches for an exact match during export. If no match is found, the payee is mapped to a Credit Card Misc. Vendor created by Expensify.
-        - **Debit Card expenses**: Expenses are exported as individual itemized checks for each Expensify report. The check is written to the “vendor,” which is the person who created or submitted the report in Expensify.
 
 # Step 2: Configure coding/import settings
 
-The following steps help you determine how data will be imported from QuickBooks Online to Expensify:
+The following steps help you determine how data will be imported from QuickBooks Desktop to Expensify:
 
 ![Expensify coding settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-coding-settings.png){:width="100%"}
 
-1. Click Import under the QuickBooks Online connection.
+1. Click Import under the QuickBooks Desktop connection.
 2. Review each of the following import settings:
 - **Chart of Accounts**: The Chart of Accounts is automatically imported from QuickBooks Desktop as categories. This cannot be amended.
 - **Classes**: Choose whether to import classes, which will be shown in Expensify as tags for expense-level coding.
@@ -67,15 +67,15 @@ To manually sync your connection:
 For manual syncing, we recommend completing this process at least once a week and/or after making changes in QuickBooks Desktop that could impact how reports export from Expensify. Changes may include adjustments to your chart of accounts, vendors, employees, customers/jobs, or items. Remember: Both the Web Connector and QuickBooks Desktop need to be running for syncing or exporting to work.
 {% include end-info.html %}
 
-## **Can I sync Expensify and QuickBooks Desktop (QBD) and use the platforms at the same time?**
+## **Can I sync Expensify and QuickBooks Desktop and use the platforms at the same time?**
 
 When syncing Expensify to QuickBooks Desktop, we recommend waiting until the sync finishes to access either Expensify and/or QuickBooks Desktop, as performance may vary during this process. You cannot open an instance of QuickBooks Desktop while a program is syncing - this may cause QuickBooks Desktop to behave unexpectedly.
 
-## **What are the different types of accounts that can be imported from Quickbooks Desktop?**
+## **What are the different types of accounts that can be imported from QuickBooks Desktop?**
 
 Here is the list of accounts from QuickBooks Desktop and how they are pulled into Expensify:
 
-| QBD account type  | How it imports to Expensify |
+| QuickBooks Desktop account type  | How it imports to Expensify |
 | ------------- | ------------- |
 | Accounts payable  | Vendor bill or journal entry export options  |
 | Accounts receivable  | Do not import  |

@@ -1,35 +1,29 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import type {RenderContentProps} from './BaseGetPhysicalCard';
 
-type GetPhysicalCardAddressOnyxProps = {
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-};
-
-type GetPhysicalCardAddressProps = GetPhysicalCardAddressOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
+type GetPhysicalCardAddressProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardAddress({
-    draftValues,
     route: {
         params: {country: countryFromUrl, domain},
     },
 }: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
+
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
 
     const {addressLine1, addressLine2} = draftValues ?? {};
     const [country, setCountry] = useState(draftValues?.country);
@@ -116,8 +110,4 @@ function GetPhysicalCardAddress({
 
 GetPhysicalCardAddress.displayName = 'GetPhysicalCardAddress';
 
-export default withOnyx<GetPhysicalCardAddressProps, GetPhysicalCardAddressOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardAddress);
+export default GetPhysicalCardAddress;

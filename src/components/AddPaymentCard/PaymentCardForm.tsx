@@ -17,7 +17,7 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,8 +48,8 @@ function IAcceptTheLabel() {
     return (
         <Text>
             {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
-            <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
         </Text>
     );
 }
@@ -143,30 +143,33 @@ function PaymentCardForm({
     const [cardNumber, setCardNumber] = useState('');
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
-        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
-        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        if (values.expirationDate && !isValidExpirationDate(values.expirationDate)) {
             errors.expirationDate = translate(label.error.expirationDate);
         }
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate(label.error.securityCode);
         }
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
+        // If tempered with, this can block users from adding payment cards so
+        // do not touch unless you are aware of the context.
+        // See issue: https://github.com/Expensify/App/issues/55493#issuecomment-2616349754
+        if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
         }
 
         if (!values.acceptTerms) {
@@ -283,10 +286,9 @@ function PaymentCardForm({
                     InputComponent={TextInput}
                     defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zip')}
-                    aria-label={translate('common.zip')}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />

@@ -89,9 +89,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, reportID: report.reportID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, reportID: report.reportID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
         }
 
         if (isEqual(attachments, newAttachments)) {
@@ -130,19 +130,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 onNavigate(attachment);
             }
         }
-    }, [
-        report.privateNotes,
-        reportActions,
-        parentReportActions,
-        compareImage,
-        report.parentReportActionID,
-        attachments,
-        setDownloadButtonVisibility,
-        onNavigate,
-        accountID,
-        type,
-        report.reportID,
-    ]);
+    }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
@@ -253,18 +241,18 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
                 .onUpdate(({translationX}) => {
-                    if (!isScrollEnabled.value) {
+                    if (!isScrollEnabled.get()) {
                         return;
                     }
 
                     if (translationX !== 0) {
-                        isPagerScrolling.value = true;
+                        isPagerScrolling.set(true);
                     }
 
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
-                    if (!isScrollEnabled.value) {
+                    if (!isScrollEnabled.get()) {
                         return;
                     }
 
@@ -281,7 +269,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
-                    isPagerScrolling.value = false;
+                    isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
                 // eslint-disable-next-line react-compiler/react-compiler

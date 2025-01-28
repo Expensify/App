@@ -1,12 +1,12 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import * as UserUtils from '@libs/UserUtils';
+import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
@@ -25,9 +25,11 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
+import searchHeaderHeight from './searchHeaderHeight';
 import type {
     AllStyles,
     AvatarSize,
@@ -273,7 +275,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
-    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
+    const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
@@ -289,9 +291,12 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
+    if (!transactionID) {
+        return CONST.ERECEIPT_COLORS.YELLOW;
+    }
 
-    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+    const colorHash = hashText(transactionID.trim(), eReceiptColors.length);
 
     return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
@@ -327,7 +332,22 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = getPlatform() === CONST.PLATFORM.IOS ? variables.safeInsertPercentage : 1): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+    const platform = getPlatform();
+    let insetsPercentage = insetsPercentageProp;
+    if (insetsPercentage == null) {
+        switch (platform) {
+            case CONST.PLATFORM.IOS:
+                insetsPercentage = variables.iosSafeAreaInsetsPercentage;
+                break;
+            case CONST.PLATFORM.ANDROID:
+                insetsPercentage = variables.androidSafeAreaInsetsPercentage;
+                break;
+            default:
+                insetsPercentage = 1;
+        }
+    }
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -340,7 +360,7 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = getP
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
+    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
 function getZoomSizingStyle(
@@ -727,15 +747,6 @@ function getMaximumWidth(maxWidth: number): ViewStyle {
     };
 }
 
-/**
- * Return style for opacity animation.
- */
-function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        opacity: fadeAnimation,
-    };
-}
-
 type AvatarBorderStyleParams = {
     theme: ThemeColors;
     isHovered: boolean;
@@ -917,9 +928,16 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     if (windowHeight) {
         // dimensions of content above the emoji picker list
         const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        const maxHeight = windowHeight - dimensions;
         return {
             ...style,
-            maxHeight: windowHeight - dimensions,
+            maxHeight,
+            /**
+             * On native platforms, `maxHeight` doesn't work as expected, so we manually
+             * enforce the height by returning the smaller of the element's height or the
+             * `maxHeight`, ensuring it doesn't exceed the maximum allowed.
+             */
+            height: Math.min(style.height, maxHeight),
         };
     }
     return style;
@@ -944,7 +962,7 @@ function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
  * Returns style object for the mobile on WEB
  */
 function getOuterModalStyle(windowHeight: number, viewportOffsetTop: number): ViewStyle {
-    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
+    return isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
 /**
@@ -1143,6 +1161,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
+    searchHeaderHeight,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1164,7 +1183,6 @@ const staticStyleUtils = {
     getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
-    fade,
     getHorizontalStackedAvatarBorderStyle,
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
@@ -1190,6 +1208,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
@@ -1271,6 +1290,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
+     */
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+        if (!!width && !!extraSpace) {
+            return {marginRight: -extraSpace, width: width + extraSpace};
+        }
+        return {width};
     },
 
     /*

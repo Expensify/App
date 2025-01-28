@@ -1,9 +1,7 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -27,25 +26,21 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
 
-type RoomNamePageOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-};
-
-type RoomNamePageProps = RoomNamePageOnyxProps & {
+type RoomNamePageProps = {
     report: Report;
 };
 
-function RoomNamePage({report, reports}: RoomNamePageProps) {
-    const route = useRoute<RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>>();
+function RoomNamePage({report}: RoomNamePageProps) {
+    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>>();
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
     }, [reportID, route.params.backTo]);
 
     const validate = useCallback(
@@ -66,7 +61,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '-1')) {
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
@@ -89,7 +84,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={RoomNamePage.displayName}
         >
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report)}>
@@ -122,8 +117,4 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
 
 RoomNamePage.displayName = 'RoomNamePage';
 
-export default withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(RoomNamePage);
+export default RoomNamePage;

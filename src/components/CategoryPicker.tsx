@@ -14,7 +14,7 @@ import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
-    policyID: string;
+    policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
 };

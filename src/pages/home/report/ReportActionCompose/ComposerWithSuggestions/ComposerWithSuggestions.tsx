@@ -11,7 +11,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {AppState, DeviceEventEmitter, findNodeHandle, InteractionManager, Keyboard, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -40,7 +40,6 @@ import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -126,27 +125,26 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The ref to the next modal will open */
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
-    /** Wheater chat is empty */
-    isEmptyChat?: boolean;
-
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether to include chronos */
     includeChronos?: boolean;
 
-    /** The parent report action ID */
-    parentReportActionID?: string;
-
-    /** The parent report ID */
-    // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
-    parentReportID: string | undefined;
-
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
 
     /** policy ID of the report */
-    policyID: string;
+    policyID?: string;
+
+    /** Whether to show the keyboard on focus */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
+
+    /** Whether the main composer was hidden */
+    didHideComposerInput?: boolean;
 };
 
 type SwitchToCurrentReportProps = {
@@ -187,10 +185,6 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -201,11 +195,8 @@ function ComposerWithSuggestions(
     {
         // Props: Report
         reportID,
-        parentReportID,
         includeChronos,
-        isEmptyChat,
         lastReportAction,
-        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -236,6 +227,9 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
+        showSoftInputOnFocus,
+        setShowSoftInputOnFocus,
+        didHideComposerInput,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
 ) {
@@ -257,14 +251,12 @@ function ComposerWithSuggestions(
         }
         return draftComment;
     });
+
     const commentRef = useRef(value);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || '-1'}`, {canEvict: false, initWithStoredValues: false});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -274,13 +266,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = useMemo(() => parentReportActions?.[parentReportActionID ?? '-1'], [parentReportActionID, parentReportActions]);
-    const shouldAutoFocus =
-        !modal?.isVisible &&
-        Modal.areAllModalsHidden() &&
-        isFocused &&
-        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportUtils.isTaskReport(report))) &&
-        shouldShowComposeInput;
+    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -452,7 +438,7 @@ function ComposerWithSuggestions(
         [selection, updateComment],
     );
 
-    const triggerHotkeyActions = useCallback(
+    const handleKeyPress = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
@@ -478,8 +464,38 @@ function ComposerWithSuggestions(
                     Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
+            // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
+            // so we need to handle backspace key action differently with grapheme segmentation.
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey) {
+                if (selection.start === 0) {
+                    return;
+                }
+                if (selection.start !== selection.end) {
+                    return;
+                }
+
+                // Grapheme segmentation is same for English and Spanish.
+                const splitter = new Intl.Segmenter(CONST.LOCALES.EN, {granularity: 'grapheme'});
+
+                // Wales flag has 14 UTF-16 code units. This is the emoji with the largest number of UTF-16 code units we use.
+                const start = Math.max(0, selection.start - 14);
+                const graphemes = Array.from(splitter.segment(lastTextRef.current.substring(start, selection.start)));
+                const lastGrapheme = graphemes.at(graphemes.length - 1);
+                const lastGraphemeLength = lastGrapheme?.segment.length ?? 0;
+                if (lastGraphemeLength > 1) {
+                    event.preventDefault();
+                    const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    setSelection((prevSelection) => ({
+                        start: selection.start - lastGraphemeLength,
+                        end: selection.start - lastGraphemeLength,
+                        positionX: prevSelection.positionX,
+                        positionY: prevSelection.positionY,
+                    }));
+                    updateComment(newText, true);
+                }
+            }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
@@ -503,12 +519,12 @@ function ComposerWithSuggestions(
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
+            setSelection(e.nativeEvent.selection);
+
             if (!textInputRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
-
-            setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
@@ -643,7 +659,15 @@ function ComposerWithSuggestions(
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal?.isVisible && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (
+            !(
+                (willBlurTextInputOnTapOutside || (shouldAutoFocus && canFocusInputOnScreenFocus())) &&
+                !isNextModalWillOpenRef.current &&
+                !modal?.isVisible &&
+                isFocused &&
+                (!!prevIsModalVisible || !prevIsFocused)
+            )
+        ) {
             return;
         }
 
@@ -653,6 +677,13 @@ function ComposerWithSuggestions(
         }
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+
+    useEffect(() => {
+        if (prevIsFocused || !isFocused || showSoftInputOnFocus) {
+            return;
+        }
+        setShowSoftInputOnFocus(true);
+    }, [isFocused, prevIsFocused, showSoftInputOnFocus, setShowSoftInputOnFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -701,20 +732,34 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+    }, [tag]);
 
-        tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    useEffect(() => {
+        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+            if (!nextAppState.match(/inactive|background/)) {
+                focus(true);
+                return;
+            }
+
+            Keyboard.dismiss();
+        });
+
+        return () => {
+            appStateSubscription.remove();
+        };
+    }, [focus]);
+
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
                 'worklet';
 
-                if (event.target === tag.value) {
-                    cursorPositionValue.value = {
+                if (event.target === tag.get()) {
+                    cursorPositionValue.set({
                         x: event.selection.end.x,
                         y: event.selection.end.y,
-                    };
+                    });
                 }
             },
         },
@@ -723,7 +768,7 @@ function ComposerWithSuggestions(
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
             const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
@@ -749,7 +794,7 @@ function ComposerWithSuggestions(
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
-                    onKeyPress={triggerHotkeyActions}
+                    onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
@@ -776,6 +821,19 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
+                    showSoftInputOnFocus={showSoftInputOnFocus}
+                    onTouchStart={() => {
+                        if (showSoftInputOnFocus) {
+                            return;
+                        }
+                        if (Browser.isMobileSafari()) {
+                            setTimeout(() => {
+                                setShowSoftInputOnFocus(true);
+                            }, CONST.ANIMATED_TRANSITION);
+                            return;
+                        }
+                        setShowSoftInputOnFocus(true);
+                    }}
                 />
             </View>
 

@@ -1,5 +1,6 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -7,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -15,7 +15,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -30,16 +30,25 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
         Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => resolve(value ?? 0),
+            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
         });
     });
 }
 
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}: ReportActionPushNotificationData): Promise<void> {
+function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -47,37 +56,63 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    if (!onyxData || !lastUpdateID || !previousUpdateID) {
-        Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-        return Promise.resolve();
-    }
+    const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
+        if (isDataMissing) {
+            Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+            return false;
+        }
 
-    Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-    const updates: OnyxUpdatesFromServer = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: '', // This is only needed for Pusher events
-                data: onyxData,
-            },
-        ],
+        Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+        return true;
     };
+
+    let updates: OnyxUpdatesFromServer;
+    if (hasPendingOnyxUpdates) {
+        const isDataMissing = !lastUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
+
+        updates = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            shouldFetchPendingUpdates: true,
+            updates: [],
+        };
+    } else {
+        const isDataMissing = !lastUpdateID || !onyxData || !previousUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
+
+        updates = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            previousUpdateID,
+            updates: [
+                {
+                    eventType: '', // This is only needed for Pusher events
+                    data: onyxData,
+                },
+            ],
+        };
+    }
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
+    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 

@@ -3,13 +3,14 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
-import * as CurrencyUtils from './CurrencyUtils';
+import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
-import * as TransactionUtils from './TransactionUtils';
+import {getReportTransactions} from './ReportUtils';
+import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
 let lastLocationPermissionPrompt: string;
 Onyx.connect({
@@ -47,8 +48,8 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
 function calculateAmount(numberOfParticipants: number, total: number, currency: string, isDefaultUser = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
-    const totalInCurrencySubunit = Math.round((total / 100) * currencyUnit);
+    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
     let finalAmount = amountPerPerson;
@@ -76,6 +77,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     currency: string,
     isDeleting = false,
     isUpdating = false,
+    isOnhold = false,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -87,11 +89,18 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
+    iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
+        if (!isOnhold) {
+            iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
+        }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
+        if (!isOnhold) {
+            iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
+        }
     }
 
     if (iouReportUpdate.total < 0) {
@@ -99,6 +108,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.ownerAccountID = iouReport.managerID;
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
+        iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
     }
 
     return iouReportUpdate;
@@ -109,8 +119,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions: Transaction[] = TransactionUtils.getAllReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+    const reportTransactions = getReportTransactions(iouReport.reportID);
+    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
@@ -141,7 +151,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @returns
  */
 function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
-    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    const tagArray = getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {

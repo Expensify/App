@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
 
-type EditReportFieldPageProps = StackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
+type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
 function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {windowWidth} = useWindowDimensions();
@@ -40,7 +40,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = ((ReportUtils.isPaidGroupPolicyExpenseReport(report) || ReportUtils.isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
@@ -68,7 +68,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
             goBack();
         } else {
-            ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            if (value !== '') {
+                ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
+            }
             Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
         }
     };
@@ -93,7 +95,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={EditReportFieldPage.displayName}
         >
@@ -139,7 +141,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions.at(index))}

@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,18 +13,32 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getCompanyFeeds} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
-import * as Category from '@userActions/Policy/Category';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
-import * as PerDiem from '@userActions/Policy/PerDiem';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Tag from '@userActions/Policy/Tag';
-import * as Report from '@userActions/Report';
+import {enablePolicyCategories} from '@userActions/Policy/Category';
+import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
+import {enablePerDiem} from '@userActions/Policy/PerDiem';
+import {
+    clearPolicyErrorField,
+    enableCompanyCards,
+    enableExpensifyCard,
+    enablePolicyConnections,
+    enablePolicyInvoicing,
+    enablePolicyReportFields,
+    enablePolicyRules,
+    enablePolicyTaxes,
+    enablePolicyWorkflows,
+    openPolicyMoreFeaturesPage,
+} from '@userActions/Policy/Policy';
+import {enablePolicyTags} from '@userActions/Policy/Tag';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +52,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;
@@ -62,7 +75,9 @@ type SectionObject = {
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
+    const stylesutils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const {translate} = useLocalize();
     const {canUsePerDiem} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
@@ -72,7 +87,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.xero?.config?.importTaxRates ||
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
@@ -101,7 +116,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
+                enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
         {
@@ -115,7 +130,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enableExpensifyCard(policyID, isEnabled);
+                enableExpensifyCard(policyID, isEnabled);
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
@@ -129,7 +144,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
         isActive: policy?.areCompanyCardsEnabled ?? false,
         pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-        disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds)),
+        disabled: !isEmptyObject(getCompanyFeeds(cardFeeds)),
         action: (isEnabled: boolean) => {
             if (!policyID) {
                 return;
@@ -138,7 +153,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
-            Policy.enableCompanyCards(policyID, isEnabled);
+            enableCompanyCards(policyID, isEnabled);
         },
         disabledAction: () => {
             setIsDisableCompanyCardsWarningModalOpen(true);
@@ -160,7 +175,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
+                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
             },
         });
     }
@@ -176,7 +191,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled);
             },
         },
         {
@@ -194,7 +209,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                Policy.enablePolicyRules(policyID, isEnabled);
+                enablePolicyRules(policyID, isEnabled);
             },
         },
     ];
@@ -210,7 +225,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyInvoicing(policyID, isEnabled);
+                enablePolicyInvoicing(policyID, isEnabled);
             },
         },
     ];
@@ -228,7 +243,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Category.enablePolicyCategories(policyID, isEnabled);
+                enablePolicyCategories(policyID, isEnabled);
             },
         },
         {
@@ -243,7 +258,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Tag.enablePolicyTags(policyID, isEnabled);
+                enablePolicyTags(policyID, isEnabled);
             },
         },
         {
@@ -258,7 +273,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyTaxes(policyID, isEnabled);
+                enablePolicyTaxes(policyID, isEnabled);
             },
         },
         {
@@ -281,7 +296,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         return;
                     }
 
-                    Policy.enablePolicyReportFields(policyID, true);
+                    enablePolicyReportFields(policyID, true);
                     return;
                 }
                 setIsReportFieldsWarningModalOpen(true);
@@ -306,15 +321,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                Policy.enablePolicyConnections(policyID, isEnabled);
+                enablePolicyConnections(policyID, isEnabled);
             },
             disabled: hasAccountingConnection,
-            errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
             onCloseError: () => {
                 if (!policyID) {
                     return;
                 }
-                Policy.clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             },
         },
     ];
@@ -326,6 +341,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             items: spendItems,
         },
         {
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
+            items: organizeItems,
+        },
+        {
             titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
             items: manageItems,
@@ -335,23 +360,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.earnSection.subtitle',
             items: earnItems,
         },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
-            items: organizeItems,
-        },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-            items: integrateItems,
-        },
     ];
 
     const renderItem = useCallback(
         (item: Item) => (
             <View
                 key={item.titleTranslationKey}
-                style={styles.mt7}
+                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && stylesutils.getMinimumWidth(0)]}
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
@@ -370,31 +385,57 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [styles, translate],
+        [styles, stylesutils, shouldUseNarrowLayout, translate],
+    );
+
+    /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
+    const sectionRowFillerItem = useCallback(
+        (section: SectionObject) => {
+            if (section.items.length % 2 === 0) {
+                return null;
+            }
+
+            return (
+                <View
+                    key="section-filler-col"
+                    aria-hidden
+                    accessibilityElementsHidden
+                    style={[
+                        styles.workspaceSectionMoreFeaturesItem,
+                        shouldUseNarrowLayout && stylesutils.getMinimumWidth(0),
+                        styles.p0,
+                        styles.mt0,
+                        styles.visibilityHidden,
+                        styles.bgTransparent,
+                    ]}
+                />
+            );
+        },
+        [styles, stylesutils, shouldUseNarrowLayout],
     );
 
     const renderSection = useCallback(
         (section: SectionObject) => (
             <View
                 key={section.titleTranslationKey}
-                style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}
             >
                 <Section
-                    containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                    title={translate(section.titleTranslationKey)}
-                    titleStyles={styles.textStrong}
-                    subtitle={translate(section.subtitleTranslationKey)}
+                    containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
+                    childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
+                    renderTitle={() => <Text style={styles.mutedNormalTextLabel}>{translate(section.titleTranslationKey)}</Text>}
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}
+                    {sectionRowFillerItem(section)}
                 </Section>
             </View>
         ),
-        [shouldUseNarrowLayout, styles, renderItem, translate],
+        [shouldUseNarrowLayout, styles, renderItem, translate, sectionRowFillerItem],
     );
 
     const fetchFeatures = useCallback(() => {
-        Policy.openPolicyMoreFeaturesPage(route.params.policyID);
+        openPolicyMoreFeaturesPage(route.params.policyID);
     }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
@@ -418,14 +459,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             >
                 <HeaderWithBackButton
                     icon={Illustrations.Gears}
+                    shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {translate('workspace.moreFeatures.subtitle')}
-                    </Text>
+                <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
+                    <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
                     {sections.map(renderSection)}
                 </ScrollView>
 
@@ -467,7 +507,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsReportFieldsWarningModalOpen(false);
-                        Policy.enablePolicyReportFields(policyID, false);
+                        enablePolicyReportFields(policyID, false);
                     }}
                     onCancel={() => setIsReportFieldsWarningModalOpen(false)}
                     prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
@@ -480,7 +520,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        Report.navigateToConciergeChat(true);
+                        navigateToConciergeChat(true);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -492,7 +532,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        Report.navigateToConciergeChat(true);
+                        navigateToConciergeChat(true);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}

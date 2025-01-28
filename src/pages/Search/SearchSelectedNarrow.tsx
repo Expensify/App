@@ -55,6 +55,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 iconRight={Expensicons.DownArrow}
                 isDisabled={options.length === 0}
                 shouldShowRightIcon={options.length !== 0}
+                success
             />
             <Modal
                 isVisible={isModalVisible}

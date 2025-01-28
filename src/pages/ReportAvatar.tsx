@@ -1,8 +1,8 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportAvatarProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
+type ReportAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({route}: ReportAvatarProps) {
     const reportIDFromRoute = route.params?.reportID ?? '-1';

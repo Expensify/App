@@ -75,6 +75,9 @@ function SubscriptAvatar({
                 shouldRender={showTooltip}
                 accountID={Number(mainAvatar?.id ?? -1)}
                 icon={mainAvatar}
+                fallbackUserDetails={{
+                    displayName: mainAvatar?.name,
+                }}
             >
                 <View>
                     <Avatar

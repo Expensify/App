@@ -65,18 +65,18 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
 
             Policy.updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
         [policy],
     );
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? '-1'}
+            policyID={policy?.id}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={WorkspaceProfileDescriptionPage.displayName}
             >
