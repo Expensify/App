@@ -69,14 +69,9 @@ function openTravelDotAfterProvisioning(spotnanaToken: string) {
     Linking.openURL(buildTravelDotURL(spotnanaToken));
 }
 
-function provisionDomain(domain: string) {
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
-    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
-}
-
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, cleanupTravelProvisioningSession};
+export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, cleanupTravelProvisioningSession};

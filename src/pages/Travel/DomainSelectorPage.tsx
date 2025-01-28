@@ -10,10 +10,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {provisionDomain} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type DomainItem = ListItem & {
     value: string;
@@ -62,7 +64,10 @@ function DomainSelectorPage() {
                         success
                         large
                         style={[styles.w100]}
-                        onPress={() => provisionDomain(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN)}
+                        onPress={() => {
+                            cleanupTravelProvisioningSession();
+                            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN));
+                        }}
                         text={translate('common.continue')}
                     />
                 }
