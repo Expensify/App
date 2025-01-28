@@ -258,10 +258,11 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
+                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
+                private_isArchived: true,
             };
 
             await initializeState({

@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -68,7 +68,6 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
-    isArchivedReportWithID,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -360,7 +359,6 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
-    reportNameValuePairs,
     reportActions,
     personalDetails,
     preferredLocale,
@@ -372,7 +370,6 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
-    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
@@ -434,7 +431,7 @@ function getOptionData({
     result.isTaskReport = isTaskReport(report);
     result.isInvoiceReport = isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    result.private_isArchived = reportNameValuePairs?.private_isArchived;
+    result.private_isArchived = report?.private_isArchived;
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
@@ -680,7 +677,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (isArchivedReportWithID(report?.reportID)) {
+    if (report?.private_isArchived) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {

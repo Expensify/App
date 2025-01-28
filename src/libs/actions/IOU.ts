@@ -113,7 +113,6 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
-    isArchivedReportWithID,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -7828,7 +7827,7 @@ function canApproveIOU(
     const isApproved = isReportApproved(iouReport);
     const iouSettled = isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
+    const isArchivedExpenseReport = isArchivedReport(iouReport, reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -7857,7 +7856,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+    const isChatReportArchived = isArchivedReport(chatReport, reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -7921,7 +7920,7 @@ function canSubmitReport(
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-    const isArchived = isArchivedReportWithID(report?.reportID);
+    const isArchived = isArchivedReport(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);

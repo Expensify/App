@@ -340,17 +340,12 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 ...(!isInvoiceReceiverReport && {
                     oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
                     policyName: '',
                 }),
-            },
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            value: {
                 private_isArchived: currentTime,
             },
         });
@@ -408,20 +403,15 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     reportsToArchive.forEach((report) => {
-        const {reportID, oldPolicyName} = report ?? {};
+        const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                stateNum,
+                statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: null,
             },
         });
@@ -4292,7 +4282,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === (policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS)) {
+    if (parsedLimit === policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS) {
         return;
     }
 
@@ -4512,7 +4502,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS)) {
+    if (parsedLimit === policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS) {
         return;
     }
 

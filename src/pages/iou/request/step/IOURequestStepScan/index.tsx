@@ -114,8 +114,11 @@ function IOURequestStepScan({
         if (!skipConfirmation || !report?.reportID) {
             return false;
         }
-
-        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        
+        return (
+            !ReportUtils.isArchivedReport(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+        );
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**

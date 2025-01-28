@@ -91,7 +91,7 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChat(report));
+        return !(ReportUtils.isArchivedReport(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
@@ -180,8 +180,8 @@ function IOURequestStepAmount({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
+        if (report?.reportID && !ReportUtils.isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);

@@ -223,6 +223,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             tripID: string;
         };
 
+        /** Whether the report is archived */
+        private_isArchived?: string;
+
         /** The report's welcome message */
         welcomeMessage?: string;
     },
