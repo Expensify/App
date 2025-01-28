@@ -61,7 +61,7 @@ https://community.expensify.com/discussion/4343/expensify-anz-partnership-announ
 https://community.expensify.com/discussion/7318/deep-dive-company-credit-card-import-options,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards
 https://community.expensify.com/discussion/2673/personalize-your-commercial-card-feed-name,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Commercial-Card-Feeds
 https://community.expensify.com/discussion/6569/how-to-import-and-assign-company-cards-from-csv-file,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/CSV-Import
-https://community.expensify.com/discussion/4714/how-to-set-up-a-direct-bank-connection-for-company-cards,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Direct-Bank-Connections
+https://community.expensify.com/discussion/4714/how-to-set-up-a--connection-for-company-cards,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Direct-Bank-Connections
 https://community.expensify.com/discussion/5366/deep-dive-troubleshooting-credit-card-issues-in-expensify,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Troubleshooting
 https://community.expensify.com/discussion/9554/how-to-set-up-global-reimbursemen,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/Global-Reimbursements
 https://community.expensify.com/discussion/4463/how-to-remove-or-manage-settings-for-imported-personal-cards,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/Personal-Credit-Cards
@@ -123,7 +123,7 @@ https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-c
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Commercial-Card-Feeds,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Company-Card-Settings,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Company-Card-Settings
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Connect-ANZ,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Connect-ANZ
-https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Direct-Bank-Connections,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Direct-Bank-Connections
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Direct-Bank-Connections,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Reconciliation
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Troubleshooting,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Troubleshooting
 https://help.expensify.com/articles/expensify-classic/reports/Expense-Rules,https://help.expensify.com/articles/expensify-classic/expenses/Expense-Rules
@@ -517,7 +517,7 @@ https://community.expensify.com/discussion/5554/deep-dive-what-are-domains-and-h
 https://community.expensify.com/discussion/5587/deep-dive-understanding-policy-types-and-billing-options,https://help.expensify.com/articles/expensify-classic/expensify-billing/Change-Plan-Or-Subscription
 https://community.expensify.com/discussion/5643/deep-dive-submit-and-approve,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Approve-and-pay-expenses
 https://community.expensify.com/discussion/5668/deep-dive-how-trips-work-and-benefits,https://help.expensify.com/articles/expensify-classic/expenses/Trips
-https://community.expensify.com/discussion/5689/deep-dive-is-a-direct-connection-the-best-option/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Direct-Bank-Connections
+https://community.expensify.com/discussion/5689/deep-dive-is-a-direct-connection-the-best-option/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards
 https://community.expensify.com/discussion/6592/deep-dive-ach-reimbursement-timing,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments#faq
 https://community.expensify.com/discussion/7914/how-to-pay-an-invoice-and-bill-in-expensify,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
 https://community.expensify.com/discussion/8229/connecting-kayak-for-business,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations#how-to-connect-to-kayak-for-business
@@ -612,10 +612,14 @@ https://help.expensify.com/articles/expensify-classic/expenses/Apply-Tax,https:/
 https://help.expensify.com/articles/expensify-classic/workspaces/Tax-Tracking,https://help.expensify.com/articles/expensify-classic/workspaces/Track-Taxes
 https://help.expensify.com/articles/new-expensify/travel/manage-travel-member-roles,https://help.expensify.com/articles/new-expensify/travel/Manage-Travel-Member-Roles
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Personal-Credit-Cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Personal-Credit-Cards
-https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Direct-Bank-Connections,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/CSV-Import,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Company-Card-Settings,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Configure-Company-Card-Settings/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Connect-ANZ,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Reconciliation,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Reconcile-Company-Card-Expenses/
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Troubleshooting,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards/
+https://help.expensify.com/articles/new-expensify/expensify-card/Upgrade-to-the-new-Expensify-Card-from-Visa,https://help.expensify.com/new-expensify/hubs/expensify-card/
+https://help.expensify.com/articles/new-expensify/expensify-card/Dispute-Expensify-Card-transaction,https://help.expensify.com/articles/new-expensify/expensify-card/Disputing-Expensify-Card-Transactions
+https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card,https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Expensify-Card
+https://help.expensify.com/articles/expensify-classic/settings/Change-or-add-email-address,https://help.expensify.com/articles/expensify-classic/settings/Managing-Primary-and-Secondary-Logins-in-Expensify
+https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Direct-Bank-Connections,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards

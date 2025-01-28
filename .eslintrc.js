@@ -3,7 +3,18 @@ const path = require('path');
 const restrictedImportPaths = [
     {
         name: 'react-native',
-        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text', 'ScrollView'],
+        importNames: [
+            'useWindowDimensions',
+            'StatusBar',
+            'TouchableOpacity',
+            'TouchableWithoutFeedback',
+            'TouchableNativeFeedback',
+            'TouchableHighlight',
+            'Pressable',
+            'Text',
+            'ScrollView',
+            'Animated',
+        ],
         message: [
             '',
             "For 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.",
@@ -11,6 +22,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
         ].join('\n'),
     },
     {
@@ -74,6 +86,10 @@ const restrictedImportPaths = [
         name: 'lodash',
         importNames: ['memoize'],
         message: "Please use '@src/libs/memoize' instead.",
+    },
+    {
+        name: 'react-native-animatable',
+        message: "Please use 'react-native-reanimated' instead.",
     },
 ];
 
