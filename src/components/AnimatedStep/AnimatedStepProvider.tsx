@@ -17,12 +17,10 @@ type AnimatedStepProviderProps = ChildrenProps & {
 };
 
 function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProviderProps): React.ReactNode {
-    const [animationDirection, setAnimationDirection] = useState<AnimationDirection>(CONST.ANIMATION_DIRECTION.IN);
     const [currentStep, setCurrentStep] = useState<string>(initialStep);
     const [previousStep, setPreviousStep] = useState<string | null>(null);
-
-    const currentTranslateX = useSharedValue(0);
-    const prevTranslateX = useSharedValue(0);
+    const translateX = useSharedValue({currentScreen: 0, previousScreen: 0});
+    const animationDirection = useSharedValue<AnimationDirection>(CONST.ANIMATION_DIRECTION.IN);
 
     const {windowWidth} = useWindowDimensions();
     // We need to use isSmallScreenWidth, to apply the correct width for the sidebar
@@ -35,7 +33,7 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
                 return;
             }
 
-            setAnimationDirection(direction);
+            animationDirection.set(direction);
             setPreviousStep(currentStep);
             setCurrentStep(newStep);
 
@@ -43,22 +41,23 @@ function AnimatedStepProvider({children, steps, initialStep}: AnimatedStepProvid
             const currentStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? sideBarWidth : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
             const previousStepPosition = direction === CONST.ANIMATION_DIRECTION.IN ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
 
-            currentTranslateX.set(currentStepPosition);
-            currentTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => runOnJS(setPreviousStep)(null)));
-
-            prevTranslateX.set(0);
-            prevTranslateX.set(withTiming(previousStepPosition, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
+            translateX.set({currentScreen: currentStepPosition, previousScreen: 0});
+            translateX.set(
+                withTiming({currentScreen: 0, previousScreen: previousStepPosition}, {duration: CONST.ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () =>
+                    runOnJS(setPreviousStep)(null),
+                ),
+            );
         },
-        [currentStep, previousStep, isSmallScreenWidth, windowWidth, currentTranslateX, prevTranslateX],
+        [currentStep, previousStep, animationDirection, isSmallScreenWidth, windowWidth, translateX],
     );
 
     const currentScreenAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: currentTranslateX.get()}],
+        transform: [{translateX: translateX.get().currentScreen}],
     }));
 
     const previousScreenAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: prevTranslateX.get()}],
-        zIndex: animationDirection === CONST.ANIMATION_DIRECTION.IN ? -1 : 1,
+        transform: [{translateX: translateX.get().previousScreen}],
+        zIndex: animationDirection.get() === CONST.ANIMATION_DIRECTION.IN ? -1 : 1,
     }));
 
     const contextValue = useMemo(
