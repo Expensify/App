@@ -1,39 +1,14 @@
-import {Str} from 'expensify-common';
-import type {Dispatch, SetStateAction} from 'react';
-import {Linking, NativeModules} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {Linking} from 'react-native';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
-import {getContactMethod} from '@libs/UserUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, TravelSettings} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildTravelDotURL, openTravelDotLink} from './Link';
-
-let travelSettings: OnyxEntry<TravelSettings>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
-    callback: (val) => {
-        travelSettings = val;
-    },
-});
-
-let isSingleNewDotEntry: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
-    callback: (val) => {
-        isSingleNewDotEntry = val;
-    },
-});
+import {buildTravelDotURL} from './Link';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
@@ -99,55 +74,9 @@ function provisionDomain(domain: string) {
     Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
 }
 
-function bookATrip(policy: Policy, translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
-    if (Str.isSMSLogin(getContactMethod())) {
-        setCtaErrorMessage(translate('travel.phoneError'));
-        return;
-    }
-
-    if (isEmptyObject(policy.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy.id, Navigation.getActiveRoute()));
-        return;
-    }
-
-    const isPolicyProvisioned = policy.travelSettings?.spotnanaCompanyID ?? policy.travelSettings?.associatedTravelDomainAccountID;
-    if (policy.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-        openTravelDotLink(policy.id)
-            ?.then(() => {
-                if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
-                    return;
-                }
-
-                Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                NativeModules.HybridAppModule.closeReactNativeApp(false, false);
-            })
-            ?.catch(() => {
-                setCtaErrorMessage(translate('travel.errorMessage'));
-            });
-        if (ctaErrorMessage) {
-            setCtaErrorMessage('');
-        }
-    } else if (isPolicyProvisioned) {
-        Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
-    } else {
-        const adminDomains = getAdminsPrivateEmailDomains(policy);
-        let routeToNavigateTo;
-        if (adminDomains.length === 0) {
-            routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;
-        } else if (adminDomains.length === 1) {
-            Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
-            routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else {
-            routeToNavigateTo = ROUTES.TRAVEL_DOMAIN_SELECTOR;
-        }
-        Navigation.navigate(routeToNavigateTo);
-    }
-}
-
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, bookATrip, cleanupTravelProvisioningSession};
+export {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning, provisionDomain, cleanupTravelProvisioningSession};
