@@ -3994,7 +3994,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         distanceLabelWrapper: {
-            backgroundColor: colors.green400,
+            backgroundColor: colors.green500,
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 4,
