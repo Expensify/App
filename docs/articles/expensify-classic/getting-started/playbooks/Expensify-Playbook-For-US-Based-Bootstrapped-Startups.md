@@ -35,7 +35,7 @@ As a bootstrapped startup, you communicate with your team all day. Similarly, if
 5. From the workspace view, click **Members** on the left
 6. Click **Invite member**
 7. Use the search field to find the individual by name, email, or phone number. Note: You can select multiple people
-8. Click Next
+8. Click **Next**
 9. (Optional) Enter a custom message into the Message field
 10. Click **Invite**
 
