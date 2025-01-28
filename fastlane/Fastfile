@@ -120,8 +120,7 @@ platform :android do
       gradle(
         project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
-        flavor: 'Production',
-        build_type: 'Release',
+        build_type: 'Debug',
       )
       setGradleOutputsInEnv()
     end
@@ -474,7 +473,8 @@ platform :ios do
           scheme: "Expensify",
           configuration: "Debug",
           sdk: "iphonesimulator",
-          skip_codesigning: true
+          skip_codesigning: true,
+          export_method: "development"
       )
       setIOSBuildOutputsInEnv()
     end

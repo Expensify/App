@@ -55,7 +55,7 @@ jobs:
       - name: Build Android Debug
         working-directory: Mobile-Expensify/Android
         run: |
-          if ! ./gradlew assembleDebug
+          if ! npm run android-hybrid-build
           then
             echo "❌ Android HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
             exit 1
