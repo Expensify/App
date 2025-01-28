@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
@@ -5,9 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
@@ -27,7 +28,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
-import withNavigationFocus from './withNavigationFocus';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -107,9 +107,6 @@ type AvatarWithImagePickerProps = {
     /** File name of the avatar */
     originalFileName?: string;
 
-    /** Whether navigation is focused */
-    isFocused: boolean;
-
     /** Style applied to the avatar */
     avatarStyle: StyleProp<ViewStyle & ImageStyle>;
 
@@ -133,7 +130,6 @@ type AvatarWithImagePickerProps = {
 };
 
 function AvatarWithImagePicker({
-    isFocused,
     DefaultAvatar = () => null,
     style,
     disabledStyle,
@@ -164,6 +160,7 @@ function AvatarWithImagePicker({
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const {windowWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -201,7 +198,7 @@ function AvatarWithImagePicker({
      * Check if the attachment extension is allowed.
      */
     const isValidExtension = useCallback((image: FileObject): boolean => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(image?.name ?? '');
+        const {fileExtension} = splitExtensionFromFileName(image?.name ?? '');
         return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
     }, []);
 
@@ -232,7 +229,7 @@ function AvatarWithImagePicker({
                 return;
             }
 
-            FileUtils.validateImageForCorruption(image)
+            validateImageForCorruption(image)
                 .then(() => isValidResolution(image))
                 .then((isValid) => {
                     if (!isValid) {
@@ -274,7 +271,7 @@ function AvatarWithImagePicker({
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
-                    if (Browser.isSafari()) {
+                    if (isSafari()) {
                         return;
                     }
                     openPicker({
@@ -424,7 +421,7 @@ function AvatarWithImagePicker({
                                                 // In order for the file picker to open dynamically, the click
                                                 // function must be called from within an event handler that was initiated
                                                 // by the user on Safari.
-                                                if (index === 0 && Browser.isSafari()) {
+                                                if (index === 0 && isSafari()) {
                                                     openPicker({
                                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                                     });
@@ -466,4 +463,4 @@ function AvatarWithImagePicker({
 
 AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
-export default withNavigationFocus(AvatarWithImagePicker);
+export default AvatarWithImagePicker;
