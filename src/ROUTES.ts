@@ -186,15 +186,15 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
         route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/name`, backTo),
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
         route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/phone`, backTo),
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
         route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/address`, backTo),
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
         route: 'settings/wallet/card/:domain/get-physical/confirm',

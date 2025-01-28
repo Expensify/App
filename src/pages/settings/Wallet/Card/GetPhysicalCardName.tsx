@@ -26,7 +26,7 @@ type GetPhysicalCardNameProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function GetPhysicalCardName({
     route: {
-        params: {domain},
+        params: {domain, backTo},
     },
 }: GetPhysicalCardNameProps) {
     const styles = useThemeStyles();
@@ -62,6 +62,7 @@ function GetPhysicalCardName({
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
+            backTo={backTo}
         >
             <View style={styles.mh5}>
                 <InputWrapper
