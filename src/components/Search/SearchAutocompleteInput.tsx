@@ -1,7 +1,7 @@
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -58,9 +58,6 @@ type SearchAutocompleteInputProps = {
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
-
-    /** input style */
-    inputStyle?: StyleProp<TextStyle>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
 function SearchAutocompleteInput(
@@ -82,7 +79,6 @@ function SearchAutocompleteInput(
         rightComponent,
         isSearchingForReports,
         selection,
-        inputStyle,
     }: SearchAutocompleteInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -118,8 +114,8 @@ function SearchAutocompleteInput(
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[inputWidth, inputStyle]}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pr3]}
+                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         onFocus={() => {
                             setIsFocused(true);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
