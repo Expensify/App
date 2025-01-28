@@ -600,6 +600,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -813,4 +817,5 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    SubmitsToParams,
 };

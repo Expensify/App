@@ -4393,7 +4393,15 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return translateLocal('workspace.common.workspace');
+        const submitToAccountID = getSubmitToAccountID(getPolicy(report?.policyID), report);
+        const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+        const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+        if (!subtitle) {
+            return translateLocal('workspace.common.workspace');
+        }
+
+        return translateLocal('iou.submitsTo', {name: subtitle ?? ''});
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
