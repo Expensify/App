@@ -43,7 +43,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  */
-function addSMSDomainIfPhoneNumber(login: string): string {
+function addSMSDomainIfPhoneNumber(login = ''): string {
     const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;

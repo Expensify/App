@@ -478,7 +478,7 @@ function SearchAutocompleteList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {
