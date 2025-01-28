@@ -293,7 +293,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                     routerListRef={listRef}
                     ref={textInputRef}
                 />
-                <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
+                <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}

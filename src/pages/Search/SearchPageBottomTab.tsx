@@ -181,21 +181,18 @@ function SearchPageBottomTab() {
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
-            shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             headerGapStyles={styles.searchHeaderGap}
         >
-            <View style={[styles.zIndex10, searchRouterListVisible && styles.flex1, styles.mh100]}>
-                <View style={[styles.zIndex10, styles.appBG]}>
-                    <TopBar
-                        activeWorkspaceID={policyID}
-                        breadcrumbLabel={translate('common.reports')}
-                        shouldDisplaySearch={false}
-                        shouldDisplayCancel={shouldDisplayCancelSearch}
-                    />
-                </View>
+            <>
+                <TopBar
+                    activeWorkspaceID={policyID}
+                    breadcrumbLabel={translate('common.reports')}
+                    shouldDisplaySearch={false}
+                    shouldDisplayCancel={shouldDisplayCancelSearch}
+                />
                 <SearchTypeMenu queryJSON={queryJSON} />
-            </View>
+            </>
         </ScreenWrapper>
     );
 }
