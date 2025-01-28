@@ -39,7 +39,7 @@ type FormWrapperProps = ChildrenProps &
 
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
-        
+
         /** Whether the form is loading */
         isLoading?: boolean;
     };

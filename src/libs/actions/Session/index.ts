@@ -1248,11 +1248,10 @@ function isUserOnPrivateDomain() {
     return false;
 }
 
-
 function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
                 onboardingWorkEmail: workEmail,
@@ -1263,7 +1262,7 @@ function AddWorkEmail(workEmail: string) {
 
     const successData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
                 onboardingWorkEmail: workEmail,
@@ -1274,7 +1273,7 @@ function AddWorkEmail(workEmail: string) {
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
                 onboardingWorkEmail: null,
@@ -1297,7 +1296,7 @@ function AddWorkEmail(workEmail: string) {
 function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accountID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: null,
@@ -1308,12 +1307,18 @@ function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accou
 
     const successData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: null,
                 isLoading: false,
-              onyxMethod: Onyx.METHOD.SET,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
             value: {
                 errorMessage: 'onboarding.error',
@@ -1331,8 +1336,7 @@ function MergeIntoAccountAndLogin(workEmail: string, validateCode: string, accou
             failureData,
         },
     );
-      
-      }
+}
 
 /**
  * To reset SMS delivery failure
