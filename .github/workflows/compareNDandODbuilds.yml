@@ -1,4 +1,4 @@
-name: Build and deploy hybrid apps for testing
+name: Build and profile Android apps
 
 on:
   workflow_dispatch:
