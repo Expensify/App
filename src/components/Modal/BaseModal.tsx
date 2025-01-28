@@ -15,9 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import BottomDockedModal from './BottomDockedModal';
 import type ModalProps from './BottomDockedModal/types';
@@ -54,7 +53,7 @@ function BaseModal(
         fullscreen = true,
         animationIn,
         animationOut,
-        useNativeDriver: useNativeDriverProp,
+        useNativeDriver,
         useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
@@ -75,6 +74,7 @@ function BaseModal(
         initialFocus = false,
         swipeThreshold = 150,
         swipeDirection,
+        shouldPreventScrollOnFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -105,16 +105,16 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            if (Modal.areAllModalsHidden()) {
-                Modal.willAlertModalBecomeVisible(false);
+            if (areAllModalsHidden()) {
+                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility) {
-                    Modal.setModalVisibility(false);
+                    setModalVisibility(false);
                 }
             }
             if (callHideCallback) {
                 onModalHide();
             }
-            Modal.onModalDidClose();
+            onModalDidClose();
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
@@ -124,9 +124,9 @@ function BaseModal(
         isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
-            Modal.willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+            willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            removeOnCloseListener = Modal.setCloseModal(onClose);
+            removeOnCloseListener = setCloseModal(onClose);
         }
 
         return () => {
@@ -151,7 +151,7 @@ function BaseModal(
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
-            Modal.setModalVisibility(true);
+            setModalVisibility(true);
         }
         onModalShow();
     }, [onModalShow, shouldSetModalVisibility]);
@@ -250,7 +250,7 @@ function BaseModal(
                     onBackdropPress={handleBackdropPress}
                     // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onBackButtonPress={Modal.closeTop}
+                    onBackButtonPress={closeTop}
                     onModalShow={handleShowModal}
                     propagateSwipe={propagateSwipe ?? false}
                     onModalHide={hideModal}
@@ -271,10 +271,8 @@ function BaseModal(
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationInDelay={animationInDelay}
                     animationOut={animationOut ?? modalStyleAnimationOut}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriver={useNativeDriverProp && useNativeDriver}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                    useNativeDriver={useNativeDriver}
+                    useNativeDriverForBackdrop={useNativeDriverForBackdrop}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
@@ -293,6 +291,7 @@ function BaseModal(
                         <FocusTrapForModal
                             active={isVisible}
                             initialFocus={initialFocus}
+                            shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
                             <View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
