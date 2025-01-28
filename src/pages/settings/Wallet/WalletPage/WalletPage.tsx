@@ -675,6 +675,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 icon={Expensicons.MoneySearch}
                                 title={translate('workspace.common.viewTransactions')}
                                 onPress={() => {
+                                    Navigation.dismissModal();
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                                             query: buildCannedSearchQuery({

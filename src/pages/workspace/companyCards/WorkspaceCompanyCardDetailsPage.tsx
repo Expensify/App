@@ -174,6 +174,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={translate('workspace.common.viewTransactions')}
                                 style={styles.mt3}
                                 onPress={() => {
+                                    Navigation.dismissModal();
                                     Navigation.navigate(
                                         ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                                             query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
