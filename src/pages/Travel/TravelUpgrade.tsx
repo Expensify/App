@@ -33,10 +33,6 @@ function TravelUpgrade() {
         setShouldShowConfirmation(false);
     };
 
-    if (shouldShowConfirmation) {
-        return <WorkspaceConfirmationForm onSubmit={onSubmit} />;
-    }
-
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
