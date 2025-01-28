@@ -188,7 +188,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial]);
+    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
