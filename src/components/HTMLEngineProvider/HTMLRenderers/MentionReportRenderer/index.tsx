@@ -34,14 +34,14 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
         reportID = report?.reportID ?? htmlAttributeReportID;
-        mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? htmlAttributeReportID);
+        mentionDisplayText = removeLeadingLTRAndHash(getFormattedReportName(report?.reportName) ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
         // eslint-disable-next-line rulesdir/prefer-early-return
         Object.values(reports ?? {}).forEach((report) => {
-            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
+            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(getFormattedReportName(report?.reportName) ?? '') === mentionDisplayText) {
                 reportID = report?.reportID;
             }
         });
