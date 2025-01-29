@@ -41,8 +41,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
-import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
+import type {ListItemType} from '../WorkspaceMemberRoleSelectionModal';
+import WorkspaceMemberDetailsRoleSelectionModal from '../WorkspaceMemberRoleSelectionModal';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
