@@ -370,6 +370,8 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
+type EmployeeLeftParams = {email: string};
+
 type RemoveMemberParams = {email: string; role: string};
 
 type DateParams = {date: string};
@@ -798,6 +800,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    EmployeeLeftParams,
     RemoveMemberParams,
     DateParams,
     FiltersAmountBetweenParams,
