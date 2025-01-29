@@ -1,5 +1,8 @@
 import cloneDeep from 'lodash/cloneDeep';
+import Onyx from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
+import {KEYS_TO_PRESERVE} from '@libs/actions/App';
+import type {OnyxCollectionKey, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
@@ -12,7 +15,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
     const dataCopy = cloneDeep(data);
     if (!isRecord(dataCopy)) {
-        return Array.isArray(dataCopy) ? (dataCopy as UnknownRecord[]).map(transformNumericKeysToArray) : (dataCopy as UnknownRecord);
+        return Array.isArray(dataCopy) ? (dataCopy as UnknownRecord[]).map(transformNumericKeysToArray) : dataCopy;
     }
 
     const keys = Object.keys(dataCopy);
@@ -50,4 +53,39 @@ function cleanAndTransformState<T>(state: string): T {
     return transformedState;
 }
 
-export {transformNumericKeysToArray, cleanAndTransformState};
+const processStateImport = (transformedState: OnyxValues) => {
+    const collectionKeys = new Set(Object.values(ONYXKEYS.COLLECTION || {}));
+    const collectionsMap = new Map<OnyxCollectionKey, OnyxValues>();
+    const regularState: Partial<OnyxValues> = {};
+
+    Object.entries(transformedState).forEach(([key, value]) => {
+        const baseKey = key.split('_').at(0);
+        const collectionKey = `${baseKey}_` as OnyxCollectionKey;
+
+        if (collectionKeys.has(collectionKey)) {
+            if (!collectionsMap.has(collectionKey)) {
+                collectionsMap.set(collectionKey, {});
+            }
+            const collection = collectionsMap.get(collectionKey)!;
+            collection[key] = value;
+        } else {
+            regularState[key as keyof OnyxValues] = value;
+        }
+    });
+
+    return Onyx.clear(KEYS_TO_PRESERVE)
+        .then(() => {
+            const collectionPromises = Array.from(collectionsMap.entries()).map(([baseKey, items]) => {
+                return Onyx.setCollection(baseKey, items);
+            });
+            return Promise.all(collectionPromises);
+        })
+        .then(() => {
+            if (Object.keys(regularState).length > 0) {
+                return Onyx.multiSet(regularState);
+            }
+            return Promise.resolve();
+        });
+};
+
+export {transformNumericKeysToArray, cleanAndTransformState, processStateImport};
