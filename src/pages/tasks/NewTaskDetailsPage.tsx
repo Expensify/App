@@ -74,9 +74,9 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            setShareDestinationValue(task?.parentReportID ?? '-1');
+            setShareDestinationValue(task?.parentReportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
             playSound(SOUNDS.DONE);
-            createTaskAndNavigate(task?.parentReportID ?? '-1', values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
+            createTaskAndNavigate(task?.parentReportID ?? CONST.REPORT.DEFAULT_REPORT_ID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }

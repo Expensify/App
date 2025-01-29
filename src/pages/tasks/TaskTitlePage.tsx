@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -33,6 +34,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const reportTitle = (Str.isString(report?.reportName) ? report.reportName : report?.reportName?.html) ?? '';
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -70,8 +72,8 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOpen = isOpenTaskReport(report);
-    const canModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = isTaskReport(report) && (!canModifyTask || !isOpen);
+    const canThisModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = isTaskReport(report) && (!canThisModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
@@ -105,7 +107,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
+                                defaultValue={reportTitle}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
