@@ -2012,7 +2012,6 @@ export {
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
     wasActionCreatedWhileOffline,
-    isResolvedActionableWhisper,
 };
 
 export type {LastVisibleMessage};
