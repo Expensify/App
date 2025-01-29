@@ -11,6 +11,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
             accessibilityLabel={accessibilityLabel}
             style={textStyles}
             numberOfLines={numberOfLines}
+            testID={DisplayNames.displayName}
         >
             {fullTitle || translate('common.hidden')}
             {renderAdditionalText?.()}

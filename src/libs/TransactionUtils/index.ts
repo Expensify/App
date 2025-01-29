@@ -26,7 +26,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isOpenExpenseReport, isProcessingReport, isReportApproved, isSettled, isThread} from '@libs/ReportUtils';
+import {getReportTransactions, isOpenExpenseReport, isProcessingReport, isReportApproved, isSettled, isThread} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -34,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
@@ -42,7 +42,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 type TransactionParams = {
     amount: number;
     currency: string;
-    reportID: string;
+    reportID: string | undefined;
     comment?: string;
     attendees?: Attendee[];
     created?: string;
@@ -57,6 +57,7 @@ type TransactionParams = {
     reimbursable?: boolean;
     source?: string;
     filename?: string;
+    customUnit?: TransactionCustomUnit;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -68,6 +69,7 @@ type BuildOptimisticTransactionParams = {
 };
 
 let allTransactions: OnyxCollection<Transaction> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -200,6 +202,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         reimbursable = true,
         source = '',
         filename = '',
+        customUnit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -217,6 +220,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (isDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+    }
+
+    const isPerDiemTransaction = !!pendingFields?.subRates;
+    if (isPerDiemTransaction) {
+        // Set the custom unit, which comes from the policy per diem rate data
+        lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
     return {
@@ -271,6 +280,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
     return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
+    // Keep this disabled for per diem expense
     // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
@@ -827,13 +837,6 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: b
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
-function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
-    const reportTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter(
-        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
-    );
-    return reportTransactions;
-}
-
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -942,6 +945,10 @@ function isOnHoldByTransactionID(transactionID: string | undefined | null): bool
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -951,6 +958,10 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -960,6 +971,10 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    const transaction = getTransaction(transactionID);
+    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        return false;
+    }
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
@@ -1338,7 +1353,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
  * Return the sorted list transactions of an iou report
  */
 function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transaction>> {
-    return getAllReportTransactions(iouReportID).sort((transA, transB) => {
+    return getReportTransactions(iouReportID).sort((transA, transB) => {
         if (transA.created < transB.created) {
             return -1;
         }
@@ -1349,6 +1364,10 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 
         return (transA.inserted ?? '') < (transB.inserted ?? '') ? -1 : 1;
     });
+}
+
+function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
+    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
 export {
@@ -1386,7 +1405,6 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
-    getAllReportTransactions,
     hasReceipt,
     hasEReceipt,
     hasRoute,
@@ -1437,6 +1455,8 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
+    isPerDiemRequest,
+    shouldShowRTERViolationMessage,
 };
 
 export type {TransactionChanges};

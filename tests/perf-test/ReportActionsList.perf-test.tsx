@@ -32,6 +32,7 @@ jest.mock('@libs/Fullstory', () => ({
     },
     getFSAttributes: jest.fn(),
     getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
+    parseFSAttributes: jest.fn(),
 }));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
@@ -121,7 +122,6 @@ function ReportActionsListWrapper() {
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
                         transactionThreadReport={report}
-                        reportActions={reportActions}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
