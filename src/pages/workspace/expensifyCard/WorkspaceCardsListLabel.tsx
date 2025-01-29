@@ -46,7 +46,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -61,7 +61,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
-    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
+    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const isConnectedWithPlaid = useMemo(() => {
         const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
@@ -125,7 +125,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 <View style={[styles.flexRow, styles.flexWrap]}>
                     <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, policyCurrency)}</Text>
                     {isSettleBalanceButtonDisplayed && (
-                        <View style={isLessThanMediumScreen && styles.mb3}>
+                        <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
                             <Button
                                 onPress={handleSettleBalanceButtonClick}
                                 text={translate('workspace.expensifyCard.settleBalance')}
