@@ -89,7 +89,7 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
  */
 const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const {isOnSearch, hashKey} = useSearchState();
-    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>>;
+    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
@@ -101,17 +101,17 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const onyxOptions = {...optionsWithoutSelector, selector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
 
-    const [data, metadata] = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
+    const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
 
     // Extract and memoize the specific key data from snapshot if in search mode
     const result = useMemo((): OriginalUseOnyxReturnType => {
-        if (!shouldUseSnapshot || !data) {
-            return [data, metadata] as OriginalUseOnyxReturnType;
+        if (!shouldUseSnapshot) {
+            return originalResult as OriginalUseOnyxReturnType;
         }
 
-        const keyData = getKeyData(data as SearchResults, key, useOnyxOptions?.initialValue);
-        return [keyData, metadata] as OriginalUseOnyxReturnType;
-    }, [shouldUseSnapshot, data, metadata, key, useOnyxOptions?.initialValue]);
+        const keyData = getKeyData(originalResult[0] as SearchResults, key, useOnyxOptions?.initialValue);
+        return [keyData, originalResult[1]] as OriginalUseOnyxReturnType;
+    }, [shouldUseSnapshot, originalResult, key, useOnyxOptions?.initialValue]);
 
     return result;
 };
