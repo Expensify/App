@@ -41,7 +41,6 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
-    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -184,7 +183,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !shouldShowRTERViolationMessage(transactions) &&
+        !hasAllPendingRTERViolations &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 
