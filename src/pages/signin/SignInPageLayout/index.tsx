@@ -73,14 +73,6 @@ function SignInPageLayout(
         scrollPageToTop,
     }));
 
-    useEffect(() => {
-        if (prevPreferredLocale !== preferredLocale) {
-            return;
-        }
-
-        scrollPageToTop();
-    }, [welcomeHeader, welcomeText, prevPreferredLocale, preferredLocale]);
-
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
     const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
