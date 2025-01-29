@@ -22,7 +22,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWor
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -164,7 +164,7 @@ function SearchRouterList(
                 personalDetails: options.personalDetails,
             },
             {
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelfDM: true,
                 showChatPreviewLine: true,
                 shouldBoldTitleByDefault: false,
@@ -229,13 +229,17 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                 const filteredTags = autocompleteList
-                    .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag))
+                    .filter(
+                        (tag) => getCleanedTagName(tag).toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAG,
-                    text: tagName,
+                    text: getCleanedTagName(tagName),
+                    autocompleteID: tagName,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
@@ -392,9 +396,9 @@ function SearchRouterList(
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
-    const [recentReportsOptions, userToInvite] = useMemo(() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return [searchOptions.recentReports.slice(0, 20)];
+            return searchOptions.recentReports.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
@@ -406,7 +410,10 @@ function SearchRouterList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        return [reportOptions.slice(0, 20), filteredOptions.userToInvite];
+        if (filteredOptions.userToInvite) {
+            reportOptions.push(filteredOptions.userToInvite);
+        }
+        return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
@@ -432,13 +439,8 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    if (userToInvite) {
-        const styledUserToInvite = [userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-        sections.push({title: undefined, data: styledUserToInvite});
-    }
-
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -475,7 +477,7 @@ function SearchRouterList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {
