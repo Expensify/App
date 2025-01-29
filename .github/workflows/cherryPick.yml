@@ -89,6 +89,7 @@ jobs:
           else
             echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
             git --no-pager diff --name-only --diff-filter=U
+            git cherry-pick --abort
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
 
