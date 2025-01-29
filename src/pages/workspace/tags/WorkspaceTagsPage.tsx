@@ -293,8 +293,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [
-            {
+        const menuItems: PopoverMenuItem[] = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -308,8 +309,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
                     );
                 },
-            },
-        ];
+            });
+        }
 
         if (hasVisibleTags) {
             menuItems.push({
@@ -330,7 +331,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, hasVisibleTags, isOffline, policyID, isQuickSettingsFlow, backTo]);
+    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

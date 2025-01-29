@@ -365,7 +365,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {

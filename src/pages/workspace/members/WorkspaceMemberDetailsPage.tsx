@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,15 +17,14 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -33,9 +33,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
-import * as Member from '@userActions/Policy/Member';
+import {setIssueNewCardStepAndData} from '@userActions/Card';
+import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,17 +55,13 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
-    const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -76,40 +72,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
-    const paymentAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
+    const hasMultipleFeeds = Object.values(getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
+
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID);
+    const hasWorkspaceCardsAssigned = !!workspaceCards && !!Object.values(workspaceCards).length;
 
     useEffect(() => {
-        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!cards && !expensifyCards) {
+        if (!workspaceCards) {
             return [];
         }
-        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
-        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
-        const cardIDs = new Set();
-        const uniqueObjects = allCards.filter((obj) => {
-            if (cardIDs.has(obj.cardID)) {
-                return false;
-            }
-            cardIDs.add(obj.cardID);
-            return true;
-        });
-
-        return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [accountID, workspaceAccountID, cards, expensifyCards]);
+        return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
+    }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = Member.isApprover(policy, accountID);
+        const isApprover = isApproverUserAction(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
@@ -158,7 +145,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = useCallback(() => {
-        Member.removeMembers([accountID], policyID);
+        removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
     }, [accountID, policyID]);
 
@@ -184,12 +171,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
         const activeRoute = Navigation.getActiveRoute();
 
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
                 assigneeEmail: memberLogin,
             },
             isEditing: false,
+            policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
@@ -201,14 +189,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            Member.updateWorkspaceMembersRole(policyID, [accountID], value);
+            updateWorkspaceMembersRole(policyID, [accountID], value);
         },
         [accountID, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
-        Member.clearWorkspaceOwnerChangeFlow(policyID);
-        Member.requestWorkspaceOwnerChange(policyID);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
     }, [accountID, policyID]);
 
@@ -220,7 +208,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+    const shouldShowCardsSection = hasWorkspaceCardsAssigned && (!!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled);
 
     return (
         <AccessOrNotFoundWrapper
@@ -258,10 +246,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                         shouldRenderTransferOwnerButton() && (
-                                            <Button
+                                            <ButtonDisabledWhenOffline
                                                 text={translate('workspace.people.transferOwner')}
                                                 onPress={startChangeOwnershipFlow}
-                                                isDisabled={isOffline}
                                                 icon={Expensicons.Transfer}
                                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                                 style={styles.mv5}
@@ -316,7 +303,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {(memberCards as MemberCard[]).map((memberCard) => {
+                                            {memberCards.map((memberCard) => {
                                                 const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                                 return (
                                                     <OfflineWithFeedback
@@ -327,13 +314,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     >
                                                         <MenuItem
                                                             key={memberCard.cardID}
-                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                             badgeText={
-                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK
-                                                                    ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
-                                                                    : ''
+                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''
                                                             }
-                                                            icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
+                                                            icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
                                                             iconWidth={variables.cardIconWidth}

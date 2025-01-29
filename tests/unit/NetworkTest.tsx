@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -398,6 +398,8 @@ describe('NetworkTests', () => {
 
     test('poor connection simulation', async () => {
         const logSpy = jest.spyOn(Log, 'info');
+        const setShouldForceOfflineSpy = jest.spyOn(NetworkActions, 'setShouldForceOffline');
+        const setShouldFailAllRequestsSpy = jest.spyOn(NetworkActions, 'setShouldFailAllRequests');
 
         // Given an opened test tool menu
         render(<TestToolMenu />);
@@ -408,10 +410,18 @@ describe('NetworkTests', () => {
         NetworkActions.setShouldSimulatePoorConnection(true, undefined);
         await waitForBatchedUpdates();
 
-        // Then the connection status change log should be displayed as well as Force offline/Simulate failing network requests toggles should be disabled
+        // Then the connection status change log should be displayed as well Simulate poor internet connection toggle should be checked
         expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
-        expect(screen.getByAccessibilityHint('Force offline')).toBeDisabled();
-        expect(screen.getByAccessibilityHint('Simulate failing network requests')).toBeDisabled();
+        expect(screen.getByAccessibilityHint('Simulate poor internet connection')).toBeChecked();
+
+        // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
+        fireEvent.press(screen.getByAccessibilityHint('Force offline'));
+        await waitForBatchedUpdates();
+        expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
+
+        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
+        await waitForBatchedUpdates();
+        expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });
 
     test('connection changes tracking', async () => {

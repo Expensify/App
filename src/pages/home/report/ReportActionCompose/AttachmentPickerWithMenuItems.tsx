@@ -12,21 +12,20 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import * as IOU from '@userActions/IOU';
-import * as Modal from '@userActions/Modal';
-import * as Report from '@userActions/Report';
-import * as Task from '@userActions/Task';
+import {canCreateTaskInReport, getPayeeName, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startMoneyRequest} from '@userActions/IOU';
+import {close} from '@userActions/Modal';
+import {setIsComposerFullSize} from '@userActions/Report';
+import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -121,14 +120,13 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
         const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+            if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -140,51 +138,48 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+                text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         setIsNoDelegateAccessMenuVisible(true);
                         return;
                     }
-                    selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false);
+                    selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
                 },
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.TRACK),
-                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
                 icon: Expensicons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? '-1'), false),
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
             },
         };
 
-        const moneyRequestOptionsList = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
 
-        return canUseCombinedTrackSubmit
-            ? // Removes track option for the workspace with the canUseCombinedTrackSubmit enabled
-              moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text))
-            : moneyRequestOptionsList;
-    }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
+        return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
+    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
      */
     const taskOption: PopoverMenuItem[] = useMemo(() => {
-        if (!ReportUtils.canCreateTaskInReport(report)) {
+        if (!canCreateTaskInReport(report)) {
             return [];
         }
 
@@ -192,7 +187,7 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(reportID, report),
             },
         ];
     }, [report, reportID, translate]);
@@ -300,7 +295,7 @@ function AttachmentPickerWithMenuItems({
                                                 onPress={(e) => {
                                                     e?.preventDefault();
                                                     raiseIsScrollLikelyLayoutTriggered();
-                                                    Report.setIsComposerFullSize(reportID, false);
+                                                    setIsComposerFullSize(reportID, false);
                                                 }}
                                                 // Keep focus on the composer when Collapse button is clicked.
                                                 onMouseDown={(e) => e.preventDefault()}
@@ -321,7 +316,7 @@ function AttachmentPickerWithMenuItems({
                                                 onPress={(e) => {
                                                     e?.preventDefault();
                                                     raiseIsScrollLikelyLayoutTriggered();
-                                                    Report.setIsComposerFullSize(reportID, true);
+                                                    setIsComposerFullSize(reportID, true);
                                                 }}
                                                 // Keep focus on the composer when Expand button is clicked.
                                                 onMouseDown={(e) => e.preventDefault()}
@@ -352,11 +347,11 @@ function AttachmentPickerWithMenuItems({
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
                                 if (index === menuItems.length - 1) {
-                                    if (Browser.isSafari()) {
+                                    if (isSafari()) {
                                         triggerAttachmentPicker();
                                         return;
                                     }
-                                    Modal.close(() => {
+                                    close(() => {
                                         triggerAttachmentPicker();
                                     });
                                 }

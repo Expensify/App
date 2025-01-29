@@ -1,10 +1,13 @@
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import * as ReportUtils from '@libs/ReportUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 /**
@@ -101,6 +104,15 @@ function tryFocusModeUpdate() {
             return;
         }
 
+        const currentRoute = navigationRef.getCurrentRoute();
+        if (getIsNarrowLayout()) {
+            if (currentRoute?.name !== SCREENS.HOME) {
+                return;
+            }
+        } else if (currentRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
         if ((isInFocusMode ?? false) || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
@@ -114,7 +126,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
                 return;
             }
 

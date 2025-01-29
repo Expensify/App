@@ -13,16 +13,12 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportFieldOptionsListUtils from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type EditReportFieldDropdownPageComponentProps = {
+type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
     fieldValue: string;
 
     /** Key of the policy report field */
     fieldKey: string;
-
-    /** ID of the policy this report field belongs to */
-    // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
 
     /** Options of the policy report field */
     fieldOptions: string[];
@@ -30,8 +26,6 @@ type EditReportFieldDropdownPageComponentProps = {
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: Record<string, string>) => void;
 };
-
-type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps;
 
 function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
