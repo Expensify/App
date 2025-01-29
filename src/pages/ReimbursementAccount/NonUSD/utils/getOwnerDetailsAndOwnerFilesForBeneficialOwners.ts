@@ -11,7 +11,7 @@ const {
     SSN_LAST_4,
     STREET,
     CITY,
-    NATIONALITY,
+    COUNTRY,
     STATE,
     ZIP_CODE,
     PROOF_OF_OWNERSHIP,
@@ -23,7 +23,7 @@ const {
     PREFIX,
 } = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, NATIONALITY];
+const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
 const ownerFilesFields = [PROOF_OF_OWNERSHIP, COPY_OF_ID, ADDRESS_PROOF, CODICE_FISCALE];
 
 function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
@@ -33,7 +33,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
     ownerKeys.forEach((ownerKey) => {
         const ownerDetailsFullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
         const ownerDetailsResidentialAddressKey = `${PREFIX}_${ownerKey}_${RESIDENTIAL_ADDRESS}` as const;
-        const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${NATIONALITY}` as const;
+        const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${COUNTRY}` as const;
 
         ownerDetailsFields.forEach((fieldName) => {
             const ownerDetailsKey = `${PREFIX}_${ownerKey}_${fieldName}` as const;
