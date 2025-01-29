@@ -31,7 +31,6 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
             anchorPosition={popoverAnchorPosition}
             animationIn="fadeIn"
             disableAnimation={false}
-            animationOutTiming={1}
             shouldSetModalVisibility={false}
             fullscreen
             withoutOverlay

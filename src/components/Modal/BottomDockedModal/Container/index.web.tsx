@@ -14,6 +14,9 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
     const opacity = useSharedValue(0);
     const isInitiated = useSharedValue(false);
 
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    useEffect(() => onCloseCallBack, []);
+
     useEffect(() => {
         if (isInitiated.get()) {
             return;

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,14 +34,13 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
 
     if (!customBackdrop) {
         return (
-            <PressableWithFeedback
+            <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
-                onPress={onBackdropPress}
-                pressDimmingValue={1}
+                onPressIn={onBackdropPress}
             >
                 {BackdropOverlay}
-            </PressableWithFeedback>
+            </PressableWithoutFeedback>
         );
     }
 

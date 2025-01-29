@@ -22,18 +22,17 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
 
     if (!customBackdrop) {
         return (
-            <Animated.View
-                entering={FadeIn.duration(animationInTiming)}
-                exiting={FadeOut.duration(animationOutTiming)}
+            <PressableWithoutFeedback
+                accessible
+                accessibilityLabel={translate('modal.backdropLabel')}
+                onPress={onBackdropPress}
             >
-                <PressableWithoutFeedback
-                    accessible
-                    accessibilityLabel={translate('modal.backdropLabel')}
-                    onPress={onBackdropPress}
-                >
-                    <View style={[styles.modalBackdrop, style]} />
-                </PressableWithoutFeedback>
-            </Animated.View>
+                <Animated.View
+                    style={[styles.modalBackdrop, style]}
+                    entering={FadeIn.duration(animationInTiming)}
+                    exiting={FadeOut.duration(animationOutTiming)}
+                />
+            </PressableWithoutFeedback>
         );
     }
 

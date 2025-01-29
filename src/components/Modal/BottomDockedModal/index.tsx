@@ -2,6 +2,7 @@ import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, View} from 'react-native';
+import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -19,6 +20,7 @@ function BottomDockedModal({
     children,
     hasBackdrop = true,
     backdropColor = 'black',
+    backdropOpacity = 0.72,
     backdropTransitionInTiming = 300,
     backdropTransitionOutTiming = 300,
     customBackdrop = null,
@@ -92,7 +94,19 @@ function BottomDockedModal({
             }
             deviceEventListener.remove();
         };
-    }, [handleDimensionsUpdate, handleEscape, onBackButtonPressHandler]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(
+        () => () => {
+            onModalWillHide();
+
+            setIsVisibleState(false);
+            setIsContainerOpen(false);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [],
+    );
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
@@ -114,8 +128,9 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
+            opacity: getPlatform() === CONST.PLATFORM.WEB ? backdropOpacity : 1,
         };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor]);
+    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
@@ -124,12 +139,15 @@ function BottomDockedModal({
     }, [onModalShow]);
 
     const onCloseCallBack = useCallback(() => {
+        if (!isTransitioning && getPlatform() === CONST.PLATFORM.WEB) {
+            return;
+        }
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (getPlatform() !== CONST.PLATFORM.IOS) {
             onModalHide();
         }
-    }, [onModalHide]);
+    }, [onModalHide, isTransitioning]);
 
     const containerView = (
         <Container
@@ -173,37 +191,39 @@ function BottomDockedModal({
     }
 
     return (
-        <Modal
-            transparent
-            animationType="none"
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
-            onRequestClose={onBackButtonPress}
-            statusBarTranslucent={statusBarTranslucent}
-            testID={testID}
-            onDismiss={() => {
-                onDismiss?.();
-                if (getPlatform() === CONST.PLATFORM.IOS) {
-                    onModalHide();
-                }
-            }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            {isVisibleState && hasBackdrop && backdropView}
+        <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
+            <Modal
+                transparent
+                animationType="none"
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                onRequestClose={onBackButtonPress}
+                statusBarTranslucent={statusBarTranslucent}
+                testID={testID}
+                onDismiss={() => {
+                    onDismiss?.();
+                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                        onModalHide();
+                    }
+                }}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {isVisibleState && hasBackdrop && backdropView}
 
-            {avoidKeyboard ? (
-                <KeyboardAvoidingView
-                    behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
-                    pointerEvents="box-none"
-                    style={[style, {margin: 0}]}
-                >
-                    {isVisibleState && containerView}
-                </KeyboardAvoidingView>
-            ) : (
-                isVisibleState && containerView
-            )}
-        </Modal>
+                {avoidKeyboard ? (
+                    <KeyboardAvoidingView
+                        behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
+                        pointerEvents="box-none"
+                        style={[style, {margin: 0}]}
+                    >
+                        {isVisibleState && containerView}
+                    </KeyboardAvoidingView>
+                ) : (
+                    isVisibleState && containerView
+                )}
+            </Modal>
+        </LayoutAnimationConfig>
     );
 }
 
