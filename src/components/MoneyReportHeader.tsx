@@ -135,6 +135,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const [hideReviewDuplicates, setHideReviewDuplicates] = useState(false);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -160,7 +161,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
-    const shouldShowIsDuplicate = useMemo(() => isDuplicate, [isDuplicate]);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -360,6 +360,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
+    useEffect(() => {
+        setHideReviewDuplicates(false);
+    }, [moneyRequestReport?.reportID]);
+
+    const handleLoadingEnd = useCallback(() => {
+        setHideReviewDuplicates(true);
+    }, []);
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -373,7 +381,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {shouldShowIsDuplicate && !shouldUseNarrowLayout && (
+                {isDuplicate && !hideReviewDuplicates && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
@@ -392,6 +400,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isPaidAnimationRunning={isPaidAnimationRunning}
                             isApprovedAnimationRunning={isApprovedAnimationRunning}
                             onAnimationFinish={stopAnimation}
+                            onLoadingEnd={handleLoadingEnd}
                             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
@@ -446,7 +455,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {shouldShowIsDuplicate && shouldUseNarrowLayout && (
+                        {isDuplicate && !hideReviewDuplicates && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
@@ -462,6 +471,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                 onAnimationFinish={stopAnimation}
+                                onLoadingEnd={handleLoadingEnd}
                                 canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}

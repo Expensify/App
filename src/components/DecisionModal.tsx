@@ -47,7 +47,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
         >
             <View style={[styles.m5]}>
                 <View>
-                    <View style={[styles.flexRow, styles.mb4]}>
+                    <View style={[styles.flexRow, styles.mb5]}>
                         <Header
                             title={title}
                             containerStyles={[styles.alignItemsCenter]}
@@ -58,7 +58,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                 {!!firstOptionText && (
                     <Button
                         success
-                        style={[styles.mt4]}
+                        style={[styles.mt5]}
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
                         text={firstOptionText}
@@ -66,7 +66,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     />
                 )}
                 <Button
-                    style={[styles.mt3, styles.noSelect]}
+                    style={[styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
                     large
