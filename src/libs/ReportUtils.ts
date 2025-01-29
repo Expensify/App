@@ -7165,10 +7165,10 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         }
     }
 
-    const shouldHideReport = shouldHideReportOptimized(report.reportID, flags, currentReportId);
+    const canHideReport = shouldHideReportOptimized(report.reportID, flags, currentReportId);
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && shouldHideReport) {
+    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && canHideReport) {
         return null;
     }
 
@@ -7202,7 +7202,7 @@ function reasonForReportToBeInOptionListOptimized(params: ShouldReportBeInOption
         !(flags & REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT) &&
         !(flags & REPORT_FLAGS.IS_SYSTEM_CHAT) &&
         !(flags & REPORT_FLAGS.IS_GROUP_CHAT) &&
-        shouldHideReport
+        canHideReport
     ) {
         return null;
     }
