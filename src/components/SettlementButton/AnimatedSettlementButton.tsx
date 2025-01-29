@@ -12,7 +12,6 @@ import type SettlementButtonProps from './types';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
-    shouldUseSuccessStyle?: boolean;
     onAnimationFinish: () => void;
     onLoadingEnd?: () => void;
     isApprovedAnimationRunning: boolean;
@@ -23,7 +22,6 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
 function AnimatedSettlementButton({
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
-    shouldUseSuccessStyle,
     onAnimationFinish,
     onLoadingEnd,
     shouldAddTopMargin = false,
@@ -38,7 +36,6 @@ function AnimatedSettlementButton({
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [stableShouldUseSuccessStyle, setStableShouldUseSuccessStyle] = useState(shouldUseSuccessStyle);
     const [buttonWidth, setButtonWidth] = useState<number | null>(null);
 
     const height = useSharedValue<number>(variables.componentSizeNormal);
@@ -128,18 +125,11 @@ function AnimatedSettlementButton({
         buttonMarginTop,
         height,
         shouldAddTopMargin,
-        styles,
+        styles.expenseAndReportPreviewTextButtonContainer,
         totalDelay,
         handleFadeOutComplete,
         onLoadingEnd,
     ]);
-
-    useEffect(() => {
-        if (isAnimationRunning) {
-            return;
-        }
-        setStableShouldUseSuccessStyle(shouldUseSuccessStyle);
-    }, [isAnimationRunning, shouldUseSuccessStyle]);
 
     const handleLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -161,14 +151,13 @@ function AnimatedSettlementButton({
                     style={[styles.buttonMediumText, isLoading && {width: buttonWidth}]}
                     text={isPaidAnimationRunning ? translate('iou.paymentComplete') : translate('iou.approved')}
                     isLoading={isLoading}
-                    success={stableShouldUseSuccessStyle}
+                    success
                     icon={isLoading ? undefined : (isPaidAnimationRunning && Expensicons.Checkmark) || Expensicons.ThumbsUp}
                 />
             ) : (
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    shouldUseSuccessStyle={shouldUseSuccessStyle}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
                     disabledStyle={buttonDisabledStyle}
