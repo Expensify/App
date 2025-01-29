@@ -1,8 +1,8 @@
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import type UseEstimatedListSize from './types';
+import type UseLHNEstimatedListSize from './types';
 
-const useEstimatedListSize: UseEstimatedListSize = () => {
+const useLHNEstimatedListSize: UseLHNEstimatedListSize = () => {
     const {windowHeight, windowWidth} = useWindowDimensions();
     const listHeight = windowHeight - variables.bottomTabHeight;
 
@@ -12,4 +12,4 @@ const useEstimatedListSize: UseEstimatedListSize = () => {
     };
 };
 
-export default useEstimatedListSize;
+export default useLHNEstimatedListSize;

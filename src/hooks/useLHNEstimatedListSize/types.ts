@@ -1,8 +1,8 @@
-type UseEstimatedListSize = () =>
+type UseLHNEstimatedListSize = () =>
     | {
           height: number;
           width: number;
       }
     | undefined;
 
-export default UseEstimatedListSize;
+export default UseLHNEstimatedListSize;
