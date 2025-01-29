@@ -1,7 +1,7 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import {setDeviceID} from '@userActions/Device';
+import * as Device from '@userActions/Device';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -42,10 +42,9 @@ export default function () {
             // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
             [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
         },
-        skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
 
-    setDeviceID();
+    Device.setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
