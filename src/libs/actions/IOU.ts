@@ -6628,8 +6628,8 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
                     value:
-                        duplicateTransactionIDs.length === 0
-                            ? duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                    duplicateTransactionIDs.length === 0
+                        ? null
                             : [
                                   ...duplicateTransactionsViolations.filter((violation: OnyxTypes.TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                                   {
