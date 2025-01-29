@@ -9,11 +9,12 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
+import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,7 +28,9 @@ function AddPersonalBankAccountPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const {canUseInternationalBankAccount} = usePermissions();
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+
     const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
 
     const goBack = useCallback(() => {
@@ -52,7 +55,7 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
+            addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
         }
     }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
@@ -64,7 +67,7 @@ function AddPersonalBankAccountPage() {
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
             } else if (shouldContinue && onSuccessFallbackRoute) {
-                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+                continueSetup(onSuccessFallbackRoute);
             } else {
                 goBack();
             }
@@ -72,7 +75,7 @@ function AddPersonalBankAccountPage() {
         [personalBankAccount, goBack],
     );
 
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
+    useEffect(() => clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
@@ -85,7 +88,7 @@ function AddPersonalBankAccountPage() {
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
-                        onBackButtonPress={exitFlow}
+                        onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
                     />
                     {shouldShowSuccess ? (
                         <ConfirmationPage
@@ -102,7 +105,7 @@ function AddPersonalBankAccountPage() {
                             submitButtonText={translate('common.saveAndContinue')}
                             scrollContextEnabled
                             onSubmit={submitBankAccountForm}
-                            validate={BankAccounts.validatePlaidSelection}
+                            validate={validatePlaidSelection}
                             style={[styles.mh5, styles.flex1]}
                         >
                             <InputWrapper
@@ -112,7 +115,7 @@ function AddPersonalBankAccountPage() {
                                 text={translate('walletPage.chooseAccountBody')}
                                 plaidData={plaidData}
                                 isDisplayedInWalletFlow
-                                onExitPlaid={goBack}
+                                onExitPlaid={canUseInternationalBankAccount ? Navigation.goBack : goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={selectedPlaidAccountId}
                             />
