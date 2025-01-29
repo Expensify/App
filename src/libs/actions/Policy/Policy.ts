@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1585,16 +1586,14 @@ function generateDefaultWorkspaceName(email = ''): string {
         return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
-    // Dynamically include the username in the regex
-    const escapedName = displayNameForWorkspace.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const englishRegex = new RegExp(`${escapedName}'s Workspace(?:\\s(\\d+))?$`, 'i');
-    const spanishRegex = new RegExp(`Espacio de trabajo(?:\\s(\\d+))? de ${escapedName}$`, 'i');
+    // find default named workspaces and increment the last number
+    const escapedName = escapeRegExp(displayNameForWorkspace);
+    const workspaceRegex = new RegExp(`(?:${escapedName}'s Workspace|Espacio de trabajo)\\s*(\\d+)?\\s*(?:de ${escapedName})?$`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
-        .map((policy) => englishRegex.exec(policy?.name ?? '') ?? spanishRegex.exec(policy?.name ?? ''))
+        .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
         .filter(Boolean) // Remove null matches
-        .map((match) => Number(match?.[1] ?? '1'));
-
+        .map((match) => Number(match?.[1] ?? '0'));
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : -Infinity;
 
     return lastWorkspaceNumber !== -Infinity
