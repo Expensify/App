@@ -71,6 +71,7 @@ function ValidateCodeActionModal({
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            // If `disableAnimation` is true, set `animationInTiming` to 1 to disable the animation effect
             animationInTiming={disableAnimation ? 1 : undefined}
         >
             <ScreenWrapper
