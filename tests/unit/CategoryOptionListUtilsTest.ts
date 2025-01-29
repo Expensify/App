@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, no-restricted-syntax */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';

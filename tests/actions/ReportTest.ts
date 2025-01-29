@@ -5,32 +5,18 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {
-    addAttachment,
-    addComment,
-    deleteReportComment,
-    editReportComment,
-    handleUserDeletedLinksInHtml,
-    markCommentAsUnread,
-    openReport,
-    readNewestAction,
-    showReportActionNotification,
-    toggleEmojiReaction,
-    togglePinnedState,
-} from '@libs/actions/Report';
-import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
-
-/* eslint-disable-next-line no-restricted-syntax */
 import * as EmojiUtils from '@libs/EmojiUtils';
 import HttpUtils from '@libs/HttpUtils';
-import {getCurrentRequest, resetQueue} from '@libs/Network/SequentialQueue';
-import {isUnread, isUnreadWithMention} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as Report from '@src/libs/actions/Report';
+import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
@@ -74,7 +60,7 @@ describe('actions/Report', () => {
         }
 
         // Clear the queue before each test to avoid test pollution
-        resetQueue();
+        SequentialQueue.resetQueue();
 
         return promise;
     });
@@ -90,7 +76,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
-        let reportActionID: string | number;
+        let reportActionID: string;
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
@@ -110,19 +96,19 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {}).at(0);
-                reportActionID = resultAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID;
+                reportActionID = resultAction?.reportActionID ?? '-1';
 
                 expect(resultAction?.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -185,7 +171,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                togglePinnedState(REPORT_ID, false);
+                Report.togglePinnedState(REPORT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -212,7 +198,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -254,7 +240,7 @@ describe('actions/Report', () => {
             .then(waitForNetworkPromises)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
-                subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
@@ -301,72 +287,72 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread
-                expect(isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // And show a green dot for unread mentions in the LHN
-                expect(isUnreadWithMention(report)).toBe(true);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
 
                 // When the user visits the report
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
-                openReport(REPORT_ID);
-                readNewestAction(REPORT_ID);
+                Report.openReport(REPORT_ID);
+                Report.readNewestAction(REPORT_ID);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // The report will be read
-                expect(isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
-                expect(isUnreadWithMention(report)).toBe(false);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
-                markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
-                expect(isUnread(report)).toBe(true);
-                expect(isUnreadWithMention(report)).toBe(true);
+                expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
-                addComment(REPORT_ID, 'Current User Comment 1');
+                Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
-                expect(isUnread(report)).toBe(false);
-                expect(isUnreadWithMention(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
-                addComment(REPORT_ID, 'Current User Comment 2');
+                Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
-                addComment(REPORT_ID, 'Current User Comment 3');
+                Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
@@ -441,29 +427,29 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                deleteReportComment(REPORT_ID, {...reportActions[200]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then no change will occur
                 expect(report?.lastReadTime).toBe(reportActionCreatedDate);
-                expect(isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
-                expect(isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnread(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                deleteReportComment(REPORT_ID, {...reportActions[400]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                expect(isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
@@ -482,7 +468,7 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentMarkdown = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -490,7 +476,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -498,7 +484,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -506,7 +492,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -516,7 +502,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)  [www.facebook.com](https://www.facebook.com)';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -524,7 +510,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -532,7 +518,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -540,7 +526,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -548,7 +534,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
     });
@@ -564,7 +550,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -579,11 +565,11 @@ describe('actions/Report', () => {
                         shouldNotify: true,
                     },
                 ]);
-                return getCurrentRequest().then(waitForBatchedUpdates);
+                return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
     });
 
@@ -615,28 +601,28 @@ describe('actions/Report', () => {
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
-        let reportActionID: string | number;
+        let reportActionID: string;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 reportAction = Object.values(reportActions).at(0);
-                reportActionID = reportAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID;
+                reportActionID = reportAction?.reportActionID ?? '-1';
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates();
             })
@@ -656,7 +642,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                 }
                 return waitForBatchedUpdates();
             })
@@ -671,7 +657,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skintone
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -679,7 +665,7 @@ describe('actions/Report', () => {
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         if (reportAction) {
-                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -704,7 +690,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -748,14 +734,14 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -763,7 +749,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
                 }
                 return waitForBatchedUpdates();
             })
@@ -775,7 +761,7 @@ describe('actions/Report', () => {
                 // should get removed instead of added again.
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 if (resultAction) {
-                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
                 }
                 return waitForBatchedUpdates();
             })
@@ -796,7 +782,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
-            openReport(REPORT_ID, undefined, ['test@user.com'], {
+            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -822,7 +808,7 @@ describe('actions/Report', () => {
             if (i > 4) {
                 reportID = `${i}`;
             }
-            openReport(reportID, undefined, ['test@user.com'], {
+            Report.openReport(reportID, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -845,12 +831,12 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, 'Testing a comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -882,7 +868,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -915,16 +901,16 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, 'Testing a comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -939,7 +925,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -977,18 +963,18 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, 'Testing a comment');
         await waitForNetworkPromises();
 
         const newComment = PersistedRequests.getAll().at(1);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(1);
         expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1015,11 +1001,11 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        addAttachment(REPORT_ID, file);
+        Report.addAttachment(REPORT_ID, file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         // wait for Onyx.connect execute the callback and start processing the queue
@@ -1049,7 +1035,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1082,11 +1068,11 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        addAttachment(REPORT_ID, file, 'Attachment with comment');
+        Report.addAttachment(REPORT_ID, file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         // wait for Onyx.connect execute the callback and start processing the queue
@@ -1116,7 +1102,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1149,16 +1135,16 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        addComment(REPORT_ID, 'reactions with comment');
+        Report.addComment(REPORT_ID, 'reactions with comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         await waitForBatchedUpdates();
 
-        toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
-        toggleEmojiReaction(
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
             {name: 'smile', code: '😄'},
@@ -1207,7 +1193,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1239,19 +1225,19 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        addComment(REPORT_ID, 'Attachment with comment');
+        Report.addComment(REPORT_ID, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
-        toggleEmojiReaction(
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
             {name: 'smile', code: '😄'},
@@ -1285,7 +1271,7 @@ describe('actions/Report', () => {
             });
         });
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1311,13 +1297,13 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, 'Testing a comment');
 
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
-        openReport(
+        Report.openReport(
             REPORT_ID,
             undefined,
             ['test@user.com'],
@@ -1329,7 +1315,7 @@ describe('actions/Report', () => {
             reportActionID,
         );
 
-        deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -1369,12 +1355,12 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, 'Testing a comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? CONST.DEFAULT_NUMBER_ID;
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1415,9 +1401,9 @@ describe('actions/Report', () => {
             created: '2024-10-21 10:37:59.881',
         };
 
-        editReportComment(reportID, action, 'value1');
-        editReportComment(reportID, action, 'value2');
-        editReportComment(reportID, action, 'value3');
+        Report.editReportComment(reportID, action, 'value1');
+        Report.editReportComment(reportID, action, 'value2');
+        Report.editReportComment(reportID, action, 'value3');
 
         const requests = PersistedRequests?.getAll();
 

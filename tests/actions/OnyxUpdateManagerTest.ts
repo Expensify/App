@@ -2,21 +2,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {AppActionsMock} from '@libs/actions/__mocks__/App';
-
-/* eslint-disable-next-line no-restricted-syntax */
 import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
-import {queryPromise, resetDeferralLogicVariables} from '@libs/actions/OnyxUpdateManager';
+import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-
-/* eslint-disable-next-line no-restricted-syntax */
 import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-
-/* eslint-disable-next-line no-restricted-syntax */
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
-import {isPaused, isRunning} from '@libs/Network/SequentialQueue';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -144,7 +138,7 @@ describe('actions/OnyxUpdateManager', () => {
 
         OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
-        resetDeferralLogicVariables();
+        OnyxUpdateManagerExports.resetDeferralLogicVariables();
     });
 
     it('should trigger Onyx update gap handling', async () => {
@@ -164,7 +158,7 @@ describe('actions/OnyxUpdateManager', () => {
         applyOnyxUpdatesReliably(mockUpdate4);
         applyOnyxUpdatesReliably(mockUpdate3);
 
-        return queryPromise.then(() => {
+        return OnyxUpdateManagerExports.queryPromise.then(() => {
             const expectedResult: Record<string, Partial<OnyxTypes.ReportAction>> = {
                 report2: {
                     ...exampleReportAction,
@@ -210,7 +204,7 @@ describe('actions/OnyxUpdateManager', () => {
         };
 
         return firstGetMissingOnyxUpdatesCallFinished
-            .then(() => queryPromise)
+            .then(() => OnyxUpdateManagerExports.queryPromise)
             .then(() => {
                 const expectedResult: Record<string, Partial<OnyxTypes.ReportAction>> = {
                     report2: {
@@ -254,15 +248,15 @@ describe('actions/OnyxUpdateManager', () => {
         const assertAfterFirstGetMissingOnyxUpdates = () => {
             // While the fetching of missing udpates and the validation and application of the deferred updaes is running,
             // the SequentialQueue should be paused.
-            expect(isPaused()).toBeTruthy();
+            expect(SequentialQueue.isPaused()).toBeTruthy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
         };
 
         const assertAfterSecondGetMissingOnyxUpdates = () => {
             // The SequentialQueue should still be paused.
-            expect(isPaused()).toBeTruthy();
-            expect(isRunning()).toBeFalsy();
+            expect(SequentialQueue.isPaused()).toBeTruthy();
+            expect(SequentialQueue.isRunning()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         };
@@ -283,10 +277,10 @@ describe('actions/OnyxUpdateManager', () => {
             return Promise.resolve();
         };
 
-        return queryPromise.then(() => {
+        return OnyxUpdateManagerExports.queryPromise.then(() => {
             // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
             // It must not necessarily be running, because it might not have been flushed yet.
-            expect(isPaused()).toBeFalsy();
+            expect(SequentialQueue.isPaused()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
         });
     });

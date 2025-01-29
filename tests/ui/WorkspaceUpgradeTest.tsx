@@ -4,7 +4,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import createResponsiveStackNavigator from '@navigation/AppNavigator/createResponsiveStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
@@ -42,7 +42,7 @@ describe('WorkspaceUpgrade', () => {
     });
 
     afterEach(async () => {
-        await waitForIdle();
+        await SequentialQueue.waitForIdle();
         await act(async () => {
             await Onyx.clear();
         });

@@ -1,14 +1,14 @@
 import {beforeEach, jest, test} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+import * as App from '@libs/actions/App';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribePushNotification';
-import {getAll} from '@userActions/PersistedRequests';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -88,8 +88,8 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        confirmReadyToOpenApp();
-        openApp();
+        App.confirmReadyToOpenApp();
+        App.openApp();
         await waitForBatchedUpdates();
 
         // Then it should fail and reauthenticate the user adding the new authToken to the session
@@ -113,76 +113,76 @@ describe('Session', () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        confirmReadyToOpenApp();
-        reconnectApp();
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(1);
-        expect(getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(0);
+        expect(PersistedRequests.getAll().length).toBe(0);
     });
 
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        confirmReadyToOpenApp();
-        reconnectApp();
-        reconnectApp();
-        reconnectApp();
-        reconnectApp();
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
+        App.reconnectApp();
+        App.reconnectApp();
+        App.reconnectApp();
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(1);
-        expect(getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(getAll().length).toBe(0);
+        expect(PersistedRequests.getAll().length).toBe(0);
     });
 
     test('OpenApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        openApp();
+        App.openApp();
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(1);
-        expect(getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(0);
+        expect(PersistedRequests.getAll().length).toBe(0);
     });
 
     test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        openApp();
-        openApp();
-        openApp();
-        openApp();
+        App.openApp();
+        App.openApp();
+        App.openApp();
+        App.openApp();
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(1);
-        expect(getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(getAll().length).toBe(0);
+        expect(PersistedRequests.getAll().length).toBe(0);
     });
 
     test('LogOut should replace same requests from the queue instead of adding new one', async () => {
@@ -197,11 +197,11 @@ describe('Session', () => {
 
         await waitForBatchedUpdates();
 
-        expect(getAll().length).toBe(1);
-        expect(getAll().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(getAll().length).toBe(0);
+        expect(PersistedRequests.getAll().length).toBe(0);
     });
 });
