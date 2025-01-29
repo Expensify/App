@@ -53,9 +53,10 @@ type TripRoomPreviewProps = {
 
 type ReservationViewProps = {
     reservation: Reservation;
+    onPress?: () => void;
 };
 
-function ReservationView({reservation}: ReservationViewProps) {
+function ReservationView({reservation, onPress}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -102,7 +103,8 @@ function ReservationView({reservation}: ReservationViewProps) {
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
-            interactive={false}
+            shouldRemoveBackground
+            onPress={onPress}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
             iconStyles={[StyleUtils.getTripReservationIconContainer(true), styles.mr3]}
@@ -110,8 +112,6 @@ function ReservationView({reservation}: ReservationViewProps) {
         />
     );
 }
-
-const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => <ReservationView reservation={item.reservation} />;
 
 function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
@@ -137,6 +137,12 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
     }, [currency, totalDisplaySpend, tripTransactions]);
 
     const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+    const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
+        <ReservationView
+            reservation={item.reservation}
+            onPress={navigateToTrip}
+        />
+    );
 
     return (
         <OfflineWithFeedback
@@ -151,7 +157,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.cursorDefault]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
