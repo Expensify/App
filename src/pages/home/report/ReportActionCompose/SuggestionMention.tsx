@@ -339,12 +339,11 @@ function SuggestionMention(
                 if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
                 }
-                const formattedReportName = ReportUtils.getFormattedReportName(report?.reportName);
-                if (formattedReportName.toLowerCase().includes(searchTerm.toLowerCase())) {
+                if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
-                        text: formattedReportName,
-                        handle: formattedReportName,
-                        alternateText: formattedReportName,
+                        text: report.reportName,
+                        handle: report.reportName,
+                        alternateText: report.reportName,
                     });
                 }
             });

@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,8 +41,7 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         setTaskReport(report);
     }, [report]);
-    const reportName = (Str.isString(report?.reportName) ? report.reportName : report?.reportName?.html) ?? '';
-    const taskTitle = convertToLTR(reportName);
+    const taskTitle = convertToLTR(report?.reportName ?? '');
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);

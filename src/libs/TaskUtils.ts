@@ -1,6 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getFormattedReportName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -9,6 +8,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
 let allReports: OnyxCollection<Report> = {};
@@ -54,14 +54,9 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
 
 function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = ''): string {
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
-    // an optimistic report is created with the only property – reportName: 'Chat report',
+    // an optimistic report is created with the only property - reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    let reportTitle = fallbackTitle;
-    if (taskReport?.reportID && taskReport.reportName) {
-        reportTitle = getFormattedReportName(taskReport.reportName);
-    }
-
-    return reportTitle;
+    return taskReport?.reportID && taskReport.reportName ? Parser.htmlToText(taskReport.reportName) : fallbackTitle;
 }
 
 function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): string {
@@ -71,9 +66,7 @@ function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): str
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     const taskReportID = reportAction?.childReportID;
-    // If action?.childReportName is a string, it's the task title, otherwise it's an object with html and text properties
-    const childReportName = getFormattedReportName(reportAction?.childReportName);
-    const taskTitle = getTaskTitle(taskReportID, childReportName);
+    const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 

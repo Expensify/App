@@ -18,7 +18,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedReportName, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';
@@ -33,7 +33,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const reportTitle = getFormattedReportName(report?.reportName, true);
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -106,7 +105,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={reportTitle}
+                                defaultValue={report?.reportName ?? ''}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
