@@ -1179,10 +1179,13 @@ function navigateToAndOpenReport(
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
-        Navigation.dismissModalWithReport(report);
-        return;
+        Navigation.dismissModal();
     }
-    Navigation.navigateToReportWithPolicyCheck({report});
+
+    // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
+    setTimeout(() => {
+        Navigation.isNavigationReady().then(() => Navigation.navigateToReportWithPolicyCheck({report}));
+    }, 0);
 }
 
 /**

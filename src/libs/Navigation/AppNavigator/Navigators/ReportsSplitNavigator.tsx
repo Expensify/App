@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
-import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
@@ -38,26 +37,24 @@ function ReportsSplitNavigator() {
 
     return (
         <FreezeWrapper>
-            <FocusTrapForScreens>
-                <Split.Navigator
-                    persistentScreens={[SCREENS.HOME]}
-                    sidebarScreen={SCREENS.HOME}
-                    defaultCentralScreen={SCREENS.REPORT}
-                    parentRoute={route}
-                    screenOptions={splitNavigatorScreenOptions.centralScreen}
-                >
-                    <Split.Screen
-                        name={SCREENS.HOME}
-                        getComponent={loadSidebarScreen}
-                        options={splitNavigatorScreenOptions.sidebarScreen}
-                    />
-                    <Split.Screen
-                        name={SCREENS.REPORT}
-                        initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
-                        getComponent={loadReportScreen}
-                    />
-                </Split.Navigator>
-            </FocusTrapForScreens>
+            <Split.Navigator
+                persistentScreens={[SCREENS.HOME]}
+                sidebarScreen={SCREENS.HOME}
+                defaultCentralScreen={SCREENS.REPORT}
+                parentRoute={route}
+                screenOptions={splitNavigatorScreenOptions.centralScreen}
+            >
+                <Split.Screen
+                    name={SCREENS.HOME}
+                    getComponent={loadSidebarScreen}
+                    options={splitNavigatorScreenOptions.sidebarScreen}
+                />
+                <Split.Screen
+                    name={SCREENS.REPORT}
+                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
+                    getComponent={loadReportScreen}
+                />
+            </Split.Navigator>
         </FreezeWrapper>
     );
 }

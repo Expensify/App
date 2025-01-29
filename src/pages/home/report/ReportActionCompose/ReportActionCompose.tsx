@@ -467,7 +467,7 @@ function ReportActionCompose({
                                             reportParticipantIDs={reportParticipantIDs}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -505,7 +505,7 @@ function ReportActionCompose({
                                             displayFileInModal={displayFileInModal}
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
