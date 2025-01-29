@@ -121,7 +121,7 @@ jobs:
               Then manually resolve conflicts, and commit the change with \`git cherry-pick --continue\`. Lastly, please run:
 
               \`\`\`bash
-              git commit --amend -m "$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
+              git commit --amend -m \"$(git log -1 --pretty=%B)\" -m \"(CP triggered by ${{ github.actor }})\"
               \`\`\`
 
               That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}\`, and then open this PR for review.
