@@ -395,9 +395,9 @@ function SearchAutocompleteList(
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
-    const [recentReportsOptions, userToInvite] = useMemo(() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return [searchOptions.recentReports.slice(0, 20)];
+            return searchOptions.recentReports.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
@@ -409,7 +409,10 @@ function SearchAutocompleteList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        return [reportOptions.slice(0, 20), filteredOptions.userToInvite];
+        if (filteredOptions.userToInvite) {
+            reportOptions.push(filteredOptions.userToInvite);
+        }
+        return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
@@ -435,13 +438,8 @@ function SearchAutocompleteList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    if (userToInvite) {
-        const styledUserToInvite = [userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-        sections.push({title: undefined, data: styledUserToInvite});
-    }
-
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -478,7 +476,7 @@ function SearchAutocompleteList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {

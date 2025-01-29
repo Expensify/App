@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -41,6 +40,7 @@ import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -211,17 +211,17 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 
 /**
  * Check if the policy can be displayed
- * If offline, always show the policy pending deletion.
- * If online, show the policy pending deletion only if there is an error.
+ * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
+ * If shouldShowPendingDeletePolicy is false, show the policy pending deletion only if there is an error.
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
             policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
 }
@@ -1146,10 +1146,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
-    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
-}
-
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1170,7 +1166,9 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
-    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+    return (
+        !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
@@ -1205,6 +1203,67 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
+function getAdminsPrivateEmailDomains(policy?: Policy) {
+    if (!policy) {
+        return [];
+    }
+
+    const adminDomains = Object.entries(policy.employeeList ?? {}).reduce((domains, [email, employee]) => {
+        if (employee.role !== CONST.POLICY.ROLE.ADMIN) {
+            return domains;
+        }
+        domains.push(Str.extractEmailDomain(email).toLowerCase());
+        return domains;
+    }, [] as string[]);
+    const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
+
+    return [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+}
+
+/**
+ * Determines the most frequent domain from the `acceptedDomains` list
+ * that appears in the email addresses of policy members.
+ *
+ * @param acceptedDomains - List of domains to consider.
+ * @param policy - The policy object.
+ */
+function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
+    if (!policy) {
+        return undefined;
+    }
+    const domainOccurrences = {} as Record<string, number>;
+    Object.keys(policy.employeeList ?? {})
+        .concat(policy.owner)
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())
+        .forEach((memberDomain) => {
+            if (!acceptedDomains.includes(memberDomain)) {
+                return;
+            }
+            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        });
+    let mostFrequent = {domain: '', count: 0};
+    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+        if (count <= mostFrequent.count) {
+            return;
+        }
+        mostFrequent = {domain, count};
+    });
+    if (mostFrequent.count === 0) {
+        return undefined;
+    }
+    return mostFrequent.domain;
+}
+
+const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+    // A domain name containing a policyID indicates that this is a workspace feed
+    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    if (policyID) {
+        const policy = getPolicy(policyID.toUpperCase());
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+};
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1233,7 +1292,6 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     shouldShowSyncError,
-    hasPolicyFeedsError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
@@ -1333,6 +1391,9 @@ export {
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
+    getAdminsPrivateEmailDomains,
+    getMostFrequentEmailDomain,
+    getDescriptionForPolicyDomainCard,
 };
 
 export type {MemberEmailsToAccountIDs};
