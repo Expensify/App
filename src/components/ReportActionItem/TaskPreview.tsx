@@ -74,7 +74,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
+    const taskTitle = getTaskTitleFromReport(taskReport, action?.childReportName ?? '');
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAssignee = taskAssigneeAccountID > 0;
