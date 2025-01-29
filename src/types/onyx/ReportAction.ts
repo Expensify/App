@@ -170,13 +170,15 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Name of child report */
     /** Is either a string or an object {html:"",text:""} */
-    childReportName?: string | {
-        /** The html stripped version of the report title */
-        text: string;
+    childReportName?:
+        | string
+        | {
+              /** The html stripped version of the report title */
+              text: string;
 
-        /** HTML version of the report title */
-        html: string
-    };
+              /** HTML version of the report title */
+              html: string;
+          };
 
     /** Type of child report  */
     childType?: string;

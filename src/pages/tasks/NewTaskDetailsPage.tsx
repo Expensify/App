@@ -19,7 +19,7 @@ import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import variables from '@styles/variables';
-import {setDetailsValue, setShareDestinationValue, createTaskAndNavigate, dismissModalAndClearOutTaskInfo} from '@userActions/Task';
+import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue, setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,14 +76,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID ?? '-1');
             playSound(SOUNDS.DONE);
-            createTaskAndNavigate(
-                task?.parentReportID ?? '-1',
-                values.taskTitle,
-                values.taskDescription ?? '',
-                task?.assignee ?? '',
-                task.assigneeAccountID,
-                task.assigneeChatReport,
-            );
+            createTaskAndNavigate(task?.parentReportID ?? '-1', values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }
