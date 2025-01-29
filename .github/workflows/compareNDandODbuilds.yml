@@ -30,6 +30,25 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
@@ -91,6 +110,9 @@ jobs:
 
       - name: Build Android Release
         working-directory: android
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
         run: |
           ./gradlew --profile assembleProductionRelease
 
