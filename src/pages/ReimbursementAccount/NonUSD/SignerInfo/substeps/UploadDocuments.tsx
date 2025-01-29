@@ -31,8 +31,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const defaultValues = {
-        [SIGNER_COPY_OF_ID]: reimbursementAccount?.achData?.additionalData?.corpay?.[SIGNER_COPY_OF_ID] ?? reimbursementAccountDraft?.[SIGNER_COPY_OF_ID] ?? [],
-        [SIGNER_ADDRESS_PROOF]: reimbursementAccount?.achData?.additionalData?.corpay?.[SIGNER_ADDRESS_PROOF] ?? reimbursementAccountDraft?.[SIGNER_ADDRESS_PROOF] ?? [],
+        [SIGNER_COPY_OF_ID]: reimbursementAccount?.achData?.corpay?.[SIGNER_COPY_OF_ID] ?? reimbursementAccountDraft?.[SIGNER_COPY_OF_ID] ?? [],
+        [SIGNER_ADDRESS_PROOF]: reimbursementAccount?.achData?.corpay?.[SIGNER_ADDRESS_PROOF] ?? reimbursementAccountDraft?.[SIGNER_ADDRESS_PROOF] ?? [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[SIGNER_ADDRESS_PROOF]);

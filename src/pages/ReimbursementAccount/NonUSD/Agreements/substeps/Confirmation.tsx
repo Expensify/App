@@ -45,11 +45,9 @@ function Confirmation({onNext}: SubStepProps) {
 
     const defaultValues = {
         [AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]:
-            !!reimbursementAccount?.achData?.additionalData?.corpay?.[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] ?? reimbursementAccountDraft?.[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] ?? '',
-        [PROVIDE_TRUTHFUL_INFORMATION]:
-            !!reimbursementAccount?.achData?.additionalData?.corpay?.[PROVIDE_TRUTHFUL_INFORMATION] ?? reimbursementAccountDraft?.[PROVIDE_TRUTHFUL_INFORMATION] ?? '',
-        [AGREE_TO_TERMS_AND_CONDITIONS]:
-            !!reimbursementAccount?.achData?.additionalData?.corpay?.[AGREE_TO_TERMS_AND_CONDITIONS] ?? reimbursementAccountDraft?.[AGREE_TO_TERMS_AND_CONDITIONS] ?? '',
+            !!reimbursementAccount?.achData?.corpay?.[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] ?? reimbursementAccountDraft?.[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] ?? '',
+        [PROVIDE_TRUTHFUL_INFORMATION]: !!reimbursementAccount?.achData?.corpay?.[PROVIDE_TRUTHFUL_INFORMATION] ?? reimbursementAccountDraft?.[PROVIDE_TRUTHFUL_INFORMATION] ?? '',
+        [AGREE_TO_TERMS_AND_CONDITIONS]: !!reimbursementAccount?.achData?.corpay?.[AGREE_TO_TERMS_AND_CONDITIONS] ?? reimbursementAccountDraft?.[AGREE_TO_TERMS_AND_CONDITIONS] ?? '',
     };
 
     const validate = useCallback(

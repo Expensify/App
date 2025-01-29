@@ -39,7 +39,7 @@ function AverageReimbursement({onNext, isEditing}: AverageReimbursementProps) {
         }, {} as Record<string, string>);
     }, [corpayOnboardingFields]);
 
-    const tradeVolumeDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[TRADE_VOLUME] ?? reimbursementAccountDraft?.[TRADE_VOLUME] ?? '';
+    const tradeVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? reimbursementAccountDraft?.[TRADE_VOLUME] ?? '';
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);

@@ -32,7 +32,7 @@ function UploadStatement({onNext, isEditing}: UploadStatementProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const defaultValues = {
-        [BANK_STATEMENT]: reimbursementAccount?.achData?.additionalData?.corpay?.[BANK_STATEMENT] ?? reimbursementAccountDraft?.[BANK_STATEMENT] ?? [],
+        [BANK_STATEMENT]: reimbursementAccount?.achData?.corpay?.[BANK_STATEMENT] ?? reimbursementAccountDraft?.[BANK_STATEMENT] ?? [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[BANK_STATEMENT]);

@@ -58,7 +58,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const [isAnyoneElseOwner, setIsAnyoneElseOwner] = useState(false);
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
-    const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);

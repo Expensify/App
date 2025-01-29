@@ -463,9 +463,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     const policyCurrency = policy?.outputCurrency ?? '';
-    // TODO once nonUSD flow is complete update the flag below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
-    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD;
-    // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
     const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && (isDevelopment || isDebugModeEnabled);
 
     if (userHasPhonePrimaryEmail) {
@@ -473,66 +471,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
-        if (hasForeignCurrency) {
-            if (shouldShowNonUSDContinueSetupButton) {
-                return (
-                    <ContinueBankAccountSetup
-                        reimbursementAccount={reimbursementAccount}
-                        onContinuePress={continueNonUSDVBBASetup}
-                        policyName={policyName}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                );
-            }
-            switch (nonUSDBankAccountStep) {
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                    return (
-                        <Country
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
-                    return (
-                        <BankInfo
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
-                    return (
-                        <BusinessInfo
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-                    return (
-                        <BeneficialOwnerInfo
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
-                    return (
-                        <SignerInfo
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                    return (
-                        <Agreements
-                            onBackButtonPress={nonUSDBankAccountsGoBack}
-                            onSubmit={handleNextNonUSDBankAccountStep}
-                        />
-                    );
-                case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
-                    return <Finish />;
-                default:
-                    return null;
-            }
-        }
         errorText = translate('bankAccount.hasCurrencyError');
     }
 
@@ -551,6 +489,69 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
+    // If the policy is in a foreign currency, we need to show the non-USD VBBA setup flow
+    if (hasForeignCurrency) {
+        if (shouldShowNonUSDContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={reimbursementAccount}
+                    onContinuePress={continueNonUSDVBBASetup}
+                    policyName={policyName}
+                    onBackButtonPress={Navigation.goBack}
+                />
+            );
+        }
+        switch (nonUSDBankAccountStep) {
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                return (
+                    <Country
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                return (
+                    <BankInfo
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                return (
+                    <BusinessInfo
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                return (
+                    <BeneficialOwnerInfo
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                return (
+                    <SignerInfo
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                return (
+                    <Agreements
+                        onBackButtonPress={nonUSDBankAccountsGoBack}
+                        onSubmit={handleNextNonUSDBankAccountStep}
+                    />
+                );
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
+                return <Finish />;
+            default:
+                return null;
+        }
+    }
+
+    // If the policy is in USD, we need to show the USD VBBA setup flow
     if (shouldShowContinueSetupButton) {
         return (
             <ContinueBankAccountSetup

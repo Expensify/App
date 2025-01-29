@@ -20,7 +20,7 @@ function JobTitle({onNext, onMove, isEditing, isSecondSigner}: JobTitleProps) {
     const inputID = isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+    const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {

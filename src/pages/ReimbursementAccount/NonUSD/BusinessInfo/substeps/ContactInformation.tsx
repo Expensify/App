@@ -26,9 +26,8 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const phoneNumberDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? reimbursementAccountDraft?.[BUSINESS_CONTACT_NUMBER] ?? '';
-    const confirmationEmailDefaultValue =
-        reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? reimbursementAccountDraft?.[BUSINESS_CONFIRMATION_EMAIL] ?? '';
+    const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? reimbursementAccountDraft?.[BUSINESS_CONTACT_NUMBER] ?? '';
+    const confirmationEmailDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? reimbursementAccountDraft?.[BUSINESS_CONFIRMATION_EMAIL] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {

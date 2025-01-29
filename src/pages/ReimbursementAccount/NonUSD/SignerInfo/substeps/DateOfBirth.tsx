@@ -20,7 +20,7 @@ function DateOfBirth({onNext, onMove, isEditing, isSecondSigner}: DateOfBirthPro
     const inputID = isSecondSigner ? SECOND_SIGNER_DATE_OF_BIRTH : SIGNER_DATE_OF_BIRTH;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+    const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [inputID],

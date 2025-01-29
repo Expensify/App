@@ -36,7 +36,7 @@ function Confirmation({onNext}: SubStepProps) {
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);

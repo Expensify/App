@@ -39,7 +39,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
         }, {} as Record<string, string>);
     }, [corpayOnboardingFields]);
 
-    const annualVolumeDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[ANNUAL_VOLUME] ?? reimbursementAccountDraft?.[ANNUAL_VOLUME] ?? '';
+    const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? reimbursementAccountDraft?.[ANNUAL_VOLUME] ?? '';
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);

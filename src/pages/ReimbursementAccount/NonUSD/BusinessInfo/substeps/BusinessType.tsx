@@ -48,8 +48,8 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
         }, {} as Record<string, string>);
     }, [corpayOnboardingFields]);
 
-    const incorporationTypeDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[APPLICANT_TYPE_ID] ?? reimbursementAccountDraft?.[APPLICANT_TYPE_ID] ?? '';
-    const businessCategoryDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_CATEGORY] ?? reimbursementAccountDraft?.[BUSINESS_CATEGORY] ?? '';
+    const incorporationTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[APPLICANT_TYPE_ID] ?? reimbursementAccountDraft?.[APPLICANT_TYPE_ID] ?? '';
+    const businessCategoryDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CATEGORY] ?? reimbursementAccountDraft?.[BUSINESS_CATEGORY] ?? '';
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);
