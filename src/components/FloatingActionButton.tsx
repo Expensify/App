@@ -2,9 +2,8 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
-import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
@@ -32,20 +31,6 @@ type AdapterProps = {
     stroke?: string | AdapterPropsRecord;
 };
 
-const adapter = createAnimatedPropAdapter(
-    (props: AdapterProps) => {
-        if (Object.keys(props).includes('fill')) {
-            // eslint-disable-next-line no-param-reassign
-            props.fill = {type: 0, payload: processColor(props.fill)};
-        }
-        if (Object.keys(props).includes('stroke')) {
-            // eslint-disable-next-line no-param-reassign
-            props.stroke = {type: 0, payload: processColor(props.stroke)};
-        }
-    },
-    ['fill', 'stroke'],
-);
-
 type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
@@ -61,7 +46,7 @@ type FloatingActionButtonProps = {
 };
 
 function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
-    const {success, buttonDefaultBG, textLight, textDark} = useTheme();
+    const {success, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
