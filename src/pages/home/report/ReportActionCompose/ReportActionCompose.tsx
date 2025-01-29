@@ -33,6 +33,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -47,7 +48,6 @@ import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getClearIsReportActionLinked} from '@src/pages/home/report/clearReportAction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -241,6 +241,14 @@ function ReportActionCompose({
         [isComposerFullSize],
     );
 
+    // Clear the highlighted report when exiting
+    const clearTopmostReportActionId = useCallback(() => {
+        const topmostReportActionId = Navigation.getTopmostReportActionId();
+        if (topmostReportActionId && topmostReportActionId !== undefined) {
+            Navigation.setParams({reportActionID: ''});
+        }
+    }, []);
+
     const onAddActionPressed = useCallback(() => {
         hideProductTrainingTooltip();
         if (!willBlurTextInputOnTapOutside) {
@@ -252,8 +260,8 @@ function ReportActionCompose({
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
         // Clear the highlighted report item when an action from the + menu is taken
-        getClearIsReportActionLinked()();
-    }, []);
+        clearTopmostReportActionId();
+    }, [clearTopmostReportActionId]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -299,9 +307,9 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
             // Clear the highlighted report item when a new comment or attachment is sent
-            getClearIsReportActionLinked()();
+            clearTopmostReportActionId();
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, clearTopmostReportActionId],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

@@ -43,7 +43,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getClearIsReportActionLinked} from '@src/pages/home/report/clearReportAction';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -466,7 +465,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const onItemSelected = useCallback(() => {
         hideCreateMenu();
         // Clear the highlighted report item when an action from the + menu is taken
-        getClearIsReportActionLinked()();
+        const topmostReportActionId = Navigation.getTopmostReportActionId();
+        if (topmostReportActionId && topmostReportActionId !== undefined) {
+            Navigation.setParams({reportActionID: ''});
+        }
     }, [hideCreateMenu]);
 
     return (
