@@ -89,7 +89,7 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
  */
 const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const {isOnSearch, hashKey} = useSearchState();
-    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>>;
+    const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
