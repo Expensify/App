@@ -179,7 +179,8 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click *Create*.\n' +
+                '4. Click "Just track it (don\'t submit it)".\n' +
+                '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -3140,7 +3141,12 @@ const CONST = {
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+        SHORT_MENTION: new RegExp(
+            // We are ensuring that the short mention is not inside a code block. So we check that the short mention
+            // is either not preceded by an open code block or not followed by a backtick on the same line.
+            `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
+            'gim',
+        ),
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
