@@ -1,4 +1,5 @@
 import * as Repack from '@callstack/repack';
+import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
 import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import rspack from '@rspack/core';
 import {createRequire} from 'node:module';
@@ -168,6 +169,7 @@ export default (env) => {
                 },
             }),
             new ReanimatedPlugin(),
+            new ExpoModulesPlugin({platform}),
             // optional dep warning
             new rspack.IgnorePlugin({
                 resourceRegExp: /^@react-native-masked-view/,
@@ -179,6 +181,10 @@ export default (env) => {
             // optional dep warning
             new rspack.IgnorePlugin({
                 resourceRegExp: /^@shopify\/react-native-skia$/,
+            }),
+            // optional dep warning from keyboard-controller
+            new rspack.IgnorePlugin({
+                resourceRegExp: /^react-native-reanimated\/src\/reanimated2\/core$/,
             }),
         ],
     };
