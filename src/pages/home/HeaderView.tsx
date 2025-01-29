@@ -43,6 +43,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
@@ -109,6 +110,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -186,7 +188,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner(), [firstDayFreeTrial, lastDayFreeTrial]);
+    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
