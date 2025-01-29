@@ -23,6 +23,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +44,6 @@ import {
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
