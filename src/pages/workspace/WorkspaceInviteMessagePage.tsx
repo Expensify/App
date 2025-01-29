@@ -14,7 +14,6 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -43,7 +42,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import WorkspaceMemberDetailsRoleSelectionModal, {ListItemType} from './WorkspaceMemberRoleSelectionModal';
+import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
+import type {ListItemType} from './WorkspaceMemberRoleSelectionModal';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
@@ -227,7 +227,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             <MenuItemWithTopDescription
-                                title={translate(`workspace.common.roleName`, {role: role})}
+                                title={translate(`workspace.common.roleName`, {role})}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}
