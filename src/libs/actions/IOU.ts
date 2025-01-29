@@ -6610,7 +6610,11 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     ];
 
     if (transactionViolations) {
-        removeSettledAndApprovedTransactions(transactionViolations.find((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? []).forEach(
+        const duplicateTransactionIDs = transactionViolations
+            .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            .map((violation) => violation?.data?.duplicates ?? [])
+            .flat();
+        removeSettledAndApprovedTransactions(duplicateTransactionIDs).forEach((duplicateID) => {
             (duplicateID) => {
                 const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
                 if (!duplicateTransactionsViolations) {
