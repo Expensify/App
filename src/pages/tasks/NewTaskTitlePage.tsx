@@ -11,11 +11,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import * as TaskActions from '@userActions/Task';
+import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,9 +41,9 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
+            addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;
@@ -52,7 +52,7 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
-        TaskActions.setTitleValue(values.taskTitle);
+        setTitleValue(values.taskTitle);
         goBack();
     };
 

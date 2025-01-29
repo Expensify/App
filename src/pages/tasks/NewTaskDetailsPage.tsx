@@ -11,15 +11,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getCommentLength} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import variables from '@styles/variables';
-import * as TaskActions from '@userActions/Task';
+import {setDetailsValue, setShareDestinationValue, createTaskAndNavigate, dismissModalAndClearOutTaskInfo} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,13 +56,13 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
+            addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
         }
-        const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
+        const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
         return errors;
@@ -71,12 +71,12 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
-        TaskActions.setDetailsValue(values.taskTitle, values.taskDescription);
+        setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            TaskActions.setShareDestinationValue(task?.parentReportID ?? '-1');
+            setShareDestinationValue(task?.parentReportID ?? '-1');
             playSound(SOUNDS.DONE);
-            TaskActions.createTaskAndNavigate(
+            createTaskAndNavigate(
                 task?.parentReportID ?? '-1',
                 values.taskTitle,
                 values.taskDescription ?? '',
@@ -98,7 +98,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
                 shouldShowBackButton
-                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo(backTo)}
+                onBackButtonPress={() => dismissModalAndClearOutTaskInfo(backTo)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
