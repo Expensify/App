@@ -7674,8 +7674,7 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
         isPolicyExpenseChat(report) ||
         isInvoiceRoom(report) ||
         isInvoiceReport(report) ||
-        isSystemChat(report) ||
-        isTripRoom(report)
+        isSystemChat(report)
     ) {
         return true;
     }
