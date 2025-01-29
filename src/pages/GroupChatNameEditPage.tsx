@@ -84,7 +84,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('groupConfirmPage.groupName')}
+                title={translate('newRoomPage.groupName')}
                 onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider

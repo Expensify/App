@@ -206,7 +206,7 @@ const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavi
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewChatSelectorPage').default,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/NewChatConfirmPage').default,
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/ChatNameEditPage').default,
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/GroupChatNameEditPage').default,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
