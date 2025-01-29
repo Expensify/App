@@ -59,6 +59,9 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                         </Text>
                     }
                     onSelectRow={(option) => {
+                        Navigation.setParams({
+                            role: option.value,
+                        });
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
                     sections={[{data: roleOptions}]}

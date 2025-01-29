@@ -1,4 +1,4 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -220,6 +221,15 @@ const modalScreenListeners = {
     },
 };
 
+const fullScreenListeners = {
+    focus: () => {
+        setFullscreenVisibility(true);
+    },
+    beforeRemove: () => {
+        setFullscreenVisibility(false);
+    },
+};
+
 // Extended modal screen listeners with additional cancellation of pending requests
 const modalScreenListenersWithCancelSearch = {
     ...modalScreenListeners,
@@ -241,6 +251,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('state', () => {
+            PriorityMode.autoSwitchToFocusMode();
+        });
+        return () => unsubscribe();
+    }, [navigation]);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -460,6 +478,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             headerShown: false,
                             title: 'New Expensify',
                         }}
+                        listeners={fullScreenListeners}
                         getComponent={loadValidateLoginPage}
                     />
                     <RootStack.Screen
@@ -523,6 +542,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.NOT_FOUND}
                         options={rootNavigatorOptions.fullScreen}
                         component={NotFoundPage}
+                        listeners={fullScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
@@ -599,7 +619,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={rootNavigatorOptions.fullScreen}
+                        component={ConnectionCompletePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.BANK_CONNECTION_COMPLETE}
+                        options={rootNavigatorOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
