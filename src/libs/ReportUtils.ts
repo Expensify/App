@@ -7020,7 +7020,11 @@ function canSeeDefaultRoom(reportFlags: ReportFlagValue, betas: OnyxEntry<Beta[]
     return Permissions.canUseDefaultRooms(betas ?? []);
 }
 
-function canAccessReport(report: Report, betas: OnyxEntry<Beta[]>): boolean {
+function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
+    if (!report) {
+        return true;
+    }
+
     const reportFlags = getReportFlags(report);
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (reportFlags & REPORT_FLAGS.IS_DEFAULT_ROOM && !canSeeDefaultRoom(reportFlags, betas)) {
@@ -8142,7 +8146,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
  * Check to see if the current user has access to view the report.
  */
 function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
-    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
