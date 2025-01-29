@@ -64,19 +64,19 @@ import {
     isReportApproved,
     isReportOwner,
     isSettled,
+    isTripRoom as isTripRoomReportUtils,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
-    getTransactionViolations,
-    hasPendingUI,
     isCardTransaction,
     isPartialMerchant,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -97,13 +97,13 @@ type ReportPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
     /** The report's policyID, used for Onyx subscription */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -194,7 +194,6 @@ function ReportPreview({
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
-    const hasHeldExpenses = hasHeldExpensesReportUtils(iouReport?.reportID);
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
@@ -216,6 +215,7 @@ function ReportPreview({
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
+    const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
@@ -236,7 +236,7 @@ function ReportPreview({
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
-    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, transactionViolations));
+    const showRTERViolationMessage = shouldShowRTERViolationMessage(transactions);
     const transactionIDList = [lastTransaction?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
@@ -369,7 +369,7 @@ function ReportPreview({
         }
 
         let payerOrApproverName;
-        if (isPolicyExpenseChat) {
+        if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
@@ -391,17 +391,18 @@ function ReportPreview({
     }, [
         isScanning,
         isPolicyExpenseChat,
-        policy,
-        chatReport,
+        isTripRoom,
         isInvoiceRoom,
-        invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
-        managerID,
         isApproved,
         iouSettled,
         iouReport?.isWaitingOnBankAccount,
         hasNonReimbursableTransactions,
         translate,
+        chatReport,
+        policy,
+        invoiceReceiverPolicy,
+        invoiceReceiverPersonalDetail,
+        managerID,
     ]);
 
     const bankAccountRoute = getBankAccountRoute(chatReport);
@@ -620,7 +621,6 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
-                                        shouldUseSuccessStyle={!hasHeldExpenses}
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
