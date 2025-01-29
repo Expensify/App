@@ -30,19 +30,42 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op document get --output ./upload-key.keystore upload-key.keystore 
+          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore Mobile-Expensify/Android 
+
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
       - name: Build Android Release
         working-directory: Mobile-Expensify/Android
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: |
-          if ! ./gradlew --profile assembleRelease
-          then
-            echo "❌ Android HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
-            exit 1
-          else
-            echo "✅ Build succeeded. Printing Gradle profile report:"
-            # Print the latest generated profile report
-            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
-            cat "$PROFILE_REPORT"
-          fi
+          ./gradlew --profile assembleRelease
+          
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"
 
   buildStandaloneAndroid:
     name: Build Standalone Android
@@ -62,16 +85,16 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'false'
 
+      - name: Decrypt keystore to sign the APK/AAB
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        working-directory: android/app
+
       - name: Build Android Release
         working-directory: android
         run: |
-          if ! ./gradlew --profile assembleProductionRelease
-          then
-            echo "❌ Android Standalone failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
-            exit 1
-          else
-            echo "✅ Build succeeded. Printing Gradle profile report:"
-            # Print the latest generated profile report
-            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
-            cat "$PROFILE_REPORT"
-          fi
+          ./gradlew --profile assembleProductionRelease
+
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"

@@ -473,10 +473,7 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID: string | undefined) {
-    if (!transactionID) {
-        return;
-    }
+function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 

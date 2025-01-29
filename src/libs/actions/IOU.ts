@@ -3798,16 +3798,13 @@ function updateMoneyRequestDate(
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
-    transactionID: string | undefined,
-    transactionThreadReportID: string | undefined,
+    transactionID: string,
+    transactionThreadReportID: string,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    if (!transactionID || !transactionThreadReportID) {
-        return;
-    }
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
