@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LoginList, Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
 
