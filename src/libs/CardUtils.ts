@@ -30,15 +30,6 @@ Onyx.connect({
     },
 });
 
-let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allWorkspaceCards = value;
-    },
-});
-
 /**
  * @returns string with a month in MM format
  */
@@ -436,9 +427,9 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+function getAllCardsForWorkspace(workspaceAccountID: number, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): CardList {
     const cards = {};
-    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+    for (const [key, values] of Object.entries(workspaceCardFeeds ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
             Object.assign(cards, rest);
