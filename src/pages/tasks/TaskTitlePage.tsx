@@ -19,7 +19,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {isOpenTaskReport, isTaskReport, getFormattedReportName} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const reportTitle = (Str.isString(report?.reportName) ? report.reportName : report?.reportName?.html) ?? '';
+    const reportTitle = getFormattedReportName(report?.reportName, true);
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {

@@ -543,7 +543,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    let reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.html;
+    let reportName = ReportUtils.getFormattedReportName(report?.reportName, true);
     reportName = (title ?? reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
@@ -618,7 +618,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    let reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.html;
+    let reportName = ReportUtils.getFormattedReportName(report?.reportName, true);
     reportName = reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -1032,7 +1032,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     if (!report) {
         return;
     }
-    const reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.text;
+    const reportName = ReportUtils.getFormattedReportName(report?.reportName);
     const message = `deleted task: ${reportName}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;

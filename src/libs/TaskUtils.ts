@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {getFormattedReportName} from '@libs/ReportUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
@@ -58,7 +59,7 @@ function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '
     // and it will be displayed as the task title without checking for reportID to be present.
     let reportTitle = fallbackTitle;
     if (taskReport?.reportID && taskReport.reportName) {
-        reportTitle = Str.isString(taskReport?.reportName) ? taskReport.reportName : taskReport?.reportName?.text;
+        reportTitle = getFormattedReportName(taskReport.reportName);
     }
 
     return reportTitle;
@@ -72,7 +73,7 @@ function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): str
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     const taskReportID = reportAction?.childReportID;
     // If action?.childReportName is a string, it's the task title, otherwise it's an object with html and text properties
-    const childReportName = Str.isString(reportAction?.childReportName) ? reportAction.childReportName : reportAction?.childReportName?.text;
+    const childReportName = getFormattedReportName(reportAction?.childReportName);
     const taskTitle = getTaskTitle(taskReportID, childReportName);
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
