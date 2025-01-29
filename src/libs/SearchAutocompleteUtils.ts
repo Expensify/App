@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {LoginList, Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
 
@@ -138,7 +138,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
  * markdown ranges that can be used by RNMarkdownTextInput.
  * It is simpler version of search parser that can be run on UI.
  */
-function parseForLiveMarkdown(input: string, userLogin: string, userDisplayName: string) {
+function parseForLiveMarkdown(input: string, userLogins: string[], userDisplayName: string) {
     'worklet';
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
@@ -147,7 +147,7 @@ function parseForLiveMarkdown(input: string, userLogin: string, userDisplayName:
     return ranges.map((range) => {
         let type = 'mention-user';
 
-        if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (range.value === userLogin || range.value === userDisplayName)) {
+        if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.includes(range.value) || range.value === userDisplayName)) {
             type = 'mention-here';
         }
 

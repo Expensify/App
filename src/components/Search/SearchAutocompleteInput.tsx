@@ -2,6 +2,7 @@ import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -15,6 +16,7 @@ import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -87,6 +89,10 @@ function SearchAutocompleteInput(
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const emailList = Object.keys(loginList ?? {});
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -137,7 +143,7 @@ function SearchAutocompleteInput(
                         parser={(input: string) => {
                             'worklet';
 
-                            return parseForLiveMarkdown(input, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.displayName ?? '');
+                            return parseForLiveMarkdown(input, emailList, currentUserPersonalDetails.displayName ?? '');
                         }}
                         selection={selection}
                     />
