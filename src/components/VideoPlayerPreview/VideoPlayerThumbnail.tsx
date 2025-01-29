@@ -45,7 +45,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
             )}
             {!isDeleted ? (
                 <ShowContextMenuContext.Consumer>
-                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, onShowContextMenu}) => (
                         <PressableWithoutFeedback
                             style={[styles.videoThumbnailContainer]}
                             accessibilityLabel={accessibilityLabel}
@@ -57,14 +57,16 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                                 if (isDisabled) {
                                     return;
                                 }
-                                showContextMenuForReport(
-                                    event,
-                                    anchor,
-                                    report?.reportID,
-                                    action,
-                                    checkIfContextMenuActive,
-                                    ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
-                                );
+                                onShowContextMenu(() => {
+                                    showContextMenuForReport(
+                                        event,
+                                        anchor,
+                                        report?.reportID,
+                                        action,
+                                        checkIfContextMenuActive,
+                                        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
+                                    );
+                                });
                             }}
                             shouldUseHapticsOnLongPress
                         >
