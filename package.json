@@ -75,9 +75,8 @@
     "web:prod": "http-server ./dist --cors"
   },
   "dependencies": {
-    "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.221",
     "@expensify/react-native-background-task": "file:./modules/background-task",
+    "@expensify/react-native-live-markdown": "0.1.221",
     "@expo/metro-runtime": "^4.0.1",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
@@ -90,6 +89,7 @@
     "@fullstory/react-native": "^1.7.2",
     "@gorhom/portal": "^1.0.14",
     "@invertase/react-native-apple-authentication": "^2.2.2",
+    "@lottiefiles/dotlottie-react": "^0.6.5",
     "@onfido/react-native-sdk": "10.6.0",
     "@react-native-camera-roll/camera-roll": "7.4.0",
     "@react-native-clipboard/clipboard": "^1.15.0",
