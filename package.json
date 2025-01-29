@@ -216,6 +216,7 @@
     "@babel/types": "^7.22.19",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@callstack/repack": "~5.0.0-rc.10",
+    "@callstack/repack-plugin-reanimated": "^5.0.0-rc.10",
     "@dword-design/eslint-plugin-import-alias": "^5.0.0",
     "@electron/notarize": "^2.1.0",
     "@fullstory/babel-plugin-annotate-react": "^2.3.0",
