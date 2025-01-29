@@ -47,11 +47,12 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const selfApproversEmails = getAllSelfApprovers(policy);
 
     useEffect(() => {
-        if (!canEnablePreventSelfApprovals(policy) && policy?.preventSelfApproval) {
-            // If the policy has only one user, we disable the "Prevent Self Approvals" feature
-            setPolicyPreventSelfApproval(policyID, false);
+        if (!canEnablePreventSelfApprovals(policy) || !policy?.preventSelfApproval) {
+            return;
         }
-    }, [policy?.employeeList]);
+        // If the policy has only one user, we disable the "Prevent Self Approvals" feature
+        setPolicyPreventSelfApproval(policyID, false);
+    }, [policy, policyID]);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
