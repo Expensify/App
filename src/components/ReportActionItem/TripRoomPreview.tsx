@@ -136,6 +136,8 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         );
     }, [currency, totalDisplaySpend, tripTransactions]);
 
+    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+
     return (
         <OfflineWithFeedback
             pendingAction={action?.pendingAction}
@@ -144,6 +146,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
+                    onPress={navigateToTrip}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
@@ -184,7 +187,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                         <Button
                             success
                             text={translate('travel.viewTrip')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID))}
+                            onPress={navigateToTrip}
                         />
                     </View>
                 </PressableWithoutFeedback>
