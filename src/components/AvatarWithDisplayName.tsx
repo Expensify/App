@@ -72,7 +72,7 @@ function AvatarWithDisplayName({
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
     );
     const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
-    const subtitle = ReportUtils.getChatRoomSubtitle(report);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport =
         ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
