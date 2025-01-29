@@ -55,12 +55,12 @@ jobs:
 
       - name: Build Android Release
         working-directory: Mobile-Expensify/Android
-        env:
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: |
-          ./gradlew --profile assembleRelease
+          ./gradlew --profile assembleRelease \
+            -Pandroid.injected.signing.store.file="./upload-key.keystore" \
+            -Pandroid.injected.signing.store.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           
           echo "Printing Gradle profile report:"
           # Print the latest generated profile report
