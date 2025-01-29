@@ -124,6 +124,7 @@ const WRITE_COMMANDS = {
     LEAVE_GROUP_CHAT: 'LeaveGroupChat',
     INVITE_TO_ROOM: 'InviteToRoom',
     INVITE_TO_GROUP_CHAT: 'InviteToGroupChat',
+    UPDATE_TRIP_ROOM_NAME: 'UpdateTripRoomName',
     UPDATE_GROUP_CHAT_NAME: 'UpdateGroupChatName',
     UPDATE_GROUP_CHAT_MEMBER_ROLES: 'UpdateGroupChatMemberRoles',
     REMOVE_FROM_ROOM: 'RemoveFromRoom',
@@ -559,7 +560,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
     [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES]: Parameters.UpdateGroupChatMemberRolesParams;
-    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME]: Parameters.UpdateGroupChatNameParams;
+    [WRITE_COMMANDS.UPDATE_TRIP_ROOM_NAME]: Parameters.UpdateChatNameParams;
+    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME]: Parameters.UpdateChatNameParams;
     [WRITE_COMMANDS.REMOVE_FROM_ROOM]: Parameters.RemoveFromRoomParams;
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: Parameters.UpdateReportPrivateNoteParams;
