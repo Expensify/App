@@ -133,7 +133,8 @@ jobs:
             "This pull request has merge conflicts and can not be automatically merged. :disappointed:
              Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
              **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
-          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
+          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }},$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
