@@ -1,6 +1,6 @@
 import React from 'react';
 import type {FC} from 'react';
-import {Platform} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import type {SvgProps} from 'react-native-svg';
 import GlobalCreateIcon from '@assets/images/customEmoji/global-create.svg';
@@ -21,19 +21,23 @@ function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const positionFix = Platform.OS !== 'web' && {height: '5%'};
 
     if (emojiMap[emojiKey]) {
+        const image = (
+            <View style={[styles.customEmoji, positionFix]}>
+                <ImageSVG
+                    src={emojiMap[emojiKey]}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                />
+            </View>
+        );
+
         if ('pressablewithdefaultaction' in tnode.attributes) {
-            return <CustomEmojiWithDefaultPressableAction emojiKey={emojiKey} />;
+            return <CustomEmojiWithDefaultPressableAction emojiKey={emojiKey}>{image}</CustomEmojiWithDefaultPressableAction>;
         }
 
-        return (
-            <ImageSVG
-                style={[styles.customEmoji, positionFix]}
-                src={emojiMap[emojiKey]}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-            />
-        );
+        return image;
     }
+
     return null;
 }
 

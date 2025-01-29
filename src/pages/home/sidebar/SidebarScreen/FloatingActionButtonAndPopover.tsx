@@ -69,8 +69,10 @@ type FloatingActionButtonAndPopoverProps = {
     /* Callback function before the menu is hidden */
     onHideCreateMenu?: () => void;
 
+    /* Render the FAB as an emoji */
     isEmoji?: boolean;
 
+    /* Emoji content to render when isEmoji */
     children?: ReactNode;
 };
 
