@@ -12,7 +12,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Update submodule to match main
@@ -52,7 +51,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Configure MapBox SDK
