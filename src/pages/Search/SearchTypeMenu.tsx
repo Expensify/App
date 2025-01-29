@@ -82,7 +82,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     />
                 ),
                 style: [styles.alignItemsCenter],
-                shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
                 tooltipAnchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
