@@ -148,7 +148,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasHeldExpenses = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -396,7 +395,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <AnimatedSettlementButton
-                            shouldUseSuccessStyle={!hasHeldExpenses}
                             isPaidAnimationRunning={isPaidAnimationRunning}
                             isApprovedAnimationRunning={isApprovedAnimationRunning}
                             onAnimationFinish={stopAnimation}
@@ -467,7 +465,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
                             <AnimatedSettlementButton
-                                shouldUseSuccessStyle={!hasHeldExpenses}
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                 onAnimationFinish={stopAnimation}
