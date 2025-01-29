@@ -40,7 +40,7 @@ import Parser from './Parser';
 import Performance from './Performance';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -874,6 +874,17 @@ function getReportOption(participant: Participant): OptionData {
     } else {
         option.text = getPolicyName(report);
         option.alternateText = translateLocal('workspace.common.workspace');
+
+        if (report?.policyID) {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const submitToAccountID = getSubmitToAccountID(policy, report);
+            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+            const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+            if (subtitle) {
+                option.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+            }
+        }
     }
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
