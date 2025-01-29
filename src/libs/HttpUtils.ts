@@ -10,7 +10,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import validateFormDataParameter from './validateFormDataParameter';
+import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -158,21 +158,13 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-        const value = data[key];
-        if (value === undefined) {
-            return;
-        }
-        validateFormDataParameter(command, key, value);
-        formData.append(key, value as string | Blob);
+function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
+    return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
+        const url = getCommandURL({shouldUseSecure, command});
+        const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
+
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
     });
-
-    const url = getCommandURL({shouldUseSecure, command});
-
-    const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
-    return processHTTPRequest(url, type, formData, abortSignalController?.signal);
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
