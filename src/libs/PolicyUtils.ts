@@ -1280,8 +1280,8 @@ function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
 }
 
 /**
- * Checks if the policy has a default approver that is self-approving and the workspace has only one user.
- * If so, we cannot enable the "Prevent Self Approvals" feature.
+ * Checks if the workspace has only one user.
+ * If so, we can't enable the "Prevent Self Approvals" feature.
  */
 function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
     if (!policy?.employeeList || !policy.approver) {
