@@ -72,8 +72,8 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOpen = isOpenTaskReport(report);
-    const canThisModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = isTaskReport(report) && (!canThisModifyTask || !isOpen);
+    const canWeModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = isTaskReport(report) && (!canWeModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
