@@ -1,9 +1,8 @@
-import React, {useContext} from 'react';
-import {Platform} from 'react-native';
-import {FABPopoverContext} from '@components/FABPopoverProvider';
+import React from 'react';
+import {Platform, View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FloatingActionButtonAndPopover from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import variables from '@styles/variables';
 import {emojiMap} from './HTMLRenderers/CustomEmojiRenderer';
 
@@ -16,27 +15,19 @@ function CustomEmojiWithDefaultPressableAction({emojiKey}: CustomEmojiWithDefaul
     const positionFix = Platform.OS !== 'web' && {height: '5%'};
 
     const image = (
-        <ImageSVG
-            src={emojiMap[emojiKey]}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-        />
+        <View style={[styles.customEmoji, positionFix]}>
+            <ImageSVG
+                src={emojiMap[emojiKey]}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+            />
+        </View>
     );
-    const {isCreateMenuActive, setIsCreateMenuActive} = useContext(FABPopoverContext);
 
     if (emojiKey === 'action-menu-icon') {
-        return (
-            <PressableWithoutFeedback
-                onPress={() => setIsCreateMenuActive(!isCreateMenuActive)}
-                style={[styles.customEmoji, positionFix]}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Press to create a new item"
-            >
-                {image}
-            </PressableWithoutFeedback>
-        );
+        return <FloatingActionButtonAndPopover isEmoji>{image}</FloatingActionButtonAndPopover>;
     }
+
     return image;
 }
 
