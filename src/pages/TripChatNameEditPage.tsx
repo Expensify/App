@@ -13,7 +13,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import {getReportName} from '@libs/ReportUtils';
 import {isValidReportName} from '@libs/ValidationUtils';
-import {updateTripChatName} from '@userActions/Report';
+import {updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,7 +49,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const editName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                updateTripChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
             }
 
             return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));

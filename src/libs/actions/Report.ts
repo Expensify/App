@@ -725,7 +725,7 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-function updateTripChatName(reportID: string, reportName: string) {
+function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -765,52 +765,11 @@ function updateTripChatName(reportID: string, reportName: string) {
             },
         },
     ];
-    const parameters: UpdateChatNameParams = {reportName, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_TRIP_ROOM_NAME, parameters, {optimisticData, successData, failureData});
-}
 
-function updateGroupChatName(reportID: string, reportName: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportName,
-                pendingFields: {
-                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-                errorFields: {
-                    reportName: null,
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                pendingFields: {
-                    reportName: null,
-                },
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
-                pendingFields: {
-                    reportName: null,
-                },
-            },
-        },
-    ];
+    const command = type === CONST.REPORT.CHAT_TYPE.GROUP ? WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME : WRITE_COMMANDS.UPDATE_TRIP_ROOM_NAME;
     const parameters: UpdateChatNameParams = {reportName, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData, successData, failureData});
+
+    API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
@@ -4777,8 +4736,7 @@ export {
     updateDescription,
     updateGroupChatAvatar,
     updateGroupChatMemberRoles,
-    updateTripChatName,
-    updateGroupChatName,
+    updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,
