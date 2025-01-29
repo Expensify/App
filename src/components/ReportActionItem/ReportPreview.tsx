@@ -73,9 +73,9 @@ import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
-    hasReceipt,
     getTransactionViolations,
     hasPendingUI,
+    hasReceipt,
     isCardTransaction,
     isPartialMerchant,
     isPending,
@@ -238,13 +238,13 @@ function ReportPreview({
         hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
-    const lastThreeTransactions = allTransactions.slice(-3).filter((transaction) => {
+    const lastThreeTransactions = transactions?.slice(-3).filter((transaction) => {
         const iouAction = getIOUActionForReportID(iouReport?.reportID, transaction.transactionID);
         const shouldShowReceiptEmptyState = canAddTransactionReciept(iouReport, iouAction, transaction, currentUserAccountID);
         return hasReceipt(transaction) || shouldShowReceiptEmptyState;
     });
     const lastTransaction = transactions?.at(0);
-    const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
+    const lastThreeReceipts = lastThreeTransactions?.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, transactionViolations));
     const transactionIDList = [lastTransaction?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
@@ -554,7 +554,7 @@ function ReportPreview({
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {lastThreeReceipts.length > 0 && (
+                        {!!lastThreeReceipts && lastThreeReceipts.length > 0 && (
                             <ReportActionItemImages
                                 images={lastThreeReceipts}
                                 total={numberOfRequests}
