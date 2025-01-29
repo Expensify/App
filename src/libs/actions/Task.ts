@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -542,7 +543,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title ?? report?.reportName)?.trim();
+    let reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.html;
+    reportName = (title ?? reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
     const newDescription = typeof description === 'string' ? ReportUtils.getParsedComment(description) : report.description;
@@ -616,7 +618,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const reportName = report.reportName?.trim();
+    let reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.html;
+    reportName = reportName?.trim();
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport?.reportID;
@@ -1029,7 +1032,8 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     if (!report) {
         return;
     }
-    const message = `deleted task: ${report.reportName}`;
+    const reportName = Str.isString(report?.reportName) ? report?.reportName : report?.reportName?.text;
+    const message = `deleted task: ${reportName}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);

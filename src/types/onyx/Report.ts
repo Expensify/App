@@ -116,7 +116,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         policyID?: string;
 
         /** Name of the report */
-        reportName?: string;
+        reportName?: string | {text: string; html: string};
 
         /** ID of the report */
         reportID: string;

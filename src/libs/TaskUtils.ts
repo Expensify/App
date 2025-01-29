@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -55,7 +56,12 @@ function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
     // an optimistic report is created with the only property – reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    return taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+    let reportTitle = fallbackTitle;
+    if (taskReport?.reportID && taskReport.reportName) {
+        reportTitle = Str.isString(taskReport?.reportName) ? taskReport.reportName : taskReport?.reportName?.text;
+    }
+
+    return reportTitle;
 }
 
 function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): string {
@@ -65,7 +71,9 @@ function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): str
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     const taskReportID = reportAction?.childReportID;
-    const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
+    // If action?.childReportName is a string, it's the task title, otherwise it's an object with html and text properties
+    const childReportName = Str.isString(reportAction?.childReportName) ? reportAction.childReportName : reportAction?.childReportName?.text;
+    const taskTitle = getTaskTitle(taskReportID, childReportName);
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 
