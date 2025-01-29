@@ -32,6 +32,8 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
+import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
@@ -41,8 +43,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import type {ListItemType} from '../WorkspaceMemberRoleSelectionModal';
-import WorkspaceMemberDetailsRoleSelectionModal from '../WorkspaceMemberRoleSelectionModal';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
