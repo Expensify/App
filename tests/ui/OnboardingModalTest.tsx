@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -80,13 +80,14 @@ async function completeOnboarding(): Promise<void> {
     Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
     await waitForBatchedUpdatesWithAct();
 
-    fireEvent.press(screen.getByText(translateLocal('onboarding.purpose.newDotManageTeam')));
+    const user = userEvent.setup();
+    user.press(screen.getByText(translateLocal('onboarding.purpose.newDotManageTeam')));
     expect(await screen.findByTestId('BaseOnboardingEmployees')).toBeOnTheScreen();
-    fireEvent.press(screen.getByText(translateLocal('onboarding.employees.1-10')));
-    fireEvent.press(screen.getByText(translateLocal('common.continue')));
+    user.press(screen.getByText(translateLocal('onboarding.employees.1-10')));
+    user.press(screen.getByLabelText(translateLocal('common.continue')));
     expect(await screen.findByTestId('BaseOnboardingAccounting')).toBeOnTheScreen();
-    fireEvent.press(screen.getByText(translateLocal('onboarding.accounting.noneOfAbove')));
-    fireEvent.press(screen.getByText(translateLocal('common.continue')));
+    user.press(screen.getByText(translateLocal('onboarding.accounting.noneOfAbove')));
+    user.press(screen.getByLabelText(translateLocal('common.continue')));
 }
 
 describe('OnboardingModal', () => {
