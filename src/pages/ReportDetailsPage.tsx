@@ -384,9 +384,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentAction(moneyRequestReport, chatReport);
+        cancelPaymentAction(moneyRequestReport, chatReport, backTo);
         setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
+    }, [moneyRequestReport, chatReport, backTo]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];

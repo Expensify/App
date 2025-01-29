@@ -13,6 +13,17 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 
 type RNMarkdownTextInputProps = Omit<MarkdownTextInputProps, 'parser'>;
 
+function handleFormatSelection(selectedText: string, formatCommand: string) {
+    switch (formatCommand) {
+        case 'formatBold':
+            return `*${selectedText}*`;
+        case 'formatItalic':
+            return `_${selectedText}_`;
+        default:
+            return selectedText;
+    }
+}
+
 function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
@@ -28,6 +39,7 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
                 }
                 ref(refHandle as AnimatedMarkdownTextInputRef);
             }}
+            formatSelection={handleFormatSelection}
             // eslint-disable-next-line
             {...props}
             /**
