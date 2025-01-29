@@ -931,7 +931,7 @@ const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 // Specify how long between each check for missing PONG events
 const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
-// Specifiy how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
+// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
 const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 let lastTimestamp = Date.now();
