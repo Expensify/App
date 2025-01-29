@@ -2756,6 +2756,8 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+
+            // Map each connection to its designated display connection
             get MULTI_CONNECTIONS_MAPPING() {
                 return {
                     [this.NAME.QBO]: null,
@@ -2766,6 +2768,8 @@ const CONST = {
                     [this.NAME.SAGE_INTACCT]: null,
                 };
             },
+
+            // Get linked connections by the designated display connection
             get MULTI_CONNECTIONS_MAPPING_INVERTED() {
                 return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<Array<ValueOf<typeof this.NAME>> | undefined>;
             },

@@ -1134,8 +1134,6 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** NSQS credentials */
     credentials: {
-        // s77rt double check the field names (camel case)
-
         /** Encrypted token for NSQS authentification */
         accessToken: string;
 

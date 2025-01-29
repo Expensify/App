@@ -3337,7 +3337,7 @@ const translations = {
             },
             import: {
                 expenseCategories: 'Expense categories',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.', // s77rt check copy
+                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
                 importTypes: {
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite employee default',
