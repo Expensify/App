@@ -45,8 +45,8 @@ peg$SyntaxError.prototype.format = function(sources) {
     }
     var s = this.location.start;
     var offset_s = (this.location.source && (typeof this.location.source.offset === "function"))
-        ? this.location.source.offset(s)
-        : s;
+      ? this.location.source.offset(s)
+      : s;
     var loc = this.location.source + ":" + offset_s.line + ":" + offset_s.column;
     if (src) {
       var e = this.location.end;
@@ -75,8 +75,8 @@ peg$SyntaxError.buildMessage = function(expected, found) {
     class: function(expectation) {
       var escapedParts = expectation.parts.map(function(part) {
         return Array.isArray(part)
-            ? classEscape(part[0]) + "-" + classEscape(part[1])
-            : classEscape(part);
+          ? classEscape(part[0]) + "-" + classEscape(part[1])
+          : classEscape(part);
       });
 
       return "[" + (expectation.inverted ? "^" : "") + escapedParts.join("") + "]";
@@ -101,28 +101,28 @@ peg$SyntaxError.buildMessage = function(expected, found) {
 
   function literalEscape(s) {
     return s
-        .replace(/\\/g, "\\\\")
-        .replace(/"/g,  "\\\"")
-        .replace(/\0/g, "\\0")
-        .replace(/\t/g, "\\t")
-        .replace(/\n/g, "\\n")
-        .replace(/\r/g, "\\r")
-        .replace(/[\x00-\x0F]/g,          function(ch) { return "\\x0" + hex(ch); })
-        .replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) { return "\\x"  + hex(ch); });
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g,  "\\\"")
+      .replace(/\0/g, "\\0")
+      .replace(/\t/g, "\\t")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/[\x00-\x0F]/g,          function(ch) { return "\\x0" + hex(ch); })
+      .replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) { return "\\x"  + hex(ch); });
   }
 
   function classEscape(s) {
     return s
-        .replace(/\\/g, "\\\\")
-        .replace(/\]/g, "\\]")
-        .replace(/\^/g, "\\^")
-        .replace(/-/g,  "\\-")
-        .replace(/\0/g, "\\0")
-        .replace(/\t/g, "\\t")
-        .replace(/\n/g, "\\n")
-        .replace(/\r/g, "\\r")
-        .replace(/[\x00-\x0F]/g,          function(ch) { return "\\x0" + hex(ch); })
-        .replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) { return "\\x"  + hex(ch); });
+      .replace(/\\/g, "\\\\")
+      .replace(/\]/g, "\\]")
+      .replace(/\^/g, "\\^")
+      .replace(/-/g,  "\\-")
+      .replace(/\0/g, "\\0")
+      .replace(/\t/g, "\\t")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/[\x00-\x0F]/g,          function(ch) { return "\\x0" + hex(ch); })
+      .replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) { return "\\x"  + hex(ch); });
   }
 
   function describeExpectation(expectation) {
@@ -154,8 +154,8 @@ peg$SyntaxError.buildMessage = function(expected, found) {
 
       default:
         return descriptions.slice(0, -1).join(", ")
-            + ", or "
-            + descriptions[descriptions.length - 1];
+          + ", or "
+          + descriptions[descriptions.length - 1];
     }
   }
 
@@ -272,51 +272,51 @@ function peg$parse(input, options) {
   var peg$f0 = function(ranges) { return { autocomplete, ranges }; };
   var peg$f1 = function(filters) { return filters.filter(Boolean).flat(); };
   var peg$f2 = function(key, op, value) {
-    if (!value) {
+      if (!value) {
+        autocomplete = {
+          key,
+          value: '',
+          start: location().end.offset,
+          length: 0,
+        };
+        return;
+      }
+
       autocomplete = {
         key,
-        value: '',
-        start: location().end.offset,
-        length: 0,
+        ...value[value.length - 1],
       };
-      return;
-    }
 
-    autocomplete = {
-      key,
-      ...value[value.length - 1],
-    };
-
-    return value
+      return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({
           key,
           ...filter,
         }));
-  };
+    };
   var peg$f3 = function() { autocomplete = null; };
   var peg$f4 = function(parts, empty) {
-    const ends = location();
-    const value = parts.flat();
-    if (empty) {
-      value.push("");
-    }
-    let count = ends.start.offset;
-    const result = [];
-    value.forEach((filter) => {
-      let word = filter;
-      if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
-        word = word.slice(1, -1);
+      const ends = location();
+      const value = parts.flat();
+      if (empty) {
+        value.push("");
       }
-      result.push({
-        value: word,
-        start: count,
-        length: filter.length,
+      let count = ends.start.offset;
+      const result = [];
+      value.forEach((filter) => {
+        let word = filter;
+        if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+          word = word.slice(1, -1);
+        }
+        result.push({
+          value: word,
+          start: count,
+          length: filter.length,
+        });
+        count += filter.length + 1;
       });
-      count += filter.length + 1;
-    });
-    return result;
-  };
+      return result;
+    };
   var peg$f5 = function() { return "date"; };
   var peg$f6 = function() { return "amount"; };
   var peg$f7 = function() { return "merchant"; };
@@ -349,8 +349,8 @@ function peg$parse(input, options) {
   var peg$f34 = function() { return "lte"; };
   var peg$f35 = function() { return "lt"; };
   var peg$f36 = function(start, inner, end) {
-    return [...start, '"', ...inner, '"', ...end].join("");
-  };
+      return [...start, '"', ...inner, '"', ...end].join("");
+    };
   var peg$f37 = function(chars) { return chars.join("").trim(); };
   var peg$f38 = function() { return "and"; };
   var peg$currPos = options.peg$currPos | 0;
@@ -392,20 +392,20 @@ function peg$parse(input, options) {
 
   function expected(description, location) {
     location = location !== undefined
-        ? location
-        : peg$computeLocation(peg$savedPos, peg$currPos);
+      ? location
+      : peg$computeLocation(peg$savedPos, peg$currPos);
 
     throw peg$buildStructuredError(
-        [peg$otherExpectation(description)],
-        input.substring(peg$savedPos, peg$currPos),
-        location
+      [peg$otherExpectation(description)],
+      input.substring(peg$savedPos, peg$currPos),
+      location
     );
   }
 
   function error(message, location) {
     location = location !== undefined
-        ? location
-        : peg$computeLocation(peg$savedPos, peg$currPos);
+      ? location
+      : peg$computeLocation(peg$savedPos, peg$currPos);
 
     throw peg$buildSimpleError(message, location);
   }
@@ -508,10 +508,10 @@ function peg$parse(input, options) {
 
   function peg$buildStructuredError(expected, found, location) {
     return new peg$SyntaxError(
-        peg$SyntaxError.buildMessage(expected, found),
-        expected,
-        found,
-        location
+      peg$SyntaxError.buildMessage(expected, found),
+      expected,
+      found,
+      location
     );
   }
 
@@ -1571,7 +1571,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  let autocomplete = null;
+ let autocomplete = null; 
   peg$result = peg$startRuleFunction();
 
   if (options.peg$library) {
@@ -1591,11 +1591,11 @@ function peg$parse(input, options) {
     }
 
     throw peg$buildStructuredError(
-        peg$maxFailExpected,
-        peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null,
-        peg$maxFailPos < input.length
-            ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
-            : peg$computeLocation(peg$maxFailPos, peg$maxFailPos)
+      peg$maxFailExpected,
+      peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null,
+      peg$maxFailPos < input.length
+        ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
+        : peg$computeLocation(peg$maxFailPos, peg$maxFailPos)
     );
   }
 }
