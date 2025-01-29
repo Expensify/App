@@ -15,7 +15,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMessageDeleted, isReversedTransaction, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -29,10 +29,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
-    contextValue: ShowContextMenuContextProps & {
-        report: OnyxTypes.Report;
-        action: OnyxTypes.ReportAction;
-    };
+    contextValue: ShowContextMenuContextProps;
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -52,8 +49,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
 
-    const policy = usePolicy(report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const transactionCurrency = getCurrency(transaction);
 
@@ -61,7 +58,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         () =>
             shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
-                    reportActionID={report.reportID}
+                    reportActionID={report?.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
@@ -70,18 +67,18 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
                 />
             ),
-        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
+        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
 
     const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
 
     if (isTransactionThread(parentReportAction)) {
-        const isTransactionReversed = isReversedTransaction(parentReportAction);
+        const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
 
-        if (isMessageDeleted(parentReportAction) || isTransactionReversed) {
+        if (isMessageDeleted(parentReportAction) || isReversedTransaction) {
             let message: TranslationPaths;
 
-            if (isTransactionReversed) {
+            if (isReversedTransaction) {
                 message = 'parentReportAction.reversedTransaction';
             } else {
                 message = 'parentReportAction.deletedExpense';
@@ -96,7 +93,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             showHeader
                             report={report}
                         >
-                            <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isTransactionReversed}">${translate(message)}</deleted-action>`} />
+                            <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />
                         </ReportActionItemSingle>
                         <View style={styles.threadDividerLine} />
                     </OfflineWithFeedback>
@@ -105,7 +102,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         }
 
         return (
-            <OfflineWithFeedback pendingAction={action.pendingAction}>
+            <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 <ShowContextMenuContext.Provider value={contextMenuValue}>
                     <View>
                         <MoneyRequestView
@@ -151,15 +148,15 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     if (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
         return (
-            <OfflineWithFeedback pendingAction={action.pendingAction}>
+            <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 {!isEmptyObject(transactionThreadReport?.reportID) ? (
                     <>
                         <MoneyReportView
                             report={report}
                             policy={policy}
                             isCombinedReport
-                            pendingAction={action.pendingAction}
-                            shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
+                            pendingAction={action?.pendingAction}
+                            shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
@@ -176,7 +173,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     <MoneyReportView
                         report={report}
                         policy={policy}
-                        pendingAction={action.pendingAction}
+                        pendingAction={action?.pendingAction}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 )}
@@ -186,8 +183,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     return (
         <ReportActionItemCreated
-            reportID={report.reportID}
-            policyID={report.policyID}
+            reportID={report?.reportID}
+            policyID={report?.policyID}
         />
     );
 }
