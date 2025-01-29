@@ -29,6 +29,7 @@ import {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
@@ -538,7 +539,7 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = translateLocal('workspace.invite.leftWorkspace');
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {

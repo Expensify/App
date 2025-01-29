@@ -65,6 +65,7 @@ import type {
     EditActionParams,
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
+    EmployeeLeftParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -5002,6 +5003,7 @@ const translations = {
                     `actualicé el rol ${email} de ${currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'} a ${
                         newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'
                     }`,
+                employeeLeft: ({email}: EmployeeLeftParams) => `${email} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },

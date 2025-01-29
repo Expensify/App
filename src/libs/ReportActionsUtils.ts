@@ -1203,7 +1203,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     }
 
     if (isLeaveAction) {
-        verb = translateLocal('workspace.invite.leftWorkspace');
+        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
@@ -1757,6 +1757,20 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+    if (!isLeavePolicyAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const personalDetails = getPersonalDetailsByIDs(reportAction.actorAccountID ? [reportAction.actorAccountID] : [], 0)?.at(0);
+    if (!!originalMessage && !originalMessage.email) {
+        originalMessage.email = personalDetails?.login;
+    }
+    const email = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}: ` : originalMessage?.email ?? '';
+    const formattedEmail = formatPhoneNumber(email);
+    return translateLocal('report.actions.type.employeeLeft', {email: formattedEmail});
+}
+
 function isPolicyChangeLogDeleteMemberMessage(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> {
@@ -1995,6 +2009,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
