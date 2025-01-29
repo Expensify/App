@@ -25,6 +25,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import {getTaskTitleFromReport} from '@libs/TaskUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -32,7 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
-import Parser from '@libs/Parser';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
