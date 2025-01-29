@@ -1,6 +1,6 @@
 import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isGroupChat, isTripRoom} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import GroupChatNameEditPage from '@pages/GroupChatNameEditPage';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -12,11 +12,11 @@ import RoomNamePage from './RoomNamePage';
 type NamePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>;
 
 function NamePage({report}: NamePageProps) {
-    if (ReportUtils.isTripRoom(report)) {
+    if (isTripRoom(report)) {
         return <TripChatNameEditPage report={report} />;
     }
 
-    if (ReportUtils.isGroupChat(report)) {
+    if (isGroupChat(report)) {
         return <GroupChatNameEditPage report={report} />;
     }
 
