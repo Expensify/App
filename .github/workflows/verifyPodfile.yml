@@ -20,8 +20,5 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Check file format
-        run: file .github/scripts/checkParser.sh
-
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh

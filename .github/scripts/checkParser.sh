@@ -22,6 +22,7 @@ cp src/libs/SearchParser/searchParser.js "$search_parser_backup" 2>/dev/null
 npm run generate-search-parser
 npm run generate-autocomplete-parser
 
+
 if ! diff -q "$autocomplete_parser_backup" src/libs/SearchParser/autocompleteParser.js >/dev/null ||
    ! diff -q "$search_parser_backup" src/libs/SearchParser/searchParser.js >/dev/null; then
     exit 1

@@ -24,6 +24,7 @@ filter = @(defaultFilter / freeTextFilter)
 
 defaultFilter
   = _ key:autocompleteKey _ op:operator _ value:identifier? {
+  // tutaj jakoś coś
       if (!value) {
         autocomplete = {
           key,

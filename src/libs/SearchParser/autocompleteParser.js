@@ -272,6 +272,7 @@ function peg$parse(input, options) {
   var peg$f0 = function(ranges) { return { autocomplete, ranges }; };
   var peg$f1 = function(filters) { return filters.filter(Boolean).flat(); };
   var peg$f2 = function(key, op, value) {
+  // tutaj jakoś coś
       if (!value) {
         autocomplete = {
           key,
