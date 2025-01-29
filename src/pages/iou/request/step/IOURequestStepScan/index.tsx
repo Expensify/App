@@ -4,6 +4,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, 
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -28,13 +29,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {validateReceipt} from '@libs/ReceiptUtils';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -199,7 +199,7 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    const hideReceiptModal = () => {
+    const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -212,6 +212,36 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
         setPdfFile(null);
     };
+
+    function validateReceipt(file: FileObject) {
+        return validateImageForCorruption(file)
+            .then(() => {
+                const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+                if (
+                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+                    )
+                ) {
+                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                    return false;
+                }
+
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
+                    return false;
+                }
+
+                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                    return false;
+                }
+                return true;
+            })
+            .catch(() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                return false;
+            });
+    }
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -441,11 +471,8 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((result) => {
-            if (!result.isValid) {
-                if (result.title && result.reason) {
-                    setUploadReceiptError(true, result.title, result.reason);
-                }
+        validateReceipt(originalFile).then((isFileValid) => {
+            if (!isFileValid) {
                 return;
             }
 
@@ -455,7 +482,7 @@ function IOURequestStepScan({
                 return;
             }
 
-            // With the image size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE, we use manipulateAsync to resize the image.
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
             // It takes a long time so we should display a loading indicator while the resize image progresses.
             if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 setIsLoadingReceipt(true);
@@ -780,8 +807,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideReceiptModal}
-                            onCancel={hideReceiptModal}
+                            onConfirm={hideRecieptModal}
+                            onCancel={hideRecieptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
