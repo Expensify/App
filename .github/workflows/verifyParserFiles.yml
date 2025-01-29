@@ -1,4 +1,4 @@
-name: Verify Podfile
+name: Check consistency of search parser files
 
 on:
   pull_request:
@@ -18,5 +18,5 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Verify podfile
+      - name: Checking consistency
         run: ./.github/scripts/verifyPodfile.sh

@@ -17,8 +17,6 @@ function peg$SyntaxError(message, expected, found, location) {
   }
   self.expected = expected;
   self.found = found;
-  self.location = location;
-  self.name = "SyntaxError";
   return self;
 }
 
@@ -1571,7 +1569,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
- let autocomplete = null; 
+ let autocomplete = null;
   peg$result = peg$startRuleFunction();
 
   if (options.peg$library) {
