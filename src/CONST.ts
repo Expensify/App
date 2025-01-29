@@ -5176,7 +5176,7 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Invite your accountant',
                     description: ({workspaceMembersLink}) =>
-                        '*Invite your accountant to Expensify and share your expenses with them to make tax time easier.\n' +
+                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                         '\n' +
                         'Here’s how to invite your accountant:\n' +
                         '\n' +
