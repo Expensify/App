@@ -752,8 +752,22 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let allReports: OnyxCollection<Report>;
 const userReportsOpenOrSubmittedByPolicyId: Record<string, Report[] | undefined> = {};
+function checkIfReportIsOpenOrSubmittedByPolicyId(report: OnyxEntry<Report>) {
+    if (!report?.policyID) {
+        return;
+    }
+
+    const policyReports = userReportsOpenOrSubmittedByPolicyId[report.policyID] ?? [];
+    if (report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
+        policyReports.push(report);
+    } else {
+        userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports.filter((r) => r.reportID !== report.reportID);
+    }
+    userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports;
+}
+
+let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -774,11 +788,7 @@ Onyx.connect({
                 return;
             }
             handleReportChanged(report);
-            if (report.policyID && report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
-                const policyReports = userReportsOpenOrSubmittedByPolicyId[report.policyID] ?? [];
-                policyReports.push(report);
-                userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports;
-            }
+            checkIfReportIsOpenOrSubmittedByPolicyId(report);
         });
     },
 });
