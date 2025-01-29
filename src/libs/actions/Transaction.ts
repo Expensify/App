@@ -473,7 +473,7 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID?: string) {
+function clearError(transactionID: string | undefined) {
     if (!transactionID) {
         return;
     }
