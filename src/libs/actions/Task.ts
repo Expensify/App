@@ -320,7 +320,7 @@ function createTaskAndNavigate(
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
         createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-        title: optimisticTaskReport.reportName,
+        htmlTitle: optimisticTaskReport.reportName,
         description: optimisticTaskReport.description,
         assignee: assigneeEmail,
         assigneeAccountID,
@@ -605,7 +605,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
-        title: reportName,
+        htmlTitle: reportName,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };

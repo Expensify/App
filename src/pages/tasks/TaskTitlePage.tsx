@@ -40,8 +40,8 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
             if (!title) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            } else if (title.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -95,6 +95,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onSubmit={submit}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        allowHTML
                     >
                         <View style={[styles.mb4]}>
                             <InputWrapper

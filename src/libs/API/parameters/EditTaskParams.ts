@@ -1,6 +1,6 @@
 type EditTaskParams = {
     taskReportID?: string;
-    title?: string;
+    htmlTitle?: string;
     description?: string;
     editedTaskReportActionID?: string;
 };

@@ -42,8 +42,8 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
-        } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+        } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;
@@ -74,6 +74,7 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
                 validate={validate}
                 onSubmit={onSubmit}
                 enabledWhenOffline
+                allowHTML
             >
                 <View style={styles.mb5}>
                     <InputWrapperWithRef
