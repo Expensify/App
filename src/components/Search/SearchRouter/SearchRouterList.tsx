@@ -396,9 +396,9 @@ function SearchRouterList(
      */
     const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
-    const [recentReportsOptions, userToInvite] = useMemo(() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return [searchOptions.recentReports.slice(0, 20)];
+            return searchOptions.recentReports.slice(0, 20);
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
@@ -410,7 +410,10 @@ function SearchRouterList(
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        return [reportOptions.slice(0, 20), filteredOptions.userToInvite];
+        if (filteredOptions.userToInvite) {
+            reportOptions.push(filteredOptions.userToInvite);
+        }
+        return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
@@ -436,13 +439,8 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    if (userToInvite) {
-        const styledUserToInvite = [userToInvite]?.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-        sections.push({title: undefined, data: styledUserToInvite});
-    }
-
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
