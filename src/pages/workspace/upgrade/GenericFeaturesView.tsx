@@ -41,7 +41,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     height={48}
                 />
             </View>
-            <View style={styles.mb5}>
+            <View style={policyID ? styles.mb5 : styles.mb4}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
                 {benefits.map((benefit) => (
@@ -66,6 +66,14 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
                 </Text>
             </View>
+            {!policyID && (
+                <Text style={[styles.mb5, styles.textNormal, styles.textSupporting]}>
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.toUpgrade')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.common.goToWorkspaces')}</Text>,{' '}
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.selectWorkspace')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.type.control')}</Text>.
+                </Text>
+            )}
             {policyID ? (
                 <Button
                     isLoading={loading}
