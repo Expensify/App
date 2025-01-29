@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -89,7 +90,10 @@ function SearchRouterInput(
     return (
         <View style={[outerWrapperStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
-                <View style={styles.flex1}>
+                <View
+                    style={styles.flex1}
+                    fsClass="fs-unmask"
+                >
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
@@ -123,6 +127,7 @@ function SearchRouterInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
+                        onKeyPress={handleKeyPress(onSubmit)}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}

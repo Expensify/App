@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -22,21 +21,18 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
-import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
+type GroupChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
     report?: ReportOnyxType;
 };
 
-function ChatNameEditPage({report}: ChatNameEditPageProps) {
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
-
+function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
     // In this case its better to use empty string as the reportID if there is no reportID
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const isTripRoom = ReportUtils.isTripRoom(report);
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,13 +63,15 @@ function ChatNameEditPage({report}: ChatNameEditPageProps) {
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                     Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
-                Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));
+
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                 Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
             }
-            Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
         },
         [isUpdatingExistingReport, reportID, currentChatName],
     );
@@ -115,4 +113,4 @@ function ChatNameEditPage({report}: ChatNameEditPageProps) {
 
 ChatNameEditPage.displayName = 'ChatNameEditPage';
 
-export default ChatNameEditPage;
+export default GroupChatNameEditPage;

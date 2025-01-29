@@ -11,6 +11,7 @@ import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -150,7 +151,6 @@ type SearchReport = {
     unheldTotal?: number;
 
     /** Whether the report is archived */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
 
     /** Whether the action is loading */
@@ -203,6 +203,9 @@ type SearchPolicy = {
 
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
+
+    /** Whether the rules feature is enabled */
+    areRulesEnabled?: boolean;
 
     /**
      * The scheduled submit frequency set up on this policy.
@@ -392,6 +395,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
     /** Whether search data is being fetched from server */

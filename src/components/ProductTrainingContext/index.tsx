@@ -29,11 +29,13 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -77,7 +79,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
                 return false;
             }
 
@@ -105,7 +107,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 shouldUseNarrowLayout,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible],
+        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible, isLoadingApp],
     );
 
     const registerTooltip = useCallback(

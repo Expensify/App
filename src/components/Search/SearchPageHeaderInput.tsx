@@ -14,14 +14,15 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
+import {navigateToAndOpenReport} from '@libs/actions/Report';
+import {clearAllFilters} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isCannedSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
-import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,10 +72,13 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-    const queryText = SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates);
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
 
     // The actual input text that the user sees
@@ -107,20 +111,20 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }, [queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [originalInputQuery, personalDetails, reports, taxRates]);
+    }, [allCards, originalInputQuery, personalDetails, reports, taxRates]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (updatedUserQuery || textInputValue.length > 0) {
+            if (updatedUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
@@ -132,7 +136,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = SearchQueryUtils.getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
             if (!updatedQuery) {
                 return;
             }
@@ -140,13 +144,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
 
             if (updatedQuery !== originalInputQuery) {
-                SearchActions.clearAllFilters();
+                clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
+            } else {
+                setTextInputValue(queryText);
+                setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
     );
 
     const onListItemPress = useCallback(
@@ -157,8 +164,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 }
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
+                    const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                    onSearchQueryChange(`${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)} `);
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -171,7 +178,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
@@ -256,6 +263,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     onSubmit={() => {
+                        const focusedOption = listRef.current?.getFocusedOption();
+                        if (focusedOption) {
+                            return;
+                        }
                         submitSearch(textInputValue);
                     }}
                     autoFocus={false}

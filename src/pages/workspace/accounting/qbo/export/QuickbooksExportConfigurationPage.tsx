@@ -7,13 +7,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,7 +32,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
-    const isConnectionShouldBeRemovedFromCompanyCard = shouldShowVendorMenuItems && backTo;
+    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && backTo;
 
     const menuItems = [
         {
@@ -86,7 +86,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={isConnectionShouldBeRemovedFromCompanyCard ? () => Navigation.navigate(backTo) : undefined}
+            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.navigate(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -95,7 +95,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings, qboConfig?.pendingFields)}
+                    pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qboConfig?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -103,14 +103,14 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
             <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
                 <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
                 <TextLink
-                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
                     style={[styles.mutedNormalTextLabel, styles.link]}
                 >
                     {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}

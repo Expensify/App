@@ -94,6 +94,7 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                confirmButtonStyles={styles.mt5}
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>

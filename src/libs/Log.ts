@@ -12,7 +12,7 @@ import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
-import * as Network from './Network';
+import {post} from './Network';
 import requireParameters from './requireParameters';
 
 let timeout: NodeJS.Timeout;
@@ -40,7 +40,7 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
