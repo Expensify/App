@@ -323,7 +323,8 @@ function BaseReportActionContextMenu({
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
-    const isUsingBottomDockedModal = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || (shouldUseNarrowLayout && getPlatform(true) === CONST.PLATFORM.MWEB);
+    const isUsingBottomDockedModal =
+        getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || (shouldUseNarrowLayout && getPlatform(true) === CONST.PLATFORM.MOBILEWEB);
 
     return (
         (isVisible || shouldKeepOpen || isUsingBottomDockedModal) && (
