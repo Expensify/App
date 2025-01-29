@@ -1,0 +1,77 @@
+name: Build and profile Android apps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  buildHybridAppAndroid:
+    name: Build HybridApp Android
+    runs-on: macos-15-xlarge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Update submodule to match main
+        run: |
+          git submodule update --init --remote
+          cd Mobile-Expensify
+          git fetch
+          git checkout main
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Build Android Release
+        working-directory: Mobile-Expensify/Android
+        run: |
+          if ! ./gradlew --profile assembleRelease
+          then
+            echo "❌ Android HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
+            exit 1
+          else
+            echo "✅ Build succeeded. Printing Gradle profile report:"
+            # Print the latest generated profile report
+            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+            cat "$PROFILE_REPORT"
+          fi
+
+  buildStandaloneAndroid:
+    name: Build Standalone Android
+    runs-on: macos-15-xlarge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'false'
+
+      - name: Build Android Release
+        working-directory: android
+        run: |
+          if ! ./gradlew --profile assembleProductionRelease
+          then
+            echo "❌ Android Standalone failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
+            exit 1
+          else
+            echo "✅ Build succeeded. Printing Gradle profile report:"
+            # Print the latest generated profile report
+            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+            cat "$PROFILE_REPORT"
+          fi
