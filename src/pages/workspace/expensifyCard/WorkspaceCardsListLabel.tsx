@@ -101,38 +101,38 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap]}>
-                <View style={[styles.flexShrink0, isSettleBalanceButtonDisplayed && styles.mr2]}>
-                    <View
-                        ref={anchorRef}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
+            <View style={[styles.flex1]}>
+                <View
+                    ref={anchorRef}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
+                >
+                    <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
+                    <PressableWithFeedback
+                        accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        onPress={() => setVisible(true)}
                     >
-                        <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
-                        <PressableWithFeedback
-                            accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            onPress={() => setVisible(true)}
-                        >
-                            <Icon
-                                src={Expensicons.Info}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                                fill={theme.icon}
-                            />
-                        </PressableWithFeedback>
-                    </View>
-                    <Text style={styles.shortTermsHeadline}>{convertToDisplayString(value, policyCurrency)}</Text>
-                </View>
-                {isSettleBalanceButtonDisplayed && (
-                    <View style={[styles.flexBasisAuto, styles.alignItemsStart, styles.justifyContentEnd, styles.mt2, styles.mr2]}>
-                        <Button
-                            onPress={handleSettleBalanceButtonClick}
-                            text={translate('workspace.expensifyCard.settleBalance')}
-                            innerStyles={[styles.buttonSmall]}
-                            textStyles={[styles.buttonSmallText]}
+                        <Icon
+                            src={Expensicons.Info}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            fill={theme.icon}
                         />
-                    </View>
-                )}
+                    </PressableWithFeedback>
+                </View>
+                <View style={[styles.flexRow, styles.flexWrap]}>
+                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, policyCurrency)}</Text>
+                    {isSettleBalanceButtonDisplayed && (
+                        <View style={shouldUseNarrowLayout && styles.mb3}>
+                            <Button
+                                onPress={handleSettleBalanceButtonClick}
+                                text={translate('workspace.expensifyCard.settleBalance')}
+                                innerStyles={[styles.buttonSmall]}
+                                textStyles={[styles.buttonSmallText]}
+                            />
+                        </View>
+                    )}
+                </View>
             </View>
             {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate})}</Text>}
             <Popover
