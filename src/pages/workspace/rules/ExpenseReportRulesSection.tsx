@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -45,6 +45,13 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
     const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
     const selfApproversEmails = getAllSelfApprovers(policy);
+
+    useEffect(() => {
+        if (!canEnablePreventSelfApprovals(policy) && policy?.preventSelfApproval) {
+            // If the policy has only one user, we disable the "Prevent Self Approvals" feature
+            setPolicyPreventSelfApproval(policyID, false);
+        }
+    }, [policy?.employeeList]);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
