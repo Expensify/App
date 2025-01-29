@@ -3175,7 +3175,6 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: enabled,
-                    preventSelfApproval: false,
                     ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3200,7 +3199,6 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: !enabled,
-                    preventSelfApproval: policy?.preventSelfApproval,
                     ...(!enabled
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
