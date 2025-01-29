@@ -228,6 +228,9 @@ const ONYXKEYS = {
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
+    /** A timestamp of when the last full reconnect should have been done */
+    NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -466,6 +469,9 @@ const ONYXKEYS = {
 
     /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
     CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
+
+    /** Timestamp of when the last full reconnect was done on this client */
+    LAST_FULL_RECONNECT_TIME: 'lastFullReconnectTime',
 
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
@@ -1045,6 +1051,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
+    [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1058,6 +1065,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
+    [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
