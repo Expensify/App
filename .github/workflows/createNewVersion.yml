@@ -132,7 +132,7 @@ jobs:
             ./iOS/Expensify/Expensify-Info.plist\
             ./iOS/SmartScanExtension/Info.plist \
             ./iOS/NotificationServiceExtension/Info.plist
-          git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git push origin main
 
       - name: Commit new E/App version
