@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -16,15 +16,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import type {ViolationField} from '@hooks/useViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -40,6 +39,7 @@ import {
     isSettled as isSettledReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -70,13 +70,13 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
     /** The report currently being looked at */
-    report: OnyxEntry<Report>;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
@@ -88,17 +88,17 @@ type MoneyRequestViewProps = {
     isFromReviewDuplicates?: boolean;
 
     /** Updated transaction to show in duplicate transaction flow  */
-    updatedTransaction?: OnyxEntry<Transaction>;
+    updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-const receiptImageViolationNames: ViolationName[] = [
+const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
 ];
 
-const receiptFieldViolationNames: ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
@@ -219,7 +219,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !isPaidGroupPolicy(report));
     const hasViolations = useCallback(
-        (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
             getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [getViolationsForField],
     );
@@ -293,7 +293,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -538,7 +538,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
-                            transactionID={transaction?.transactionID}
                             onPress={() => {
                                 if (!transaction?.transactionID || !report?.reportID) {
                                     return;
