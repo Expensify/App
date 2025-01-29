@@ -22,13 +22,6 @@ function peg$SyntaxError(message, expected, found, location) {
 
 peg$subclass(peg$SyntaxError, Error);
 
-function peg$padEnd(str, targetLength, padString) {
-  padString = padString || " ";
-  if (str.length > targetLength) { return str; }
-  targetLength -= str.length;
-  padString += padString.repeat(targetLength);
-  return str + padString.slice(0, targetLength);
-}
 
 peg$SyntaxError.prototype.format = function(sources) {
   var str = "Error: " + this.message;

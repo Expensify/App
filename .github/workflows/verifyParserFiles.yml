@@ -19,4 +19,4 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Checking consistency
-        run: ./.github/scripts/verifyPodfile.sh
+        run: ./.github/scripts/checkParser.sh
