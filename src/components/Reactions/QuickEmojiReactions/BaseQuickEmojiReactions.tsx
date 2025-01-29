@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
@@ -10,19 +10,20 @@ import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './types';
+import type {BaseQuickEmojiReactionsProps} from './types';
 
 function BaseQuickEmojiReactions({
     reportAction,
+    reportActionID,
     onEmojiSelected,
-    preferredLocale = CONST.LOCALES.DEFAULT,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    emojiReactions = {},
     onPressOpenPicker = () => {},
     onWillShowPicker = () => {},
     setIsEmojiPickerActive,
 }: BaseQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {initialValue: CONST.LOCALES.DEFAULT});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {initialValue: {}});
 
     return (
         <View style={styles.quickReactionsContainer}>
@@ -54,14 +55,4 @@ function BaseQuickEmojiReactions({
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 
-export default withOnyx<BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
-    emojiReactions: {
-        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(BaseQuickEmojiReactions);
+export default BaseQuickEmojiReactions;

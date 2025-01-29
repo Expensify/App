@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
@@ -16,7 +16,7 @@ import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
+import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
     /**
@@ -32,19 +32,14 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * context menu which we just show on web, when hovering
  * a message.
  */
-function MiniQuickEmojiReactions({
-    reportAction,
-    onEmojiSelected,
-    preferredLocale = CONST.LOCALES.DEFAULT,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    emojiReactions = {},
-    onPressOpenPicker = () => {},
-    onEmojiPickerClosed = () => {},
-}: MiniQuickEmojiReactionsProps) {
+function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
     const {translate} = useLocalize();
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {initialValue: CONST.LOCALES.DEFAULT});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {initialValue: {}});
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
@@ -104,14 +99,4 @@ function MiniQuickEmojiReactions({
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
-export default withOnyx<MiniQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
-    emojiReactions: {
-        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(MiniQuickEmojiReactions);
+export default MiniQuickEmojiReactions;
