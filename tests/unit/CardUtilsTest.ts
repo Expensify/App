@@ -207,7 +207,7 @@ const cardFeedsCollection: OnyxCollection<OnyxTypes.CardFeeds> = {
 /* eslint-disable @typescript-eslint/naming-convention */
 const allCardsList = {
     'cards_11111111_oauth.capitalone.com': directFeedCardsMultipleList,
-    cards_11111111_vcf: customFeedCardsList,
+    cards_11111111_vcf1: customFeedCardsList,
     'cards_22222222_oauth.chase.com': directFeedCardsSingleList,
     'cards_11111111_Expensify Card': {
         '21570657': {
