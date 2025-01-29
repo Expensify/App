@@ -82,6 +82,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
 
       - name: Setup git for OSBotify
         id: setupGitForOSBotify
@@ -91,12 +92,24 @@ jobs:
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
-      - name: Update production branch
+      - name: Update E/App production branch
         run: |
           # Re-create the production branch from staging
           git switch -c production
 
           # Force-update the remote production branch.
+          git push --force origin production
+
+      - name: Update Mobile-Expensify production branch
+        run: |
+          cd Mobile-Expensify
+
+          # Re-create the production branch from staging
+          git fetch --depth=1 origin staging
+          git switch --track origin/staging
+          git switch -c production
+
+          # Force-update the remote production branch
           git push --force origin production
 
       - name: Announce failed workflow in Slack
