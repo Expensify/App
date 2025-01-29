@@ -277,7 +277,7 @@ function IOURequestStepConfirmation({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-                    waypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
                 },
             });
