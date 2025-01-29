@@ -124,3 +124,19 @@ jest.mock(
             cancel() {}
         },
 );
+
+jest.mock('@libs/prepareRequestPayload/index.ts', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => {
+        return Promise.resolve(new FormData());
+    }),
+}));
+
+jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => {
+        return Promise.resolve(new FormData());
+    }),
+}));
