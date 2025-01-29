@@ -6,7 +6,7 @@ on:
 jobs:
   buildHybridAppAndroid:
     name: Build HybridApp Android
-    runs-on: macos-15-xlarge
+    runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +40,14 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
@@ -80,7 +88,7 @@ jobs:
 
   buildStandaloneAndroid:
     name: Build Standalone Android
-    runs-on: macos-15-xlarge
+    runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
