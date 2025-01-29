@@ -8917,7 +8917,7 @@ function getReportMetadata(reportID: string | undefined) {
     return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
 
-function getFormattedReportName(reportName?: string | {text: string; html: string;}, asHTML: boolean = false): string {
+function getFormattedReportName(reportName?: string | {text: string; html: string}, asHTML: boolean = false): string {
     if (Str.isString(reportName)) {
         return reportName;
     }

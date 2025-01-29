@@ -18,7 +18,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {isOpenTaskReport, isTaskReport, getFormattedReportName} from '@libs/ReportUtils';
+import {getFormattedReportName, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';

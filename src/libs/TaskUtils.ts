@@ -1,12 +1,12 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getFormattedReportName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {getFormattedReportName} from '@libs/ReportUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
