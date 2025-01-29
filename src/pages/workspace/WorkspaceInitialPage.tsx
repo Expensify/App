@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -26,7 +26,6 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import getTopmostRouteName from '@libs/Navigation/helpers/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -43,6 +42,7 @@ import {
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@userActions/CompanyCards';
@@ -58,28 +58,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
+type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
+
 type WorkspaceMenuItem = {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?:
-        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
-        | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
-        | typeof SCREENS.WORKSPACE.WORKFLOWS
-        | typeof SCREENS.WORKSPACE.CATEGORIES
-        | typeof SCREENS.WORKSPACE.TAGS
-        | typeof SCREENS.WORKSPACE.TAXES
-        | typeof SCREENS.WORKSPACE.MORE_FEATURES
-        | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS
-        | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
-        | typeof SCREENS.WORKSPACE.COMPANY_CARDS
-        | typeof SCREENS.WORKSPACE.REPORT_FIELDS
-        | typeof SCREENS.WORKSPACE.RULES
-        | typeof SCREENS.WORKSPACE.PER_DIEM;
+    screenName: WorkspaceTopLevelScreens;
     badgeText?: string;
 };
 
@@ -115,7 +101,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostRouteName);
+    const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
@@ -211,7 +197,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+            screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
         });
     }
 
@@ -220,7 +206,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.expensifyCard',
             icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            screenName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
             brickRoadIndicator: !isEmptyObject(cardsList?.cardList?.errorFields ?? {}) || !isEmptyObject(cardSettings?.errors ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -232,7 +218,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.companyCards',
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
+            screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
             brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -242,7 +228,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'common.perDiem',
             icon: Expensicons.CalendarSolid,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.PER_DIEM,
+            screenName: SCREENS.WORKSPACE.PER_DIEM,
         });
     }
 
@@ -251,7 +237,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.WORKFLOWS,
+            screenName: SCREENS.WORKSPACE.WORKFLOWS,
             brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -261,7 +247,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.RULES,
+            screenName: SCREENS.WORKSPACE.RULES,
         });
     }
 
@@ -272,7 +258,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.InvoiceGeneric,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
+            screenName: SCREENS.WORKSPACE.INVOICES,
             badgeText: convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
         });
     }
@@ -283,7 +269,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Folder,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.CATEGORIES,
+            screenName: SCREENS.WORKSPACE.CATEGORIES,
         });
     }
 
@@ -292,7 +278,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TAGS,
+            screenName: SCREENS.WORKSPACE.TAGS,
         });
     }
 
@@ -301,7 +287,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Coins,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TAXES,
+            screenName: SCREENS.WORKSPACE.TAXES,
             brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -311,7 +297,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             translationKey: 'workspace.common.reportFields',
             icon: Expensicons.Pencil,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+            screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
         });
     }
 
@@ -321,7 +307,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Sync,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
@@ -329,7 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
-        routeName: SCREENS.WORKSPACE.MORE_FEATURES,
+        screenName: SCREENS.WORKSPACE.MORE_FEATURES,
     });
 
     const menuItems: WorkspaceMenuItem[] = [
@@ -338,21 +324,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Building,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.PROFILE,
+            screenName: SCREENS.WORKSPACE.PROFILE,
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.MEMBERS,
+            screenName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
-    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
+    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.screenName === prevItem.screenName));
 
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
@@ -369,7 +355,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && (menuItems.some((item) => item.routeName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
+    const canAccessRoute = activeRoute && (menuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
 
     useEffect(() => {
         if (!shouldShowNotFoundPage && canAccessRoute) {
@@ -444,8 +430,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={enabledItem?.routeName === item.routeName}
-                                    focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
+                                    highlighted={enabledItem?.screenName === item.screenName}
+                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
                                 />
