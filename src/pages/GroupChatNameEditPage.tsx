@@ -80,11 +80,11 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={ChatNameEditPage.displayName}
+            testID={GroupChatNameEditPage.displayName}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate(isTripRoom ? 'newRoomPage.roomName' : 'newRoomPage.groupName')}
+                title={translate('groupConfirmPage.groupName')}
                 onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider
@@ -111,6 +111,6 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     );
 }
 
-ChatNameEditPage.displayName = 'ChatNameEditPage';
+GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
 export default GroupChatNameEditPage;
