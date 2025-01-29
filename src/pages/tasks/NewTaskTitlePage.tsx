@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -21,15 +21,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
-import type {Task} from '@src/types/onyx';
 
-type NewTaskTitlePageOnyxProps = {
-    /** Task Creation Data */
-    task: OnyxEntry<Task>;
-};
-type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
+type NewTaskTitlePageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
-function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
+function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
+    const [task] = useOnyx(ONYXKEYS.TASK);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -94,8 +90,4 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
 
 NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 
-export default withOnyx<NewTaskTitlePageProps, NewTaskTitlePageOnyxProps>({
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(NewTaskTitlePage);
+export default NewTaskTitlePage;

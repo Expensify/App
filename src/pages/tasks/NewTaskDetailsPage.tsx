@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,16 +25,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
-import type {Task} from '@src/types/onyx';
 
-type NewTaskDetailsPageOnyxProps = {
-    /** Task Creation Data */
-    task: OnyxEntry<Task>;
-};
+type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
-type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
-
-function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
+function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
+    const [task] = useOnyx(ONYXKEYS.TASK);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -147,8 +142,4 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
 
 NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
 
-export default withOnyx<NewTaskDetailsPageProps, NewTaskDetailsPageOnyxProps>({
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(NewTaskDetailsPage);
+export default NewTaskDetailsPage;
