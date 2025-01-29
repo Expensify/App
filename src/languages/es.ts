@@ -3426,7 +3426,6 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as', // s77rt translate
             },
             advanced: {
-                autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day.', // s77rt translate
                 defaultApprovalAccount: 'Preferencia predeterminada de NetSuite',
                 approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
                 approvalAccountDescription:

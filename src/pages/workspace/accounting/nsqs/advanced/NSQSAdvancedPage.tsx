@@ -60,7 +60,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
                     switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
-                    subtitle={translate('workspace.nsqs.advanced.autoSyncDescription')}
+                    subtitle={translate('workspace.accounting.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     isActive={isAutoSyncEnabled}
                     onToggle={toggleAutoSync}

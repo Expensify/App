@@ -215,7 +215,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NSQS:
             return {
                 title: translate('workspace.accounting.nsqs'),
-                icon: Expensicons.NetSuiteSquare, // s77rt: wrong icon
+                icon: Expensicons.NSQSSquare,
                 setupConnectionFlow: (
                     <ConnectToNSQSFlow
                         policyID={policyID}
