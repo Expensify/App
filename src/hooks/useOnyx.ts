@@ -101,7 +101,7 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const onyxOptions = {...optionsWithoutSelector, selector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
 
-    const [data, metadata] = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
+    const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
 
     // Extract and memoize the specific key data from snapshot if in search mode
     const result = useMemo((): OriginalUseOnyxReturnType => {
