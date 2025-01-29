@@ -3,6 +3,7 @@ import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between workspace split navigator's central screens and RHP screens.
 const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, string[]>> = {
+    [SCREENS.WORKSPACE.INITIAL]: [],
     [SCREENS.WORKSPACE.PROFILE]: [
         SCREENS.WORKSPACE.NAME,
         SCREENS.WORKSPACE.ADDRESS,
@@ -255,6 +256,7 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT,
         SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY,
     ],
+    [SCREENS.WORKSPACE.MORE_FEATURES]: [],
 };
 
 export default WORKSPACE_TO_RHP;

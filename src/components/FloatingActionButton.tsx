@@ -6,11 +6,11 @@ import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
+import useIsHomeRouteActive from '@navigation/helpers/useIsHomeRouteActive';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,11 +71,11 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const platform = getPlatform();
     const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
-    const isActiveRouteHome = useIsCurrentRouteHome();
+    const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
         // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
-        isTooltipAllowed && (!isActiveRouteHome || isSidebarLoaded),
+        isTooltipAllowed && (!isHomeRouteActive || isSidebarLoaded),
     );
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
