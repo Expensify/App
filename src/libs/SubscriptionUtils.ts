@@ -245,6 +245,10 @@ function hasCardExpiringSoon(): boolean {
 }
 
 function shouldShowDiscountBanner(): boolean {
+    if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
+        return false;
+    }
+
     if (!isUserOnFreeTrial()) {
         return false;
     }
