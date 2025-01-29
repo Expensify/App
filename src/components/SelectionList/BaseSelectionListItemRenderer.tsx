@@ -1,9 +1,10 @@
 import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
+import {isMobileChrome} from '@libs/Browser';
 import {isReportListItemType} from '@libs/SearchUIUtils';
-import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
+import type {BaseListItemProps, BaseSelectionListProps, ExtendedTargetedEvent, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
     Pick<BaseSelectionListProps<TItem>, 'ListItem' | 'shouldHighlightSelectedItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
@@ -77,9 +78,13 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
-                onFocus={() => {
+                onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
+                        return;
+                    }
+                    // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                    if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex);
