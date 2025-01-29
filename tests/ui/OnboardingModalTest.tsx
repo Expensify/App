@@ -3,15 +3,15 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as AppActions from '@userActions/App';
-import * as User from '@userActions/User';
+import {setSidebarLoaded} from '@userActions/App';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PusherHelper from '../utils/PusherHelper';
-import * as TestHelper from '../utils/TestHelper';
+import {setupApp, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -52,26 +52,26 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
 
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
-TestHelper.setupApp();
+setupApp();
 
 async function signInAndGetApp(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     await waitForBatchedUpdatesWithAct();
 
-    const hintText = Localize.translateLocal('loginForm.loginForm');
+    const hintText = translateLocal('loginForm.loginForm');
     const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);
 
     await act(async () => {
-        await TestHelper.signInWithTestUser();
+        await signInWithTestUser();
     });
     await waitForBatchedUpdatesWithAct();
 
-    User.subscribeToUserEvents();
+    subscribeToUserEvents();
     await waitForBatchedUpdates();
 
-    AppActions.setSidebarLoaded();
+    setSidebarLoaded();
 
     await waitForBatchedUpdatesWithAct();
 }
@@ -81,13 +81,13 @@ async function completeOnboarding(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     const user = userEvent.setup();
-    user.press(screen.getByText(Localize.translateLocal('onboarding.purpose.newDotManageTeam')));
+    user.press(screen.getByText(translateLocal('onboarding.purpose.newDotManageTeam')));
     expect(await screen.findByTestId('BaseOnboardingEmployees')).toBeOnTheScreen();
-    user.press(screen.getByText(Localize.translateLocal('onboarding.employees.1-10')));
-    user.press(screen.getByText(Localize.translateLocal('common.continue')));
+    user.press(screen.getByText(translateLocal('onboarding.employees.1-10')));
+    user.press(screen.getByText(translateLocal('common.continue')));
     expect(await screen.findByTestId('BaseOnboardingAccounting')).toBeOnTheScreen();
-    user.press(screen.getByText(Localize.translateLocal('onboarding.accounting.noneOfAbove')));
-    user.press(screen.getByText(Localize.translateLocal('common.continue')));
+    user.press(screen.getByText(translateLocal('onboarding.accounting.noneOfAbove')));
+    user.press(screen.getByText(translateLocal('common.continue')));
 }
 
 describe('OnboardingModal', () => {
