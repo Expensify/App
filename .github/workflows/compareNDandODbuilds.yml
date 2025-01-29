@@ -91,6 +91,9 @@ jobs:
 
       - name: Build Android Release
         working-directory: android
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
         run: |
           ./gradlew --profile assembleProductionRelease
 
