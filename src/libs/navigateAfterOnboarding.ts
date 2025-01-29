@@ -1,7 +1,7 @@
 import ROUTES from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
-import * as ReportUtils from './ReportUtils';
+import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
@@ -23,10 +23,10 @@ const navigateAfterOnboarding = (
         return;
     }
 
-    const lastAccessedReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
     const lastAccessedReportID = lastAccessedReport?.reportID;
     // we don't want to navigate to newly creaded workspace after onboarding completed.
-    if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID || ReportUtils.isConciergeChatReport(lastAccessedReport)) {
+    if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID || isConciergeChatReport(lastAccessedReport)) {
         return;
     }
 
