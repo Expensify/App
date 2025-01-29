@@ -12,10 +12,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // - update currencyList.json
 import currencyList from './currencyList.json';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 

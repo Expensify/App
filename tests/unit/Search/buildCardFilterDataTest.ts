@@ -21,10 +21,6 @@ jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Pol
     }
 });
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 const workspaceCardFeeds = {
     cards_18680694_vcf: {
         '21593492': {

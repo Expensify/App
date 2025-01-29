@@ -48,10 +48,6 @@ jest.mock('@src/CONFIG', () => ({
     IS_TEST_ENV: false,
 }));
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 function getOnyxUpdateValue<T>(key: string): T | undefined {
     return queuedOnyxUpdates.find((item) => item.key === key)?.value as T | undefined;
 }

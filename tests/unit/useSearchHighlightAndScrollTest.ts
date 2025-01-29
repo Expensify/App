@@ -5,9 +5,6 @@ import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScro
 import {search} from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
 
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {

@@ -16,10 +16,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('HeaderView', () => {
     afterEach(() => {
         jest.clearAllMocks();

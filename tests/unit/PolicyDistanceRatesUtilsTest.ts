@@ -1,9 +1,5 @@
 import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('PolicyDistanceRatesUtils', () => {
     describe('validateTaxClaimableValue', () => {
         it('should return an error when taxClaimableValue is equal to tax rate', () => {

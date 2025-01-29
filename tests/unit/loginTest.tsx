@@ -14,10 +14,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('AppComponent', () => {
     it('renders correctly', () => {
         renderer.create(<App />);

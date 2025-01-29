@@ -1,9 +1,5 @@
 import {serializeLoggingData} from '@libs/Middleware/Logging';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('LoggingMiddleware', () => {
     describe('getCircularReplacer', () => {
         it('should return "[Circular]" for circular references', () => {

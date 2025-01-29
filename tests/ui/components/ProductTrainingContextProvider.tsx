@@ -15,10 +15,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,
     isSmallScreenWidth: true,

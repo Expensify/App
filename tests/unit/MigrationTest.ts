@@ -9,9 +9,6 @@ import type {ReportActionsDraftCollectionDataSet} from '@src/types/onyx/ReportAc
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/getPlatform');
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
 
 let LogSpy: jest.SpyInstance<void, Parameters<(typeof Log)['info']>>;
 

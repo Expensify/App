@@ -6,9 +6,6 @@ import CONST from '@src/CONST';
 jest.mock('@libs/actions/IOU', () => ({
     startMoneyRequest: jest.fn(),
 }));
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
 
 describe('IOU Utils', () => {
     // Given navigateToQuickAction is called with quick action argument when clicking on quick action button from Global create menu

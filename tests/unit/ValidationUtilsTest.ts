@@ -18,10 +18,6 @@ import {
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
         test('Should return true for a valid date within the range', () => {

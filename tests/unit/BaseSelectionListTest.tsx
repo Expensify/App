@@ -25,10 +25,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 

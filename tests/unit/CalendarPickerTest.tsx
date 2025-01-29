@@ -36,10 +36,6 @@ jest.mock('../../src/hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
         render(<CalendarPicker />);

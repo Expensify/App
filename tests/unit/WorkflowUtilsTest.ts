@@ -7,10 +7,6 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import * as TestHelper from '../utils/TestHelper';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
 

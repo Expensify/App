@@ -3,10 +3,6 @@ import type {Emoji} from '@assets/emojis/types';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {containsOnlyEmojis, replaceEmojis, splitTextWithEmojis, suggestEmojis} from '@libs/EmojiUtils';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 describe('EmojiTest', () => {
     beforeAll(async () => {
         await importEmojiLocale('en');

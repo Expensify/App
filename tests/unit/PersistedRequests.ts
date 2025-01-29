@@ -5,10 +5,6 @@ import type Request from '../../src/types/onyx/Request';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(),
-}));
-
 const request: Request = {
     command: 'OpenReport',
     successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
