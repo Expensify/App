@@ -144,6 +144,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
+                    onTooltipPress={navigateToChats}
                 >
                     <PressableWithFeedback
                         onPress={navigateToChats}
