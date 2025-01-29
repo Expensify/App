@@ -2,7 +2,6 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
@@ -567,6 +566,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
@@ -1339,7 +1341,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
-                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {
                             path: ROUTES.TRAVEL_TRIP_DETAILS.route,
@@ -1347,6 +1349,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
+                        [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
+                        [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
+                        [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
@@ -1493,18 +1498,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.HOME,
                     exact: true,
                 },
-                [SCREENS.REPORT]: {
-                    path: ROUTES.REPORT_WITH_ID.route,
-                    exact: true,
-                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
-                    // We want to avoid that situation, so we will return an empty string instead.
-                    parse: {
-                        reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
-                    },
-                    stringify: {
-                        reportID: (reportID: string | undefined) => reportID ?? CONST.EMPTY_STRING,
-                    },
-                },
+                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
             },
         },
 

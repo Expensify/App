@@ -16,7 +16,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {checkIfFeedConnectionIsBroken, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,18 +55,19 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
     const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
+    const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
 
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (cardFeeds.isLoading && !cardsList));
+    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && !cardsList));
 
     useFocusEffect(fetchCompanyCards);
 
     useEffect(() => {
-        if (!!isLoading || !selectedFeed || isPending) {
+        if (isLoading || !selectedFeed || isPending) {
             return;
         }
 
@@ -149,7 +150,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                             cardsList={cardsList}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
-                            isDisabledAssignCardButton={!selectedFeedData || !!selectedFeedData?.errors}
+                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
                         />
                     )}
                 </WorkspacePageWithSections>

@@ -1361,7 +1361,11 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
 /**
  * Gets metadata info about links in the provided report action
  */
-function expandURLPreview(reportID: string, reportActionID: string) {
+function expandURLPreview(reportID: string | undefined, reportActionID: string) {
+    if (!reportID) {
+        return;
+    }
+
     const parameters: ExpandURLPreviewParams = {
         reportID,
         reportActionID,
@@ -1455,7 +1459,11 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
 }
 
 /** Toggles the pinned state of the report. */
-function togglePinnedState(reportID: string, isPinnedChat: boolean) {
+function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) {
+    if (!reportID) {
+        return;
+    }
+
     const pinnedValue = !isPinnedChat;
 
     // Optimistically pin/unpin the report before we send out the command
@@ -1744,14 +1752,13 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-
     if (!originalReportID || !originalReportAction) {
         return;
     }
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
@@ -1874,13 +1881,13 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
 }
 
 /** Deletes the draft for a comment report action. */
-function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
@@ -2068,7 +2075,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
-function clearReportFieldKeyErrors(reportID: string, fieldKey: string) {
+function clearReportFieldKeyErrors(reportID: string | undefined, fieldKey: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: {
             [fieldKey]: null,
@@ -2486,7 +2493,11 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string, shouldDeleteChildReports = false) {
+function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
+    if (!reportID) {
+        Log.warn('[Report] deleteReport called with no reportID');
+        return;
+    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
@@ -2524,7 +2535,7 @@ function deleteReport(reportID: string, shouldDeleteChildReports = false) {
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     // @TODO: Check if this method works the same as on the main branch
     if (shouldPopToTop) {
@@ -2729,7 +2740,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
-function clearIOUError(reportID: string) {
+function clearIOUError(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
@@ -2831,7 +2842,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function toggleEmojiReaction(
-    reportID: string,
+    reportID: string | undefined,
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
@@ -4317,9 +4328,13 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+function resolveActionableMentionWhisper(
+    reportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
+) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction) {
+    if (!message || !reportAction || !reportID) {
         return;
     }
 
@@ -4336,8 +4351,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -4348,7 +4363,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
                     message: [updatedMessage],
@@ -4360,7 +4375,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
@@ -4368,7 +4383,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
                     message: [message],
@@ -4380,7 +4395,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
         },
     ];
@@ -4394,11 +4409,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 function resolveActionableReportMentionWhisper(
-    reportId: string,
+    reportId: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
 ) {
-    if (!reportAction) {
+    if (!reportAction || !reportId) {
         return;
     }
 
@@ -4465,10 +4480,10 @@ function resolveActionableReportMentionWhisper(
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
+function dismissTrackExpenseActionableWhisper(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): void {
     const isArrayMessage = Array.isArray(reportAction?.message);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction) {
+    if (!message || !reportAction || !reportID) {
         return;
     }
 

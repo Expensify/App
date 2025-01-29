@@ -65,10 +65,20 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID}: Props)
                     </TextLink>
                     .
                 </Text>
-                <Text style={[styles.mv4]}>
-                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.confirm')}</Text>{' '}
-                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.warning')}</Text>
-                </Text>
+                {policyID ? (
+                    <Text style={[styles.mv4]}>
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.confirm')}</Text>{' '}
+                        <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.warning')}</Text>
+                    </Text>
+                ) : (
+                    <Text style={[styles.mv4]}>
+                        <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.headsUp')}</Text>{' '}
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.multiWorkspaceNote')}</Text>{' '}
+                        <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.common.goToWorkspaces')}</Text>{' '}
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.selectStep')}</Text>{' '}
+                        <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.type.collect')}</Text>.
+                    </Text>
+                )}
             </View>
             {policyID ? (
                 <Button
