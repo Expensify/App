@@ -211,6 +211,7 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
+    holdEducationModalWidth: 400,
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
@@ -244,7 +245,6 @@ export default {
     cardMiniatureBorderRadius: 2,
 
     cardNameWidth: 156,
-    holdMenuIconSize: 64,
     updateAnimationW: 390,
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
@@ -258,12 +258,15 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    composerTooltipShiftHorizontal: 10,
+    composerTooltipShiftHorizontal: 4,
     composerTooltipShiftVertical: -10,
-    gbrTooltipShiftHorizontal: -20,
-    fabTooltipShiftHorizontal: -15,
-    workspaceLHNtooltipShiftHorizontal: 26,
-    searchFiltersTooltipShiftHorizontal: -20,
+    gbrTooltipShiftHorizontal: -15,
+    fabTooltipShiftHorizontal: -11,
+    workspaceLHNtooltipShiftHorizontal: 23,
+    searchFiltersTooltipShiftHorizontal: -4,
+    quickActionTooltipShiftHorizontal: 24,
+    savedSearchShiftHorizontal: -10,
+    savedSearchShiftVertical: 6,
     searchFiltersTooltipShiftHorizontalNarrow: -10,
     searchFiltersTooltipShiftVerticalNarrow: 5,
     bottomTabInboxTooltipShiftHorizontal: 36,
@@ -271,10 +274,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -26,
-    searchHeaderHeight: 80,
+    minimalTopBarOffset: -106,
+    searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 116,
     searchTopBarZIndex: 9,
+    searchTopBarHeight: 52,
 
     h20: 20,
     h28: 28,

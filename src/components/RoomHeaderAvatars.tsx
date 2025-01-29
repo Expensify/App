@@ -24,7 +24,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
         }
 
         if (icon.id) {
-            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
+            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id)));
         }
     };
 
