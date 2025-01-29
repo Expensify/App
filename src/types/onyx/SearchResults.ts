@@ -161,6 +161,12 @@ type SearchReport = {
 
     /** Collection of report participants, indexed by their accountID */
     participants?: Participants;
+
+    /** ID of the parent report of the current report, if it exists */
+    parentReportID?: string;
+
+    /** ID of the parent report action of the current report, if it exists */
+    parentReportActionID?: string;
 };
 
 /** Model of report action search result */
