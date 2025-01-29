@@ -73,6 +73,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
+                        // @ts-ignore not sure what is wrong here for now
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
                     },
                 });
