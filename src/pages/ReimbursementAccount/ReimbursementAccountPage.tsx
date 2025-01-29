@@ -16,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -43,21 +42,9 @@ import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ACHContractStep from './ACHContractStep';
-import BankAccountStep from './BankAccountStep';
-import BeneficialOwnersStep from './BeneficialOwnersStep';
-import CompanyStep from './CompanyStep';
-import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
-import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
-import Agreements from './NonUSD/Agreements';
-import BankInfo from './NonUSD/BankInfo/BankInfo';
-import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
-import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
-import Country from './NonUSD/Country/Country';
-import Finish from './NonUSD/Finish';
-import SignerInfo from './NonUSD/SignerInfo';
-import RequestorStep from './RequestorStep';
+import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
+import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
@@ -119,7 +106,6 @@ function getFieldsForStep(step: TBankAccountStep): InputID[] {
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -190,56 +176,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(() => getShouldShowContinueSetupButtonInitialValue());
     const [shouldShowNonUSDContinueSetupButton, setShouldShowNonUSDContinueSetupButton] = useState(() => hasInProgressNonUSDVBBA());
-
-    const handleNextNonUSDBankAccountStep = () => {
-        switch (nonUSDBankAccountStep) {
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
-                break;
-            default:
-                return null;
-        }
-    };
-
-    const nonUSDBankAccountsGoBack = () => {
-        switch (nonUSDBankAccountStep) {
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                Navigation.goBack();
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
-                break;
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
-                break;
-            default:
-                return null;
-        }
-    };
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -501,54 +437,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 />
             );
         }
-        switch (nonUSDBankAccountStep) {
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                return (
-                    <Country
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
-                return (
-                    <BankInfo
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
-                return (
-                    <BusinessInfo
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-                return (
-                    <BeneficialOwnerInfo
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
-                return (
-                    <SignerInfo
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                return (
-                    <Agreements
-                        onBackButtonPress={nonUSDBankAccountsGoBack}
-                        onSubmit={handleNextNonUSDBankAccountStep}
-                    />
-                );
-            case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
-                return <Finish />;
-            default:
-                return null;
-        }
+
+        return (
+            <NonUSDVerifiedBankAccountFlow
+                nonUSDBankAccountStep={nonUSDBankAccountStep}
+                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+            />
+        );
     }
 
     // If the policy is in USD, we need to show the USD VBBA setup flow
@@ -563,46 +458,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    switch (currentStep) {
-        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            return (
-                <BankAccountStep
-                    reimbursementAccount={reimbursementAccount}
-                    onBackButtonPress={goBack}
-                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                    plaidLinkOAuthToken={plaidLinkToken}
-                    policyName={policyName}
-                    policyID={policyIDParam}
-                    isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                    toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
-                />
-            );
-        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-            return (
-                <RequestorStep
-                    ref={requestorStepRef}
-                    shouldShowOnfido={!!(onfidoToken && !achData?.isOnfidoSetupComplete)}
-                    onBackButtonPress={goBack}
-                />
-            );
-        case CONST.BANK_ACCOUNT.STEP.COMPANY:
-            return <CompanyStep onBackButtonPress={goBack} />;
-        case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
-            return <BeneficialOwnersStep onBackButtonPress={goBack} />;
-        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-            return <ACHContractStep onBackButtonPress={goBack} />;
-        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-            return <ConnectBankAccount onBackButtonPress={goBack} />;
-        case CONST.BANK_ACCOUNT.STEP.ENABLE:
-            return (
-                <EnableBankAccount
-                    reimbursementAccount={reimbursementAccount}
-                    onBackButtonPress={goBack}
-                />
-            );
-        default:
-            return null;
-    }
+    return (
+        <USDVerifiedBankAccountFlow
+            USDBankAccountStep={currentStep}
+            policyName={policyName}
+            policyID={policyIDParam}
+            isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+            setIsValidateCodeActionModalVisible={setIsValidateCodeActionModalVisible}
+            onBackButtonPress={goBack}
+            requestorStepRef={requestorStepRef}
+            onfidoToken={onfidoToken}
+        />
+    );
 }
 
 ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
