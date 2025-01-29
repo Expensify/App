@@ -3688,7 +3688,7 @@ const translations = {
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
                 pendingFeedTitle: `We're reviewing your request...`,
-                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
+                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done, we'll reach out to you via`,
                 pendingBankTitle: 'Check your browser window',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `Please connect to ${bankName} via your browser window that just opened. If one didn’t open, `,
                 pendingBankLink: 'please click here.',
