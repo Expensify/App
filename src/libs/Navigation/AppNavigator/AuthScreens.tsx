@@ -53,6 +53,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
