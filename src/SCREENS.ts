@@ -195,7 +195,6 @@ const SCREENS = {
         DOMAIN_CARD: 'DomainCard',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
-        MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
     },
     ONBOARDING_MODAL: {
