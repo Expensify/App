@@ -4184,7 +4184,6 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
 }
 
-// #region - getReportName
 /**
  * Get the title for a report.
  */
@@ -4912,7 +4911,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     return result.trim().length ? result : formula;
 }
 
-// #region - buildOptimisticInvoiceReport
 /** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(
     chatReportID: string,
