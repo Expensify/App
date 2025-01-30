@@ -43,6 +43,8 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.spotnanaToken) {
             Navigation.closeRHPFlow();
             cleanupTravelProvisioningSession();
+
+            // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
             Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
