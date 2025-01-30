@@ -333,6 +333,7 @@ type PerDiemExpenseTransactionParams = {
     tag?: string;
     created: string;
     customUnit: TransactionCustomUnit;
+    billable?: boolean;
 };
 
 type RequestMoneyPolicyParams = {

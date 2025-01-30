@@ -19,7 +19,7 @@ type CreatePerDiemRequestParams = {
     reportPreviewReportActionID: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
-    billable: boolean;
+    billable?: boolean;
 };
 
 export default CreatePerDiemRequestParams;
