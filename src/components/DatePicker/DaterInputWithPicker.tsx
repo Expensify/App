@@ -7,7 +7,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as FormActions from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
 import type {DateInputWithPickerProps} from './types';
@@ -41,7 +41,7 @@ function DateInputWithPicker({
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
-            FormActions.setDraftValues(formID, {[inputID]: selectedDate});
+            setDraftValues(formID, {[inputID]: selectedDate});
         }
         if (selectedDate === value || !value) {
             return;

@@ -4,7 +4,7 @@ import type {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 import type {DatePickerProps} from './types';
@@ -45,7 +45,7 @@ function DatePickerModal({
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
-            FormActions.setDraftValues(formID, {[inputID]: selectedDate});
+            setDraftValues(formID, {[inputID]: selectedDate});
         }
         if (selectedDate !== value) {
             setSelectedDate(value);
