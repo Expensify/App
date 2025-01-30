@@ -308,14 +308,12 @@ function MoneyRequestAmountForm(
             <View>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mt5, styles.gap2]}>
                     <Button
-                        allowBubble={!isEditing}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
                         onPress={onCurrencyButtonPress}
                         text={currency}
                     />
                     <Button
-                        allowBubble={!isEditing}
                         shouldShowRightIcon
                         iconRight={Expensicons.PlusMinus}
                         onPress={onFlipAmount}
