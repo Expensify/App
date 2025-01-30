@@ -88,7 +88,8 @@ Review the details and click **Assign card**. Transactions will import immediate
 
 ![Double check the selections and assign the card]({{site.url}}/assets/images/commfeed/commfeed-06.png){:width="100%"}
 
-{% include faq-begin.md %}
+
+# FAQ 
 
 ## My commercial feed is connected. Why is a specific card not appearing for assignment?
 Cards appear for assignment if they’re active and have at least one recent transaction. If a card meeting these criteria doesn’t appear, contact your account manager or message concierge@expensify.com.
@@ -99,4 +100,3 @@ No, commercial feed setup is included in the Control plan.
 ## What’s the difference between a direct feed and commercial feed? 
 Direct feeds use login credentials for quick setup, but can require re-authenticating from time to time. Commercial feeds require bank involvement for setup but offer the most reliable connection.
 
-{% include faq-end.md %}
