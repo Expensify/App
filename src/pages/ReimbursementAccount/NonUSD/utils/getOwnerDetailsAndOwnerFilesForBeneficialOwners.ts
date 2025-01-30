@@ -11,9 +11,9 @@ const {
     SSN_LAST_4,
     STREET,
     CITY,
+    COUNTRY,
     STATE,
     ZIP_CODE,
-    COUNTRY,
     PROOF_OF_OWNERSHIP,
     COPY_OF_ID,
     ADDRESS_PROOF,
@@ -33,11 +33,21 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
     ownerKeys.forEach((ownerKey) => {
         const ownerDetailsFullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
         const ownerDetailsResidentialAddressKey = `${PREFIX}_${ownerKey}_${RESIDENTIAL_ADDRESS}` as const;
+        const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${COUNTRY}` as const;
 
         ownerDetailsFields.forEach((fieldName) => {
             const ownerDetailsKey = `${PREFIX}_${ownerKey}_${fieldName}` as const;
 
             if (!reimbursementAccountDraft?.[ownerDetailsKey]) {
+                return;
+            }
+
+            if (fieldName === SSN_LAST_4 && String(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
+                return;
+            }
+
+            if (fieldName === OWNERSHIP_PERCENTAGE) {
+                ownerDetails[ownerDetailsKey] = `${String(reimbursementAccountDraft?.[ownerDetailsKey])}%`;
                 return;
             }
 
@@ -48,9 +58,9 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE || fieldName === COUNTRY) {
+            if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
                 ownerDetails[ownerDetailsResidentialAddressKey] = ownerDetails[ownerDetailsResidentialAddressKey]
-                    ? `${String(ownerDetails[ownerDetailsResidentialAddressKey])} ${String(reimbursementAccountDraft[ownerDetailsKey])}`
+                    ? `${String(ownerDetails[ownerDetailsResidentialAddressKey])}, ${String(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];
                 return;
             }

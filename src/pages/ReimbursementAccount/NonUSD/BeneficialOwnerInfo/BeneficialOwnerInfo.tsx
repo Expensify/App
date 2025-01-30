@@ -74,9 +74,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         });
 
         saveCorpayOnboardingBeneficialOwners({
-            inputs: JSON.stringify({beneficialOwners: [{...ownerDetails}], anyIndividualOwn25PercentOrMore: isUserOwner || isAnyoneElseOwner}),
+            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore: isUserOwner || isAnyoneElseOwner}),
             files: JSON.stringify(ownerFiles),
-            beneficialOwnerIDs: JSON.stringify(ownerKeys),
+            beneficialOwnerIDs: ownerKeys.join(','),
             bankAccountID,
         });
     };
