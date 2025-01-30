@@ -26,7 +26,7 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL).map((approvalType) => ({
         value: approvalType,
         text: translate(`workspace.netsuite.advancedConfig.exportJournalsTo.values.${approvalType}`),

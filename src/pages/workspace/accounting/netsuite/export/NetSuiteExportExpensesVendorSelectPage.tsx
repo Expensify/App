@@ -29,7 +29,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteVendorOptions = useMemo<SelectorType[]>(() => getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor), [config?.defaultVendor, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);

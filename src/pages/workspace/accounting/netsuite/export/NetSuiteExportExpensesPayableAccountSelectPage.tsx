@@ -29,7 +29,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT : CONST.NETSUITE_CONFIG.PAYABLE_ACCT;
     const currentPayableAccountID = config?.[currentSettingName];
     const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID), [currentPayableAccountID, policy]);

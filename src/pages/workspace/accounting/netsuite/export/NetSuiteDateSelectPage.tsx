@@ -26,7 +26,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const selectedValue = Object.values(CONST.NETSUITE_EXPORT_DATE).find((value) => value === config?.exportDate) ?? CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DATE).map((dateType) => ({
         value: dateType,

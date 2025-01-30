@@ -27,7 +27,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
 
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;

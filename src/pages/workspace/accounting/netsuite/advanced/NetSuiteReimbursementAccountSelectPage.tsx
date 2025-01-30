@@ -25,7 +25,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
 
     const policyID = policy?.id ?? '-1';
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteReimbursableAccountOptions(policy ?? undefined, config?.reimbursementAccountID),
         [config?.reimbursementAccountID, policy],

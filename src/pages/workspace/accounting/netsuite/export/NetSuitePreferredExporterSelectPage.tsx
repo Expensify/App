@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
 };
 
 function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';

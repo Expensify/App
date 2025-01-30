@@ -28,9 +28,9 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
 
-    const {items} = policy?.connections?.netsuite.options.data ?? {};
+    const {items} = policy?.connections?.netsuite?.options.data ?? {};
     const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;

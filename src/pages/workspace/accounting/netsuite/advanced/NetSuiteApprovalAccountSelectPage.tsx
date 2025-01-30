@@ -25,7 +25,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
 
     const policyID = policy?.id ?? '-1';
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount),
         // The default option will be language dependent, so we need to recompute the options when the language changes

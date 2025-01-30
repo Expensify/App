@@ -23,7 +23,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '-1';
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteInvoiceItemOptions = useMemo<SelectorType[]>(() => getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem), [config?.invoiceItem, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteInvoiceItemOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteInvoiceItemOptions]);

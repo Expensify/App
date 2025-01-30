@@ -25,7 +25,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const policyID = policy?.id ?? '-1';
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteCollectionAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteCollectionAccountOptions(policy ?? undefined, config?.collectionAccount),
         [config?.collectionAccount, policy],
