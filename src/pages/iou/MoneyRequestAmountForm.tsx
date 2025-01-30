@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
@@ -58,7 +59,7 @@ type MoneyRequestAmountFormProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
+    onCurrencyButtonPress: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
@@ -70,7 +71,7 @@ type MoneyRequestAmountFormProps = {
     shouldKeepUserInput?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) === 0;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -83,7 +84,7 @@ function MoneyRequestAmountForm(
         amount = 0,
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
+        isCurrencyPressable = false,
         isEditing = false,
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.SUBMIT,
@@ -160,6 +161,12 @@ function MoneyRequestAmountForm(
         },
         [currency],
     );
+
+    const onFlipAmount = useCallback(() => {
+        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
+        const newAmount = convertToFrontendAmountAsInteger(-Number(currentAmount), currency);
+        initializeAmount(newAmount);
+    }, [currency, initializeAmount]);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {
@@ -281,6 +288,7 @@ function MoneyRequestAmountForm(
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
+                    allowNegative
                 />
                 {!!formError && (
                     <FormHelpMessage
@@ -289,6 +297,26 @@ function MoneyRequestAmountForm(
                         message={formError}
                     />
                 )}
+            </View>
+            <View>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mt5, styles.gap2]}>
+                    <Button
+                        allowBubble={!isEditing}
+                        pressOnEnter
+                        shouldShowRightIcon
+                        iconRight={Expensicons.DownArrow}
+                        onPress={onCurrencyButtonPress}
+                        text={currency}
+                    />
+                    <Button
+                        allowBubble={!isEditing}
+                        pressOnEnter
+                        shouldShowRightIcon
+                        iconRight={Expensicons.PlusMinus}
+                        onPress={onFlipAmount}
+                        text={'Flip'}
+                    />
+                </View>
             </View>
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}

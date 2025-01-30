@@ -92,6 +92,9 @@ type MoneyRequestAmountInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
+
+    /** Allow negative values for the input */
+    allowNegative?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -129,6 +132,7 @@ function MoneyRequestAmountInput(
         autoGrow = true,
         autoGrowExtraSpace,
         contentWidth,
+        allowNegative = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -167,7 +171,7 @@ function MoneyRequestAmountInput(
                 : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
+            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals, undefined, true)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -233,7 +237,7 @@ function MoneyRequestAmountInput(
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals, undefined, true)) {
             return;
         }
 
