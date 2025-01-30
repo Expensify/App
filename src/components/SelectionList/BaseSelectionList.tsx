@@ -130,7 +130,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
-    const shouldSyncFocusRef = useRef(false);
+    const hasKeyBeenPressed = useRef(false);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
@@ -320,11 +320,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
 
-    const setShouldSyncFocus = useCallback(() => {
-        if (shouldSyncFocusRef.current) {
+    const setHasKeyBeenPressed = useCallback(() => {
+        if (hasKeyBeenPressed.current) {
             return;
         }
-        shouldSyncFocusRef.current = true;
+        hasKeyBeenPressed.current = true;
     }, []);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
@@ -342,15 +342,15 @@ function BaseSelectionList<TItem extends ListItem>(
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
-        ...(!shouldSyncFocusRef.current && {setShouldSyncFocus}),
+        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
 
     useEffect(() => {
-        addKeyDownPressListener(setShouldSyncFocus);
+        addKeyDownPressListener(setHasKeyBeenPressed);
 
-        return () => removeKeyDownPressListener(setShouldSyncFocus);
-    }, [setShouldSyncFocus]);
+        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
+    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
@@ -565,7 +565,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    shouldSyncFocus={!isTextInputFocusedRef.current && shouldSyncFocusRef.current}
+                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
