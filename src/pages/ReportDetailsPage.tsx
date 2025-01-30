@@ -124,7 +124,7 @@ import {
     setDeleteTransactionNavigateBackUrl,
     updateGroupChatAvatar,
 } from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -166,12 +166,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
-    // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`);
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
 
@@ -512,7 +509,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     icon: Expensicons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
-                    action: checkIfActionIsAllowed(() => {
+                    action: callFunctionIfActionIsAllowed(() => {
                         Navigation.dismissModal();
                         reopenTask(report);
                     }),

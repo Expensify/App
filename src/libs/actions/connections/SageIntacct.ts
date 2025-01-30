@@ -326,12 +326,16 @@ function addSageIntacctUserDimensions(
 }
 
 function editSageIntacctUserDimensions(
-    policyID: string,
+    policyID: string | undefined,
     previousName: string,
     name: string,
     mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
     existingUserDimensions: SageIntacctDimension[],
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const newDimensions = existingUserDimensions.map((userDimension) => {
         if (userDimension.dimension === previousName) {
             return {dimension: name, mapping};
@@ -346,7 +350,11 @@ function editSageIntacctUserDimensions(
     );
 }
 
-function removeSageIntacctUserDimensions(policyID: string, dimensionName: string, existingUserDimensions: SageIntacctDimension[]) {
+function removeSageIntacctUserDimensions(policyID: string | undefined, dimensionName: string, existingUserDimensions: SageIntacctDimension[]) {
+    if (!policyID) {
+        return;
+    }
+
     const newDimensions = existingUserDimensions.filter((userDimension) => dimensionName !== userDimension.dimension);
 
     API.write(
@@ -532,15 +540,24 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
     }
 }
 
-function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
-function clearSageIntacctPendingField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+function clearSageIntacctPendingField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {pendingFields: {[key]: null}}}}});
 }
 
-function removeSageIntacctUserDimensionsByName(dimensions: SageIntacctDimension[], policyID: string, dimensionName: string) {
+function removeSageIntacctUserDimensionsByName(dimensions: SageIntacctDimension[], policyID: string | undefined, dimensionName: string) {
+    if (!policyID) {
+        return;
+    }
     const Dimensions = dimensions.filter((dimension) => dimension.dimension !== dimensionName);
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {mappings: {dimensions: Dimensions}}}}});
 }

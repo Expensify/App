@@ -1756,7 +1756,7 @@ function shouldOptionShowTooltip(option: OptionData): boolean {
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
-    selectedOptions: OptionData[],
+    selectedOptions: Option[],
     filteredRecentReports: OptionData[],
     filteredPersonalDetails: OptionData[],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},

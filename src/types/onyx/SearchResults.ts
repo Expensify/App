@@ -204,6 +204,12 @@ type SearchReportAction = {
 
 /** Model of policy search result */
 type SearchPolicy = {
+    /** The ID of the policy */
+    id: string;
+
+    /** The name of the policy */
+    name: string;
+
     /** The policy type */
     type: ValueOf<typeof CONST.POLICY.TYPE>;
 

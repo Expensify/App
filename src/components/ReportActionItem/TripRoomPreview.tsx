@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
@@ -62,7 +63,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     const {translate} = useLocalize();
 
     const reservationIcon = getTripReservationIcon(reservation.type);
-    const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName;
+    const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
 
     let titleComponent = (
         <Text

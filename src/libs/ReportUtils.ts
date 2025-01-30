@@ -62,7 +62,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -5596,6 +5596,43 @@ function buildOptimisticModifiedExpenseReportAction(
 }
 
 /**
+ * Builds an optimistic DETACH_RECEIPT report action with a randomly generated reportActionID.
+ */
+function buildOptimisticDetachReceipt(reportID: string | undefined, transactionID: string, merchant: string = CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        isAttachmentOnly: false,
+        originalMessage: {
+            transactionID,
+            merchant: `${merchant}`,
+        },
+        message: [
+            {
+                type: 'COMMENT',
+                html: `detached a receipt from expense '${merchant}'`,
+                text: `detached a receipt from expense '${merchant}'`,
+                whisperedTo: [],
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
+        reportID,
+        shouldShow: true,
+    };
+}
+
+/**
  * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
  * @param transactionThreadID - The reportID of the transaction thread
  * @param movedToReportID - The reportID of the report the transaction is moved to
@@ -5760,11 +5797,11 @@ function buildOptimisticChatReport(
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>,
     writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    parentReportActionID = '',
-    parentReportID = '',
+    parentReportActionID?: string,
+    parentReportID?: string,
     description = '',
     avatarUrl = '',
-    optimisticReportID = '',
+    optimisticReportID?: string,
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -5794,7 +5831,7 @@ function buildOptimisticChatReport(
         parentReportID,
         participants,
         policyID,
-        reportID: optimisticReportID || generateReportID(),
+        reportID: optimisticReportID ?? generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
@@ -7642,7 +7679,11 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     return requestOptions.includes(iouType);
 }
 
-function getWorkspaceChats(policyID: string, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+    if (!policyID) {
+        return [];
+    }
+
     return Object.values(reports ?? {}).filter(
         (report) => isPolicyExpenseChat(report) && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
     );
@@ -8915,6 +8956,7 @@ export {
     buildOptimisticAnnounceChat,
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
+    buildOptimisticDetachReceipt,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildTransactionThread,
@@ -9212,6 +9254,7 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
+    prepareOnboardingOnyxData,
 };
 
 export type {
