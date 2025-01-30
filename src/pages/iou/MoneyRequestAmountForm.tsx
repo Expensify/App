@@ -164,6 +164,11 @@ function MoneyRequestAmountForm(
 
     const onFlipAmount = useCallback(() => {
         const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '0';
+
+        if (currentAmount === '0') {
+            return;
+        }
+
         const parsedAmount = Number(currentAmount.replace(/\./g, '')); // Remove any commas for parsing
         const newAmount = parsedAmount * -1;
         const frontendAmount = convertToFrontendAmountAsString(newAmount, currency);
