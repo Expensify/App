@@ -4322,7 +4322,9 @@ function getReportName(
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = report?.reportName ?? getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+        const moneyRequestReportName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+        const ODInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : ODInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
@@ -4918,6 +4920,7 @@ function buildOptimisticInvoiceReport(
     total: number,
     currency: string,
 ): OptimisticExpenseReport {
+    const formattedTotal = convertToDisplayString(total, currency);
     const invoiceReport = {
         reportID: generateReportID(),
         chatReportID,
@@ -4927,7 +4930,7 @@ function buildOptimisticInvoiceReport(
         managerID: receiverAccountID,
         currency,
         // We don’t translate reportName because the server response is always in English
-        reportName: `Invoice ${DateUtils.extractDate(new Date().toString())}`,
+        reportName: isNewDotInvoice(chatReportID) ? `${receiverName} owes ${formattedTotal}` : `Invoice ${DateUtils.extractDate(new Date().toString())}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
