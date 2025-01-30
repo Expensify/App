@@ -11,7 +11,6 @@ import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccou
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -110,7 +109,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
@@ -121,7 +119,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const requestorStepRef = useRef(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
-    const {isDevelopment} = useEnvironment();
+    const policyCurrency = policy?.outputCurrency ?? '';
+    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
+    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -155,14 +155,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     /*
-     * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
-     * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
+     * Calculates the state used to show the "Continue with setup" view.
+     * for non USD workspace we check if first big step was passed
+     * for USD workspace, if a bank account setup is already in progress and no specific further step was passed in the url
+     * we'll show the workspace bank account reset modal if the user wishes to start over
      */
     function getShouldShowContinueSetupButtonInitialValue(): boolean {
+        // if (hasForeignCurrency) {
+        //     return hasInProgressNonUSDVBBA();
+        // }
+
         if (!hasInProgressVBBA()) {
-            // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
+
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }
 
@@ -175,7 +181,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(() => getShouldShowContinueSetupButtonInitialValue());
-    const [shouldShowNonUSDContinueSetupButton, setShouldShowNonUSDContinueSetupButton] = useState(() => hasInProgressNonUSDVBBA());
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -268,14 +273,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
-    const setManualStep = () => {
+    const continueUSDVBBASetup = () => {
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
         });
     };
 
     const continueNonUSDVBBASetup = () => {
-        setShouldShowNonUSDContinueSetupButton(false);
+        setShouldShowContinueSetupButton(false);
         if (achData?.created && achData?.corpay?.companyName === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
             return;
@@ -350,7 +355,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     };
 
     const isLoading =
-        (!!isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
+        (isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
         (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(
@@ -398,10 +403,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
-    const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
-    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && (isDevelopment || isDebugModeEnabled);
-
     if (userHasPhonePrimaryEmail) {
         errorText = translate('bankAccount.hasPhoneLoginError');
     } else if (throttledDate) {
@@ -425,35 +426,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    // If the policy is in a foreign currency, we need to show the non-USD VBBA setup flow
-    if (hasForeignCurrency) {
-        if (shouldShowNonUSDContinueSetupButton) {
-            return (
-                <ContinueBankAccountSetup
-                    reimbursementAccount={reimbursementAccount}
-                    onContinuePress={continueNonUSDVBBASetup}
-                    policyName={policyName}
-                    onBackButtonPress={Navigation.goBack}
-                />
-            );
-        }
-
-        return (
-            <NonUSDVerifiedBankAccountFlow
-                nonUSDBankAccountStep={nonUSDBankAccountStep}
-                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
-            />
-        );
-    }
-
-    // If the policy is in USD, we need to show the USD VBBA setup flow
+    console.log(getShouldShowContinueSetupButtonInitialValue(), 'getShouldShowContinueSetupButtonInitialValue');
+    console.log(shouldShowContinueSetupButton, 'shouldShowContinueSetupButton');
     if (shouldShowContinueSetupButton) {
         return (
             <ContinueBankAccountSetup
                 reimbursementAccount={reimbursementAccount}
-                onContinuePress={setManualStep}
+                onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
                 policyName={policyName}
                 onBackButtonPress={Navigation.goBack}
+            />
+        );
+    }
+
+    if (hasForeignCurrency) {
+        return (
+            <NonUSDVerifiedBankAccountFlow
+                nonUSDBankAccountStep={nonUSDBankAccountStep}
+                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             />
         );
     }

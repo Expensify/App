@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {requestResetFreePlanBankAccount, resetReimbursementAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -62,7 +62,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                     <OfflineWithFeedback
                         errors={errors}
                         shouldShowErrorMessages
-                        onClose={BankAccounts.resetReimbursementAccount}
+                        onClose={resetReimbursementAccount}
                     >
                         <Text style={styles.mt3}>{translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
@@ -81,7 +81,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                             title={translate('workspace.bankAccount.startOver')}
                             icon={Expensicons.RotateLeft}
                             iconFill={theme.iconMenu}
-                            onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
+                            onPress={requestResetFreePlanBankAccount}
                             shouldShowRightIcon
                             wrapperStyle={[styles.cardMenuItem]}
                             disabled={!!pendingAction || !isEmptyObject(errors)}

@@ -9,7 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -52,17 +52,17 @@ function Confirmation({onNext}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (!ValidationUtils.isRequiredFulfilled(values[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT])) {
+            if (!isRequiredFulfilled(values[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT])) {
                 errors[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] = translate('agreementsStep.error.authorized');
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(values[PROVIDE_TRUTHFUL_INFORMATION])) {
+            if (!isRequiredFulfilled(values[PROVIDE_TRUTHFUL_INFORMATION])) {
                 errors[PROVIDE_TRUTHFUL_INFORMATION] = translate('agreementsStep.error.certify');
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(values[AGREE_TO_TERMS_AND_CONDITIONS])) {
+            if (!isRequiredFulfilled(values[AGREE_TO_TERMS_AND_CONDITIONS])) {
                 errors[AGREE_TO_TERMS_AND_CONDITIONS] = translate('common.error.acceptTerms');
             }
 

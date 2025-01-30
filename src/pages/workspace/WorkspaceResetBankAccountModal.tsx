@@ -46,6 +46,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
+            // TODO check if it will also reset non USD account
             onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
             shouldShowCancelButton
             isVisible
