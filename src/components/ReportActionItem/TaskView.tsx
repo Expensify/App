@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
+import RenderHTML from '@components/RenderHTML';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -110,7 +111,7 @@ function TaskView({report}: TaskViewProps) {
                                                 numberOfLines={3}
                                                 style={styles.taskTitleMenuItem}
                                             >
-                                                {taskTitle}
+                                                <RenderHTML html={`<task-title>${taskTitle}</task-title>`} />
                                             </Text>
                                         </View>
                                         {!isDisableInteractive && (
