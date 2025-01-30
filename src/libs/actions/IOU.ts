@@ -7938,6 +7938,7 @@ function canSubmitReport(
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
+        transactions.length > 0 &&
         isOpenExpenseReport &&
         !isArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
