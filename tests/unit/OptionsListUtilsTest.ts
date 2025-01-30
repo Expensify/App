@@ -372,6 +372,23 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
+        ...REPORTS,
+        '16': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '12',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1003: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Manager McTest',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
+
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
         '999': {
@@ -411,6 +428,17 @@ describe('OptionsListUtils', () => {
             accountID: 1002,
             displayName: 'The Flash',
             login: 'barry.allen@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1003': {
+            accountID: 1003,
+            displayName: 'Manager McTest',
+            login: 'manager_mctest@expensify.com',
             reportID: '',
         },
     };
@@ -456,6 +484,8 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionsListUtils.OptionList;
+
 
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
@@ -464,6 +494,7 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, REPORTS_WITH_MANAGER_MCTEST);
     });
 
     it('getSearchOptions()', () => {
@@ -559,10 +590,22 @@ describe('OptionsListUtils', () => {
             {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
         );
 
-        // All the personalDetails should be returned minus the currently logged in user and Concierge
+        // All the personalDetails should be returned minus the currently logged in user and Chronos
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'manager_mctest@expensify.com'})]));
+
+
+        // Test by excluding Manager McTest from the results
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.MANAGER_MCTEST]: true}},
+        );
+
+        // All the personalDetails should be returned minus the currently logged in user and Manager McTest
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'manager_mctest@expensify.com'})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getValidOptions(

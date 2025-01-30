@@ -46,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.MANAGER_MCTEST);
 
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
