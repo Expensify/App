@@ -37,6 +37,7 @@ import {
     isExpensifyCardTransaction,
     isPartialMerchant,
     isPending,
+    isScanRequest,
 } from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -341,11 +342,17 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingCardOrScanFailTransactions =
-        allReportTransactions.length > 0 && allReportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)));
+    const hasOnlyPendingCardOrScanningTransactions =
+        allReportTransactions.length > 0 &&
+        allReportTransactions.every(
+            (t) =>
+                (isExpensifyCardTransaction(t) && isPending(t)) ||
+                (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) ||
+                (isScanRequest(t) && isReceiptBeingScannedTransactionUtils(t)),
+        );
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanFailTransactions) {
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
@@ -648,3 +655,6 @@ export {
     isReportActionEntry,
     getAction,
 };
+function isReceiptBeingScannedTransactionUtils(t: SearchTransaction): unknown {
+    throw new Error('Function not implemented.');
+}
