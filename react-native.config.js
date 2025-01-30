@@ -1,8 +1,12 @@
 const iosSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'ios' : 'ios';
 const androidSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'android' : 'android';
 
+const rspackCommands = require('@callstack/repack/commands/rspack');
+// avoid overriding default commands from community-cli-plugin
+const commands = rspackCommands.filter((cmd) => cmd.name.startsWith('webpack'));
+
 module.exports = {
-    commands: require('@callstack/repack/commands/rspack'),
+    commands,
     project: {
         ios: {sourceDir: iosSourceDir},
         android: {sourceDir: androidSourceDir},
