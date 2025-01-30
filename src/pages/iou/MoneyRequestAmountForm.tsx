@@ -169,16 +169,11 @@ function MoneyRequestAmountForm(
             return;
         }
 
-        const parsedAmount = Number(currentAmount.replace(/\./g, '')); // Remove any commas for parsing
+        const parsedAmount = parseFloat(currentAmount);
         const newAmount = parsedAmount * -1;
-        const frontendAmount = convertToFrontendAmountAsString(newAmount, currency);
 
-        moneyRequestAmountInput.current?.changeAmount(frontendAmount);
-        moneyRequestAmountInput.current?.changeSelection({
-            start: frontendAmount.length,
-            end: frontendAmount.length,
-        });
-    }, [currency]);
+        moneyRequestAmountInput.current?.changeAmount(newAmount.toString());
+    }, []);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {
