@@ -37,6 +37,7 @@ function DateInputWithPicker({
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const anchorRef = useRef<View>(null);
+    const [isInverted, setIsInverted] = useState(false);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -51,9 +52,12 @@ function DateInputWithPicker({
 
     const calculatePopoverPosition = useCallback(() => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
+            const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
+            setIsInverted(wouldExceedBottom);
+
             setPopoverPosition({
                 horizontal: x + width,
-                vertical: y + (y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
             });
         });
     }, [windowHeight]);
@@ -113,6 +117,7 @@ function DateInputWithPicker({
                 isVisible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
                 anchorPosition={popoverPosition}
+                shouldPositionFromTop={!isInverted}
             />
         </>
     );

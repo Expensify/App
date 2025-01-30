@@ -55,11 +55,14 @@ type DatePickerProps = {
 
     /** Whether to close the modal when browser navigation changes */
     shouldCloseWhenBrowserNavigationChanged?: boolean;
+
+    /** If the popover will be positioned from the top */
+    shouldPositionFromTop?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 const popoverDimensions = {
     height: CONST.POPOVER_DATE_MIN_HEIGHT,
@@ -81,6 +84,7 @@ function DatePickerModal({
     anchorPosition,
     onSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
+    shouldPositionFromTop = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -120,6 +124,7 @@ function DatePickerModal({
             shoudSwitchPositionIfOverflow
             hideModalContentWhileAnimating
             shouldEnableNewFocusManagement
+            shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
         >
             <CalendarPicker
                 minDate={minDate}

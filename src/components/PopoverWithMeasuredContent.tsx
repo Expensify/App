@@ -23,6 +23,9 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether we should should use top side for the anchor positioning */
+    shouldMeasureAnchorPositionFromTop?: boolean;
 };
 
 /**
@@ -59,6 +62,7 @@ function PopoverWithMeasuredContent({
     shoudSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
+    shouldMeasureAnchorPositionFromTop = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -124,7 +128,6 @@ function PopoverWithMeasuredContent({
             default:
                 verticalConstraint = {top: anchorPosition.vertical};
         }
-
         return {
             ...horizontalConstraint,
             ...verticalConstraint,
@@ -141,7 +144,7 @@ function PopoverWithMeasuredContent({
     );
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
+        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift}),
     };
 
     return isContentMeasured ? (
@@ -189,3 +192,5 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     }
     return isEqual(prevProps, nextProps);
 });
+
+export type {PopoverWithMeasuredContentProps};
