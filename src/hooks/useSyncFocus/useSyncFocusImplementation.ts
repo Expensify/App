@@ -2,7 +2,6 @@ import {useContext, useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
-import usePrevious from '@hooks/usePrevious';
 
 /**
  * Custom React hook created to handle sync of focus on an element when the user navigates through the app with keyboard.
@@ -16,10 +15,8 @@ const useSyncFocusImplementation = (ref: RefObject<View>, isFocused: boolean, sh
 
     const didScreenTransitionEnd = contextValue ? contextValue.didScreenTransitionEnd : true;
 
-    const prevIsFocused = usePrevious(isFocused);
-
     useLayoutEffect(() => {
-        if (!(isFocused && !prevIsFocused) || !shouldSyncFocus || !didScreenTransitionEnd) {
+        if (!isFocused || !shouldSyncFocus || !didScreenTransitionEnd) {
             return;
         }
 
