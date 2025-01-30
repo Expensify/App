@@ -18,13 +18,13 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {viewCardTransactions} from '@libs/CardTransactionUtils';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute} from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
@@ -278,12 +278,7 @@ function ExpensifyCardPage({
                             title={translate('workspace.common.viewTransactions')}
                             style={styles.mt3}
                             onPress={() => {
-                                Navigation.dismissModal();
-                                Navigation.navigate(
-                                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                                        query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                                    }),
-                                );
+                                viewCardTransactions(cardID);
                             }}
                         />
                     </>

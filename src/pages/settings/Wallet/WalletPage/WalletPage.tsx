@@ -31,12 +31,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {viewCardTransactions} from '@libs/CardTransactionUtils';
 import {getDescriptionForPolicyDomainCard, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
@@ -675,16 +675,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 icon={Expensicons.MoneySearch}
                                 title={translate('workspace.common.viewTransactions')}
                                 onPress={() => {
-                                    Navigation.dismissModal();
-                                    Navigation.navigate(
-                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                                            query: buildCannedSearchQuery({
-                                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                                cardID: String(paymentMethod.methodID),
-                                            }),
-                                        }),
-                                    );
+                                    viewCardTransactions(String(paymentMethod.methodID));
                                 }}
                             />
                         </View>
