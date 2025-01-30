@@ -138,7 +138,7 @@ jobs:
       - name: Commit new E/App version
         run: |
           git add \
-            ./Mobile-Expensify
+            ./Mobile-Expensify \
             ./package.json \
             ./package-lock.json \
             ./android/app/build.gradle \
