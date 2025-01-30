@@ -61,6 +61,10 @@ const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
+const popoverDimensions = {
+    height: CONST.POPOVER_DATE_MIN_HEIGHT,
+    width: CONST.POPOVER_DATE_WIDTH,
+};
 
 function DatePickerModal({
     value,
@@ -107,14 +111,15 @@ function DatePickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
-            hideModalContentWhileAnimating
             anchorPosition={anchorPosition}
-            anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
-            shouldEnableNewFocusManagement
-            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
+            anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shoudSwitchPositionIfOverflow
+            hideModalContentWhileAnimating
+            shouldEnableNewFocusManagement
         >
             <CalendarPicker
                 minDate={minDate}
