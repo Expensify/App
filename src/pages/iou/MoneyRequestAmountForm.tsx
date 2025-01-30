@@ -165,7 +165,7 @@ function MoneyRequestAmountForm(
     const onFlipAmount = useCallback(() => {
         const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '0';
 
-        if (currentAmount === '0') {
+        if (!currentAmount || currentAmount === '0') {
             return;
         }
 
