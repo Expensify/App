@@ -62,7 +62,6 @@ import {
     isReimbursementDeQueuedAction,
     isReimbursementQueuedAction,
     isReportPreviewAction,
-    isResolvedActionTrackExpense,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
@@ -93,6 +92,7 @@ import {
     getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
+    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
@@ -100,6 +100,7 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDraftReport,
@@ -126,6 +127,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import type {OptionData} from './ReportUtils';
+import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {generateAccountID} from './UserUtils';
 
@@ -379,8 +381,7 @@ Onyx.connect({
                     shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     !isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    !isResolvedActionTrackExpense(reportAction),
+                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
@@ -605,7 +606,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (isArchivedNonExpenseReport(report)) {
+    const reportNameValuePairs = getReportNameValuePairs(reportID);
+
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -705,7 +708,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !report.private_isArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -772,7 +775,7 @@ function createOption(
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        result.private_isArchived = report.private_isArchived;
+        result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
@@ -1837,29 +1840,31 @@ function filteredPersonalDetailsOfRecentReports(recentReports: OptionData[], per
  * Filters options based on the search input value
  */
 function filterReports(reports: OptionData[], searchTerms: string[]): OptionData[] {
+    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeAccents(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
     // We repeat (reduce) this until all search terms have been used:
-    const filteredReports = searchTerms.reduceRight(
+    const filteredReports = normalizedSearchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
                 const values: string[] = [];
                 if (item.text) {
-                    values.push(item.text);
+                    values.push(StringUtils.normalizeAccents(item.text));
+                    values.push(StringUtils.normalizeAccents(item.text).replace(/['-]/g, ''));
                 }
 
                 if (item.login) {
-                    values.push(item.login);
-                    values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+                    values.push(StringUtils.normalizeAccents(item.login));
+                    values.push(StringUtils.normalizeAccents(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
 
                 if (item.isThread) {
                     if (item.alternateText) {
-                        values.push(item.alternateText);
+                        values.push(StringUtils.normalizeAccents(item.alternateText));
                     }
                 } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                     if (item.subtitle) {
-                        values.push(item.subtitle);
+                        values.push(StringUtils.normalizeAccents(item.subtitle));
                     }
                 }
 
@@ -2123,6 +2128,7 @@ export {
     filterWorkspaceChats,
     orderWorkspaceOptions,
     filterSelfDMChat,
+    filterReports,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

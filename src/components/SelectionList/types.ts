@@ -7,6 +7,7 @@ import type {
     NativeSyntheticEvent,
     SectionListData,
     StyleProp,
+    TargetedEvent,
     TextInput,
     TextStyle,
     ViewStyle,
@@ -30,6 +31,7 @@ import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
+import type TravelDomainListItem from './TravelDomainListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -84,11 +86,18 @@ type CommonListItemProps<TItem extends ListItem> = {
     alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
-    onFocus?: () => void;
+    onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
+
+type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+
+type ExtendedTargetedEvent = TargetedEvent & {
+    /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
+    sourceCapabilities?: unknown;
+};
 
 type ListItem = {
     /** Text to display */
@@ -355,7 +364,8 @@ type ValidListItem =
     | typeof ReportListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
-    | typeof SearchRouterItem;
+    | typeof SearchRouterItem
+    | typeof TravelDomainListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -684,10 +694,12 @@ export type {
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
+    ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
+    ListItemFocusEventHandler,
     ListItemProps,
     RadioListItemProps,
     ReportListItemProps,

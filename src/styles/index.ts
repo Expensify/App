@@ -5,6 +5,7 @@ import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
@@ -664,6 +665,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
         },
 
+        buttonDefaultSelected: {
+            backgroundColor: theme.buttonPressedBG,
+            borderWidth: 0,
+        },
+
         buttonSuccess: {
             backgroundColor: theme.success,
             borderWidth: 0,
@@ -1247,14 +1253,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputMultilineContainer: {
+            height: '100%',
             paddingTop: 23,
         },
 
-        textInputAndIconContainer: {
-            flex: 1,
-            height: '100%',
-            zIndex: -1,
-            flexDirection: 'row',
+        textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
+            if (isMarkdownEnabled) {
+                return {zIndex: -1, flexDirection: 'row'};
+            }
+            return {
+                flex: 1,
+                zIndex: -1,
+                flexDirection: 'row',
+            };
         },
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
@@ -3698,7 +3709,17 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            flex: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
+            position: 'relative',
+            flex: 1,
+        },
+
+        narrowSearchRouterActiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4353,10 +4374,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
@@ -5349,6 +5366,20 @@ const styles = (theme: ThemeColors) =>
 
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
+        },
+
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
+            overflow: 'hidden',
+            marginBottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {
