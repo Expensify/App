@@ -163,10 +163,17 @@ function MoneyRequestAmountForm(
     );
 
     const onFlipAmount = useCallback(() => {
-        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
-        const newAmount = convertToFrontendAmountAsInteger(-Number(currentAmount), currency);
-        initializeAmount(newAmount);
-    }, [currency, initializeAmount]);
+        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '0';
+        const parsedAmount = Number(currentAmount.replace(/\./g, '')); // Remove any commas for parsing
+        const newAmount = parsedAmount * -1;
+        const frontendAmount = convertToFrontendAmountAsString(newAmount, currency);
+
+        moneyRequestAmountInput.current?.changeAmount(frontendAmount);
+        moneyRequestAmountInput.current?.changeSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+    }, [currency]);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {
@@ -302,7 +309,6 @@ function MoneyRequestAmountForm(
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mt5, styles.gap2]}>
                     <Button
                         allowBubble={!isEditing}
-                        pressOnEnter
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
                         onPress={onCurrencyButtonPress}
@@ -310,7 +316,6 @@ function MoneyRequestAmountForm(
                     />
                     <Button
                         allowBubble={!isEditing}
-                        pressOnEnter
                         shouldShowRightIcon
                         iconRight={Expensicons.PlusMinus}
                         onPress={onFlipAmount}
