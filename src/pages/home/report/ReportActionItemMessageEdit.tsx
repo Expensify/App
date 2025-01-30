@@ -60,7 +60,7 @@ type ReportActionItemMessageEditProps = {
     draftMessage: string;
 
     /** ReportID that holds the comment we're editing */
-    reportID: string;
+    reportID: string | undefined;
 
     /** PolicyID of the policy the report belongs to */
     policyID?: string;

@@ -14,6 +14,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
+import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -137,6 +138,10 @@ type SettingsNavigatorParamList = {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -822,6 +827,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
+        policyID: string;
+        bankName: string;
+        backTo: Routes;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
         bank: CompanyCardFeed;
@@ -1350,7 +1360,7 @@ type AddPersonalBankAccountNavigatorParamList = {
 
 type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
-        stepToOpen?: string;
+        stepToOpen?: ReimbursementAccountStepToOpen;
         backTo?: Routes;
         policyID?: string;
     };
@@ -1497,6 +1507,12 @@ type TravelNavigatorParamList = {
         transactionID: string;
         reservationIndex: number;
         backTo?: string;
+    };
+    [SCREENS.TRAVEL.TCS]: {
+        domain?: string;
+    };
+    [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
+        domain: string;
     };
 };
 
