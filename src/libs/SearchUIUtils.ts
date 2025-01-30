@@ -37,6 +37,7 @@ import {
     isExpensifyCardTransaction,
     isPartialMerchant,
     isPending,
+    isReceiptBeingScanned,
     isScanRequest,
 } from './TransactionUtils';
 
@@ -345,10 +346,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const hasOnlyPendingCardOrScanningTransactions =
         allReportTransactions.length > 0 &&
         allReportTransactions.every(
-            (t) =>
-                (isExpensifyCardTransaction(t) && isPending(t)) ||
-                (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) ||
-                (isScanRequest(t) && isReceiptBeingScannedTransactionUtils(t)),
+            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
         );
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
@@ -654,6 +652,3 @@ export {
     isReportActionEntry,
     getAction,
 };
-function isReceiptBeingScannedTransactionUtils(t: SearchTransaction): unknown {
-    throw new Error('Function not implemented.');
-}
