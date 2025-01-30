@@ -17,11 +17,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import {searchInServer} from '@libs/actions/Report';
+import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -29,11 +30,10 @@ import {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
+    getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as ReportUserActions from '@userActions/Report';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +47,8 @@ type AutocompleteItemData = {
     mapKey?: SearchFilterKey;
 };
 
+type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListDataType<OptionData | SearchQueryItem>> | undefined;
+
 type SearchRouterListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
@@ -54,8 +56,8 @@ type SearchRouterListProps = {
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
 
-    /** Any extra sections that should be displayed in the router list */
-    additionalSections?: Array<SectionListDataType<OptionData | SearchQueryItem>>;
+    /** Any extra sections that should be displayed in the router list. */
+    getAdditionalSections?: GetAdditionalSectionsCallback;
 
     /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
@@ -117,7 +119,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -137,7 +139,7 @@ function SearchRouterList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, betas ?? []);
+        return getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -146,20 +148,23 @@ function SearchRouterList(
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const cardAutocompleteList = Object.values(cardList);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const cardAutocompleteList = Object.values(allCards);
+
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
             return [];
         }
 
-        const filteredOptions = OptionsListUtils.getValidOptions(
+        const filteredOptions = getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelfDM: true,
                 showChatPreviewLine: true,
                 shouldBoldTitleByDefault: false,
@@ -224,13 +229,17 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                 const filteredTags = autocompleteList
-                    .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag))
+                    .filter(
+                        (tag) => getCleanedTagName(tag).toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAG,
-                    text: tagName,
+                    text: getCleanedTagName(tagName),
+                    autocompleteID: tagName,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
@@ -333,16 +342,14 @@ function SearchRouterList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter(
-                        (card) =>
-                            card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(CardUtils.getCardDescription(card.cardID).toLowerCase()),
-                    )
+                    .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
+                    .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: CardUtils.getCardDescription(card.cardID),
+                    text: getCardDescription(card.cardID, allCards),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -366,6 +373,7 @@ function SearchRouterList(
         statusAutocompleteList,
         expenseTypes,
         cardAutocompleteList,
+        allCards,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -373,9 +381,9 @@ function SearchRouterList(
     }, [recentSearches]);
 
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
-        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
+        const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -395,7 +403,7 @@ function SearchRouterList(
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const filteredOptions = filterOptions(autocompleteQueryValue);
-        const orderedOptions = OptionsListUtils.combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatroomsOverThreads: true,
         });
@@ -409,7 +417,7 @@ function SearchRouterList(
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
-        ReportUserActions.searchInServer(autocompleteQueryValue.trim());
+        searchInServer(autocompleteQueryValue.trim());
     }, [autocompleteQueryValue]);
 
     /* Sections generation */
@@ -418,6 +426,10 @@ function SearchRouterList(
     if (searchQueryItem) {
         sections.push({data: [searchQueryItem]});
     }
+
+    const additionalSections = useMemo(() => {
+        return getAdditionalSections?.(searchOptions);
+    }, [getAdditionalSections, searchOptions]);
 
     if (additionalSections) {
         sections.push(...additionalSections);
@@ -428,7 +440,7 @@ function SearchRouterList(
     }
 
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
-    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -452,8 +464,8 @@ function SearchRouterList(
                 return;
             }
 
-            const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-            setTextQuery(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
+            const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)} `);
             updateAutocompleteSubstitutions(focusedItem);
         },
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
@@ -465,7 +477,7 @@ function SearchRouterList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {
@@ -485,3 +497,4 @@ function SearchRouterList(
 
 export default forwardRef(SearchRouterList);
 export {SearchRouterItem};
+export type {GetAdditionalSectionsCallback};

@@ -1,12 +1,11 @@
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -19,7 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as InputUtils from '@libs/InputUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
@@ -36,6 +34,7 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import SearchRouterInput from './SearchRouterInput';
+import type {GetAdditionalSectionsCallback} from './SearchRouterList';
 import SearchRouterList from './SearchRouterList';
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
@@ -75,7 +74,6 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -94,57 +92,65 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         return state?.routes.at(-1)?.params?.reportID;
     });
 
-    const {options, areOptionsInitialized} = useOptionsList();
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
-        }
-        return OptionsListUtils.getSearchOptions(options, betas ?? []);
-    }, [areOptionsInitialized, betas, options]);
-
-    const reportForContextualSearch = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
-
-    const additionalSections = [];
-
-    if (reportForContextualSearch && !textInputValue) {
-        const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
-
-        let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
-        let autocompleteID = reportForContextualSearch.reportID;
-        if (reportForContextualSearch.isInvoiceRoom) {
-            roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
-            const report = reportForContextualSearch as SearchOption<Report>;
-            if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-                autocompleteID = report.item.invoiceReceiver.accountID.toString();
-            } else {
-                autocompleteID = '';
+    const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
+        ({recentReports}) => {
+            if (!contextualReportID) {
+                return undefined;
             }
-        }
-        if (reportForContextualSearch.isPolicyExpenseChat) {
-            roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            if (reportForContextualSearch.policyID) {
-                autocompleteID = reportForContextualSearch.policyID;
-            } else {
-                autocompleteID = '';
-            }
-        }
 
-        additionalSections.push({
-            data: [
+            // We will only show the contextual search suggestion if the user has not typed anything
+            if (textInputValue) {
+                return undefined;
+            }
+
+            const reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
+            if (!reportForContextualSearch) {
+                return undefined;
+            }
+
+            const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
+
+            let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
+            let autocompleteID: string | undefined = reportForContextualSearch.reportID;
+
+            if (reportForContextualSearch.isInvoiceRoom) {
+                roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
+                const report = reportForContextualSearch as SearchOption<Report>;
+                if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                    autocompleteID = report.item.invoiceReceiver.accountID.toString();
+                } else {
+                    autocompleteID = '';
+                }
+            }
+            if (reportForContextualSearch.isPolicyExpenseChat) {
+                roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+                if (reportForContextualSearch.policyID) {
+                    autocompleteID = reportForContextualSearch.policyID;
+                } else {
+                    autocompleteID = '';
+                }
+            }
+
+            return [
                 {
-                    text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
-                    singleIcon: Expensicons.MagnifyingGlass,
-                    searchQuery: reportQueryValue,
-                    autocompleteID,
-                    itemStyle: styles.activeComponentBG,
-                    keyForList: 'contextualSearch',
-                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
-                    roomType,
-                    policyID: reportForContextualSearch.policyID,
+                    data: [
+                        {
+                            text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                            singleIcon: Expensicons.MagnifyingGlass,
+                            searchQuery: reportQueryValue,
+                            autocompleteID,
+                            itemStyle: styles.activeComponentBG,
+                            keyForList: 'contextualSearch',
+                            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                            roomType,
+                            policyID: reportForContextualSearch.policyID,
+                        },
+                    ],
                 },
-            ],
-        });
-    }
+            ];
+        },
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+    );
 
     const searchQueryItem = textInputValue
         ? {
@@ -308,7 +314,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         searchQueryItem={searchQueryItem}
-                        additionalSections={additionalSections}
+                        getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextInputValue}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}

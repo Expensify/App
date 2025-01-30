@@ -1,5 +1,8 @@
-/* eslint-disable rulesdir/prefer-at */ // .at() has a performance overhead we explicitly want to avoid here
+/* eslint-disable rulesdir/prefer-at */
+// .at() has a performance overhead we explicitly want to avoid here
+
 /* eslint-disable no-continue */
+import DynamicArrayBuffer from '@libs/DynamicArrayBuffer';
 
 const CHAR_CODE_A = 'a'.charCodeAt(0);
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
@@ -57,12 +60,10 @@ function stringToNumeric(
         charSetToSkip?: Set<string>;
         // When out is provided, the function will write the result to the provided arrays instead of creating new ones (performance)
         out?: {
-            outArray: Uint8Array;
-            // As outArray is a ArrayBuffer we need to keep track of the current offset
-            offset: {value: number};
+            array: DynamicArrayBuffer<Uint8Array>;
             // A map of <PositionInOutArray, IndexInOriginalData> to map the found occurrences to the correct data set
             // As the search string can be very long for high traffic accounts (500k+), this has to be big enough, thus its a Uint32Array
-            outOccurrenceToIndex?: Uint32Array;
+            occurrenceToIndex?: DynamicArrayBuffer<Uint32Array>;
             // The index that will be used in the outOccurrenceToIndex array (this is the index of your original data position)
             index?: number;
         };
@@ -70,17 +71,16 @@ function stringToNumeric(
         clamp?: boolean;
     },
 ): {
-    numeric: Uint8Array;
-    occurrenceToIndex: Uint32Array;
-    offset: {value: number};
+    numeric: DynamicArrayBuffer<Uint8Array>;
+    occurrenceToIndex: DynamicArrayBuffer<Uint32Array>;
 } {
     // The out array might be longer than our input string length, because we encode special characters as multiple numbers using the base26 encoding.
     // * 6 is because the upper limit of encoding any char in UTF-8 to base26 is at max 6 numbers.
-    const outArray = options?.out?.outArray ?? new Uint8Array(input.length * 6);
-    const offset = options?.out?.offset ?? {value: 0};
-    const occurrenceToIndex = options?.out?.outOccurrenceToIndex ?? new Uint32Array(input.length * 16 * 4);
+    const outArray = options?.out?.array ?? new DynamicArrayBuffer(input.length * 6, Uint8Array);
+    const occurrenceToIndex = options?.out?.occurrenceToIndex ?? new DynamicArrayBuffer(input.length * 16 * 4, Uint32Array);
     const index = options?.out?.index ?? 0;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for-i is slightly faster
     for (let i = 0; i < input.length; i++) {
         const char = input[i];
 
@@ -88,27 +88,27 @@ function stringToNumeric(
             continue;
         }
 
+        const charCode = char.charCodeAt(0);
+
         if (char >= 'a' && char <= 'z') {
             // char is an alphabet character
-            occurrenceToIndex[offset.value] = index;
-            outArray[offset.value++] = char.charCodeAt(0) - CHAR_CODE_A;
+            occurrenceToIndex.push(index);
+            outArray.push(charCode - CHAR_CODE_A);
         } else {
-            const charCode = input.charCodeAt(i);
-            occurrenceToIndex[offset.value] = index;
-            outArray[offset.value++] = SPECIAL_CHAR_CODE;
+            occurrenceToIndex.push(index);
+            outArray.push(SPECIAL_CHAR_CODE);
             const asBase26Numeric = convertToBase26(charCode);
             // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let j = 0; j < asBase26Numeric.length; j++) {
-                occurrenceToIndex[offset.value] = index;
-                outArray[offset.value++] = asBase26Numeric[j];
+                occurrenceToIndex.push(index);
+                outArray.push(asBase26Numeric[j]);
             }
         }
     }
 
     return {
-        numeric: options?.clamp ? outArray.slice(0, offset.value) : outArray,
+        numeric: options?.clamp ? outArray.truncate() : outArray,
         occurrenceToIndex,
-        offset,
     };
 }
 

@@ -1,28 +1,28 @@
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, {useRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import {updateTheme as updateThemeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PreferredTheme} from '@src/types/onyx';
 
-type ThemePageOnyxProps = {
-    /** The theme of the app */
-    preferredTheme: PreferredTheme;
+type ThemeEntry = ListItem & {
+    value: ValueOf<typeof CONST.THEME>;
 };
 
-type ThemePageProps = ThemePageOnyxProps;
-
-function ThemePage({preferredTheme}: ThemePageProps) {
+function ThemePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const isOptionSelected = useRef(false);
     const {DEFAULT, FALLBACK, ...themes} = CONST.THEME;
     const localesToThemes = Object.values(themes).map((theme) => ({
         value: theme,
@@ -31,6 +31,14 @@ function ThemePage({preferredTheme}: ThemePageProps) {
         isSelected: (preferredTheme ?? CONST.THEME.DEFAULT) === theme,
     }));
 
+    const updateTheme = (selectedTheme: ThemeEntry) => {
+        if (isOptionSelected.current) {
+            return;
+        }
+        isOptionSelected.current = true;
+        updateThemeUserAction(selectedTheme.value);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -38,17 +46,13 @@ function ThemePage({preferredTheme}: ThemePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('themePage.theme')}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal()}
             />
-
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
-
             <SelectionList
                 sections={[{data: localesToThemes}]}
                 ListItem={RadioListItem}
-                onSelectRow={(theme) => User.updateTheme(theme.value)}
+                onSelectRow={updateTheme}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
             />
@@ -58,8 +62,4 @@ function ThemePage({preferredTheme}: ThemePageProps) {
 
 ThemePage.displayName = 'ThemePage';
 
-export default withOnyx<ThemePageProps, ThemePageOnyxProps>({
-    preferredTheme: {
-        key: ONYXKEYS.PREFERRED_THEME,
-    },
-})(ThemePage);
+export default ThemePage;

@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -30,45 +31,45 @@ type SubscriptionPlanCardProps = {
 function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={[styles.borderedContentCard, styles.flex1, styles.mt5, styles.p5, index === 0 && styles.mr3, plan.isSelected && styles.borderColorFocus]}>
-            <PressableWithFeedback
-                accessibilityLabel={plan.title}
-                wrapperStyle={[styles.flex1]}
-                onPress={() => onPress(plan.type)}
-            >
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    <Icon
-                        src={plan.src}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
+        <PressableWithFeedback
+            accessibilityLabel={plan.title}
+            wrapperStyle={[styles.flexShrink1]}
+            style={[styles.borderedContentCard, styles.mt5, styles.flex1, !shouldUseNarrowLayout && index === 0 && styles.mr3, plan.isSelected && styles.borderColorFocus, styles.p5]}
+            onPress={() => onPress(plan.type)}
+        >
+            <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <Icon
+                    src={plan.src}
+                    width={variables.iconHeader}
+                    height={variables.iconHeader}
+                />
+                <View>
+                    <SelectCircle
+                        isChecked={plan.isSelected}
+                        selectCircleStyles={styles.sectionSelectCircle}
                     />
-                    <View>
-                        <SelectCircle
-                            isChecked={plan.isSelected}
-                            selectCircleStyles={styles.sectionSelectCircle}
-                        />
-                    </View>
                 </View>
-                <Text style={[styles.headerText, styles.mv2]}>{plan.title}</Text>
-                <Text style={[styles.textLabelSupporting, styles.mb2]}>{plan.description}</Text>
-                {plan.benefits.map((benefit) => (
-                    <View
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}
-                        key={benefit}
-                    >
-                        <Icon
-                            src={Expensicons.Checkmark}
-                            fill={theme.iconSuccessFill}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
-                        />
-                        <Text style={[styles.textMicroSupporting, styles.ml2]}>{benefit}</Text>
-                    </View>
-                ))}
-            </PressableWithFeedback>
-        </View>
+            </View>
+            <Text style={[styles.headerText, styles.mv2]}>{plan.title}</Text>
+            <Text style={[styles.textLabelSupporting, styles.mb2]}>{plan.description}</Text>
+            {plan.benefits.map((benefit) => (
+                <View
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}
+                    key={benefit}
+                >
+                    <Icon
+                        src={Expensicons.Checkmark}
+                        fill={theme.iconSuccessFill}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                    />
+                    <Text style={[styles.textMicroSupporting, styles.ml2]}>{benefit}</Text>
+                </View>
+            ))}
+        </PressableWithFeedback>
     );
 }
 

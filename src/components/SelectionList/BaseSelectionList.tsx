@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
+        isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
@@ -120,6 +121,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
+        listItemTitleContainerStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -334,7 +336,10 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
-    const selectedItemIndex = useMemo(() => flattenedSections.allOptions.findIndex((option) => option.isSelected), [flattenedSections.allOptions]);
+    const selectedItemIndex = useMemo(
+        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
+        [flattenedSections.allOptions, initiallyFocusedOptionKey],
+    );
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
@@ -549,6 +554,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
+                    titleContainerStyles={listItemTitleContainerStyles}
                 />
             </View>
         );
@@ -674,7 +680,7 @@ function BaseSelectionList<TItem extends ListItem>(
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
             flattenedSections.allOptions.length === 0 ||
-            shouldUpdateFocusedIndex
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
         ) {
             return;
         }
@@ -784,7 +790,7 @@ function BaseSelectionList<TItem extends ListItem>(
         {
             captureOnInputs: true,
             shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
-            isActive: !disableKeyboardShortcuts && isFocused,
+            isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
         },
     );
 
@@ -867,6 +873,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         onPress={onConfirm}
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
+                        isDisabled={isConfirmButtonDisabled}
                     />
                 </FixedFooter>
             )}
