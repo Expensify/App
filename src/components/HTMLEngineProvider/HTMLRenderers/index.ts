@@ -9,6 +9,7 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
+import TaskTitleRenderer from './TaskTitleRendered';
 import PreRenderer from './PreRenderer';
 import VideoRenderer from './VideoRenderer';
 
@@ -32,6 +33,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
+    'task-title': TaskTitleRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

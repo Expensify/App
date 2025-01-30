@@ -80,6 +80,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.textual,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
