@@ -518,7 +518,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        if (!shouldFetchReport(report, reportMetadata)) {
+        if (!shouldFetchReport(report, reportMetadata.isOptimisticReport)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -529,7 +529,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         fetchReport();
-    }, [reportIDFromRoute, isLoadingApp, report, reportMetadata, fetchReport]);
+    }, [reportIDFromRoute, isLoadingApp, report, fetchReport, reportMetadata]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -575,8 +575,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         fetchReportIfNeeded();
+        console.log('fetchReportIfNeeded');
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isLoadingReportOnyx]);
+    }, [isLoadingReportOnyx, fetchReportIfNeeded]);
 
     useEffect(() => {
         if (isLoadingReportOnyx || !reportActionIDFromRoute || isLinkedMessagePageReady) {
