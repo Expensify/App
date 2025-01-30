@@ -4184,6 +4184,7 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
 }
 
+// #region - getReportName
 /**
  * Get the title for a report.
  */
@@ -4911,6 +4912,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     return result.trim().length ? result : formula;
 }
 
+// #region - buildOptimisticInvoiceReport
 /** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(
     chatReportID: string,
@@ -4930,7 +4932,7 @@ function buildOptimisticInvoiceReport(
         managerID: receiverAccountID,
         currency,
         // We don’t translate reportName because the server response is always in English
-        reportName: isNewDotInvoice(chatReportID) ? `${receiverName} owes ${formattedTotal}` : `Invoice ${DateUtils.extractDate(new Date().toString())}`,
+        reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
