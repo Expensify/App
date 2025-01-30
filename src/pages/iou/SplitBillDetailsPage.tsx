@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,11 +18,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest, isReceiptBeingScanned} from '@libs/TransactionUtils';
-import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +66,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
     const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const {
         amount: splitAmount,
@@ -85,69 +83,64 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
 
     return (
-        <ScreenWrapper
-            testID={SplitBillDetailsPage.displayName}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-        >
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
-                <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                    <HeaderWithBackButton
-                        title={translate('common.details')}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
-                    />
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                        {isScanning && (
-                            <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
-                                <MoneyRequestHeaderStatusBar
-                                    icon={
-                                        <Icon
-                                            src={Expensicons.ReceiptScan}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    }
-                                    description={translate('iou.receiptScanInProgressDescription')}
-                                    shouldStyleFlexGrow={false}
-                                />
-                            </View>
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                    {isScanning && (
+                        <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                            <MoneyRequestHeaderStatusBar
+                                icon={
+                                    <Icon
+                                        src={Expensicons.ReceiptScan}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                }
+                                description={translate('iou.receiptScanInProgressDescription')}
+                                shouldStyleFlexGrow={false}
+                            />
+                        </View>
+                    )}
+                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest(transaction)}>
+                        {!!participants.length && (
+                            <MoneyRequestConfirmationList
+                                payeePersonalDetails={payeePersonalDetails}
+                                selectedParticipants={participantsExcludingPayee}
+                                iouAmount={splitAmount ?? 0}
+                                iouCurrencyCode={splitCurrency}
+                                iouComment={splitComment}
+                                iouCreated={splitCreated}
+                                shouldDisplayReceipt
+                                iouMerchant={splitMerchant}
+                                iouCategory={splitCategory}
+                                iouIsBillable={splitBillable}
+                                iouType={CONST.IOU.TYPE.SPLIT}
+                                isReadOnly={!isEditingSplitBill}
+                                shouldShowSmartScanFields
+                                receiptPath={transaction?.receipt?.source}
+                                receiptFilename={transaction?.filename}
+                                isEditingSplitBill={isEditingSplitBill}
+                                hasSmartScanFailed={hasSmartScanFailed}
+                                reportID={reportID}
+                                reportActionID={reportAction?.reportActionID}
+                                transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
+                                onConfirm={onConfirm}
+                                isPolicyExpenseChat={isPolicyExpenseChat(report)}
+                                policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
+                                action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
+                                onToggleBillable={(billable) => {
+                                    setDraftSplitTransaction(transaction?.transactionID, {billable});
+                                }}
+                                isConfirmed={isConfirmed}
+                            />
                         )}
-                        <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest(transaction)}>
-                            {!!participants.length && (
-                                <MoneyRequestConfirmationList
-                                    payeePersonalDetails={payeePersonalDetails}
-                                    selectedParticipants={participantsExcludingPayee}
-                                    iouAmount={splitAmount ?? 0}
-                                    iouCurrencyCode={splitCurrency}
-                                    iouComment={splitComment}
-                                    iouCreated={splitCreated}
-                                    shouldDisplayReceipt
-                                    iouMerchant={splitMerchant}
-                                    iouCategory={splitCategory}
-                                    iouIsBillable={splitBillable}
-                                    iouType={CONST.IOU.TYPE.SPLIT}
-                                    isReadOnly={!isEditingSplitBill}
-                                    shouldShowSmartScanFields
-                                    receiptPath={transaction?.receipt?.source}
-                                    receiptFilename={transaction?.filename}
-                                    isEditingSplitBill={isEditingSplitBill}
-                                    hasSmartScanFailed={hasSmartScanFailed}
-                                    reportID={reportID}
-                                    reportActionID={reportAction?.reportActionID}
-                                    transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                    onConfirm={onConfirm}
-                                    isPolicyExpenseChat={isPolicyExpenseChat(report)}
-                                    policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
-                                    action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
-                                    onToggleBillable={(billable) => {
-                                        setDraftSplitTransaction(transaction?.transactionID, {billable});
-                                    }}
-                                    isConfirmed={isConfirmed}
-                                />
-                            )}
-                        </ImageBehaviorContextProvider>
-                    </View>
-                </DragAndDropProvider>
+                    </ImageBehaviorContextProvider>
+                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

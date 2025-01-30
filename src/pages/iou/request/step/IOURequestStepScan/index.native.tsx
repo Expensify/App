@@ -455,7 +455,7 @@ function IOURequestStepScan({
             return;
         }
 
-        // With the image size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE, we use manipulateAsync to resize the image.
+        // With the image size > 24MB, we use manipulateAsync to resize the image.
         // It takes a long time so we should display a loading indicator while the resize image progresses.
         if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsLoadingReceipt(true);
