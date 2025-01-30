@@ -161,9 +161,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      * we'll show the workspace bank account reset modal if the user wishes to start over
      */
     function getShouldShowContinueSetupButtonInitialValue(): boolean {
-        // if (hasForeignCurrency) {
-        //     return hasInProgressNonUSDVBBA();
-        // }
+        if (hasForeignCurrency) {
+            return hasInProgressNonUSDVBBA();
+        }
 
         if (!hasInProgressVBBA()) {
             return false;
@@ -426,8 +426,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    console.log(getShouldShowContinueSetupButtonInitialValue(), 'getShouldShowContinueSetupButtonInitialValue');
-    console.log(shouldShowContinueSetupButton, 'shouldShowContinueSetupButton');
     if (shouldShowContinueSetupButton) {
         return (
             <ContinueBankAccountSetup
