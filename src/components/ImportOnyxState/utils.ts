@@ -1,9 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxKey, OnyxMergeCollectionInput, OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {UnknownRecord, ValueOf} from 'type-fest';
+import type {UnknownRecord} from 'type-fest';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
-import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
@@ -55,42 +55,41 @@ function cleanAndTransformState<T>(state: string): T {
 }
 
 const processStateImport = (transformedState: OnyxValues) => {
-    const collectionKeys = new Set(Object.values(ONYXKEYS.COLLECTION));
-    const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, ValueOf<OnyxValues>>();
-    const regularState: Partial<OnyxValues> = {};
+    const collectionKeys = [...new Set(Object.values(ONYXKEYS.COLLECTION))];
+    const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, OnyxCollection<OnyxKey>>();
+    const regularState: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>> = {};
 
     Object.entries(transformedState).forEach(([key, value]) => {
-        const baseKey = key.split('_').at(0);
-        const collectionKey = `${baseKey}_` as OnyxCollectionKey;
-
-        if (collectionKeys.has(collectionKey)) {
+        const collectionKey = collectionKeys.find((cKey) => key.startsWith(cKey));
+        if (collectionKey) {
             if (!collectionsMap.has(collectionKey)) {
                 collectionsMap.set(collectionKey, {});
             }
+
             const collection = collectionsMap.get(collectionKey);
             if (!collection) {
                 return;
             }
 
-            collection[key] = value;
+            collection[key] = value as OnyxEntry<OnyxKey>;
         } else {
-            regularState[key] = value;
+            regularState[key as OnyxKey] = value as OnyxEntry<OnyxKey>;
         }
     });
 
     return Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             const collectionPromises = Array.from(collectionsMap.entries()).map(([baseKey, items]) => {
-                return Onyx.setCollection(baseKey, items);
+                return items ? Onyx.setCollection(baseKey, items) : Promise.resolve();
             });
             return Promise.all(collectionPromises);
         })
         .then(() => {
             if (Object.keys(regularState).length > 0) {
-                return Onyx.multiSet(regularState);
+                return Onyx.multiSet(regularState as Partial<OnyxValues>);
             }
             return Promise.resolve();
         });
 };
 
-export {transformNumericKeysToArray, cleanAndTransformState, processStateImport};
+export {cleanAndTransformState, processStateImport, transformNumericKeysToArray};
