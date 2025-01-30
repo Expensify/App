@@ -10,15 +10,20 @@ let ongoingRequest: Request | null = null;
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
+        console.log('val', val);
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
         persistedRequests = val ?? [];
 
+        console.log('Onyx connect persistedRequests', persistedRequests);
+        console.log('ongoingRequest', ongoingRequest);
+        console.log('ongoingRequest && persistedRequests.length > 0', ongoingRequest && persistedRequests.length > 0);
         if (ongoingRequest && persistedRequests.length > 0) {
             const nextRequestToProcess = persistedRequests.at(0);
-
+            console.log('nextRequestToProcess', nextRequestToProcess);
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
             if (isEqual(nextRequestToProcess, ongoingRequest)) {
+                console.log('Removing the next request from the persistedRequests');
                 persistedRequests = persistedRequests.slice(1);
             }
         }

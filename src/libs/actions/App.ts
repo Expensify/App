@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import {getAll, save} from './PersistedRequests';
+import {getAll, getOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
@@ -564,6 +564,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
+    const ongoingRequests = getOngoingRequest();
+    console.log('sequentialQueue', sequentialQueue);
+    console.log('ongoingRequests', ongoingRequests);
     Onyx.clear(KEYS_TO_PRESERVE).then(() => {
         // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
         if (isStateImported) {
@@ -587,7 +590,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
         // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
         // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
         openApp().then(() => {
-            if (!sequentialQueue || isStateImported) {
+            if (!sequentialQueue.length && isStateImported) {
                 return;
             }
 

@@ -55,7 +55,7 @@ function cleanAndTransformState<T>(state: string): T {
 }
 
 const processStateImport = (transformedState: OnyxValues) => {
-    const collectionKeys = new Set(Object.values(ONYXKEYS.COLLECTION || {}));
+    const collectionKeys = new Set(Object.values(ONYXKEYS.COLLECTION));
     const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, ValueOf<OnyxValues>>();
     const regularState: Partial<OnyxValues> = {};
 
