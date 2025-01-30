@@ -4914,7 +4914,6 @@ function buildOptimisticInvoiceReport(
     total: number,
     currency: string,
 ): OptimisticExpenseReport {
-    const formattedTotal = convertToDisplayString(total, currency);
     const invoiceReport = {
         reportID: generateReportID(),
         chatReportID,
@@ -4924,7 +4923,7 @@ function buildOptimisticInvoiceReport(
         managerID: receiverAccountID,
         currency,
         // We don’t translate reportName because the server response is always in English
-        reportName: `${receiverName} owes ${formattedTotal}`,
+        reportName: `Invoice ${DateUtils.extractDate(new Date().toString())}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
