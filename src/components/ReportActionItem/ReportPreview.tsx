@@ -237,8 +237,8 @@ function ReportPreview({
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
+    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, transactionViolations));
-    const transactionIDList = [lastTransaction?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
@@ -249,7 +249,8 @@ function ReportPreview({
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations);
+    const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, transactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
