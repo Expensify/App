@@ -42,8 +42,8 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -81,6 +81,8 @@ function IOURequestStepDistance({
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
@@ -307,7 +309,7 @@ function IOURequestStepDistance({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !isArchivedReport(reportNameValuePairs)) {
             const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -380,24 +382,32 @@ function IOURequestStepDistance({
 
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        navigateToParticipantPage();
+        if (isPaidGroupPolicy(activePolicy)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
+            navigateToConfirmationPage();
+        } else {
+            navigateToParticipantPage();
+        }
     }, [
-        report,
-        iouType,
-        transactionID,
-        backTo,
-        waypoints,
-        currentUserPersonalDetails,
-        personalDetails,
-        shouldSkipConfirmation,
         transaction,
-        translate,
-        navigateToParticipantPage,
-        navigateToConfirmationPage,
-        policy,
+        backTo,
+        report,
         reportNameValuePairs,
-        customUnitRateID,
+        activePolicy,
+        transactionID,
         setDistanceRequestData,
+        shouldSkipConfirmation,
+        navigateToConfirmationPage,
+        personalDetails,
+        translate,
+        iouType,
+        currentUserPersonalDetails.login,
+        currentUserPersonalDetails.accountID,
+        policy,
+        waypoints,
+        customUnitRateID,
+        navigateToParticipantPage,
     ]);
 
     const getError = () => {

@@ -37,7 +37,8 @@ import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -86,6 +87,8 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
@@ -295,8 +298,14 @@ function IOURequestStepScan({
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
             // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
-                navigateToParticipantPage();
+            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+                if (isPaidGroupPolicy(activePolicy)) {
+                    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
+                    navigateToConfirmationPage();
+                } else {
+                    navigateToParticipantPage();
+                }
                 return;
             }
 
@@ -413,19 +422,20 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
-            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
+            transaction?.attendees,
             iouType,
             report,
             transactionID,
             shouldSkipConfirmation,
             navigateToConfirmationPage,
+            activePolicy,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
             navigateToParticipantPage,
             personalDetails,
             createTransaction,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,

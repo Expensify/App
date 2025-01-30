@@ -10,7 +10,8 @@ import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/Tran
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getBankAccountRoute, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -75,6 +76,8 @@ function IOURequestStepAmount({
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -180,7 +183,7 @@ function IOURequestStepAmount({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !isArchivedReport(reportNameValuePairs)) {
             const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -245,7 +248,13 @@ function IOURequestStepAmount({
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        navigateToParticipantPage();
+        if (isPaidGroupPolicy(activePolicy)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
+            navigateToConfirmationPage();
+        } else {
+            navigateToParticipantPage();
+        }
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {

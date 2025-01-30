@@ -805,6 +805,11 @@ function MoneyRequestConfirmationList({
     const navigateToReportOrUserDetail = (option: MoneyRequestConfirmationListItem) => {
         const activeRoute = Navigation.getActiveRoute();
 
+        if (transaction?.isFromGlobalCreate) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            return;
+        }
+
         if (option.isSelfDM) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
             return;
