@@ -26,6 +26,8 @@ type ShareTrackedExpenseParams = {
     policyExpenseCreatedReportActionID?: string;
     adminsChatReportID?: string;
     adminsCreatedReportActionID?: string;
+    engagementChoice?: string;
+    guidedSetupData?: string;
 };
 
 export default ShareTrackedExpenseParams;
