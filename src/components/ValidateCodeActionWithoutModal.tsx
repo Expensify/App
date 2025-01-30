@@ -51,24 +51,26 @@ function ValidateCodeActionWithoutModal({
         sendValidateCode();
     }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
-    return (
-        <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
-            <ValidateCodeForm
-                isLoading={isLoading}
-                validateCodeAction={validateCodeAction}
-                validatePendingAction={validatePendingAction}
-                validateError={validateError}
-                handleSubmitForm={handleSubmitForm}
-                sendValidateCode={sendValidateCode}
-                clearError={clearError}
-                buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
-                ref={forwardedRef}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-            />
-        </View>
-    );
+    if (isVisible) {
+        return (
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
+                <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+                <ValidateCodeForm
+                    isLoading={isLoading}
+                    validateCodeAction={validateCodeAction}
+                    validatePendingAction={validatePendingAction}
+                    validateError={validateError}
+                    handleSubmitForm={handleSubmitForm}
+                    sendValidateCode={sendValidateCode}
+                    clearError={clearError}
+                    buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
+                    ref={forwardedRef}
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                />
+            </View>
+        );
+    }
 }
 
 ValidateCodeActionWithoutModal.displayName = 'ValidateCodeActionWithoutModal';

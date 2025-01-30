@@ -320,21 +320,19 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 )}
 
-                {!loginData?.validatedDate && (
-                    <ValidateCodeActionWithoutModal
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
-                        validatePendingAction={loginData.pendingFields?.validateCodeSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                        validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                        clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                        sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
-                        descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        forwardedRef={validateCodeFormRef}
-                    />
-                )}
+                <ValidateCodeActionWithoutModal
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
+                    validatePendingAction={loginData.pendingFields?.validateCodeSent}
+                    handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                    clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                    sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                    forwardedRef={validateCodeFormRef}
+                />
 
-                {!isValidateCodeActionModalVisible && !!loginData?.validatedDate && getMenuItems()}
+                {!isValidateCodeActionModalVisible && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
