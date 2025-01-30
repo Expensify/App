@@ -10,7 +10,7 @@ import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -36,6 +36,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Callback to submit the form */
         onSubmit: () => void;
+
+        /** Whether the form is loading */
+        isLoading?: boolean;
     };
 
 function FormWrapper({
@@ -57,6 +60,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    isLoading = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -65,7 +69,7 @@ function FormWrapper({
 
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
-    const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
+    const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
@@ -112,7 +116,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                        isLoading={!!formState?.isLoading}
+                        isLoading={!!formState?.isLoading || isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
@@ -143,6 +147,7 @@ function FormWrapper({
             formState?.isLoading,
             shouldHideFixErrorsAlert,
             errorMessage,
+            isLoading,
             onSubmit,
             footerContent,
             onFixTheErrorsLinkPressed,
