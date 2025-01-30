@@ -33,6 +33,7 @@ function SearchPage({route}: SearchPageProps) {
         return () => {
             resetVideoPlayerData();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
