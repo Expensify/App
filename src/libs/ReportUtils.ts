@@ -3331,7 +3331,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
     const report = getReportOrDraftReport(transaction?.reportID);
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), true),
+        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), undefined, true),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
