@@ -55,7 +55,7 @@ const webpack = {
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
-        ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
+        // ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
@@ -68,13 +68,13 @@ const metro = {
         'react-native-reanimated/plugin',
 
         /* Fullstory */
-        '@fullstory/react-native',
-        [
-            '@fullstory/babel-plugin-annotate-react',
-            {
-                native: true,
-            },
-        ],
+        // '@fullstory/react-native',
+        // [
+        //     '@fullstory/babel-plugin-annotate-react',
+        //     {
+        //         native: true,
+        //     },
+        // ],
 
         // Import alias for native devices
         [
