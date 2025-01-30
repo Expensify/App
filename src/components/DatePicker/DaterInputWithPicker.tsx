@@ -4,66 +4,44 @@ import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import DatePickerModal from './DatePickerModal';
+import type {DateInputWithPickerProps} from './types';
 
-type DaterInputWithPickerProps = {
-    /** Currently selected date value */
-    value?: string;
+const PADDING_MODAL_DATE_PICKER = 8;
 
-    /** Default date value */
-    defaultValue?: string;
-
-    /** Input identifier */
-    inputID: string;
-
-    /** Whether to save input value as a draft */
-    shouldSaveDraft?: boolean;
-
-    /** ID of the parent form */
-    formID?: keyof OnyxFormValuesMapping;
-} & BaseTextInputProps;
-
-function DaterInputWithPicker({
+function DateInputWithPicker({
     defaultValue,
     disabled,
     errorText,
     inputID,
     label,
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onInputChange,
-    onTouched,
+    onTouched = () => {},
     placeholder,
     value,
     shouldSaveDraft = false,
     formID,
-}: DaterInputWithPickerProps) {
+}: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
-
     const anchorRef = useRef<View>(null);
-    const textInputRef = useRef(null);
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    // const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
             FormActions.setDraftValues(formID, {[inputID]: selectedDate});
         }
-
         if (selectedDate === value || !value) {
             return;
         }
@@ -75,20 +53,18 @@ function DaterInputWithPicker({
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             setPopoverPosition({
                 horizontal: x + width,
-                vertical: y + (y + 400 > windowHeight ? 0 : height),
+                vertical: y + (y + CONST.POPOVER_DATE_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight ? 0 : height + PADDING_MODAL_DATE_PICKER),
             });
         });
         setIsModalVisible(true);
     };
 
     const handleDateSelected = (newDate: string) => {
-        console.log('handleDateSelected', newDate);
         onTouched?.();
         onInputChange?.(newDate);
         setSelectedDate(newDate);
         setIsModalVisible(false);
     };
-    console.log('popoverPosition_1', popoverPosition);
 
     return (
         <>
@@ -101,7 +77,6 @@ function DaterInputWithPicker({
             >
                 <View style={styles.pointerEventsNone}>
                     <TextInput
-                        ref={textInputRef}
                         inputID={inputID}
                         forceActiveLabel
                         icon={Expensicons.Calendar}
@@ -115,12 +90,13 @@ function DaterInputWithPicker({
                         disabled={disabled}
                         readOnly
                         onPress={handlePress}
-                        textInputContainerStyles={[isModalVisible ? styles.borderColorFocus : {}]}
+                        textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     />
                 </View>
             </PressableWithoutFeedback>
 
             <DatePickerModal
+                inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
                 value={selectedDate}
@@ -133,6 +109,6 @@ function DaterInputWithPicker({
     );
 }
 
-DaterInputWithPicker.displayName = 'DaterInputWithPicker';
+DateInputWithPicker.displayName = 'DateInputWithPicker';
 
-export default DaterInputWithPicker;
+export default DateInputWithPicker;
