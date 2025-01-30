@@ -53,7 +53,10 @@ function InviteMemberListItem<TItem extends ListItem>({
 
     const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
 
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_EXPENSE, shouldShowEducationalTooltip);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_EXPENSE,
+        shouldShowEducationalTooltip,
+    );
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -74,6 +77,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             shiftVertical={variables.composerTooltipShiftVertical}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             renderTooltipContent={renderProductTrainingTooltip}
+            onTooltipPress={hideProductTrainingTooltip}
         >
             <View>
                 <BaseListItem
