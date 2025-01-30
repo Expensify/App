@@ -4078,7 +4078,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         return text ?? '';
     }
 
-    const mentionReportRegex = /<mention-report reportID="?(\d+)"? *\/>/gi;
+    const mentionReportRegex = /<mention-report reportID="?(\d+)"?(?: *\/>|><\/mention-report>)/gi;
     const matches = html.matchAll(mentionReportRegex);
 
     const reportIDToName: Record<string, string> = {};
@@ -4089,7 +4089,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         }
     }
 
-    const mentionUserRegex = /<mention-user accountID="?(\d+)"? *\/>/gi;
+    const mentionUserRegex = /(?:<mention-user accountID="?(\d+)"?(?: *\/>|><\/mention-user>))|(?:<mention-user>(.*?)<\/mention-user>)/gi;
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = getLoginsByAccountIDs(accountIDs);
