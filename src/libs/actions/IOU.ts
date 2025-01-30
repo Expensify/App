@@ -3,7 +3,6 @@ import {fastMerge, Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {transaction} from 'tests/data/Invoice';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -157,7 +156,6 @@ import {
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
-    isScanRequest,
     isScanRequest as isScanRequestTransactionUtils,
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
@@ -7841,7 +7839,7 @@ function canApproveIOU(
             (t) =>
                 (isExpensifyCardTransaction(t) && isPending(t)) ||
                 (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) ||
-                (isScanRequest(t) && isReceiptBeingScannedTransactionUtils(t)),
+                (isScanRequestTransactionUtils(t) && isReceiptBeingScannedTransactionUtils(t)),
         );
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
