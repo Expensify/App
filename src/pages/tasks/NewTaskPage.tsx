@@ -148,6 +148,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 title={task?.title}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE.getRoute(backTo))}
                                 shouldShowRightIcon
+                                shouldParseTitle
                                 rightLabel={translate('common.required')}
                             />
                             <MenuItemWithTopDescription

@@ -16,8 +16,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
+import {getParsedComment, getCommentLength} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Parser from '@libs/Parser';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
@@ -34,10 +37,12 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
+        const parsedTitleLength = getCommentLength(values.taskTitle);
+
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
-        } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+        } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
             addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
         }
 
@@ -69,17 +74,18 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                 validate={validate}
                 onSubmit={onSubmit}
                 enabledWhenOffline
-                allowHTML
             >
                 <View style={styles.mb5}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={task?.title}
+                        defaultValue={Parser.htmlToMarkdown(task?.title ?? '')}
                         ref={inputCallbackRef}
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
             </FormProvider>

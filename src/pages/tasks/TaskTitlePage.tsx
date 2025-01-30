@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {isOpenTaskReport, isTaskReport, getParsedComment, getCommentLength} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
@@ -41,9 +41,12 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            if (!title) {
+            const parsedTitle = getParsedComment(title);
+            const parsedTitleLength = getCommentLength(parsedTitle);
+
+            if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+            } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
             }
 
@@ -98,7 +101,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onSubmit={submit}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
-                        allowHTML
                     >
                         <View style={[styles.mb4]}>
                             <InputWrapper
@@ -112,6 +114,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 shouldSubmitForm={false}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                isMarkdownEnabled
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;

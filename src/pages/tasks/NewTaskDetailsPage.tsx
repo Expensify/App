@@ -41,7 +41,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
     useEffect(() => {
-        setTaskTitle(task?.title ?? '');
+        setTaskTitle(Parser.htmlToMarkdown(Parser.replace(task?.title ?? '')));
         setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
     }, [task]);
 
@@ -112,9 +112,10 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
-                        value={taskTitle}
+                        value={Parser.htmlToMarkdown(Parser.replace(taskTitle))}
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
+                        isMarkdownEnabled
                     />
                 </View>
                 <View style={styles.mb5}>

@@ -6465,7 +6465,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: title,
+        reportName: getParsedComment(title ?? ''),
         description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
