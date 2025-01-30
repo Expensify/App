@@ -5797,11 +5797,11 @@ function buildOptimisticChatReport(
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>,
     writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    parentReportActionID = '',
-    parentReportID = '',
+    parentReportActionID?: string,
+    parentReportID?: string,
     description = '',
     avatarUrl = '',
-    optimisticReportID = '',
+    optimisticReportID?: string,
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -5831,7 +5831,7 @@ function buildOptimisticChatReport(
         parentReportID,
         participants,
         policyID,
-        reportID: optimisticReportID || generateReportID(),
+        reportID: optimisticReportID ?? generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
@@ -7679,7 +7679,11 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     return requestOptions.includes(iouType);
 }
 
-function getWorkspaceChats(policyID: string, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+    if (!policyID) {
+        return [];
+    }
+
     return Object.values(reports ?? {}).filter(
         (report) => isPolicyExpenseChat(report) && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
     );

@@ -107,16 +107,16 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
     });
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`);
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
     });
 
@@ -131,9 +131,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return originalMessage?.IOUTransactionID;
     }, [parentReportAction]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
+    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransactionID}`);
 
     const {
         created: transactionDate,
