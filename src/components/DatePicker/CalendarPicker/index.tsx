@@ -169,7 +169,7 @@ function CalendarPicker({
                     </Text>
                     <ArrowIcon />
                 </PressableWithFeedback>
-                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd]}>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mr1]}>
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"

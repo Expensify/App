@@ -1,5 +1,5 @@
 import {setYear} from 'date-fns';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -30,7 +30,7 @@ function DateInputWithPicker({
     formID,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -49,13 +49,17 @@ function DateInputWithPicker({
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handlePress = () => {
+    const calculatePopoverPosition = useCallback(() => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             setPopoverPosition({
                 horizontal: x + width,
-                vertical: y + (y + CONST.POPOVER_DATE_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                vertical: y + (y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight ? 0 : height + PADDING_MODAL_DATE_PICKER),
             });
         });
+    }, [windowHeight]);
+
+    const handlePress = () => {
+        calculatePopoverPosition();
         setIsModalVisible(true);
     };
 
@@ -66,14 +70,19 @@ function DateInputWithPicker({
         setIsModalVisible(false);
     };
 
+    useEffect(() => {
+        calculatePopoverPosition();
+    }, [calculatePopoverPosition, windowWidth]);
+
     return (
         <>
             <PressableWithoutFeedback
                 ref={anchorRef}
-                style={styles.datePickerRoot}
+                style={styles.mv2}
                 onPress={handlePress}
-                accessibilityLabel={translate('reportActionCompose.date')}
+                accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
+                accessible={false}
             >
                 <View style={styles.pointerEventsNone}>
                     <TextInput
