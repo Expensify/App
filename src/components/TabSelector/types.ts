@@ -2,10 +2,7 @@
 import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
 
-/**
- * Configuration for the getBackgroundColor function.
- */
-type GetBackgroudColorConfig = {
+type AnimationConfigBase = {
     /**
      * The number of routes.
      */
@@ -22,11 +19,6 @@ type GetBackgroudColorConfig = {
     affectedTabs: number[];
 
     /**
-     * The theme colors.
-     */
-    theme: ThemeColors;
-
-    /**
      * The animated position interpolation.
      */
     position: Animated.AnimatedInterpolation<number> | undefined;
@@ -37,11 +29,22 @@ type GetBackgroudColorConfig = {
     isActive: boolean;
 };
 
-/**
- * Function to get the background color.
- * @param args - The configuration for the background color.
- * @returns The interpolated background color or a string.
- */
-type GetBackgroudColor = (args: GetBackgroudColorConfig) => Animated.AnimatedInterpolation<string> | string;
+type GetBackgroundColorConfig = AnimationConfigBase & {
+    /**
+     * The theme colors.
+     */
+    theme: ThemeColors;
+};
 
-export default GetBackgroudColor;
+type GetOpacityConfig = AnimationConfigBase & {
+    /**
+     * Whether we are calculating the opacity for the active tab.
+     */
+    active: boolean;
+};
+
+type BackgroundColor = Animated.AnimatedInterpolation<string> | string;
+
+type Opacity = 1 | 0 | Animated.AnimatedInterpolation<number>;
+
+export type {BackgroundColor, GetBackgroundColorConfig, Opacity, GetOpacityConfig};
