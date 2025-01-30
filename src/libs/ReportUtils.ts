@@ -2007,14 +2007,12 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
+    if (moneyRequestReport?.reportID == '4070865872455813') debugger;
     if (!isMoneyRequestReport(moneyRequestReport) || isArchivedReportWithID(moneyRequestReport?.reportID)) {
         return false;
     }
 
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
-        return false;
-    }
 
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
         return false;
@@ -2044,6 +2042,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
     }
 
     if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
+        return false;
+    }
+
+    const policy = getPolicy(moneyRequestReport?.policyID);
+    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
     }
 
