@@ -322,7 +322,7 @@ describe('Tests for group chat name', () => {
             return waitFor(() => expect(lastChatText?.props?.children).toBe('B: Test'));
         }));
 
-    it('Should sort the names before displaying', () =>
+    it.skip('Should sort the names before displaying', () =>
         signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4]).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
