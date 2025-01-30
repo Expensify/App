@@ -126,7 +126,7 @@ import {
     isCompletedTaskReport,
     isReportMessageAttachment,
     isTaskReport,
-    shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -1013,7 +1013,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
