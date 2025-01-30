@@ -27,10 +27,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin;
+
+    // Flag indicating whether NewDot was launched exclusively for Travel,
+    // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     const bookATrip = useCallback(() => {
         if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
@@ -47,10 +50,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id)
                 ?.then(() => {
+                    // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
+                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
                     if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
                         return;
                     }
 
+                    // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
                     NativeModules.HybridAppModule.closeReactNativeApp(false, false);
                 })
