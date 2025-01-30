@@ -148,6 +148,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
         /** domain of selected card */
         domain: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
         /** domain of selected card */

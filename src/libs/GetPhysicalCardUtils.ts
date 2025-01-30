@@ -3,19 +3,19 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
-import * as LoginUtils from './LoginUtils';
+import {validateNumber} from './LoginUtils';
 import Navigation from './Navigation/Navigation';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as UserUtils from './UserUtils';
+import {getCurrentAddress, getFormattedStreet} from './PersonalDetailsUtils';
+import {getSecondaryPhoneLogin} from './UserUtils';
 
-function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
+function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, backTo?: string): Route {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
 
     if (!legalFirstName && !legalLastName) {
-        return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
+        return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain, backTo);
     }
-    if (!phoneNumber || !LoginUtils.validateNumber(phoneNumber)) {
+    if (!phoneNumber || !validateNumber(phoneNumber)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain);
     }
     if (!(address?.street && address?.city && address?.state && address?.country && address?.zip)) {
@@ -25,8 +25,8 @@ function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<Priva
     return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain);
 }
 
-function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
-    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails));
+function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, backTo?: string) {
+    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, backTo));
 }
 
 /**
@@ -57,7 +57,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  */
 function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
 
     return {
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -68,7 +68,7 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
         addressLine2: draftValues?.addressLine2 || address?.street.split('\n')[1] || '',
         city: draftValues?.city || address?.city || '',
         country: draftValues?.country || address?.country || '',
-        phoneNumber: draftValues?.phoneNumber || phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
+        phoneNumber: draftValues?.phoneNumber || phoneNumber || getSecondaryPhoneLogin(loginList) || '',
         state: draftValues?.state || address?.state || '',
         zipPostCode: draftValues?.zipPostCode || address?.zip || '',
         /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -86,7 +86,7 @@ function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCard
         legalFirstName,
         legalLastName,
         phoneNumber,
-        addresses: [...(privatePersonalDetails?.addresses ?? []), {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
+        addresses: [...(privatePersonalDetails?.addresses ?? []), {street: getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
     };
 }
 

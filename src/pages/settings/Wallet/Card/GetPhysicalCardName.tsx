@@ -7,7 +7,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidLegalName} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,7 @@ type GetPhysicalCardNameProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function GetPhysicalCardName({
     route: {
-        params: {domain},
+        params: {domain, backTo},
     },
 }: GetPhysicalCardNameProps) {
     const styles = useThemeStyles();
@@ -39,13 +39,13 @@ function GetPhysicalCardName({
     const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
         const errors: OnValidateResult = {};
 
-        if (values?.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
+        if (values?.legalFirstName && !isValidLegalName(values.legalFirstName)) {
             errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (!values?.legalFirstName) {
             errors.legalFirstName = translate('common.error.fieldRequired');
         }
 
-        if (values?.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
+        if (values?.legalLastName && !isValidLegalName(values.legalLastName)) {
             errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (!values?.legalLastName) {
             errors.legalLastName = translate('common.error.fieldRequired');
@@ -62,6 +62,7 @@ function GetPhysicalCardName({
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
+            backTo={backTo}
         >
             <View style={styles.mh5}>
                 <InputWrapper
