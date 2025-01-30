@@ -249,6 +249,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
                           },
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                return !policy?.connections?.quickbooksOnline?.config?.companyName
+                    ? {}
+                    : {
+                          description: translate('workspace.qbo.connectedTo'),
+                          title: policy?.connections?.quickbooksOnline?.config?.companyName,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowDescriptionOnTop: true,
+                      };
+
             default:
                 return undefined;
         }
