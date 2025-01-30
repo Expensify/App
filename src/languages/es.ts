@@ -1084,6 +1084,7 @@ const translations = {
         attendees: 'Asistentes',
         paymentComplete: 'Pago completo',
         time: 'Tiempo',
+        updatedTheDistanceOptimistically: 'Distancia actualizada',
         startDate: 'Fecha de inicio',
         endDate: 'Fecha de finalización',
         startTime: 'Hora de inicio',
