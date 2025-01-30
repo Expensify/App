@@ -3672,17 +3672,6 @@ function prepareOnboardingOptimisticData(
         reportComment: textComment.commentText,
     };
 
-    let videoCommentAction: OptimisticAddCommentReportAction | null = null;
-    let videoMessage: AddCommentOrAttachementParams | null = null;
-    if ('video' in data && data.video) {
-        const videoComment = buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
-        videoCommentAction = videoComment.reportAction;
-        videoMessage = {
-            reportID: targetChatReportID,
-            reportActionID: videoCommentAction.reportActionID,
-            reportComment: videoComment.commentText,
-        };
-    }
     const tasksData = data.tasks
         .filter((task) => {
             if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
@@ -4046,36 +4035,6 @@ function prepareOnboardingOptimisticData(
 
     // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = shouldPostTasksInAdminsRoom ? [] : [{type: 'message', ...textMessage}];
-
-    if (!shouldPostTasksInAdminsRoom && 'video' in data && data.video && videoCommentAction && videoMessage) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
-            },
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {pendingAction: null},
-            },
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-
-        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
-    }
 
     type SelfDMParameters = {
         reportID?: string;
