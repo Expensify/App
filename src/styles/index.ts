@@ -3709,7 +3709,17 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            flex: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
+            position: 'relative',
+            flex: 1,
+        },
+
+        narrowSearchRouterActiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4364,10 +4374,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
