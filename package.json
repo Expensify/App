@@ -76,7 +76,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.221",
+    "@expensify/react-native-live-markdown": "file:./live-markdown.tgz",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expo/metro-runtime": "^4.0.0",
     "@firebase/app": "^0.10.10",
@@ -117,7 +117,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.115",
+    "expensify-common": "file:./expensify-common.tgz",
     "expo": "52.0.14",
     "expo-asset": "^11.0.1",
     "expo-av": "^15.0.1",
