@@ -36,6 +36,7 @@ import {
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
+    getReportActionMessage,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
@@ -60,7 +61,7 @@ import {
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import {
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    canUserPerformWriteAction as canUserPerformWriteActionUtil,
     doesReportBelongToWorkspace,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -80,6 +81,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
+    isArchivedReportWithID,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -87,7 +89,7 @@ import {
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
-    isGroupChat as isGroupChatReportUtils,
+    isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
     isInvoiceReport,
     isInvoiceRoom,
@@ -97,7 +99,7 @@ import {
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
-    isSystemChat as isSystemChatReportUtils,
+    isSystemChat as isSystemChatUtil,
     isTaskReport,
     isThread,
     isUnread,
@@ -138,7 +140,7 @@ Onyx.connect({
         }
         const reportID = extractCollectionItemID(key);
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(report);
         const actionsArray: ReportAction[] = getSortedReportActions(Object.values(actions));
 
         // The report is only visible if it is the last action not deleted that
@@ -223,7 +225,7 @@ function getOrderedReportIDs(
             });
             return;
         }
-        const isSystemChat = isSystemChatReportUtils(report);
+        const isSystemChat = isSystemChatUtil(report);
         const shouldOverrideHidden =
             hasValidDraftComment(report.reportID) ||
             hasErrorsOtherThanFailedReceipt ||
@@ -269,9 +271,6 @@ function getOrderedReportIDs(
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
 
-    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => report?.reportID === currentReportId || doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
-    }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
         const report = reportToDisplay;
@@ -447,7 +446,7 @@ function getOptionData({
     result.isInvoiceReport = isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    result.private_isArchived = report?.private_isArchived;
+    result.private_isArchived = reportNameValuePairs?.private_isArchived;
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
@@ -517,7 +516,7 @@ function getOptionData({
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
     const lastAction = visibleReportActionItems[report.reportID];
-    const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
+    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
@@ -683,7 +682,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         return welcomeMessage;
     }
 
-    if (isSystemChatReportUtils(report)) {
+    if (isSystemChatUtil(report)) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
         welcomeMessage.messageText = welcomeMessage.phrase1;
         return welcomeMessage;
@@ -728,7 +727,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (report?.private_isArchived) {
+    if (isArchivedReportWithID(report?.reportID)) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {

@@ -56,6 +56,8 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAllReportActions,
+    getDeletedTransactionMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -93,8 +95,9 @@ import {
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
-    isDeletedParentAction as isDeletedParentActionReportActionsUtils,
+    isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
+    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -392,7 +395,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
+    const isDeletedParentAction = isDeletedParentActionUtils(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
     const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
     const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
