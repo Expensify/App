@@ -342,6 +342,7 @@
     "source-map": "^0.7.4",
     "storybook": "^8.4.0",
     "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^5.3.11",
     "time-analytics-webpack-plugin": "^0.1.17",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
