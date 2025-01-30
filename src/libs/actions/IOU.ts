@@ -4146,6 +4146,7 @@ type AddTrackedExpenseToPolicyParam = {
     created: string;
     merchant: string;
     transactionID: string;
+    reimbursable: boolean;
     actionableWhisperReportActionID: string;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
@@ -4209,6 +4210,7 @@ function convertTrackedExpenseToRequest(
             comment,
             created,
             merchant,
+            reimbursable: true,
             transactionID,
             actionableWhisperReportActionID,
             moneyRequestReportID,

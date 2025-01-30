@@ -10,6 +10,7 @@ type AddTrackedExpenseToPolicyParams = {
     tag: string | undefined;
     taxCode: string;
     taxAmount: number;
+    reimbursable: boolean;
     billable: boolean | undefined;
     receipt: Receipt | undefined;
     waypoints?: string;
