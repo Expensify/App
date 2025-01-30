@@ -115,6 +115,11 @@ type RequestCountParams = {
     pendingReceipts: number;
 };
 
+type DeleteTransactionParams = {
+    amount: string;
+    merchant: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -164,6 +169,8 @@ type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
+
+type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
@@ -445,6 +452,10 @@ type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string}
 
 type TrialStartedTitleParams = {numOfDays: number};
 
+type EarlyDiscountTitleParams = {discountType: number};
+
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
+
 type CardNextPaymentParams = {nextPaymentDate: string};
 
 type CardEndingParams = {cardNumber: string};
@@ -670,6 +681,8 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    EarlyDiscountTitleParams,
+    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -718,6 +731,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    MovedFromSelfDMParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -744,6 +758,7 @@ export type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
+    DeleteTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,

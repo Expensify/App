@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
@@ -80,6 +81,7 @@ function SearchRouterInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
@@ -90,7 +92,10 @@ function SearchRouterInput(
     return (
         <View style={[outerWrapperStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
-                <View style={styles.flex1}>
+                <View
+                    style={styles.flex1}
+                    fsClass="fs-unmask"
+                >
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
@@ -125,6 +130,7 @@ function SearchRouterInput(
                         isLoading={!!isSearchingForReports}
                         ref={ref}
                         onKeyPress={handleKeyPress(onSubmit)}
+                        placeholderTextColor={theme.textSupporting}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
