@@ -575,7 +575,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         fetchReportIfNeeded();
-        console.log('fetchReportIfNeeded');
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingReportOnyx, fetchReportIfNeeded]);
 
