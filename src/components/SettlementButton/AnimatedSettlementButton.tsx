@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
@@ -77,7 +77,7 @@ function AnimatedSettlementButton({
         onAnimationFinish();
     }, [onAnimationFinish]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!isApprovedAnimationRunning && !isPaidAnimationRunning) {
             resetAnimation();
             return;
