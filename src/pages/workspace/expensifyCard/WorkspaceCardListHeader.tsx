@@ -34,6 +34,24 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const getLabelsLayout = () => {
+        if (!isLessThanMediumScreen) {
+            return (
+                <>
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+                    />
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
+                    />
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                    />
+                </>
+            );
+        }
         return shouldShowSettlementButtonOrDate ? (
             <>
                 <WorkspaceCardsListLabel
@@ -53,7 +71,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
             </>
         ) : (
             <>
-                <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
+                <View style={[styles.flexRow, isLessThanMediumScreen && styles.mb5]}>
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}

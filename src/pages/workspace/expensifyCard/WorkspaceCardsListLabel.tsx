@@ -102,8 +102,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     };
 
     return (
-        <View style={[styles.flex1]}>
-            <View style={[styles.flex1]}>
+        <View style={styles.flex1}>
+            <View style={styles.flex1}>
                 <View
                     ref={anchorRef}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
