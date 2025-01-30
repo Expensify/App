@@ -196,6 +196,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
+                            path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
                             exact: true,
@@ -242,6 +246,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -603,6 +611,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
@@ -1375,7 +1386,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
-                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {
                             path: ROUTES.TRAVEL_TRIP_DETAILS.route,
@@ -1383,6 +1394,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
+                        [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
+                        [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
+                        [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

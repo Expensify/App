@@ -1,12 +1,12 @@
 import {createContext} from 'react';
 
 type MentionReportContextProps = {
-    currentReportID: string;
+    currentReportID: string | undefined;
     exactlyMatch?: boolean;
 };
 
 const MentionReportContext = createContext<MentionReportContextProps>({
-    currentReportID: '',
+    currentReportID: undefined,
 });
 
 export default MentionReportContext;

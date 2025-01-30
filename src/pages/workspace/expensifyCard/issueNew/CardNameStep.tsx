@@ -9,53 +9,62 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Card from '@userActions/Card';
+import {getDefaultCardName} from '@libs/CardUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
-function CardNameStep() {
+type CardNameStepProps = {
+    /** ID of the policy */
+    policyID: string | undefined;
+};
+
+function CardNameStep({policyID}: CardNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
 
-    const userName = PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? CardUtils.getDefaultCardName(userName) : '';
+    const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
+    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
         const length = values.cardTitle.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
         }
         return errors;
     };
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        Card.setIssueNewCardStepAndData({
-            step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-            data: {
-                cardTitle: values.cardTitle,
-            },
-            isEditing: false,
-        });
-    }, []);
+    const submit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                data: {
+                    cardTitle: values.cardTitle,
+                },
+                isEditing: false,
+                policyID,
+            });
+        },
+        [policyID],
+    );
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT});
-    }, [isEditing]);
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT, policyID});
+    }, [isEditing, policyID]);
 
     return (
         <InteractiveStepWrapper

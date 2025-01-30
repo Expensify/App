@@ -178,7 +178,8 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click *Create*.\n' +
+                '4. Click "Just track it (don\'t submit it)".\n' +
+                '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -273,6 +274,31 @@ type OnboardingMessage = {
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
 
+const EMAIL = {
+    ACCOUNTING: 'accounting@expensify.com',
+    ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
+    ADMIN: 'admin@expensify.com',
+    BILLS: 'bills@expensify.com',
+    CHRONOS: 'chronos@expensify.com',
+    CONCIERGE: 'concierge@expensify.com',
+    CONTRIBUTORS: 'contributors@expensify.com',
+    FIRST_RESPONDER: 'firstresponders@expensify.com',
+    GUIDES_DOMAIN: 'team.expensify.com',
+    QA_DOMAIN: 'applause.expensifail.com',
+    HELP: 'help@expensify.com',
+    INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+    NOTIFICATIONS: 'notifications@expensify.com',
+    PAYROLL: 'payroll@expensify.com',
+    QA: 'qa@expensify.com',
+    QA_TRAVIS: 'qa+travisreceipts@expensify.com',
+    RECEIPTS: 'receipts@expensify.com',
+    STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+    SVFG: 'svfg@expensify.com',
+    EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+    EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    MANAGER_MCTEST: 'manager_mctest@expensify.com',
+};
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -304,6 +330,9 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATED_PROGRESS_BAR_DELAY: 300,
+    ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
+    ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     ANIMATION_DIRECTION: {
         IN: 'in',
@@ -422,6 +451,9 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
+    HIDDEN_MESSAGE_ATTRIBUTE: 'is-hidden-message',
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -488,6 +520,7 @@ const CONST = {
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        SECONDS_PER_DAY: 24 * 60 * 60,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -670,6 +703,7 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
     },
     BUTTON_STATES: {
@@ -872,6 +906,7 @@ const CONST = {
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
+    TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
@@ -930,6 +965,7 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
+    ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -948,6 +984,7 @@ const CONST = {
         ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
         WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
+        EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1029,6 +1066,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
+                DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
@@ -1336,6 +1374,7 @@ const CONST = {
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
+        PUSHER_PING_PONG: 'pusher_ping_pong',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1669,29 +1708,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
-    EMAIL: {
-        ACCOUNTING: 'accounting@expensify.com',
-        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
-        ADMIN: 'admin@expensify.com',
-        BILLS: 'bills@expensify.com',
-        CHRONOS: 'chronos@expensify.com',
-        CONCIERGE: 'concierge@expensify.com',
-        CONTRIBUTORS: 'contributors@expensify.com',
-        FIRST_RESPONDER: 'firstresponders@expensify.com',
-        GUIDES_DOMAIN: 'team.expensify.com',
-        QA_DOMAIN: 'applause.expensifail.com',
-        HELP: 'help@expensify.com',
-        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
-        NOTIFICATIONS: 'notifications@expensify.com',
-        PAYROLL: 'payroll@expensify.com',
-        QA: 'qa@expensify.com',
-        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
-        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
-        SVFG: 'svfg@expensify.com',
-        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
-        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
-    },
+    EMAIL,
 
     FULL_STORY: {
         MASK: 'fs-mask',
@@ -1700,6 +1717,10 @@ const CONST = {
         CONCIERGE: 'concierge',
         OTHER: 'other',
         WEB_PROP_ATTR: 'data-testid',
+        SHUTDOWN: 'shutdown',
+        RESTART: 'restart',
+        SET_IDENTITY: 'setIdentity',
+        OBSERVE: 'observe',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -2167,6 +2188,7 @@ const CONST = {
         REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
+        MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
     },
 
     ENVIRONMENT: {
@@ -2386,6 +2408,7 @@ const CONST = {
             TRACK: 'track',
         },
         AMOUNT_MAX_LENGTH: 8,
+        DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -3058,6 +3081,7 @@ const CONST = {
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
+        ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -3119,7 +3143,12 @@ const CONST = {
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+        SHORT_MENTION: new RegExp(
+            // We are ensuring that the short mention is not inside a code block. So we check that the short mention
+            // is either not preceded by an open code block or not followed by a backtick on the same line.
+            `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
+            'gim',
+        ),
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
@@ -3134,7 +3163,7 @@ const CONST = {
          * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
          * Group 3: Title is remaining characters
          */
-        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN}))?\\s*([\\s\\S]*)`,
+        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN.source}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -3155,27 +3184,31 @@ const CONST = {
         WORKSPACE_FEATURES: 'WorkspaceFeatures',
         WORKSPACE_RULES: 'WorkspaceRules',
     },
-    get EXPENSIFY_EMAILS() {
-        return [
-            this.EMAIL.ACCOUNTING,
-            this.EMAIL.ACCOUNTS_PAYABLE,
-            this.EMAIL.ADMIN,
-            this.EMAIL.BILLS,
-            this.EMAIL.CHRONOS,
-            this.EMAIL.CONCIERGE,
-            this.EMAIL.CONTRIBUTORS,
-            this.EMAIL.FIRST_RESPONDER,
-            this.EMAIL.HELP,
-            this.EMAIL.INTEGRATION_TESTING_CREDS,
-            this.EMAIL.NOTIFICATIONS,
-            this.EMAIL.PAYROLL,
-            this.EMAIL.QA,
-            this.EMAIL.QA_TRAVIS,
-            this.EMAIL.RECEIPTS,
-            this.EMAIL.STUDENT_AMBASSADOR,
-            this.EMAIL.SVFG,
-        ];
-    },
+    EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
+        // eslint-disable-next-line no-param-reassign
+        prev[email] = true;
+        return prev;
+    }, {} as Record<string, boolean>),
+    EXPENSIFY_EMAILS: [
+        EMAIL.ACCOUNTING,
+        EMAIL.ACCOUNTS_PAYABLE,
+        EMAIL.ADMIN,
+        EMAIL.BILLS,
+        EMAIL.CHRONOS,
+        EMAIL.CONCIERGE,
+        EMAIL.CONTRIBUTORS,
+        EMAIL.FIRST_RESPONDER,
+        EMAIL.HELP,
+        EMAIL.INTEGRATION_TESTING_CREDS,
+        EMAIL.NOTIFICATIONS,
+        EMAIL.PAYROLL,
+        EMAIL.QA,
+        EMAIL.QA_TRAVIS,
+        EMAIL.RECEIPTS,
+        EMAIL.STUDENT_AMBASSADOR,
+        EMAIL.SVFG,
+        EMAIL.MANAGER_MCTEST,
+    ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
@@ -3195,6 +3228,7 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
+            this.ACCOUNT_ID.MANAGER_MCTEST,
         ].filter((id) => id !== -1);
     },
 
@@ -4621,6 +4655,8 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
+        /** Use for Tooltips */
+        TOOLTIP: 'tooltip',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -6452,6 +6488,53 @@ const CONST = {
         },
     },
 
+    CORPAY_FIELDS: {
+        EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
+        EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
+        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
+        ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
+        ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
+        BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
+        ACCOUNT_HOLDER_FIELDS: [
+            'accountHolderName',
+            'accountHolderAddress1',
+            'accountHolderAddress2',
+            'accountHolderCity',
+            'accountHolderRegion',
+            'accountHolderCountry',
+            'accountHolderPostal',
+            'accountHolderPhoneNumber',
+            'accountHolderEmail',
+            'ContactName',
+            'BeneficiaryCPF',
+            'BeneficiaryRUT',
+            'BeneficiaryCedulaID',
+            'BeneficiaryTaxID',
+        ] as string[],
+        SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
+        SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
+        STEPS_NAME: {
+            COUNTRY_SELECTOR: 'CountrySelector',
+            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
+            ACCOUNT_TYPE: 'AccountType',
+            BANK_INFORMATION: 'BankInformation',
+            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
+            CONFIRMATION: 'Confirmation',
+            SUCCESS: 'Success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
+            },
+        },
+    },
+
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
@@ -6468,8 +6551,15 @@ const CONST = {
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
+        SCAN_TEST_TOOLTIP: 'scanTestTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
+    TRAVEL: {
+        DEFAULT_DOMAIN: 'domain',
+        PROVISIONING: {
+            ERROR_PERMISSION_DENIED: 'permissionDenied',
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
