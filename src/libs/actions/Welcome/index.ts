@@ -205,19 +205,6 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-window.cancelTooltip = function (elementName: string) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-            value: {
-                [elementName]: '',
-            },
-        },
-    ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
-};
-
 function dismissProductTraining(elementName: string) {
     const date = new Date();
     const optimisticData = [
