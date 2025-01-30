@@ -124,6 +124,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.mutedNormalTextLabel,
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
