@@ -343,7 +343,7 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether to show the educational tooltip */
-    shouldShowEducationalTooltip: boolean;
+    shouldShowEducationalTooltip?: boolean;
 };
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -660,7 +660,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Initial number of items to render */
     initialNumToRender?: number;
 
-    shouldShowEducationalTooltip: (data: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => boolean;
+    /** Should we show the workspace expense tooltip on the listItem */
+    shouldShowEducationalTooltip?: (data: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -15,7 +15,7 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldShowEducationalTooltip: boolean;
+        shouldShowEducationalTooltip?: boolean;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({

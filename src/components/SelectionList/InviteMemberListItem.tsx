@@ -40,7 +40,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     shouldHighlightSelectedItem,
-    shouldShowEducationalTooltip,
+    shouldShowEducationalTooltip = false,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
