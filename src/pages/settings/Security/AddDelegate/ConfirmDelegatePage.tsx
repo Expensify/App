@@ -87,6 +87,8 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal
+                    // We should disable the animation initially and only enable it when the user manually opens the modal
+                    // to ensure it appears immediately when refreshing the page.
                     disableAnimation={shouldDisableModalAnimation}
                     shouldHandleNavigationBack
                     login={login}
