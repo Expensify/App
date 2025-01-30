@@ -2,22 +2,17 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useDerivedValue, withTiming} from 'react-native-reanimated';
+import Header from '@components/Header';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
-import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
-import SearchRouterInput from '@components/Search/SearchRouter/SearchRouterInput';
-import SearchRouterList from '@components/Search/SearchRouter/SearchRouterList';
-import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -26,28 +21,54 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isCannedSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchTypeMenuPopover from './SearchTypeMenuPopover';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
+import {buildSubstitutionsMap} from './SearchRouter/buildSubstitutionsMap';
+import {getQueryWithSubstitutions} from './SearchRouter/getQueryWithSubstitutions';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+import {getUpdatedSubstitutionsMap} from './SearchRouter/getUpdatedSubstitutionsMap';
+import SearchButton from './SearchRouter/SearchButton';
+import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
+import SearchRouterInput from './SearchRouter/SearchRouterInput';
+import SearchRouterList from './SearchRouter/SearchRouterList';
+import type {SearchQueryJSON, SearchQueryString} from './types';
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
 
-const ANIMATION_DURATION = 300;
-
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
-    searchRouterListVisible?: boolean;
-    onSearchRouterFocus?: () => void;
-    inputRightComponent: React.ReactNode;
+    children: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, inputRightComponent}: SearchPageHeaderInputProps) {
+type HeaderContent = {
+    icon: IconAsset;
+    titleText: TranslationPaths;
+};
+
+function getHeaderContent(type: SearchDataTypes): HeaderContent {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        default:
+            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
+    }
+}
+
+function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
@@ -55,44 +76,39 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
-    const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
+    const {type, inputQuery: originalInputQuery} = queryJSON;
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
 
     // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
+    const [textInputValue, setTextInputValue] = useState(queryText);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(queryText);
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
-    const {registerSearchPageInput} = useSearchRouterContext();
+    const {registerSearchPageInput, unregisterSearchPageInput} = useSearchRouterContext();
 
-    // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
+    // If query is non-canned that means Search Input is displayed, so we need to register its ref in the context.
     useEffect(() => {
-        if (!displayNarrowHeader || !!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
-            return;
-        }
-        textInputRef.current.blur();
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchRouterListVisible]);
-
-    useEffect(() => {
-        if (displayNarrowHeader || !isFocused || !textInputRef.current) {
+        if (!isFocused) {
             return;
         }
 
-        registerSearchPageInput(textInputRef.current);
-    }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
+        if (!isCannedQuery && textInputRef.current) {
+            registerSearchPageInput(textInputRef.current);
+        } else {
+            unregisterSearchPageInput();
+        }
+    }, [isCannedQuery, isFocused, registerSearchPageInput, unregisterSearchPageInput]);
 
     useEffect(() => {
-        setTextInputValue(isDefaultQuery ? '' : queryText);
-        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText]);
+        setTextInputValue(queryText);
+    }, [queryText]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
@@ -180,67 +196,25 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         [autocompleteSubstitutions],
     );
 
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: 'findItem',
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
-        : undefined;
+    if (isCannedQuery) {
+        const headerIcon = getHeaderContent(type).icon;
 
-    const animatedPadding = useDerivedValue(() => {
-        return withTiming(searchRouterListVisible ? 0 : 52, {duration: ANIMATION_DURATION});
-    }, [searchRouterListVisible]);
-    const inputWrapperStyleTest = useAnimatedStyle(() => {
-        return {
-            marginRight: animatedPadding.value,
-        };
-    });
-
-    if (displayNarrowHeader) {
         return (
             <View
                 dataSet={{dragArea: false}}
-                style={[styles.flex1]}
+                style={[styles.headerBar, isCannedQuery && styles.headerBarDesktopHeight]}
             >
-                <View style={[styles.appBG, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
-                        <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyleTest]}>
-                            <SearchRouterInput
-                                value={textInputValue}
-                                onSearchQueryChange={onSearchQueryChange}
-                                isFullWidth
-                                onSubmit={() => {
-                                    submitSearch(textInputValue);
-                                }}
-                                autoFocus={false}
-                                onFocus={() => {
-                                    listRef.current?.updateAndScrollToFocusedIndex(0);
-                                    onSearchRouterFocus?.();
-                                }}
-                                wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                                wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                                rightComponent={inputRightComponent}
-                                routerListRef={listRef}
-                                ref={textInputRef}
-                            />
-                        </Animated.View>
-                        <View style={[styles.pAbsolute, {right: 0}]}>
-                            <SearchTypeMenuPopover queryJSON={queryJSON} />
-                        </View>
-                    </View>
-                    <View style={[styles.flex1, !searchRouterListVisible && styles.dNone]}>
-                        <SearchRouterList
-                            autocompleteQueryValue={autocompleteQueryValue}
-                            searchQueryItem={searchQueryItem}
-                            onListItemPress={onListItemPress}
-                            setTextQuery={setTextInputValue}
-                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                            ref={listRef}
-                        />
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                    <Icon
+                        src={headerIcon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{headerText}</Text>} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap2]}>
+                        {children}
+                        <SearchButton />
                     </View>
                 </View>
             </View>
@@ -252,6 +226,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setIsAutocompleteListVisible(true);
     };
+
+    const searchQueryItem = textInputValue
+        ? {
+              text: textInputValue,
+              singleIcon: Expensicons.MagnifyingGlass,
+              searchQuery: textInputValue,
+              itemStyle: styles.activeComponentBG,
+              keyForList: 'findItem',
+              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+          }
+        : undefined;
+
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const popoverHorizontalPosition = 12 - BORDER_WIDTH;
     const autocompleteInputStyle = isAutocompleteListVisible
@@ -289,11 +275,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                     wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                    rightComponent={inputRightComponent}
+                    rightComponent={children}
                     routerListRef={listRef}
                     ref={textInputRef}
                 />
-                <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
+                <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}
