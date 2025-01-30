@@ -121,6 +121,7 @@ import {
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
+    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
@@ -145,9 +146,13 @@ import {
     getTransaction,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
+    isAmountMissing,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
+    isPartialMerchant,
+    isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -7871,6 +7876,9 @@ function canIOUBePaid(
     }
 
     if (isInvoiceReportReportUtils(iouReport)) {
+        if (isOpenInvoiceReportReportUtils(iouReport)) {
+            return false;
+        }
         if (iouSettled) {
             return false;
         }
@@ -7913,21 +7921,25 @@ function canIOUBePaid(
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
-    transactionIDList: string[],
+    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isArchived = isArchivedReportWithID(report?.reportID);
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
     const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+
+    const hasOnlyPendingCardOrScanFailTransactions =
+        transactions.length > 0 &&
+        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
         isOpenExpenseReport &&
         !isArchived &&
-        reimbursableSpend !== 0 &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         !hasBrokenConnectionViolation &&
         (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
@@ -8386,7 +8398,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report, backTo?: Route) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -8529,7 +8541,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal();
+    Navigation.goBack(backTo);
     notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
