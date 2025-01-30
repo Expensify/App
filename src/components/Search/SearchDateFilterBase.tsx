@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -62,7 +62,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DatePicker}
+                    InputComponent={DateInputModalPicker}
                     inputID={`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`}
                     label={translate('search.filters.date.after')}
                     defaultValue={dateAfter}
@@ -70,7 +70,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
                 <InputWrapper
-                    InputComponent={DatePicker}
+                    InputComponent={DateInputModalPicker}
                     inputID={`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`}
                     label={translate('search.filters.date.before')}
                     defaultValue={dateBefore}
