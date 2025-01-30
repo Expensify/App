@@ -15,6 +15,7 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        shouldShowEducationalTooltip: boolean;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -44,6 +45,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
+    shouldShowEducationalTooltip,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isReportListItemType(item)) {
@@ -94,6 +96,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
+                shouldShowEducationalTooltip={shouldShowEducationalTooltip}
             />
             {item.footerContent && item.footerContent}
         </>

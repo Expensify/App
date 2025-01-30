@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, SectionListRenderItemInfo} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
@@ -12,6 +12,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SectionWithIndexOffset} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -440,6 +441,13 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
+    const showCreateExpenseTooltip = useCallback(
+        ({index, section}: SectionListRenderItemInfo<Participant, SectionWithIndexOffset<Participant>>) => {
+            return section.title === translate('workspace.common.workspace') && index === 0 && section.indexOffset === 0;
+        },
+        [translate],
+    );
+
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -450,6 +458,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldShowEducationalTooltip={showCreateExpenseTooltip}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}

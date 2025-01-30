@@ -13,6 +13,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    WORKSPACE_EXPENSE,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -27,6 +28,7 @@ type TooltipData = {
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+    isModalTooltip: boolean;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -39,6 +41,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
         shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        isModalTooltip: false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
@@ -49,6 +52,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
+        isModalTooltip: false,
     },
     [GLOBAL_CREATE_TOOLTIP]: {
         content: [
@@ -60,6 +64,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1200,
         shouldShow: () => true,
+        isModalTooltip: false,
     },
     [QUICK_ACTION_BUTTON]: {
         content: [
@@ -70,6 +75,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: QUICK_ACTION_BUTTON,
         priority: 1150,
         shouldShow: () => true,
+        isModalTooltip: true,
     },
     [WORKSAPCE_CHAT_CREATE]: {
         content: [
@@ -81,6 +87,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: WORKSAPCE_CHAT_CREATE,
         priority: 1100,
         shouldShow: () => true,
+        isModalTooltip: false,
     },
     [SEARCH_FILTER_BUTTON_TOOLTIP]: {
         content: [
@@ -91,6 +98,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SEARCH_FILTER_BUTTON_TOOLTIP,
         priority: 1000,
         shouldShow: () => true,
+        isModalTooltip: false,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
@@ -102,6 +110,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: BOTTOM_NAV_INBOX_TOOLTIP,
         priority: 900,
         shouldShow: () => true,
+        isModalTooltip: false,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
@@ -113,6 +122,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
+        isModalTooltip: false,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
@@ -129,6 +139,18 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
         shouldShow: () => false,
+        isModalTooltip: false,
+    },
+    [WORKSPACE_EXPENSE]: {
+        content: [
+            {text: 'productTrainingTooltip.workspaceExpenseTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceExpenseTooltip.part2', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(WORKSPACE_EXPENSE),
+        name: WORKSPACE_EXPENSE,
+        priority: 200,
+        shouldShow: () => true,
+        isModalTooltip: true,
     },
 };
 

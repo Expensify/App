@@ -5725,6 +5725,10 @@ const translations = {
             part7: ' submit your expense',
             part8: ' and watch the magic happen!',
         },
+        workspaceExpenseTooltip: {
+            part1: 'Envía gastos',
+            part2: 'a tu empresa aquí',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

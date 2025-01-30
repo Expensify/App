@@ -6,6 +6,7 @@ import type {
     NativeScrollEvent,
     NativeSyntheticEvent,
     SectionListData,
+    SectionListRenderItemInfo,
     StyleProp,
     TargetedEvent,
     TextInput,
@@ -340,7 +341,10 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether to show the educational tooltip */
+    shouldShowEducationalTooltip: boolean;
+};
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -655,6 +659,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    shouldShowEducationalTooltip: (data: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
