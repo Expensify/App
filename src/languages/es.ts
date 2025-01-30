@@ -4479,8 +4479,8 @@ const translations = {
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Controlar, a partir de ',
             },
             companyCards: {
-                title: 'Tarjetas de empresa',
-                description: `Conecta tus tarjetas corporativas existentes a Expensify, asígnalas a empleados e importa transacciones automáticamente.`,
+                title: 'Tarjetas de empresa adicionales',
+                description: `La actualización le permite importar tarjetas de empresa de emisores de tarjetas adicionales. Puede asignar tarjetas a empleados e importar automáticamente transacciones de todos los principales emisores de tarjetas.`,
                 onlyAvailableOnPlan: 'Las tarjetas de empresa solo están disponibles en el plan Controlar, a partir de ',
             },
             rules: {

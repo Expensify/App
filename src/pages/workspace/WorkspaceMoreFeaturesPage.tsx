@@ -149,10 +149,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             if (!policyID) {
                 return;
             }
-            if (isEnabled && !isControlPolicy(policy)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-                return;
-            }
             enableCompanyCards(policyID, isEnabled, true);
         },
         disabledAction: () => {

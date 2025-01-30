@@ -80,8 +80,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 Navigation.dismissModal();
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));

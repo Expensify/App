@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,13 +14,17 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
 function SelectBankStep() {
     const {translate} = useLocalize();
+    const route = useRoute<PlatformStackRouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
@@ -50,6 +55,10 @@ function SelectBankStep() {
     }, [addNewCard?.data.selectedBank]);
 
     const handleBackButtonPress = () => {
+        if (route?.params?.backTo) {
+            Navigation.navigate(route.params.backTo);
+            return;
+        }
         Navigation.goBack();
     };
 
