@@ -1,8 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep';
+import type {OnyxKey, OnyxMergeCollectionInput, OnyxValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {UnknownRecord} from 'type-fest';
+import type {UnknownRecord, ValueOf} from 'type-fest';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
-import type {OnyxCollectionKey, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
@@ -55,7 +56,7 @@ function cleanAndTransformState<T>(state: string): T {
 
 const processStateImport = (transformedState: OnyxValues) => {
     const collectionKeys = new Set(Object.values(ONYXKEYS.COLLECTION || {}));
-    const collectionsMap = new Map<OnyxCollectionKey, OnyxValues>();
+    const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, ValueOf<OnyxValues>>();
     const regularState: Partial<OnyxValues> = {};
 
     Object.entries(transformedState).forEach(([key, value]) => {
@@ -66,10 +67,14 @@ const processStateImport = (transformedState: OnyxValues) => {
             if (!collectionsMap.has(collectionKey)) {
                 collectionsMap.set(collectionKey, {});
             }
-            const collection = collectionsMap.get(collectionKey)!;
+            const collection = collectionsMap.get(collectionKey);
+            if (!collection) {
+                return;
+            }
+
             collection[key] = value;
         } else {
-            regularState[key as keyof OnyxValues] = value;
+            regularState[key] = value;
         }
     });
 
