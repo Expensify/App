@@ -9,8 +9,8 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
-import TaskTitleRenderer from './TaskTitleRendered';
 import PreRenderer from './PreRenderer';
+import TaskTitleRenderer from './TaskTitleRendered';
 import VideoRenderer from './VideoRenderer';
 
 /**

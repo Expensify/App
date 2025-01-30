@@ -14,13 +14,13 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import {getCommentLength, getParsedComment} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
-import {getParsedComment, getCommentLength} from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Parser from '@libs/Parser';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
@@ -85,6 +85,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
                         autoGrowHeight
+                        isMarkdownEnabled
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
