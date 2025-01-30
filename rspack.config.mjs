@@ -4,6 +4,7 @@ import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import rspack from '@rspack/core';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import TerserPlugin from 'terser-webpack-plugin';
 
 const dirname = Repack.getDirname(import.meta.url);
 const {resolve} = createRequire(import.meta.url);
@@ -76,6 +77,17 @@ export default (env) => {
         optimization: {
             /** Enables minification based on values passed from React Native Community CLI or from fallback. */
             minimize,
+            minimizer: [
+                new TerserPlugin({
+                    test: /\.(js)?bundle(\?.*)?$/i,
+                    extractComments: false,
+                    terserOptions: {
+                        format: {
+                            comments: false,
+                        },
+                    },
+                }),
+            ],
             /** Configure minimizer to process the bundle. */
             chunkIds: 'named',
         },
