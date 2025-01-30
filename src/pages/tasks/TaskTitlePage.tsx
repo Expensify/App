@@ -16,15 +16,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canModifyTask, editTask} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
+import Parser from '@libs/Parser';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
@@ -51,7 +54,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== report?.reportName && !isEmptyObject(report)) {
+            if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
                 editTask(report, {title: values.title});
@@ -105,10 +108,16 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
+                                shouldSubmitForm={false}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
+                                    }
+                                    if (!inputRef.current) {
+                                        updateMultilineInputRange(inputRef.current);
                                     }
                                     if (!inputRef.current && didScreenTransitionEnd) {
                                         element.focus();
