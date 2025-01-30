@@ -16,9 +16,8 @@ import {requestValidateCodeAction} from '@libs/actions/User';
 import {clearPhysicalCardError} from '@libs/actions/Wallet';
 import {getDomainCards} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute} from '@libs/GetPhysicalCardUtils';
+import {getSubstepValues, getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute} from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSubstepValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -112,6 +111,7 @@ function BaseGetPhysicalCard({
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardToBeIssued?.cardID.toString());
     const errorMessage = getLatestErrorMessageField(cardToBeIssued);
+    const [personalDetailsFormDraftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
     useBeforeRemove(() => setActionCodeModalVisible(false));
 
@@ -172,11 +172,11 @@ function BaseGetPhysicalCard({
 
     const handleIssuePhysicalCard = useCallback(
         (validateCode: string) => {
-            const values = getSubstepValues(privatePersonalDetails, undefined);
+            const values = getSubstepValues(privatePersonalDetails, personalDetailsFormDraftValues);
             setCurrentCardID(cardToBeIssued?.cardID.toString());
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode, cardToBeIssued?.cardID ?? CONST.DEFAULT_NUMBER_ID);
         },
-        [cardToBeIssued?.cardID, privatePersonalDetails],
+        [cardToBeIssued?.cardID, privatePersonalDetails, personalDetailsFormDraftValues],
     );
 
     const handleBackButtonPress = useCallback(() => {
