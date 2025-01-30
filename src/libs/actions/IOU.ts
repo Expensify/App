@@ -152,7 +152,6 @@ import {
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpensifyCardTransaction,
-    isFetchingWaypointsFromServer,
     isOnHold,
     isPartialMerchant,
     isPending,
@@ -3307,7 +3306,6 @@ function getUpdateMoneyRequestParams(
             value: null,
         });
 
-
         // Revert the transaction's amount to the original value on failure.
         // The IOU Report will be fully reverted in the failureData further below.
         failureData.push({
@@ -3358,7 +3356,7 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: (hasPendingWaypoints ? null : {pendingAction: null}),
+                [updatedReportAction.reportActionID]: hasPendingWaypoints ? null : {pendingAction: null},
             },
         });
         failureData.push({
@@ -3702,7 +3700,7 @@ function getUpdateTrackExpenseParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: (hasPendingWaypoints ? null : {pendingAction: null}),
+                [updatedReportAction.reportActionID]: hasPendingWaypoints ? null : {pendingAction: null},
             },
         });
         failureData.push({
