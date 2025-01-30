@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getCommentLength, getParsedComment} from '@libs/ReportUtils';
+import {getCommentLength} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
