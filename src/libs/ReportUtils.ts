@@ -1043,6 +1043,10 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
+function isNewDotInvoice(report: OnyxEntry<Report>): boolean {
+    return isInvoiceRoom(getReport(report?.chatReportID));
+}
+
 /**
  * Checks if a report is an Expense report.
  */
@@ -9144,6 +9148,7 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
+    isNewDotInvoice,
     isOpenInvoiceReport,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
