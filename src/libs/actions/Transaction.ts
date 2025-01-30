@@ -312,9 +312,6 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
         default:
             throw new Error('Invalid route type');
     }
-    console.log("[wildebug] ~ file: Transaction.ts:317 ~ getRoute ~ getOnyxDataForRouteRequest(transactionID, routeType):", getOnyxDataForRouteRequest(transactionID, routeType))
-
-    
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
 /**
