@@ -27,8 +27,7 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
 
             return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
         },
-    });
-
+    }, [tripTransactionReportIDs]);
     return tripTransactions;
 }
 
