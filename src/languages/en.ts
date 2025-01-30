@@ -5396,14 +5396,14 @@ const translations = {
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             earlyDiscount: {
-                claimOffer: 'Claim Offer',
+                claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
                     phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription!`,
+                    phrase2: `Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Limited time offer:',
+                    phrase1: 'Limited-time offer:',
                     phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
