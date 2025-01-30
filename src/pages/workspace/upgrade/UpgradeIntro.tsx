@@ -98,7 +98,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>formattedPrice</Text>
+                        <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
                         {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>
