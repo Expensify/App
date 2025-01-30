@@ -131,6 +131,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumberRef,
+            resetVideoPlayerData,
         }),
         [
             updateCurrentlyPlayingURL,
@@ -143,6 +144,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             setCurrentlyPlayingURL,
+            resetVideoPlayerData,
         ],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

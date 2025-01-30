@@ -1,9 +1,10 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,17 @@ function SearchPage({route}: SearchPageProps) {
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const {resetVideoPlayerData} = usePlaybackContext();
+
+    // Handles video player cleanup:
+    // 1. On mount: Resets player if navigating from report screen
+    // 2. On unmount: Stops video when leaving this screen
+    useEffect(() => {
+        resetVideoPlayerData();
+        return () => {
+            resetVideoPlayerData();
+        };
+    }, []);
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.

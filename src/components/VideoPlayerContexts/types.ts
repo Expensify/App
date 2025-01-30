@@ -20,6 +20,7 @@ type PlaybackContext = {
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
+    resetVideoPlayerData: () => void;
 };
 
 type VolumeContext = {
