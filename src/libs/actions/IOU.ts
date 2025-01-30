@@ -200,6 +200,7 @@ type MoneyRequestInformation = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData;
+    billable?: boolean;
 };
 
 type TrackExpenseInformation = {
@@ -2787,7 +2788,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -2862,6 +2863,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             merchant,
             tag,
             customUnit,
+            billable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         },
     });
@@ -2981,6 +2983,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             successData,
             failureData,
         },
+        billable,
     };
 }
 
@@ -4460,6 +4463,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
+        billable,
     } = getPerDiemExpenseInformation({
         parentChatReport: currentChatReport,
         participantParams,
