@@ -160,6 +160,15 @@ function getForReportAction(reportOrID: string | SearchReport | undefined, repor
         'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+    const optimisticDistanceUpdateMessage = Localize.translateLocal('iou.updatedTheDistanceOptimistically');
+    const hasOptimisticDistanceUpdate =
+        hasModifiedMerchant &&
+        CONST.REGEX.DISTANCE_MERCHANT.test(reportActionOriginalMessage?.oldMerchant ?? '') &&
+        (reportActionOriginalMessage?.merchant ?? '') === optimisticDistanceUpdateMessage;
+
+    if (hasOptimisticDistanceUpdate) {
+        return optimisticDistanceUpdateMessage;
+    }
 
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
