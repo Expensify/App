@@ -37,12 +37,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {hideEmojiPicker, isActive} from '@libs/actions/EmojiPickerAction';
-import {acceptJoinRequest, declineJoinRequest} from '@libs/actions/Policy/Member';
-import {expandURLPreview} from '@libs/actions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@libs/actions/Session';
-import {isBlockedFromConcierge} from '@libs/actions/User';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
@@ -56,7 +50,6 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getAllReportActions,
-    getDeletedTransactionMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -78,7 +71,6 @@ import {
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceNameUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
@@ -90,7 +82,6 @@ import {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
-    isAddCommentAction,
     isChronosOOOListAction,
     isCreatedTaskReportAction,
     isDeletedAction,
@@ -133,7 +124,6 @@ import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import type {IgnoreDirection} from '@userActions/ReportActions';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';

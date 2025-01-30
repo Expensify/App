@@ -36,7 +36,6 @@ import {
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
-    getReportActionMessage,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
@@ -45,7 +44,6 @@ import {
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceNameUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
@@ -60,7 +58,6 @@ import {
     isTaskAction,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
-
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
