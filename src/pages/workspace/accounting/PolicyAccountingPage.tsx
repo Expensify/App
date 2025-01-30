@@ -31,7 +31,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {getConciergeReportID} from '@libs/actions/Report';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -40,14 +39,16 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    hasUnsupportedIntegration,
     isControlPolicy,
     settingsPendingAction,
+    shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import * as Link from '@userActions/Link';
+import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -102,8 +103,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
     );
 
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && PolicyUtils.hasUnsupportedIntegration(policy, accountingIntegrations);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasUnsupportedIntegration(policy, accountingIntegrations);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -548,7 +549,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         <TextLink
                                             onPress={() => {
                                                 // Go to Expensify Classic.
-                                                Link.openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
+                                                openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
                                         >
                                             {translate('workspace.accounting.goToODToFix')}
@@ -562,7 +563,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         <TextLink
                                             onPress={() => {
                                                 // Go to Expensify Classic.
-                                                Link.openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
+                                                openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
                                         >
                                             {translate('workspace.accounting.goToODToSettings')}
