@@ -64,7 +64,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 success
                 large
                 text={translate('common.continue')}
-                accessibilityLabel={translate('common.continue')}
                 onPress={() => {
                     if (!selectedCompanySize) {
                         setError(translate('onboarding.errorSelection'));

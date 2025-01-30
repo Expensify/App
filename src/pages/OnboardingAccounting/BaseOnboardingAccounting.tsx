@@ -157,7 +157,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 success
                 large
                 text={translate('common.continue')}
-                accessibilityLabel={translate('common.continue')}
                 onPress={() => {
                     if (userReportedIntegration === undefined) {
                         setError(translate('onboarding.errorSelection'));
