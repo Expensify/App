@@ -8,14 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteReimbursementAccountID} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteReimbursableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,7 +23,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
@@ -36,7 +36,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const updateReimbursementAccount = useCallback(
         ({value}: SelectorType) => {
             if (config?.reimbursementAccountID !== value) {
-                Connections.updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
+                updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -83,9 +83,9 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }

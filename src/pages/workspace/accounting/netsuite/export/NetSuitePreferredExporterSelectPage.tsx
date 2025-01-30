@@ -8,13 +8,13 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteExporter} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -30,7 +30,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [
@@ -66,7 +66,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== config?.exporter) {
-                Connections.updateNetSuiteExporter(policyID, row.value, config?.exporter ?? '');
+                updateNetSuiteExporter(policyID, row.value, config?.exporter ?? '');
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
@@ -98,9 +98,9 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER)}
         />
     );
 }

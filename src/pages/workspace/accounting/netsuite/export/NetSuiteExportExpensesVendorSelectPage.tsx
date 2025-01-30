@@ -7,15 +7,15 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteDefaultVendor} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteVendorOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,7 +23,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
 
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;
@@ -37,7 +37,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (config?.defaultVendor !== value) {
-                Connections.updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
+                updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
@@ -74,9 +74,9 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={isReimbursable || config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
         />
     );
 }

@@ -7,15 +7,15 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuitePayableAcct, updateNetSuiteReimbursablePayableAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuitePayableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,7 +23,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
 
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;
@@ -40,9 +40,9 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
         ({value}: SelectorType) => {
             if (currentPayableAccountID !== value) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? '');
+                    updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? '');
                 } else {
-                    Connections.updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? '');
+                    updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? '');
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
@@ -84,9 +84,9 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
                     : config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
             }
             pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, currentSettingName)}
+            errors={getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, currentSettingName)}
+            onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
         />
     );
 }

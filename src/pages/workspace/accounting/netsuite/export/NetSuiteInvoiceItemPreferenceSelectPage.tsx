@@ -10,13 +10,13 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteInvoiceItemPreference} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {areSettingsInErrorFields, findSelectedInvoiceItemWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -27,7 +27,7 @@ type MenuListItem = ListItem & {
 function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const config = policy?.connections?.netsuite?.options.config;
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
@@ -45,7 +45,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const selectInvoicePreference = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.invoiceItemPreference) {
-                Connections.updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
+                updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
             }
             if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
                 Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
@@ -70,9 +70,9 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         >
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+                errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
-                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+                onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >

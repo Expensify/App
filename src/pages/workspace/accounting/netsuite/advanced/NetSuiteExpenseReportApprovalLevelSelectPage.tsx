@@ -8,13 +8,13 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteExportReportsTo} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_REPORTS_APPROVAL_LEVEL).map((approvalType) => ({
@@ -46,7 +46,7 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.syncOptions.exportReportsTo) {
-                Connections.updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
+                updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -69,9 +69,9 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
         />
     );
 }

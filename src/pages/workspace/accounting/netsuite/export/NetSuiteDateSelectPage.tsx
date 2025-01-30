@@ -8,13 +8,13 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteExportDate} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;
     const selectedValue = Object.values(CONST.NETSUITE_EXPORT_DATE).find((value) => value === config?.exportDate) ?? CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE;
@@ -48,7 +48,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.exportDate) {
-                Connections.updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
+                updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
@@ -70,9 +70,9 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_DATE], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
         />
     );
 }
