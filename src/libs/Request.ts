@@ -18,7 +18,7 @@ function makeXHR(request: Request): Promise<Response | void> {
             });
         }
 
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
 
