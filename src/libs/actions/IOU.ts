@@ -4489,6 +4489,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         tag,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        billable,
     };
 
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
