@@ -6246,8 +6246,8 @@ const translations = {
             part8: ' ¡observa cómo ocurre la magia!',
         },
         workspaceExpenseTooltip: {
-            part1: 'Submit expenses',
-            part2: 'to your company here',
+            part1: 'Envía gastos',
+            part2: ' a tu empresa aquí',
         },
     },
     discardChangesConfirmation: {

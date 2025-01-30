@@ -443,9 +443,15 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const showCreateExpenseTooltip = useCallback(
         ({index, section}: SectionListRenderItemInfo<Participant, SectionWithIndexOffset<Participant>>) => {
+            const expenseIOUActions: IOUAction[] = [CONST.IOU.ACTION.CREATE];
+            const expenseIOUTypes: IOUType[] = [CONST.IOU.TYPE.CREATE];
+            if (!expenseIOUActions.includes(action) || !expenseIOUTypes.includes(iouType)) {
+                return false;
+            }
+
             return section.title === translate('workspace.common.workspace') && index === 0 && section.indexOffset === 0;
         },
-        [translate],
+        [translate, action, iouType],
     );
 
     return (
