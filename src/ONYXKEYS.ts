@@ -324,7 +324,7 @@ const ONYXKEYS = {
 
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark" or "system"
-    PREFERRED_THEME: 'preferredTheme',
+    PREFERRED_THEME: 'nvp_preferredTheme',
 
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
