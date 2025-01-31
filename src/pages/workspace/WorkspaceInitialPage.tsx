@@ -395,7 +395,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={() => Navigation.goBack(ROUTES.HOME)}
+                onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
             >

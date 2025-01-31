@@ -250,32 +250,31 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
 function goUp(fallbackRoute: Route, options?: GoBackOptions) {
-    if (!canNavigate('goUp')) {
+    if (!canNavigate('goUp') || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
         return;
     }
 
-    if (!navigationRef.current) {
-        Log.hmmm('[Navigation] Unable to go up');
-        return;
-    }
+    const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
 
     const rootState = navigationRef.current.getRootState();
     const stateFromPath = getStateFromPath(fallbackRoute);
+
     const action = getActionFromState(stateFromPath, linkingConfig.config);
 
     if (!action) {
+        Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
         return;
     }
 
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
 
     if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
+        Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
         return;
     }
 
-    const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
     const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
-
     const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
@@ -341,6 +340,27 @@ function resetToHome() {
         : undefined;
     const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
     navigationRef.dispatch({payload, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootState.key});
+}
+
+/**
+ * The goBack function doesn't support recursive pop e.g. pop route from root and then from nested navigator.
+ * There is only one case where recursive pop is needed which is going back to home.
+ * This function will cover this case.
+ * We will implement recursive pop if more use cases will appear.
+ */
+function goBackToHome() {
+    const isNarrowLayout = getIsNarrowLayout();
+
+    // This set the right split navigator.
+    goBack(ROUTES.HOME);
+
+    // We want to keep the report screen in the split navigator on wide layout.
+    if (!isNarrowLayout) {
+        return;
+    }
+
+    // This set the right route in this split navigator.
+    goBack(ROUTES.HOME);
 }
 
 /**
@@ -550,6 +570,7 @@ export default {
     waitForProtectedRoutes,
     parseHybridAppUrl,
     resetToHome,
+    goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
