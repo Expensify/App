@@ -28,7 +28,7 @@ const ownerFilesFields = [PROOF_OF_OWNERSHIP, COPY_OF_ID, ADDRESS_PROOF, CODICE_
 
 function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
     const ownerDetails: Record<BeneficialOwnerDataKey, string | FileObject[]> = {};
-    const ownerFiles: Record<BeneficialOwnerDataKey, string | FileObject[]> = {};
+    const ownerFiles: Record<BeneficialOwnerDataKey, string | FileObject> = {};
 
     ownerKeys.forEach((ownerKey) => {
         const ownerDetailsFullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
@@ -75,7 +75,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            ownerFiles[ownerFilesKey] = reimbursementAccountDraft?.[ownerFilesKey];
+            ownerFiles[ownerFilesKey] = reimbursementAccountDraft?.[ownerFilesKey][0];
         });
     });
 

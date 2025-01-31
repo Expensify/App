@@ -188,7 +188,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         'payload' in action &&
         action.payload &&
         'name' in action.payload &&
-        (isSideModalNavigator(action.payload.name) || action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR)
+        (isSideModalNavigator(action.payload.name) || (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR && type !== CONST.NAVIGATION.TYPE.UP))
     ) {
         // Information about the state may be in the params.
         const currentFocusedRoute = findFocusedRoute(extrapolateStateFromParams(rootState));
