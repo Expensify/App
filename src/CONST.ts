@@ -4664,14 +4664,6 @@ const CONST = {
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
     },
-    TWO_FACTOR_AUTH_STEPS: {
-        CODES: 'CODES',
-        VERIFY: 'VERIFY',
-        SUCCESS: 'SUCCESS',
-        ENABLED: 'ENABLED',
-        DISABLED: 'DISABLED',
-        GETCODE: 'GETCODE',
-    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
