@@ -66,7 +66,9 @@ filterList
       const keywordFilter = buildFilter(
         "eq",
         "keyword",
-        keywords.map((filter) => filter.right.replace(/^(['"])(.*)\1$/, '$2')).flat()
+        keywords
+          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .flat()
       );
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
@@ -84,12 +86,13 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ { //handle no-breaking space
-      let word
+  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ {
+      //handle no-breaking space
+      let word;
       if (Array.isArray(value)) {
-        word = value.join("")
-      }else{
-        word = value
+        word = value.join("");
+      } else {
+        word = value;
       }
       if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
         return buildFilter("eq", "keyword", word.slice(1, -1));
@@ -126,8 +129,7 @@ key "key"
       / posted
     )
 
-defaultKey "default key"
-  = @(type / status / sortBy / sortOrder / policyID)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID)
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
