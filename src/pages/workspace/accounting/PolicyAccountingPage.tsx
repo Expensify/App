@@ -259,6 +259,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowDescriptionOnTop: true,
+                          interactive: false,
                       };
 
             default:
