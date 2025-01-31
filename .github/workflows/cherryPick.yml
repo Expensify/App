@@ -39,6 +39,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify

@@ -27,7 +27,6 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -75,14 +74,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             workspaceInviteMessageDraft ??
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (Parser.htmlToMarkdown(policy?.description ?? '') ||
-                translate('workspace.common.welcomeNote', {
-                    workspaceName: policy?.name ?? '',
-                }))
+            translate('workspace.common.welcomeNote')
         );
-    }, [workspaceInviteMessageDraft, policy, translate, formData]);
+    }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
         if (isOnyxLoading) {

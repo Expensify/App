@@ -16,13 +16,13 @@ type ReceiptDropUIProps = {
     receiptImageTopPosition?: number;
 };
 
-function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
+function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={[receiptImageTopPosition ? styles.fileUploadImageWrapper(receiptImageTopPosition) : null]}>
+                <View style={styles.fileUploadImageWrapper(receiptImageTopPosition)}>
                     <ImageSVG
                         src={ReceiptUpload}
                         contentFit="contain"

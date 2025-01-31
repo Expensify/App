@@ -22,8 +22,8 @@ import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -824,7 +824,6 @@ function MoneyRequestConfirmationListFooter({
                     ? receiptThumbnailContent
                     : shouldShowReceiptEmptyState && (
                           <ReceiptEmptyState
-                              transactionID={transactionID}
                               onPress={() => {
                                   if (!transactionID) {
                                       return;
@@ -832,7 +831,6 @@ function MoneyRequestConfirmationListFooter({
 
                                   Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                               }}
-                              shouldAllowReceiptDrop
                           />
                       ))}
             {primaryFields}

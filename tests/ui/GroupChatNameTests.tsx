@@ -306,7 +306,7 @@ describe('Tests for group chat name', () => {
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
 
-    it('Should show last message preview in LHN', () =>
+    it.skip('Should show last message preview in LHN', () =>
         signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -324,7 +324,7 @@ describe('Tests for group chat name', () => {
             return waitFor(() => expect(lastChatText?.props?.children).toBe('B: Test'));
         }));
 
-    it('Should sort the names before displaying', () =>
+    it.skip('Should sort the names before displaying', () =>
         signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4]).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');

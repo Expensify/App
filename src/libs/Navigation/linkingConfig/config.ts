@@ -155,6 +155,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
+                            path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
                             exact: true,
