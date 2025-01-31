@@ -661,6 +661,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
         },
 
+        buttonDefaultSelected: {
+            backgroundColor: theme.buttonPressedBG,
+            borderWidth: 0,
+        },
+
         buttonSuccess: {
             backgroundColor: theme.success,
             borderWidth: 0,

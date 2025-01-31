@@ -208,8 +208,6 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
-type WelcomeNoteParams = {workspaceName: string};
-
 type RoomNameReservedErrorParams = {reservedName: string};
 
 type RenamedRoomActionParams = {oldName: string; newName: string};
@@ -773,7 +771,6 @@ export type {
     WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
