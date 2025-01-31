@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,10 +17,10 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -39,68 +39,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
-import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
+import getFieldsForStep from './USD/utils/getFieldsForStep';
+import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
-
-/**
- * We can pass stepToOpen in the URL to force which step to show.
- * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
- */
-function getStepToOpenFromRouteParams(route: PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
-    switch (route.params.stepToOpen) {
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW:
-            return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.COMPANY:
-            return CONST.BANK_ACCOUNT.STEP.COMPANY;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.PERSONAL_INFORMATION:
-            return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.BENEFICIAL_OWNERS:
-            return CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.CONTRACT:
-            return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.VALIDATE:
-            return CONST.BANK_ACCOUNT.STEP.VALIDATION;
-        case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.ENABLE:
-            return CONST.BANK_ACCOUNT.STEP.ENABLE;
-        default:
-            return '';
-    }
-}
-
-/**
- * Returns selected bank account fields based on field names provided.
- */
-function getFieldsForStep(step: TBankAccountStep): InputID[] {
-    switch (step) {
-        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
-        case CONST.BANK_ACCOUNT.STEP.COMPANY:
-            return [
-                'companyName',
-                'addressStreet',
-                'addressZipCode',
-                'addressCity',
-                'addressState',
-                'companyPhone',
-                'website',
-                'companyTaxID',
-                'incorporationType',
-                'incorporationDate',
-                'incorporationState',
-            ];
-        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-            return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
-        default:
-            return [];
-    }
-}
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
     const session = useSession();
@@ -154,23 +103,19 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return !!achData?.bankAccountID && !!achData?.created;
     }
 
-    /*
+    /**
      * Calculates the state used to show the "Continue with setup" view.
      * for non USD workspace we check if first big step was passed
      * for USD workspace, if a bank account setup is already in progress and no specific further step was passed in the url
      * we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    function getShouldShowContinueSetupButtonInitialValue(): boolean {
+    const getShouldShowContinueSetupButtonInitialValue = useCallback(() => {
         if (hasForeignCurrency) {
             return hasInProgressNonUSDVBBA();
         }
 
-        if (!hasInProgressVBBA()) {
-            return false;
-        }
-
-        return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
-    }
+        return hasInProgressVBBA();
+    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -180,7 +125,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(() => getShouldShowContinueSetupButtonInitialValue());
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean | null>(null);
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -272,6 +217,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
+
+    useEffect(() => {
+        if (!hasACHDataBeenLoaded) {
+            return;
+        }
+
+        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
+    }, [getShouldShowContinueSetupButtonInitialValue, hasACHDataBeenLoaded]);
 
     const continueUSDVBBASetup = () => {
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
@@ -426,7 +379,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    if (shouldShowContinueSetupButton) {
+    if (shouldShowContinueSetupButton === true) {
         return (
             <ContinueBankAccountSetup
                 reimbursementAccount={reimbursementAccount}
