@@ -874,11 +874,12 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
-    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
-    if (!reportAction) {
+function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>) {
+    if (!reportAction || !reportID) {
+        Log.warn('acceptJoinRequest missing reportID or reportAction', {reportAction, reportID});
         return;
     }
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -933,8 +934,9 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
-    if (!reportAction) {
+function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>) {
+    if (!reportAction || !reportID) {
+        Log.warn('declineJoinRequest missing reportID or reportAction', {reportAction, reportID});
         return;
     }
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE;

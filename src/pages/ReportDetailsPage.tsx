@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
@@ -31,21 +32,11 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    cancelPayment as cancelPaymentIOU,
-    deleteMoneyRequest,
-    deleteTrackExpense,
-    getNavigationUrlAfterTrackExpenseDelete,
-    getNavigationUrlOnMoneyRequestDelete,
-    unapproveExpenseReport,
-} from '@libs/actions/IOU';
-import {checkIfActionIsAllowed} from '@libs/actions/Session';
-import {canActionTask as canActionTaskActions, canModifyTask as canModifyTaskActions, deleteTask, reopenTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getConnectedIntegration, isPolicyAdmin, isPolicyEmployee, isSubmitAndClose, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, isSubmitAndClose, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -57,8 +48,8 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     canDeleteTransaction,
-    canEditReportDescription as canEditReportDescriptionReportUtils,
-    canHoldUnholdReportAction as canHoldUnholdReportActionReportUtils,
+    canEditReportDescription as canEditReportDescriptionUtil,
+    canHoldUnholdReportAction as canHoldUnholdReportActionUtil,
     canJoinChat,
     canLeaveChat,
     canWriteInReport,
@@ -75,44 +66,52 @@ import {
     getReportFieldKey,
     getReportName,
     isAdminOwnerApproverOrReportOwner,
-    isArchivedNonExpenseReport as isArchivedNonExpenseReportReportUtils,
-    isCanceledTaskReport as isCanceledTaskReportReportUtils,
-    isChatRoom as isChatRoomReportUtils,
-    isChatThread as isChatThreadReportUtils,
+    isArchivedNonExpenseReport,
+    isCanceledTaskReport as isCanceledTaskReportUtil,
+    isChatRoom as isChatRoomUtil,
+    isChatThread as isChatThreadUtil,
     isClosedReport,
     isCompletedTaskReport,
     isConciergeChatReport,
-    isDefaultRoom as isDefaultRoomReportUtils,
-    isExpenseReport as isExpenseReportReportUtils,
+    isDefaultRoom as isDefaultRoomUtil,
+    isExpenseReport as isExpenseReportUtil,
     isExported,
-    isGroupChat as isGroupChatReportUtils,
+    isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
-    isInvoiceReport as isInvoiceReportReportUtils,
-    isInvoiceRoom as isInvoiceRoomReportUtils,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isMoneyRequest as isMoneyRequestReportUtils,
-    isPayer as isPayerReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
-    isPublicRoom,
-    isReportApproved,
+    isInvoiceReport as isInvoiceReportUtil,
+    isInvoiceRoom as isInvoiceRoomUtil,
+    isMoneyRequestReport as isMoneyRequestReportUtil,
+    isMoneyRequest as isMoneyRequestUtil,
+    isPayer as isPayerUtil,
+    isPolicyExpenseChat as isPolicyExpenseChatUtil,
+    isPublicRoom as isPublicRoomUtil,
+    isReportApproved as isReportApprovedUtil,
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
-    isReportManager,
-    isRootGroupChat as isRootGroupChatReportUtils,
-    isSelfDM as isSelfDMReportUtils,
-    isSettled as isSettledReportUtils,
-    isSystemChat as isSystemChatReportUtils,
-    isTaskReport as isTaskReportReportUtils,
-    isThread as isThreadReportUtils,
-    isTrackExpenseReport as isTrackExpenseReportReportUtils,
-    isUserCreatedPolicyRoom as isUserCreatedPolicyRoomReportUtils,
+    isReportManager as isReportManagerUtil,
+    isRootGroupChat as isRootGroupChatUtil,
+    isSelfDM as isSelfDMUtil,
+    isSettled as isSettledUtil,
+    isSystemChat as isSystemChatUtil,
+    isTaskReport as isTaskReportUtil,
+    isThread as isThreadUtil,
+    isTrackExpenseReport as isTrackExpenseReportUtil,
+    isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
-    shouldDisableRename as shouldDisableRenameReportUtils,
-    shouldUseFullTitleToDisplay as shouldUseFullTitleToDisplayReportUtils,
+    reportTransactionsSelector,
+    shouldDisableRename as shouldDisableRenameUtil,
+    shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getAllReportTransactions} from '@libs/TransactionUtils';
+import {
+    cancelPayment as cancelPaymentAction,
+    deleteMoneyRequest,
+    deleteTrackExpense,
+    getNavigationUrlAfterTrackExpenseDelete,
+    getNavigationUrlOnMoneyRequestDelete,
+    unapproveExpenseReport,
+} from '@userActions/IOU';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
@@ -125,7 +124,8 @@ import {
     setDeleteTransactionNavigateBackUrl,
     updateGroupChatAvatar,
 } from '@userActions/Report';
-import ConfirmModal from '@src/components/ConfirmModal';
+import {checkIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -185,7 +185,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => reportTransactionsSelector(_transactions, report.reportID),
+        initialValue: [],
+    });
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -194,30 +197,30 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
-    const isUserPolicyAdmin = useMemo(() => isPolicyAdmin(policy), [policy]);
-    const isUserPolicyEmployee = useMemo(() => isPolicyEmployee(report?.policyID, policies), [report?.policyID, policies]);
-    const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatReportUtils(report), [report]);
-    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplayReportUtils(report), [report]);
-    const isChatRoom = useMemo(() => isChatRoomReportUtils(report), [report]);
-    const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomReportUtils(report), [report]);
-    const isDefaultRoom = useMemo(() => isDefaultRoomReportUtils(report), [report]);
-    const isChatThread = useMemo(() => isChatThreadReportUtils(report), [report]);
-    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReportReportUtils(report, reportNameValuePairs), [report, reportNameValuePairs]);
-    const isMoneyRequestReport = useMemo(() => isMoneyRequestReportReportUtils(report), [report]);
-    const isMoneyRequest = useMemo(() => isMoneyRequestReportUtils(report), [report]);
-    const isInvoiceReport = useMemo(() => isInvoiceReportReportUtils(report), [report]);
-    const isInvoiceRoom = useMemo(() => isInvoiceRoomReportUtils(report), [report]);
-    const isTaskReport = useMemo(() => isTaskReportReportUtils(report), [report]);
-    const isSelfDM = useMemo(() => isSelfDMReportUtils(report), [report]);
-    const isTrackExpenseReport = isTrackExpenseReportReportUtils(report);
+    const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
+    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplay(report), [report]);
+    const isChatRoom = useMemo(() => isChatRoomUtil(report), [report]);
+    const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
+    const isDefaultRoom = useMemo(() => isDefaultRoomUtil(report), [report]);
+    const isChatThread = useMemo(() => isChatThreadUtil(report), [report]);
+    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtil(report), [report]);
+    const isMoneyRequest = useMemo(() => isMoneyRequestUtil(report), [report]);
+    const isInvoiceReport = useMemo(() => isInvoiceReportUtil(report), [report]);
+    const isInvoiceRoom = useMemo(() => isInvoiceRoomUtil(report), [report]);
+    const isTaskReport = useMemo(() => isTaskReportUtil(report), [report]);
+    const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
+    const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report), [report]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const isCanceledTaskReport = isCanceledTaskReportReportUtils(report, parentReportAction);
-    const canEditReportDescription = useMemo(() => canEditReportDescriptionReportUtils(report, policy), [report, policy]);
+    const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
+    const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMReportUtils(parentReport);
-    const shouldDisableRename = useMemo(() => shouldDisableRenameReportUtils(report), [report]);
+    const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
+    const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report), [report]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
@@ -229,22 +232,22 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return '';
     }, [report]);
-    const isSystemChat = useMemo(() => isSystemChatReportUtils(report), [report]);
-    const isGroupChat = useMemo(() => isGroupChatReportUtils(report), [report]);
-    const isRootGroupChat = useMemo(() => isRootGroupChatReportUtils(report), [report]);
-    const isThread = useMemo(() => isThreadReportUtils(report), [report]);
-    const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isUserPolicyAdmin);
+    const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
+    const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
+    const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report), [report]);
+    const isThread = useMemo(() => isThreadUtil(report), [report]);
+    const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = useMemo(() => {
         return getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = getConnectedIntegration(policy);
 
     const transactionIDList = useMemo(() => {
-        if (!isMoneyRequestReport) {
+        if (!isMoneyRequestReport || !transactions) {
             return [];
         }
-        return getAllReportTransactions(report.reportID, transactions).map((transaction) => transaction.transactionID);
-    }, [isMoneyRequestReport, report.reportID, transactions]);
+        return transactions.map((transaction) => transaction.transactionID);
+    }, [isMoneyRequestReport, transactions]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -294,14 +297,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const canModifyTask = canModifyTaskActions(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const canActionTask = canActionTaskActions(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const canModifyTask = canModifyTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const canActionTask = canActionTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
-    const canUnapproveRequest = isExpenseReportReportUtils(report) && (isReportManager(report) || isUserPolicyAdmin) && isReportApproved(report) && !isSubmitAndClose(policy);
+    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil(report) && !isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -327,10 +330,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isUserPolicyEmployee;
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isUserPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = isExported(moneyRequestReportActions);
@@ -354,7 +357,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const reportName = getReportName(report);
 
     const additionalRoomDetails =
-        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportReportUtils(report) || isPolicyExpenseChat || isInvoiceRoom
+        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
@@ -371,10 +374,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
-    const isPayer = isPayerReportUtils(session, moneyRequestReport);
-    const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
+    const isPayer = isPayerUtil(session, moneyRequestReport);
+    const isSettled = isSettledUtil(moneyRequestReport?.reportID);
 
-    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && isExpenseReportReportUtils(moneyRequestReport);
+    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && isExpenseReportUtil(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
@@ -384,7 +387,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentIOU(moneyRequestReport, chatReport);
+        cancelPaymentAction(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
@@ -405,9 +408,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if (
             (isGroupChat ||
-                (isDefaultRoom && isChatThread && isUserPolicyEmployee) ||
+                (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
-                (isUserCreatedPolicyRoom && (isUserPolicyEmployee || (isChatThread && !isPublicRoom(report))))) &&
+                (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
             !isConciergeChatReport(report) &&
             !isSystemChat
         ) {
@@ -426,7 +429,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     }
                 },
             });
-        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isUserPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isUserPolicyEmployee)) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -546,7 +549,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (policy && connectedIntegration && isUserPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -623,7 +626,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isGroupChat,
         isDefaultRoom,
         isChatThread,
-        isUserPolicyEmployee,
+        isPolicyEmployee,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
@@ -640,7 +643,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         shouldShowLeaveButton,
         policy,
         connectedIntegration,
-        isUserPolicyAdmin,
+        isPolicyAdmin,
         isSingleTransactionView,
         isExpenseReport,
         canUnapproveRequest,
@@ -734,11 +737,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const canHoldUnholdReportAction = canHoldUnholdReportActionReportUtils(moneyRequestAction);
+    const canHoldUnholdReportAction = canHoldUnholdReportActionUtil(moneyRequestAction);
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !isArchivedNonExpenseReportReportUtils(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
+        !isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, transactionThreadReportID ? reportNameValuePairs : parentReportNameValuePairs);
     const canJoin = canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
@@ -795,7 +798,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             shouldUseFullTitle={shouldUseFullTitle}
                         />
                     </View>
-                    {isUserPolicyAdmin ? (
+                    {isPolicyAdmin ? (
                         <PressableWithoutFeedback
                             style={[styles.w100]}
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}

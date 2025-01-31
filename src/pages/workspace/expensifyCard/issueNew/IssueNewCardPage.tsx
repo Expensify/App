@@ -2,12 +2,12 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {startIssueNewCardFlow} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -21,17 +21,15 @@ import LimitTypeStep from './LimitTypeStep';
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-
+    const policyID = policy?.id;
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
-
-    const policyID = policy?.id ?? '-1';
     const backTo = route?.params?.backTo;
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
-        Card.startIssueNewCardFlow(policyID);
+        startIssueNewCardFlow(policyID);
     }, [policyID]);
 
     const getCurrentStep = () => {
@@ -39,13 +37,13 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
                 return <AssigneeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
-                return <CardTypeStep />;
+                return <CardTypeStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:
                 return <LimitTypeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT:
-                return <LimitStep />;
+                return <LimitStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
-                return <CardNameStep />;
+                return <CardNameStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
                 return (
                     <ConfirmationStep
