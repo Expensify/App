@@ -27,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import {getAll, save} from './PersistedRequests';
+import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
@@ -571,6 +571,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
 
+    rollbackOngoingRequest();
     Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
