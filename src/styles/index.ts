@@ -3685,13 +3685,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        searchRouterInputResults: {
+        searchAutocompleteInputResults: {
             backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
 
-        searchRouterInputResultsFocused: {
+        searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
