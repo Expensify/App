@@ -104,8 +104,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     });
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
 
-    const {canUsePrivateDomainOnboardingCheck} = usePermissions();
-
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
             return;
@@ -114,7 +112,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
         if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, canUsePrivateDomainOnboardingCheck), linkingConfig.config);
+            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
             return adaptedState;
         }
 
