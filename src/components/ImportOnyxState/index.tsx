@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
+import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +21,7 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             return;
         }
 
+        rollbackOngoingRequest();
         setIsLoading(true);
 
         const blob = new Blob([file as BlobPart]);

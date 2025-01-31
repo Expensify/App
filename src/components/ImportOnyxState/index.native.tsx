@@ -34,7 +34,6 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
         }
 
         rollbackOngoingRequest();
-
         setIsLoading(true);
         readOnyxFile(file.uri)
             .then((fileContent: string) => {

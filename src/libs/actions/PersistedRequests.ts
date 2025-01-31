@@ -15,6 +15,7 @@ Onyx.connect({
 
         if (ongoingRequest && persistedRequests.length > 0) {
             const nextRequestToProcess = persistedRequests.at(0);
+
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
             if (isEqual(nextRequestToProcess, ongoingRequest)) {
