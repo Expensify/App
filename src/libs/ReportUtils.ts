@@ -4334,6 +4334,10 @@ function getReportName(
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
+    const {report, policy} = props;
+    if (isChatThread(report) && policy?.name) {
+        return policy.name;
+    }
     return getReportNameInternal(props);
 }
 

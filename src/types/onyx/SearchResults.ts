@@ -170,6 +170,9 @@ type SearchReport = {
 
     /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
+
+    /** Whether the user is not an admin of policyExpenseChat chat */
+    isOwnPolicyExpenseChat?: boolean;
 };
 
 /** Model of report action search result */
