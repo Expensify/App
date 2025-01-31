@@ -228,8 +228,8 @@ const ONYXKEYS = {
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
-    /** Does this user have push notifications enabled for this device? */
-    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
+    /** A timestamp of when the last full reconnect should have been done */
+    NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
@@ -324,7 +324,7 @@ const ONYXKEYS = {
 
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark" or "system"
-    PREFERRED_THEME: 'preferredTheme',
+    PREFERRED_THEME: 'nvp_preferredTheme',
 
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
@@ -418,9 +418,6 @@ const ONYXKEYS = {
     /** Stores the last export method for policy */
     LAST_EXPORT_METHOD: 'lastExportMethod',
 
-    /** Stores the information about the state of issuing a new card */
-    ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
-
     /** Stores the information about the state of addint a new company card */
     ADD_NEW_COMPANY_CARD: 'addNewCompanyCard',
 
@@ -478,6 +475,12 @@ const ONYXKEYS = {
 
     /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
     CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
+
+    /** Timestamp of when the last full reconnect was done on this client */
+    LAST_FULL_RECONNECT_TIME: 'lastFullReconnectTime',
+
+    /** Information about travel provisioning process */
+    TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Collection Keys */
     COLLECTION: {
@@ -562,6 +565,9 @@ const ONYXKEYS = {
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
+
+        /** Stores the information about the state of issuing a new card */
+        ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
     },
 
     /** List of Form ids */
@@ -903,6 +909,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeed;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
+    [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
 };
 
 type OnyxValuesMapping = {
@@ -969,7 +976,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
-    [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
@@ -1042,7 +1048,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING]: boolean;
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
-    [ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
@@ -1052,6 +1057,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
+    [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1067,6 +1073,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
+    [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
+    [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

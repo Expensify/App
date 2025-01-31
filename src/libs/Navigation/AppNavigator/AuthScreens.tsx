@@ -1,8 +1,8 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
@@ -53,6 +53,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,7 +61,6 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
@@ -78,6 +78,17 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorOptions from './useRootNavigatorOptions';
+
+type AuthScreensProps = {
+    /** Session of currently logged in user */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: OnyxEntry<string>;
+
+    /** The last Onyx update ID was applied to the client */
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
+};
 
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -230,10 +241,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -245,10 +253,14 @@ function AuthScreens() {
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
-    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
-    const isLastOpenedPublicRoomIDLoadedRef = useRef(false);
-    const isInitialLastUpdateIDAppliedToClientLoadedRef = useRef(false);
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('state', () => {
+            PriorityMode.autoSwitchToFocusMode();
+        });
+        return () => unsubscribe();
+    }, [navigation]);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -275,37 +287,6 @@ function AuthScreens() {
     }, [theme]);
 
     useEffect(() => {
-        if (isLastOpenedPublicRoomIDLoading || isLastOpenedPublicRoomIDLoadedRef.current) {
-            return;
-        }
-
-        isLastOpenedPublicRoomIDLoadedRef.current = true;
-        if (lastOpenedPublicRoomID) {
-            // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
-        }
-    }, [isLastOpenedPublicRoomIDLoading, lastOpenedPublicRoomID]);
-
-    useEffect(() => {
-        if (isInitialLastUpdateIDAppliedToClientLoading || isInitialLastUpdateIDAppliedToClientLoadedRef.current) {
-            return;
-        }
-
-        isInitialLastUpdateIDAppliedToClientLoadedRef.current = true;
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!NativeModules.HybridAppModule) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-            if (SessionUtils.didUserLogInDuringSession()) {
-                App.openApp();
-            } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
-            }
-        }
-    }, [initialLastUpdateIDAppliedToClient, isInitialLastUpdateIDAppliedToClientLoading]);
-
-    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
@@ -325,12 +306,28 @@ function AuthScreens() {
         PusherConnectionManager.init();
         initializePusher();
 
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!NativeModules.HybridAppModule) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+            if (SessionUtils.didUserLogInDuringSession()) {
+                App.openApp();
+            } else {
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+            }
+        }
+
         PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
 
+        if (lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
+        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({
@@ -385,7 +382,7 @@ function AuthScreens() {
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Session.checkIfActionIsAllowed(() => {
+                Session.callFunctionIfActionIsAllowed(() => {
                     const state = navigationRef.getRootState();
                     const currentFocusedRoute = findFocusedRoute(state);
                     if (isOnboardingFlowName(currentFocusedRoute?.name)) {
@@ -402,7 +399,7 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -662,5 +659,20 @@ function AuthScreens() {
 
 AuthScreens.displayName = 'AuthScreens';
 
-// This memo is needed because <AuthScreens> is one of the main components in the app and navigation root and is relevant for the app performance.
-export default memo(AuthScreens);
+const AuthScreensMemoized = memo(AuthScreens, () => true);
+
+// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
+// Further analysis required and more details can be seen here:
+// https://github.com/Expensify/App/issues/50560
+// eslint-disable-next-line
+export default withOnyx<AuthScreensProps, AuthScreensProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    initialLastUpdateIDAppliedToClient: {
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+})(AuthScreensMemoized);

@@ -87,6 +87,10 @@ const restrictedImportPaths = [
         importNames: ['memoize'],
         message: "Please use '@src/libs/memoize' instead.",
     },
+    {
+        name: 'react-native-animatable',
+        message: "Please use 'react-native-reanimated' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
