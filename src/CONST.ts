@@ -16,6 +16,8 @@ import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+const DEFAULT_NUMBER_ID = 0;
+
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -898,7 +900,7 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
-    DEFAULT_NUMBER_ID: 0,
+    DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -6525,6 +6527,7 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
     },
+    SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
