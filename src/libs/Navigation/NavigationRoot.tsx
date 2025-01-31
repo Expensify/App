@@ -19,6 +19,7 @@ import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -175,7 +176,21 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         if (!lastRoute) {
             return;
         }
-        navigationRef.reset({...rootState, index: 0, routes: [{...lastRoute, params: {}}]});
+
+        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
+        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
+        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
+        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        navigationRef.reset({
+            ...rootState,
+            index: 0,
+            routes: [
+                {
+                    ...lastRoute,
+                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
+                },
+            ],
+        });
     }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
