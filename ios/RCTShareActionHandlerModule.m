@@ -4,7 +4,7 @@
 #import <React/RCTLog.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-NSString *const ShareExtensionGroupIdentifier = @"group.com.expensify.new";
+NSString *const ShareExtensionGroupId = @"group.com.expensify.new";
 NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 @implementation RCTShareActionHandlerModule
@@ -19,8 +19,8 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
 }
 
 - (NSArray *)fileListFromSharedContainer {
-    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupIdentifier];
-    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupIdentifier];
+    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupId];
+    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupId];
     if (groupURL == NULL) {
         NSLog(@"Missing app group url");
         return @[];
