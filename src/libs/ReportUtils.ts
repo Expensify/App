@@ -62,7 +62,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -6452,6 +6452,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    shouldEscapeText = true,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6466,7 +6467,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: getParsedComment(title ?? ''),
-        description: getParsedComment(description ?? ''),
+        description: getParsedComment(description ?? '', {shouldEscapeText}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -9255,6 +9256,7 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
+    prepareOnboardingOnyxData,
 };
 
 export type {
