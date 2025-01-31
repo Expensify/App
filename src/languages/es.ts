@@ -2563,6 +2563,12 @@ const translations = {
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
             confirmation: 'Número de confirmación',
+            cancellationPolicies: {
+                unknown: 'Desconocido',
+                nonRefundable: 'No reembolsable',
+                freeCancellationUntil: 'Cancelación gratuita hasta',
+                partiallyRefundable: 'Parcialmente reembolsable',
+            },
         },
         car: 'Auto',
         carDetails: {
