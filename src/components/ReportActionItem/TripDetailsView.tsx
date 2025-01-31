@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -104,7 +105,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
                     numberOfLines={1}
                     style={[styles.textStrong, styles.lh20]}
                 >
-                    {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName}
+                    {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '')}
                 </Text>
                 {!!bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
             </View>
