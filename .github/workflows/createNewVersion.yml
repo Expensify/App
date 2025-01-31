@@ -87,6 +87,7 @@ jobs:
         run: |
           cd Mobile-Expensify
           git fetch --depth=1 origin main
+          git checkout main
           git reset --hard origin/main
 
       - name: Generate HybridApp version
