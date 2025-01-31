@@ -15,6 +15,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
+import useTranslator from '@hooks/useTranslator';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
@@ -96,6 +97,9 @@ function ReportActionItemFragment({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    let localFragment = {...fragment};
+    const text = useTranslator(localFragment?.html, 'eng_Latn', 'por_Latn');
+    localFragment = {...fragment, ...{html: text}};
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -105,7 +109,7 @@ function ReportActionItemFragment({
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
 
-            if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment?.isDeletedParentAction) {
+            if ((!isOffline && isThreadParentMessage && isPendingDelete) || localFragment?.isDeletedParentAction) {
                 return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedMessage')}</deleted-action>`} />;
             }
 
@@ -113,11 +117,11 @@ function ReportActionItemFragment({
                 return <RenderHTML html={`<deleted-action ${CONST.HIDDEN_MESSAGE_ATTRIBUTE}="true">${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
-            if (isReportMessageAttachment(fragment)) {
+            if (isReportMessageAttachment(localFragment)) {
                 return (
                     <AttachmentCommentFragment
                         source={source}
-                        html={fragment?.html ?? ''}
+                        html={localFragment?.html ?? ''}
                         addExtraMargin={!displayAsGroup}
                         styleAsDeleted={!!(isOffline && isPendingDelete)}
                     />
@@ -127,7 +131,7 @@ function ReportActionItemFragment({
             return (
                 <TextCommentFragment
                     source={source}
-                    fragment={fragment}
+                    fragment={localFragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
                     iouMessage={iouMessage}
@@ -143,7 +147,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage, styles.colorMuted]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(localFragment?.text ?? '') : localFragment?.text}
                     </Text>
                 );
             }
@@ -154,7 +158,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(localFragment?.text ?? '') : localFragment?.text}
                     </Text>
                 );
             }
@@ -163,7 +167,7 @@ function ReportActionItemFragment({
                 <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    fragmentText={fragment.text}
+                    fragmentText={localFragment.text}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
                 />
@@ -184,7 +188,7 @@ function ReportActionItemFragment({
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>localFragment.text</Text>;
     }
 }
 
