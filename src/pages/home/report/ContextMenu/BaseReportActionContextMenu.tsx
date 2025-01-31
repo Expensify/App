@@ -18,7 +18,6 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import getPlatform from '@libs/getPlatform';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {

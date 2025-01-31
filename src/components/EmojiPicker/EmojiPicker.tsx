@@ -201,6 +201,8 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             onModalHide={onModalHide.current}
             hideModalContentWhileAnimating
             shouldSetModalVisibility={false}
+            animationInTiming={1}
+            animationOutTiming={1}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
