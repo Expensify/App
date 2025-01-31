@@ -9,6 +9,7 @@ import type {
     CloseAccountParams,
     DeleteContactMethodParams,
     GetStatementPDFParams,
+    PusherPingParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -27,7 +28,10 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -42,16 +46,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as App from './App';
+import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
-import * as Link from './Link';
-import * as Report from './Report';
-import * as Session from './Session';
+import {openOldDotLink} from './Link';
+import {showReportActionNotification} from './Report';
+import {resendValidateCode as sessionResendValidateCode} from './Session';
+import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -116,7 +121,7 @@ function closeAccount(reason: string) {
  * Resends a validation link to a given login
  */
 function resendValidateCode(login: string) {
-    Session.resendValidateCode(login);
+    sessionResendValidateCode(login);
 }
 
 /**
@@ -784,7 +789,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && Report.showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
     });
 }
 
@@ -888,6 +893,124 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+// Holds a map of all the PINGs that have been sent to the server and when they were sent
+// Once a PONG is received, the event data will be removed from this map.
+type PingPongTimestampMap = Record<string, number>;
+let pingIDsAndTimestamps: PingPongTimestampMap = {};
+
+function subscribeToPusherPong() {
+    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
+    if (currentUserAccountID === -1) {
+        return;
+    }
+
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+        Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
+        const pongEvent = pushJSON as Pusher.PingPongEvent;
+        // First, check to see if the PONG event is in the pingIDsAndTimestamps map
+        // It's OK if it doesn't exist. The client was maybe refreshed while still waiting for a PONG event, in which case it might
+        // receive the PONG event but has already lost it's memory of the PING.
+        const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.pingID];
+        if (!pingEventTimestamp) {
+            return;
+        }
+
+        // Calculate the latency between the client and the server
+        const latency = Date.now() - Number(pingEventTimestamp);
+        Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
+
+        // Remove the event from the map
+        delete pingIDsAndTimestamps[pongEvent.pingID];
+        Timing.end(CONST.TIMING.PUSHER_PING_PONG);
+    });
+}
+
+// Specify how long between each PING event to the server
+const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
+
+// Specify how long between each check for missing PONG events
+const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
+
+// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
+const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+
+let lastTimestamp = Date.now();
+function pingPusher() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping ping because the client is offline');
+        return;
+    }
+    // Send a PING event to the server with a specific ID and timestamp
+    // The server will respond with a PONG event with the same ID and timestamp
+    // Then we can calculate the latency between the client and the server (or if the server never replies)
+    const pingID = NumberUtils.rand64();
+    const pingTimestamp = Date.now();
+
+    // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
+    // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
+    if (pingTimestamp - lastTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
+        return;
+    }
+    lastTimestamp = pingTimestamp;
+
+    pingIDsAndTimestamps[pingID] = pingTimestamp;
+    const parameters: PusherPingParams = {pingID, pingTimestamp};
+    API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
+    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
+    Timing.start(CONST.TIMING.PUSHER_PING_PONG);
+}
+
+function checkforMissingPongEvents() {
+    Log.info(`[Pusher PINGPONG] Checking for missing PONG events`);
+    // Get the oldest PING timestamp that is left in the event map
+    const oldestPingTimestamp = Math.min(...Object.values(pingIDsAndTimestamps));
+    const ageOfEventInMS = Date.now() - oldestPingTimestamp;
+
+    // Get the eventID of that timestamp
+    const eventID = Object.keys(pingIDsAndTimestamps).find((key) => pingIDsAndTimestamps[key] === oldestPingTimestamp);
+
+    // If the oldest timestamp is older than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then set the network status to offline
+    if (ageOfEventInMS > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event ${eventID} in ${ageOfEventInMS} ms so going offline`);
+        NetworkConnection.setOfflineStatus(true, 'The client never got a Pusher PONG event after sending a Pusher PING event');
+
+        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
+        lastTimestamp = Date.now();
+        pingIDsAndTimestamps = {};
+    }
+}
+
+let pingPongStarted = false;
+function initializePusherPingPong() {
+    // Only run the ping pong from the leader client
+    if (!ActiveClientManager.isClientTheLeader()) {
+        Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
+        return;
+    }
+
+    // Ignore any additional calls to initialize the ping pong if it's already been started
+    if (pingPongStarted) {
+        return;
+    }
+    pingPongStarted = true;
+
+    Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+
+    // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
+    // so there could be a little delay before the client is actually listening to this event.
+    subscribeToPusherPong();
+
+    // Send a ping to pusher on a regular interval
+    setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
+
+    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
+    // events to be sent and received
+    setTimeout(() => {
+        // Check for any missing pong events on a regular interval
+        setInterval(checkforMissingPongEvents, CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
+}
+
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
@@ -901,6 +1024,7 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+        const pushEventData = pushJSON as OnyxUpdatesFromServer;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
             Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
@@ -910,8 +1034,8 @@ function subscribeToUserEvents() {
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-            lastUpdateID: Number(pushJSON.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            updates: pushJSON.updates ?? [],
+            lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
+            updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         applyOnyxUpdatesReliably(updates);
@@ -945,9 +1069,11 @@ function subscribeToUserEvents() {
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        App.reconnectApp();
+        reconnectApp();
         return Promise.resolve();
     });
+
+    initializePusherPingPong();
 }
 
 /**
@@ -1053,7 +1179,7 @@ function clearScreenShareRequest() {
  * @param roomName Name of the screen share room to join
  */
 function joinScreenShare(accessToken: string, roomName: string) {
-    Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
+    openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
     clearScreenShareRequest();
 }
 
