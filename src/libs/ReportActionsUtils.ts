@@ -1767,7 +1767,7 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
-function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {²
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
     if (!isLeavePolicyAction(reportAction)) {
         return '';
     }
