@@ -4415,7 +4415,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
-    const trackReport = Navigation.getPreviousTrackReport(linkedTrackedExpenseReportAction?.childReportID);
+    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
         Navigation.isNavigationReady().then(() => Navigation.removeScreenByKey(trackReport.key));
     }

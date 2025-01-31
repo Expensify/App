@@ -428,11 +428,11 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-function getPreviousTrackReport(reportID?: string) {
+function getReportRouteByID(reportID?: string) {
     if (!reportID) {
         return null;
     }
-    return navigationRef.getRootState().routes.find((r) => r.name === SCREENS.REPORT && !!r.params && 'reportID' in r.params && r.params.reportID === reportID);
+    return navigationRef.getRootState().routes.find((route) => route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && route.params.reportID === reportID);
 }
 
 function removeScreenFromNavigationState(screen: Screen) {
@@ -488,7 +488,7 @@ export default {
     getTopMostCentralPaneRouteFromRootState,
     removeScreenFromNavigationState,
     removeScreenByKey,
-    getPreviousTrackReport,
+    getReportRouteByID,
 };
 
 export {navigationRef};
