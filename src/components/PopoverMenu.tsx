@@ -12,8 +12,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
-import * as Modal from '@userActions/Modal';
+import {isSafari} from '@libs/Browser';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -209,9 +209,9 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+        } else if (selectedItem.shouldCallAfterModalHide && !isSafari()) {
             onItemSelected?.(selectedItem, index);
-            Modal.close(
+            close(
                 () => {
                     selectedItem.onSelected?.();
                 },

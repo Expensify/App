@@ -252,7 +252,7 @@ function BaseModal(
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onBackButtonPress={closeTop}
                     onModalShow={handleShowModal}
-                    propagateSwipe={propagateSwipe ?? false}
+                    propagateSwipe={propagateSwipe}
                     onModalHide={hideModal}
                     onModalWillShow={saveFocusState}
                     onDismiss={handleDismissModal}

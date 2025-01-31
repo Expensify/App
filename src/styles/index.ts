@@ -1856,10 +1856,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
-        popoverInnerContainer: (isSmallScreenWidth: boolean) => ({
+        popoverInnerContainer: {
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
-            maxHeight: isSmallScreenWidth ? '100%' : '95%',
-        }),
+            maxHeight: '95%',
+        },
 
         menuItemTextContainer: {
             minHeight: variables.componentSizeNormal,

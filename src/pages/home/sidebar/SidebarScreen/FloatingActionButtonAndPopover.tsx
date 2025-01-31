@@ -471,6 +471,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationInDelay={150}
+                shouldUseNewModal
                 menuItems={[
                     ...expenseMenuItems,
                     {

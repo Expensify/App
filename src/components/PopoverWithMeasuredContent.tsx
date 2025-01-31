@@ -59,7 +59,7 @@ function PopoverWithMeasuredContent({
     shoudSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
-    shouldUseNewModal = true,
+    shouldUseNewModal = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();

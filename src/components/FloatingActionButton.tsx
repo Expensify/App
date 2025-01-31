@@ -3,7 +3,7 @@ import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
@@ -20,16 +20,6 @@ import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 AnimatedPath.displayName = 'AnimatedPath';
-
-type AdapterPropsRecord = {
-    type: number;
-    payload?: number | null;
-};
-
-type AdapterProps = {
-    fill?: string | AdapterPropsRecord;
-    stroke?: string | AdapterPropsRecord;
-};
 
 type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
