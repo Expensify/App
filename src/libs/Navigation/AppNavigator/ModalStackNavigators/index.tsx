@@ -393,6 +393,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyStepPage').default,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH.ENABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/EnabledStepPage').default,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledStepPage').default,
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH.GET_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/GetCodePage').default,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/KeyboardShortcutsPage').default,
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default,
