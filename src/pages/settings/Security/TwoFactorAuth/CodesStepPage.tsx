@@ -1,16 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
-import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -30,12 +26,12 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import PageWrapper from './PageWrapper';
 
 type CodesStepPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.CODES_STEP>;
 
@@ -74,146 +70,127 @@ function CodesStepPage({route}: CodesStepPageProps) {
 
     useBeforeRemove(() => setIsValidateModalVisible(false));
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
-    if (isActingAsDelegate) {
-        return (
-            <ScreenWrapper
-                testID={CodesStepPage.displayName}
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-            >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
-            </ScreenWrapper>
-        );
-    }
-
     return (
-        <ScreenWrapper
-            shouldShowOfflineIndicator={false}
+        <PageWrapper
+            title={translate('twoFactorAuth.headerTitle')}
+            stepCounter={{
+                step: 1,
+                text: translate('twoFactorAuth.stepCodes'),
+                total: 3,
+            }}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMaxHeight
-            testID={CodesStepPage.displayName}
+            stepName={CodesStepPage.displayName}
+            // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
+            // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
+            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : route?.params?.backTo)}
         >
-            <HeaderWithBackButton
-                title={translate('twoFactorAuth.headerTitle')}
-                stepCounter={{
-                    step: 1,
-                    text: translate('twoFactorAuth.stepCodes'),
-                    total: 3,
-                }}
-                // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
-                // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
-                onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : route?.params?.backTo)}
-            />
-            <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    {!!isUserValidated && (
-                        <Section
-                            title={translate('twoFactorAuth.keepCodesSafe')}
-                            icon={Illustrations.ShieldYellow}
-                            containerStyles={[styles.twoFactorAuthSection]}
-                            iconContainerStyles={[styles.ml6]}
-                        >
-                            <View style={styles.mv3}>
-                                <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
-                            </View>
-                            <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
-                                {account?.isLoading ? (
-                                    <View style={styles.twoFactorLoadingContainer}>
-                                        <ActivityIndicator color={theme.spinner} />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {!!isUserValidated && (
+                    <Section
+                        title={translate('twoFactorAuth.keepCodesSafe')}
+                        icon={Illustrations.ShieldYellow}
+                        containerStyles={[styles.twoFactorAuthSection]}
+                        iconContainerStyles={[styles.ml6]}
+                    >
+                        <View style={styles.mv3}>
+                            <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
+                        </View>
+                        <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+                            {account?.isLoading ? (
+                                <View style={styles.twoFactorLoadingContainer}>
+                                    <ActivityIndicator color={theme.spinner} />
+                                </View>
+                            ) : (
+                                <>
+                                    <View style={styles.twoFactorAuthCodesContainer}>
+                                        {!!account?.recoveryCodes &&
+                                            account?.recoveryCodes?.split(', ').map((code) => (
+                                                <Text
+                                                    style={styles.twoFactorAuthCode}
+                                                    key={code}
+                                                >
+                                                    {code}
+                                                </Text>
+                                            ))}
                                     </View>
-                                ) : (
-                                    <>
-                                        <View style={styles.twoFactorAuthCodesContainer}>
-                                            {!!account?.recoveryCodes &&
-                                                account?.recoveryCodes?.split(', ').map((code) => (
-                                                    <Text
-                                                        style={styles.twoFactorAuthCode}
-                                                        key={code}
-                                                    >
-                                                        {code}
-                                                    </Text>
-                                                ))}
-                                        </View>
-                                        <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                                            <PressableWithDelayToggle
-                                                text={translate('twoFactorAuth.copy')}
-                                                textChecked={translate('common.copied')}
-                                                icon={Expensicons.Copy}
-                                                inline={false}
-                                                onPress={() => {
-                                                    Clipboard.setString(account?.recoveryCodes ?? '');
-                                                    setError('');
-                                                    setCodesAreCopied();
-                                                }}
-                                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                                textStyles={[styles.buttonMediumText]}
-                                                accessible={false}
-                                                tooltipText=""
-                                                tooltipTextChecked=""
-                                            />
-                                            <PressableWithDelayToggle
-                                                text={translate('common.download')}
-                                                icon={Expensicons.Download}
-                                                onPress={() => {
-                                                    localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
-                                                    setError('');
-                                                    setCodesAreCopied();
-                                                }}
-                                                inline={false}
-                                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                                textStyles={[styles.buttonMediumText]}
-                                                accessible={false}
-                                                tooltipText=""
-                                                tooltipTextChecked=""
-                                            />
-                                        </View>
-                                    </>
-                                )}
-                            </View>
-                        </Section>
-                    )}
-                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                        {!!error && (
-                            <FormHelpMessage
-                                isError
-                                message={error}
-                                style={[styles.mb3]}
-                            />
-                        )}
-                        <Button
-                            success
-                            large
-                            isDisabled={!isUserValidated}
-                            text={translate('common.next')}
-                            onPress={() => {
-                                if (!account?.codesAreCopied) {
-                                    setError(translate('twoFactorAuth.errorStepCodes'));
-                                }
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
-                            }}
+                                    <View style={styles.twoFactorAuthCodesButtonsContainer}>
+                                        <PressableWithDelayToggle
+                                            text={translate('twoFactorAuth.copy')}
+                                            textChecked={translate('common.copied')}
+                                            icon={Expensicons.Copy}
+                                            inline={false}
+                                            onPress={() => {
+                                                Clipboard.setString(account?.recoveryCodes ?? '');
+                                                setError('');
+                                                setCodesAreCopied();
+                                            }}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                            accessible={false}
+                                            tooltipText=""
+                                            tooltipTextChecked=""
+                                        />
+                                        <PressableWithDelayToggle
+                                            text={translate('common.download')}
+                                            icon={Expensicons.Download}
+                                            onPress={() => {
+                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
+                                                setError('');
+                                                setCodesAreCopied();
+                                            }}
+                                            inline={false}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                            accessible={false}
+                                            tooltipText=""
+                                            tooltipTextChecked=""
+                                        />
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </Section>
+                )}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!!error && (
+                        <FormHelpMessage
+                            isError
+                            message={error}
+                            style={[styles.mb3]}
                         />
-                    </FixedFooter>
-                </ScrollView>
-                <ValidateCodeActionModal
-                    title={translate('contacts.validateAccount')}
-                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
-                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                    isVisible={isValidateModalVisible}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                    sendValidateCode={() => requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
-                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                    clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                    onModalHide={() => {}}
-                    onClose={() => {
-                        setIsValidateModalVisible(false);
-                        quitAndNavigateBack(route?.params?.backTo);
-                    }}
-                />
-            </FullPageOfflineBlockingView>
-        </ScreenWrapper>
+                    )}
+                    <Button
+                        success
+                        large
+                        isDisabled={!isUserValidated}
+                        text={translate('common.next')}
+                        onPress={() => {
+                            if (!account?.codesAreCopied) {
+                                setError(translate('twoFactorAuth.errorStepCodes'));
+                            }
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
+                        }}
+                    />
+                </FixedFooter>
+            </ScrollView>
+            <ValidateCodeActionModal
+                title={translate('contacts.validateAccount')}
+                descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+                isVisible={isValidateModalVisible}
+                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validatePendingAction={loginData?.pendingFields?.validateCodeSent}
+                sendValidateCode={() => requestValidateCodeAction()}
+                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
+                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                onModalHide={() => {}}
+                onClose={() => {
+                    setIsValidateModalVisible(false);
+                    quitAndNavigateBack(route?.params?.backTo);
+                }}
+            />
+        </PageWrapper>
     );
 }
 
