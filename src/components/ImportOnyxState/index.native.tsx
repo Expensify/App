@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
-import {cleanAndTransformState, processStateImport} from './utils';
+import {cleanAndTransformState, importState} from './utils';
 
 function readOnyxFile(fileUri: string) {
     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
@@ -41,13 +41,14 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
                 const currentUserSessionCopy = {...session};
                 setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
-                return processStateImport(transformedState);
+                return importState(transformedState);
             })
             .then(() => {
                 setIsUsingImportedState(true);
                 Navigation.navigate(ROUTES.HOME);
             })
-            .catch(() => {
+            .catch((error) => {
+                console.error('Error importing state:', error);
                 setIsErrorModalVisible(true);
             })
             .finally(() => {

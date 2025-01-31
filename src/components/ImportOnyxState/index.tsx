@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
-import {cleanAndTransformState, processStateImport} from './utils';
+import {cleanAndTransformState, importState} from './utils';
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -38,7 +38,7 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
                 setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
 
-                return processStateImport(transformedState);
+                return importState(transformedState);
             })
             .then(() => {
                 setIsUsingImportedState(true);
@@ -47,6 +47,8 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             .catch((error) => {
                 console.error('Error importing state:', error);
                 setIsErrorModalVisible(true);
+            })
+            .finally(() => {
                 setIsLoading(false);
             });
     };

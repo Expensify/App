@@ -54,7 +54,7 @@ function cleanAndTransformState<T>(state: string): T {
     return transformedState;
 }
 
-const processStateImport = (transformedState: OnyxValues) => {
+const importState = (transformedState: OnyxValues) => {
     const collectionKeys = [...new Set(Object.values(ONYXKEYS.COLLECTION))];
     const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, OnyxCollection<OnyxKey>>();
     const regularState: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>> = {};
@@ -92,4 +92,4 @@ const processStateImport = (transformedState: OnyxValues) => {
         });
 };
 
-export {cleanAndTransformState, processStateImport, transformNumericKeysToArray};
+export {cleanAndTransformState, importState, transformNumericKeysToArray};
