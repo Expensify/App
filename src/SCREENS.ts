@@ -76,10 +76,9 @@ const SCREENS = {
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: {
-            CODES_STEP: 'Settings_TwoFactorAuth_Codes_Step',
+            ROOT: 'Settings_TwoFactorAuth_Root',
             VERIFY: 'Settings_TwoFactorAuth_Verify',
             SUCCESS: 'Settings_TwoFactorAuth_Success',
-            ENABLED: 'Settings_TwoFactorAuth_Enabled',
             DISABLED: 'Settings_TwoFactorAuth_Disabled',
             GET_CODE: 'Settings_TwoFactorAuth_GetCode',
         },

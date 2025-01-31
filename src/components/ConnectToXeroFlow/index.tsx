@@ -33,7 +33,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_CODES_STEP.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);

@@ -312,8 +312,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.CODES_STEP]: {
-                            path: ROUTES.SETTINGS_2FA_CODES_STEP.route,
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.ROOT]: {
+                            path: ROUTES.SETTINGS_2FA_ROOT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: {
@@ -322,10 +322,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS]: {
                             path: ROUTES.SETTINGS_2FA_SUCCESS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.ENABLED]: {
-                            path: ROUTES.SETTINGS_2FA_ENABLED,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLED]: {

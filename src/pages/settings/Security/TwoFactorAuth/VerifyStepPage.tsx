@@ -80,7 +80,7 @@ function VerifyStepPage({route}: VerifyStepPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_CODES_STEP.getRoute(route?.params?.backTo))}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(route?.params?.backTo))}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
