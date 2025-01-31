@@ -31,8 +31,8 @@ runs:
       uses: actions/cache@v4
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json', 'patches/**') }}
-
+        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
+    
     - id: cache-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
       uses: actions/cache@v4
