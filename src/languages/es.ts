@@ -58,6 +58,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteTransactionParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -194,7 +195,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -880,6 +880,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
@@ -1362,6 +1363,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsDescription:
             'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
+        twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1615,6 +1618,11 @@ const translations = {
             'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
         deactivateCard: 'Desactivar tarjeta',
         reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    reportFraudConfirmationPage: {
+        title: 'Fraude con tarjeta reportado',
+        description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
         activateCard: 'Activar tarjeta',
@@ -2588,6 +2596,23 @@ const translations = {
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        domainSelector: {
+            title: 'Dominio',
+            subtitle: 'Elige un dominio para configurar Expensify Travel.',
+            recommended: 'Recomendado',
+        },
+        domainPermissionInfo: {
+            title: 'Dominio',
+            restrictionPrefix: `No tienes permiso para habilitar Expensify Travel para el dominio`,
+            restrictionSuffix: `Tendrás que pedir a alguien de ese dominio que habilite Travel por ti.`,
+            accountantInvitationPrefix: `Si eres contador, considera unirte al`,
+            accountantInvitationLink: `programa de contadores ExpensifyApproved!`,
+            accountantInvitationSuffix: `para habilitar Travel para este dominio.`,
+        },
+        publicDomainError: {
+            title: 'Comienza con Expensify Travel',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
+        },
     },
     workspace: {
         common: {
@@ -2645,8 +2670,8 @@ const translations = {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName || 'un espacio de trabajo'}! Saca el máximo provecho de Expensify descargando la aplicación en use.expensify.com/download.`,
+            defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -4497,6 +4522,8 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
+                    toUpgrade: 'Para mejorar, haz clic',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a Controlar.',
                 },
             },
         },
@@ -4513,6 +4540,10 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
+                    headsUp: '¡Atención!',
+                    multiWorkspaceNote:
+                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a Recopilar.',
                 },
             },
             completed: {
@@ -6209,6 +6240,16 @@ const translations = {
             part1: 'Crea gastos',
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
+        },
+        scanTestTooltip: {
+            part1: '¿Quieres ver cómo funciona Escanear?',
+            part2: ' ¡Prueba con un recibo de prueba!',
+            part3: '¡Elige a',
+            part4: ' nuestro gerente',
+            part5: ' de prueba para probarlo!',
+            part6: 'Ahora,',
+            part7: ' envía tu gasto y',
+            part8: ' ¡observa cómo ocurre la magia!',
         },
     },
     discardChangesConfirmation: {
