@@ -195,7 +195,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -1364,6 +1363,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsDescription:
             'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
+        twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1617,6 +1618,11 @@ const translations = {
             'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
         deactivateCard: 'Desactivar tarjeta',
         reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    reportFraudConfirmationPage: {
+        title: 'Fraude con tarjeta reportado',
+        description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
         activateCard: 'Activar tarjeta',
@@ -2664,8 +2670,8 @@ const translations = {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName || 'un espacio de trabajo'}! Saca el máximo provecho de Expensify descargando la aplicación en use.expensify.com/download.`,
+            defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -4516,6 +4522,8 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
+                    toUpgrade: 'Para mejorar, haz clic',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a Controlar.',
                 },
             },
         },
@@ -4532,6 +4540,10 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
+                    headsUp: '¡Atención!',
+                    multiWorkspaceNote:
+                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a Recopilar.',
                 },
             },
             completed: {
