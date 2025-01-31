@@ -4,7 +4,7 @@
 #import <React/RCTLog.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-NSString *const ShareExtensionGroupId = @"group.com.expensify.new";
+NSString *const ShareExtensionGroupId = @"group.com.expensify";
 NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 @implementation RCTShareActionHandlerModule
@@ -12,10 +12,10 @@ NSString *const ShareExtensionFilesKey = @"sharedFiles";
 RCT_EXPORT_MODULE(ShareActionHandler);
 
 RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
-  RCTLogInfo(@"Processing share extension files");
-  NSArray *fileFinalPaths = [self fileListFromSharedContainer];
-  NSArray *processedFiles = [self processFileList:fileFinalPaths];
-  callback(@[processedFiles]);
+    RCTLogInfo(@"Processing share extension files");
+    NSArray *fileFinalPaths = [self fileListFromSharedContainer];
+    NSArray *processedFiles = [self processFileList:fileFinalPaths];
+    callback(@[processedFiles]);
 }
 
 - (NSArray *)fileListFromSharedContainer {
@@ -29,14 +29,14 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
     [defaults removeObjectForKey:ShareExtensionFilesKey];
     [defaults synchronize];
-
+    
     NSError *error = nil;
     NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
     if (fileSrcPath.count == 0) {
         NSLog(@"Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
         return @[];
     }
-
+    
     NSMutableArray *fileFinalPaths = [NSMutableArray array];
     for (NSString *source in fileSrcPath) {
         if (source == NULL) {
@@ -46,7 +46,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
         NSString *srcFileAbsolutePath = [sharedFilesFolderPath stringByAppendingPathComponent:source];
         [fileFinalPaths addObject:srcFileAbsolutePath];
     }
-
+    
     return fileFinalPaths;
 }
 
@@ -69,7 +69,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     BOOL isTextToReadFromFile = [fileName containsString:@"text_to_read"];
     NSDictionary *dict;
     NSError *error;
-
+    
     if (isTextToReadFromFile) {
         fileContent = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&error];
         if (error) {
@@ -88,10 +88,10 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
         }
         fileContent = [@"file://" stringByAppendingString:filePath];
     }
-
+    
     NSString *identifier = [self uniqueIdentifierForFilePath:filePath];
     NSString *timestamp = [NSString stringWithFormat:@"%.0f", ([[NSDate date] timeIntervalSince1970] * 1000)];
-
+    
     dict = @{
         @"id": identifier,
         @"content": fileContent,
@@ -124,6 +124,25 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
     NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
     return [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
+}
+
+RCT_EXPORT_METHOD(removeSharedFolder) {
+    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupId];
+    [defaults removeObjectForKey:ShareExtensionFilesKey];
+    [defaults synchronize];
+    
+    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupId];
+    NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
+    NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
+    
+    NSError *error = nil;
+    [[NSFileManager defaultManager] removeItemAtPath:sharedFilesFolderPath error:&error];
+    
+    if (error) {
+        NSLog(@"Failed to remove shared folder: %@", error);
+    } else {
+        NSLog(@"Shared folder was successfully removed");
+    }
 }
 
 @end
