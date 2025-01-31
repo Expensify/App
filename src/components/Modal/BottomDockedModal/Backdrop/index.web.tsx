@@ -1,20 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import {FadeIn, FadeOut} from '@components/Modal/BottomDockedModal/animations';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-const FadeIn = new Keyframe({
-    from: {opacity: 0},
-    to: {opacity: 0.72},
-});
-
-const FadeOut = new Keyframe({
-    from: {opacity: 0.72},
-    to: {opacity: 0},
-});
 
 function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 300, animationOutTiming = 300}: BackdropProps) {
     const styles = useThemeStyles();

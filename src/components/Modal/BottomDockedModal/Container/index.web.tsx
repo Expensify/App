@@ -1,13 +1,9 @@
 import React, {useEffect, useMemo} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {ContainerFadeOut} from '@components/Modal/BottomDockedModal/animations';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-const FadeOutKeyframe = new Keyframe({
-    from: {opacity: 1},
-    to: {opacity: 0},
-});
 
 function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
     const styles = useThemeStyles();
@@ -38,7 +34,7 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
     }, [opacity]);
 
     const FadeOut = useMemo(() => {
-        return FadeOutKeyframe.duration(animationOutTiming).withCallback(() => {
+        return ContainerFadeOut.duration(animationOutTiming).withCallback(() => {
             'worklet';
 
             runOnJS(onCloseCallBack)();

@@ -1,25 +1,16 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
+import Animated, {runOnJS} from 'react-native-reanimated';
+import {SlideIn, SlideOut} from '@components/Modal/BottomDockedModal/animations';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-const EnteringKeyframe = new Keyframe({
-    from: {transform: [{translateY: '100%'}]},
-    to: {transform: [{translateY: '0%'}]},
-});
-
-const ExitingKeyframe = new Keyframe({
-    from: {transform: [{translateY: '0%'}]},
-    to: {transform: [{translateY: '100%'}]},
-});
 
 function Container({style, animationInDelay = 100, animationInTiming = 300, animationOutTiming = 300, onCloseCallBack, onOpenCallBack, ...props}: Partial<ModalProps> & ContainerProps) {
     const styles = useThemeStyles();
 
     const Entering = useMemo(() => {
-        return EnteringKeyframe.delay(animationInDelay)
+        return SlideIn.delay(animationInDelay)
             .duration(animationInTiming)
             .withCallback(() => {
                 'worklet';
@@ -29,7 +20,7 @@ function Container({style, animationInDelay = 100, animationInTiming = 300, anim
     }, [animationInDelay, animationInTiming, onOpenCallBack]);
 
     const Exiting = useMemo(() => {
-        return ExitingKeyframe.duration(animationOutTiming).withCallback(() => {
+        return SlideOut.duration(animationOutTiming).withCallback(() => {
             'worklet';
 
             runOnJS(onCloseCallBack)();
