@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@userActions/Card';
+import {clearCardListErrors, clearReportVirtualCardFraudForm, reportVirtualExpensifyCardFraud} from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -42,13 +42,16 @@ function ReportVirtualCardFraudPage({
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
     const virtualCardError = getLatestErrorMessage(virtualCard);
     const validateError = getLatestErrorMessageField(virtualCard);
-    const prevVirtualCard = usePrevious(virtualCard);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
+    useEffect(() => {
+        clearReportVirtualCardFraudForm();
+    }, []);
 
     useEffect(() => {
         if (!prevIsLoading || formData?.isLoading) {
@@ -59,17 +62,18 @@ function ReportVirtualCardFraudPage({
         }
 
         if (latestIssuedVirtualCardID) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(latestIssuedVirtualCardID));
+            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
+            setIsValidateCodeActionModalVisible(false);
         }
-    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors, latestIssuedVirtualCardID]);
+    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
             if (!virtualCard) {
                 return;
             }
+
             reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-            setIsValidateCodeActionModalVisible(false);
         },
         [virtualCard],
     );
@@ -86,7 +90,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard) && isEmptyObject(prevVirtualCard)) {
+    if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;
     }
 
@@ -102,7 +106,6 @@ function ReportVirtualCardFraudPage({
                     isAlertVisible={!!virtualCardError}
                     onSubmit={handleSubmit}
                     message={virtualCardError}
-                    isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
                     containerStyles={[styles.m5]}
                 />
@@ -121,6 +124,7 @@ function ReportVirtualCardFraudPage({
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
+                    isLoading={formData?.isLoading}
                 />
             </View>
         </ScreenWrapper>
