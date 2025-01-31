@@ -57,7 +57,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
-    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID;
+    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? -1;
 
     /**
      * Set position of the payment menu
@@ -166,7 +166,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            BankAccounts.openPersonalBankAccountSetupView(undefined, isUserValidated);
+            BankAccounts.openPersonalBankAccountSetupView(undefined, policyID, 'invoice', isUserValidated);
             return;
         }
 

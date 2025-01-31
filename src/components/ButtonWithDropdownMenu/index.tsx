@@ -59,6 +59,7 @@ function ButtonWithDropdownMenu<IValueType>({
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
+    const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
@@ -130,7 +131,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={dropdownButtonRef}
                         onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
-                        isDisabled={isDisabled || !!selectedItem?.disabled}
+                        isDisabled={isDisabled || areAllOptionsDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
