@@ -428,7 +428,7 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-function getPreviousTrackReport(reportID?: string) {
+function getReportRouteByID(reportID?: string) {
     if (!reportID) {
         return null;
     }
@@ -449,7 +449,7 @@ function removeScreenFromNavigationState(screen: Screen) {
     });
 }
 
-function removeScreenByKey(key: string) {
+function removeScreenFromNavigationStateByKey(key: string) {
     const state = navigationRef.getRootState();
     const routes = state.routes.filter((item) => item.key !== key);
 
@@ -487,8 +487,8 @@ export default {
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
     removeScreenFromNavigationState,
-    getPreviousTrackReport,
-    removeScreenByKey,
+    getReportRouteByID,
+    removeScreenFromNavigationStateByKey,
 };
 
 export {navigationRef};
