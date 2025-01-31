@@ -80,7 +80,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const {amount: transactionAmount} = getTransactionDetails(currentTransaction) ?? {amount: 0};
+    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, true) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
@@ -296,7 +296,7 @@ function IOURequestStepAmount({
             <MoneyRequestAmountForm
                 isEditing={!!backTo || isEditing}
                 currency={currency}
-                amount={Math.abs(transactionAmount)}
+                amount={transactionAmount}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}

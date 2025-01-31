@@ -3324,14 +3324,19 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
-function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails | undefined {
+function getTransactionDetails(
+    transaction: OnyxInputOrEntry<Transaction>,
+    createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
+    allowNegativeAmount?: boolean = false,
+): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }
     const report = getReportOrDraftReport(transaction?.reportID);
+
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), undefined, true),
+        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), undefined, allowNegativeAmount),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
