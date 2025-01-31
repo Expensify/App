@@ -386,7 +386,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report)),
         [linkedAction, report],
     );
-    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
+
+    const [isClearingDeletedLinkedAction, setIsClearingDeletedLinkedAction] = useState<boolean | undefined>();
+
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
@@ -416,11 +418,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         (!!deleteTransactionNavigateBackUrl && getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
         (!reportMetadata.isOptimisticReport && isLoading);
 
-    const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !isLinkedActionBecomesDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isClearingDeletedLinkedAction === false) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -735,13 +735,23 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [fetchReport]);
 
     useEffect(() => {
-        // If the linked action is previously available but now deleted,
-        // remove the reportActionID from the params to not link to the deleted action.
-        if (!isLinkedActionBecomesDeleted) {
+
+        if (!isLinkedActionDeleted || isClearingDeletedLinkedAction)
+        {
             return;
         }
+
         Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionBecomesDeleted]);
+        setIsClearingDeletedLinkedAction(true);
+    }, [isLinkedActionDeleted, isClearingDeletedLinkedAction]);
+
+
+    useEffect(() => {
+        if (!isClearingDeletedLinkedAction || reportActionIDFromRoute) {
+            return;
+        }
+        setIsClearingDeletedLinkedAction(false);
+    }, [isClearingDeletedLinkedAction, reportActionIDFromRoute]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
