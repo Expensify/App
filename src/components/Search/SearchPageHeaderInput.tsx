@@ -290,6 +290,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     autocompleteListRef={listRef}
                     ref={textInputRef}
                     selection={selection}
+                    substitutionMap={autocompleteSubstitutions}
                 />
                 <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchAutocompleteList

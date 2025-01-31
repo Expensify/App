@@ -10,7 +10,7 @@ function SearchInputSelectionWrapper({selection, ...props}: SearchAutocompleteIn
     return (
         <SearchAutocompleteInput
             selection={selection}
-            inputStyle={[styles.p3, styles.dFlex, styles.alignItemsCenter]}
+            inputStyle={[styles.p3]}
             ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}

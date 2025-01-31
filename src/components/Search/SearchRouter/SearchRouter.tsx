@@ -323,6 +323,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         wrapperFocusedStyle={[styles.borderColorFocus]}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
                         ref={textInputRef}
                     />
                     <SearchAutocompleteList
