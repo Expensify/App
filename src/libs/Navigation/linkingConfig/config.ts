@@ -312,10 +312,31 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-                            path: ROUTES.SETTINGS_2FA.route,
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.CODES_STEP]: {
+                            path: ROUTES.SETTINGS_2FA_CODES_STEP.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS]: {
+                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.ENABLED]: {
+                            path: ROUTES.SETTINGS_2FA_ENABLED,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLED]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLED,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH.GET_CODE]: {
+                            path: ROUTES.SETTINGS_2FA_GET_CODE,
+                            exact: true,
+                        },
+
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
                             path: ROUTES.SETTINGS_ADD_DELEGATE,
                             exact: true,
