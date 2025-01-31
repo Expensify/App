@@ -1,6 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
@@ -29,6 +30,7 @@ function TopLevelBottomTabBar() {
     const {paddingBottom} = useStyledSafeAreaInsets();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
+    const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
 
     const selectedTab = useNavigationState((state) => {
         const topmostFullScreenRoute = state?.routes.findLast((route) => isFullScreenName(route.name));
@@ -48,7 +50,7 @@ function TopLevelBottomTabBar() {
     const isBottomTabVisibleDirectly = useIsBottomTabVisibleDirectly();
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
-    const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar;
+    const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
 
     useEffect(() => {
         cancelAfterInteractions.current?.cancel();

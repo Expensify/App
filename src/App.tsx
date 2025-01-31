@@ -11,6 +11,7 @@ import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
@@ -96,6 +97,7 @@ function App({url}: AppProps) {
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,
+                                FullScreenBlockingViewContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />
