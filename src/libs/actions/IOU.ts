@@ -81,6 +81,7 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticHoldReportAction,
@@ -121,6 +122,7 @@ import {
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
+    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
@@ -7875,6 +7877,9 @@ function canIOUBePaid(
     }
 
     if (isInvoiceReportReportUtils(iouReport)) {
+        if (isOpenInvoiceReportReportUtils(iouReport)) {
+            return false;
+        }
         if (iouSettled) {
             return false;
         }
@@ -7933,6 +7938,7 @@ function canSubmitReport(
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
+        transactions.length > 0 &&
         isOpenExpenseReport &&
         !isArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
@@ -8702,8 +8708,51 @@ function detachReceipt(transactionID: string | undefined) {
             },
         },
     ];
+    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
 
-    const parameters: DetachReceiptParams = {transactionID};
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportAction?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
+        },
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
+        value: {
+            lastVisibleActionCreated: updatedReportAction.created,
+            lastReadTime: updatedReportAction.created,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
+        value: {
+            lastVisibleActionCreated: expenseReport?.lastVisibleActionCreated,
+            lastReadTime: expenseReport?.lastReadTime,
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: {pendingAction: null},
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: {
+                ...(updatedReportAction as OnyxTypes.ReportAction),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+            },
+        },
+    });
+
+    const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
