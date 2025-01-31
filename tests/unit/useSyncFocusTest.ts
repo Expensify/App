@@ -28,6 +28,7 @@ describe('useSyncFocus', () => {
         expect(refMock.current.focus).not.toHaveBeenCalled();
 
         rerender({isFocused: false});
+        expect(refMock.current.focus).not.toHaveBeenCalled();
 
         // When shouldSyncFocus and isFocused are true
         rerender({isFocused: true, shouldSyncFocus: true});
