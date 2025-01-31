@@ -93,7 +93,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const ownerDisplayName = getDisplayNameForParticipant(ownerAccountID);
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? -1]);
+    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
