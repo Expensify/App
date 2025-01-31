@@ -372,6 +372,32 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_SELFDM: OnyxCollection<Report> = {
+        16: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '16',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Expense Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        },
+        17: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '17',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
         '999': {
@@ -1073,6 +1099,19 @@ describe('OptionsListUtils', () => {
             // There should be 2 unique login entries
             expect(filteredOptions.personalDetails.length).toBe(2);
             expect(matchingEntries.length).toBe(1);
+        });
+
+        it('should order self dm always on top if the search matches with the self dm login', () => {
+            const searchTerm = 'tonystark@expensify.com';
+
+            const OPTIONS_WITH_SELFDM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELFDM);
+
+            // When search term matches with self dm login
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_SELFDM, [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchTerm);
+
+            // Then the self dm should be on top.
+            expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
     });
 
