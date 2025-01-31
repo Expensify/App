@@ -51,7 +51,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
-    getAllReportActions,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -75,7 +74,6 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
-    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -118,7 +116,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
-import {getLastModifiedExpense, revert} from '@userActions/Transaction';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';

@@ -10,7 +10,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {translateLocal} from '@libs/Localize';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
-import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
