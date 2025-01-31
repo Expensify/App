@@ -1783,6 +1783,23 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
 
+function isPolicyChangeLogUpdateAutoReportingFrequencyMessage(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY);
+}
+
+function getPolicyChangeLogUpdateAutoReportingFrequencyMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogUpdateAutoReportingFrequencyMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const oldFrequency = originalMessage?.oldFrequency ?? '';
+    const newFrequency = originalMessage?.newFrequency ?? '';
+    return translateLocal('report.actions.type.updateAutoReportingFrequency', {oldFrequency, newFrequency});
+}
+
+
 function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
         return '';
@@ -2005,6 +2022,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogUpdateAutoReportingFrequencyMessage,
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
