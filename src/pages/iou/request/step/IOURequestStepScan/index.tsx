@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {shouldStartLocationPermissionFlow as shouldStartLocationPermissionFlowIOUUtils} from '@libs/IOUUtils';
+import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -115,7 +115,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !isArchivedReport(report, reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**
@@ -488,9 +488,9 @@ function IOURequestStepScan({
                     setFileSource(source);
                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                     if (gpsRequired) {
-                        const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowIOUUtils();
+                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
 
-                        if (shouldStartLocationPermissionFlow) {
+                        if (beginLocationPermissionFlow) {
                             setStartLocationPermissionFlow(true);
                             return;
                         }
@@ -539,8 +539,8 @@ function IOURequestStepScan({
             setFileSource(source);
             const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
             if (gpsRequired) {
-                const shouldStartLocationPermissionFlow = shouldStartLocationPermissionFlowIOUUtils();
-                if (shouldStartLocationPermissionFlow) {
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                if (beginLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
                     return;
                 }

@@ -104,27 +104,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             );
         }
 
-        if (message === CONST.COMPANY_CARDS.CONNECTION_ERROR) {
-            return (
-                <Text
-                    key={index}
-                    style={styles.offlineFeedback.text}
-                >
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                        onPress={() => {
-                            // TODO: re-navigate the user to the bank’s website to re-authenticate https://github.com/Expensify/App/issues/50448
-                        }}
-                    >
-                        {translateLocal('workspace.companyCards.brokenConnectionErrorLink')}
-                    </TextLink>
-
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
-                </Text>
-            );
-        }
-
         return (
             <Text
                 // eslint-disable-next-line react/no-array-index-key
