@@ -4523,7 +4523,7 @@ const translations = {
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
                     toUpgrade: 'Para mejorar, haz clic',
-                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a Controlar.',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
             },
         },
@@ -4543,7 +4543,7 @@ const translations = {
                     headsUp: '¡Atención!',
                     multiWorkspaceNote:
                         'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic',
-                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a Recopilar.',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a',
                 },
             },
             completed: {
