@@ -1757,7 +1757,7 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
-function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {²
     if (!isLeavePolicyAction(reportAction)) {
         return '';
     }
@@ -1766,9 +1766,9 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useNa
     if (!!originalMessage && !originalMessage.email) {
         originalMessage.email = personalDetails?.login;
     }
-    const email = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}: ` : originalMessage?.email ?? '';
-    const formattedEmail = formatPhoneNumber(email);
-    return translateLocal('report.actions.type.employeeLeft', {email: formattedEmail});
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}: ` : originalMessage?.email ?? '';
+    const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
+    return translateLocal('report.actions.type.employeeLeft', {nameOrEmail: formattedNameOrEmail});
 }
 
 function isPolicyChangeLogDeleteMemberMessage(

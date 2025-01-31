@@ -370,7 +370,7 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
-type EmployeeLeftParams = {email: string};
+type EmployeeLeftParams = {nameOrEmail: string};
 
 type RemoveMemberParams = {email: string; role: string};
 
