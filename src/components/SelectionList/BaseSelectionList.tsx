@@ -386,7 +386,6 @@ function BaseSelectionList<TItem extends ListItem>(
         [
             canSelectMultiple,
             sections.length,
-            flattenedSections.selectedOptions.length,
             scrollToIndex,
             shouldShowTextInput,
             clearInputAfterSelect,

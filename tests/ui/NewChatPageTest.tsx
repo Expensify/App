@@ -11,7 +11,7 @@ import {translateLocal} from '@libs/Localize';
 import NewChatPage from '@pages/NewChatPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
-import createPersonalDetails from '../utils/collections/personalDetails';
+import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
@@ -24,13 +24,7 @@ describe('NewChatPage', () => {
     });
 
     it('should scroll to top when adding a user to the group selection', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            1: createPersonalDetails(1),
-            2: createPersonalDetails(2),
-            3: createPersonalDetails(3),
-            4: createPersonalDetails(4),
-            5: createPersonalDetails(5),
-        });
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
         render(
             <OnyxProvider>
                 <LocaleContextProvider>

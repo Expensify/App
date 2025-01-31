@@ -44,6 +44,7 @@ const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
 const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
 const useRoute = isJestEnv ? jest.fn() : () => ({params: {}});
 const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const UNSTABLE_usePreventRemove = isJestEnv ? jest.fn() : () => {};
 
 export {

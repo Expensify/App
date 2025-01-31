@@ -64,7 +64,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
     });
 
-    it('should scroll to top when selecting a multi option list', async () => {
+    it('should scroll to top when selecting a multi option list', () => {
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
         render(
             <BaseListItemRenderer
