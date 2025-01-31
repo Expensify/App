@@ -125,8 +125,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) throw new Exception();
-
             String rawPayload = message.getExtra(PAYLOAD_KEY);
             if (rawPayload == null) throw new Exception();
 
