@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
-import type {ReactNode, RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
+import type { ReactNode, RefObject } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import type { ModalProps } from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,13 +15,13 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type { AnchorPosition } from '@src/styles';
+import type { PendingAction } from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
-import type {MenuItemProps} from './MenuItem';
+import type { MenuItemProps } from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -184,13 +184,13 @@ function PopoverMenu({
     const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const { isSmallScreenWidth } = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const {windowHeight} = useWindowDimensions();
+    const { windowHeight } = useWindowDimensions();
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({ initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible });
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems.at(index);
@@ -255,7 +255,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+        const { text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps } = item;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -309,9 +309,14 @@ function PopoverMenu({
             selectItem(focusedIndex);
             setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         },
-        {isActive: isVisible},
+        { isActive: isVisible },
     );
-
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.SPACE,
+        () => {
+        },
+        { isActive: isVisible },
+    );
     const onModalHide = () => {
         setFocusedIndex(currentMenuItemsFocusedIndex);
     };
@@ -365,7 +370,7 @@ function PopoverMenu({
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
+                <View style={[isSmallScreenWidth ? { maxHeight: windowHeight - 250 } : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
@@ -394,4 +399,4 @@ export default React.memo(
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
-export type {PopoverMenuItem, PopoverMenuProps};
+export type { PopoverMenuItem, PopoverMenuProps };

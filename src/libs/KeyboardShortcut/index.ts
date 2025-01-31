@@ -1,4 +1,4 @@
-import {Str} from 'expensify-common';
+import { Str } from 'expensify-common';
 import * as KeyCommand from 'react-native-key-command';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import localeCompare from '@libs/LocaleCompare';
@@ -42,11 +42,12 @@ const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow?.toString() ?? 'k
 const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow?.toString() ?? 'keyInputDownArrow';
 const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow?.toString() ?? 'keyInputLeftArrow';
 const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow?.toString() ?? 'keyInputRightArrow';
-
+const keySpace = ' '
 /**
  * Generates the normalized display name for keyboard shortcuts.
  */
 function getDisplayName(key: string, modifiers: string | string[]): string {
+
     let displayName = (() => {
         // Type of key is string and the type of KeyCommand.constants.* is number | string.
         if (key.toLowerCase() === keyInputEnter.toLowerCase()) {
@@ -66,6 +67,9 @@ function getDisplayName(key: string, modifiers: string | string[]): string {
         }
         if (key.toLowerCase() === keyInputRightArrow.toLowerCase()) {
             return ['ARROWRIGHT'];
+        }
+        if (key.toLowerCase() === keySpace.toLowerCase()) {
+            return ['SPACE'];
         }
         return [key.toUpperCase()];
     })();
@@ -143,6 +147,7 @@ function subscribe(
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
+    console.log('displayName', displayName)
     if (!eventHandlers[displayName]) {
         eventHandlers[displayName] = [];
     }
@@ -193,4 +198,4 @@ const KeyboardShortcut = {
 };
 
 export default KeyboardShortcut;
-export type {EventHandler, Shortcut};
+export type { EventHandler, Shortcut };
