@@ -18,7 +18,7 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
 function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMap): SubstitutionMap {
     const parsedQuery = parser.parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
-    const searchAutocompleteQueryRanges = parsedQuery.ranges;
+    const searchAutocompleteQueryRanges = parsedQuery.ranges.filter((range) => range.key !== 'syntax');
 
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};

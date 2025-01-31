@@ -95,7 +95,8 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID
+    | 'syntax';
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 
@@ -128,6 +129,7 @@ type SearchAutocompleteResult = {
     ranges: SearchAutocompleteQueryRange[];
 };
 
+// TODO FIX types
 type SearchAutocompleteQueryRange = {
     key: SearchFilterKey;
     length: number;

@@ -182,6 +182,9 @@ function parseForLiveMarkdown(
             ) {
                 type = 'mention-here';
             }
+            if (range.key === 'syntax') {
+                type = 'syntax';
+            }
 
             return {...range, type};
         }) as MarkdownRange[];
