@@ -9,12 +9,12 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
-import {updateWorkspaceDescription} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -31,12 +31,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
         Parser.htmlToMarkdown(
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            policy?.description ||
-                Parser.replace(
-                    translate('workspace.common.welcomeNote', {
-                        workspaceName: policy?.name ?? '',
-                    }),
-                ),
+            policy?.description || Parser.replace(translate('workspace.common.defaultDescription')),
         ),
     );
 

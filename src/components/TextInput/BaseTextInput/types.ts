@@ -1,4 +1,4 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -123,6 +123,9 @@ type CustomBaseTextInputProps = {
 
     /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
     markdownStyle?: MarkdownStyle;
+
+    /** Custom parser function for RNMarkdownTextInput */
+    parser?: (input: string) => MarkdownRange[];
 
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
