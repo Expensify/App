@@ -275,7 +275,7 @@ function Expensify() {
                         <RequireTwoFactorAuthenticationModal
                             onSubmit={() => {
                                 setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_CODES_STEP.getRoute(ROUTES.HOME));
                             }}
                             isVisible
                             description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
