@@ -1,5 +1,4 @@
 import React from 'react';
-import AnimatedStep from '@components/AnimatedStep';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -8,15 +7,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
-import CONST from '@src/CONST';
+import PageWrapper from './PageWrapper';
 
-function DisabledStep() {
+function DisabledStepPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <AnimatedStep
-            stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLED}
+        <PageWrapper
+            stepName={DisabledStepPage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
             <BlockingView
@@ -34,10 +33,10 @@ function DisabledStep() {
                     onPress={() => quitAndNavigateBack()}
                 />
             </FixedFooter>
-        </AnimatedStep>
+        </PageWrapper>
     );
 }
 
-DisabledStep.displayName = 'DisabledStep';
+DisabledStepPage.displayName = 'DisabledStepPage';
 
-export default DisabledStep;
+export default DisabledStepPage;
