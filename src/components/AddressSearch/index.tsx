@@ -166,8 +166,8 @@ function AddressSearch(
             country: countryFallbackLongName = '',
             state: stateAutoCompleteFallback = '',
             city: cityAutocompleteFallback = '',
-            street: streetAutocompleteFallback,
-            streetNumber: streetNumberAutocompleteFallback,
+            street: streetAutocompleteFallback = '',
+            streetNumber: streetNumberAutocompleteFallback = '',
         } = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
