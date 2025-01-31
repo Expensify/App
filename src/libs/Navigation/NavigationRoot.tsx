@@ -179,15 +179,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
         // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However if other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigator = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
+        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         navigationRef.reset({
             ...rootState,
             index: 0,
             routes: [
                 {
                     ...lastRoute,
-                    params: isReportSplitNavigator ? {} : lastRoute.params,
+                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
                 },
             ],
         });
