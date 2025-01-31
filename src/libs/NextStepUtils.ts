@@ -91,7 +91,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const ownerDisplayName = getDisplayNameForParticipant(ownerAccountID);
-    const nextApproverDisplayName = getNextApproverDisplayName(report);
+    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? -1]);
 
