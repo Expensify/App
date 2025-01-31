@@ -29,7 +29,7 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import searchHeaderHeight from './searchHeaderHeight';
 import type {
     AllStyles,
     AvatarSize,
@@ -1161,7 +1161,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
-    searchHeaderDefaultOffset,
+    searchHeaderHeight,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
