@@ -1,30 +1,18 @@
 import React from 'react';
-import AnimatedStep from '@components/AnimatedStep';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
-import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
-import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import PageWrapper from './PageWrapper';
 
-type SuccessStepParams = {
-    backTo?: Route;
-    forwardTo?: string;
-};
-
-function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
-    const {setStep} = useTwoFactorAuthContext();
-
+function SuccessStepPage() {
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
 
     return (
-        <AnimatedStep
-            stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
+        <PageWrapper
+            stepName={SuccessStepPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 3,
@@ -39,17 +27,21 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
                     clearTwoFactorAuthData();
-                    setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
-                    if (backTo) {
-                        Navigation.navigate(backTo);
-                    }
-                    if (forwardTo) {
-                        openLink(forwardTo, environmentURL);
-                    }
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED);
+
+                    // if (backTo) {
+                    //     Navigation.navigate(backTo);
+                    // }
+
+                    // if (forwardTo) {
+                    //     openLink(forwardTo, environmentURL);
+                    // }
                 }}
             />
-        </AnimatedStep>
+        </PageWrapper>
     );
 }
 
-export default SuccessStep;
+SuccessStepPage.displayName = 'SuccessStepPage';
+
+export default SuccessStepPage;
