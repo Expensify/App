@@ -2,7 +2,7 @@ import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-n
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -569,8 +569,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isE
         />
     );
 
-    const positionFix = Platform.OS !== 'web' && {height: '5%'};
-
     if (isEmoji) {
         return (
             <>
@@ -579,7 +577,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isE
                     {confirmModal}
                 </View>
                 <PressableWithoutFeedback
-                    style={[styles.customEmoji, positionFix]}
+                    style={styles.customEmoji}
                     onPress={toggleCreateMenu}
                     accessible
                     accessibilityRole={CONST.ROLE.BUTTON}
