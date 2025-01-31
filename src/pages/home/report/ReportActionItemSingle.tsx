@@ -130,8 +130,9 @@ function ReportActionItemSingle({
         avatarSource = delegatePersonalDetails?.avatar;
         avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
-        displayName = report?.reportName ?? '';
-        avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
+        const ownerPersonalDetails = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        displayName = ownerPersonalDetails?.displayName ?? '';
+        avatarSource = ownerPersonalDetails?.avatar;
         avatarId = ownerAccountID;
     }
 
