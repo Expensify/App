@@ -40,7 +40,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
-        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
+        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
     useEffect(() => {

@@ -408,12 +408,13 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
-function createCorpayBankAccount(fields: ReimbursementAccountForm) {
+function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: string | undefined) {
     const parameters = {
         type: 1,
         isSavings: false,
         isWithdrawal: true,
         inputs: JSON.stringify(fields),
+        policyID,
     };
 
     const onyxData: OnyxData = {
