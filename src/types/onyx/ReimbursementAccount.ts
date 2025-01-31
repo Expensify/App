@@ -32,9 +32,9 @@ type Corpay = {
     /** Company address - state (US and CA only) */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
     /** Company address - zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_POSTAL_CODE]: string;
     /** Company address - zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY_CODE]: Country | '';
     /** Company phone number */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
     /** Company email address */
@@ -230,6 +230,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we create corpay bank account */
     isCreateCorpayBankAccount?: boolean;
+
+    /** Whether we are saving the company data via the API */
+    isSavingCorpayOnboardingCompanyFields?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;
