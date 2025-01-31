@@ -11,7 +11,7 @@ type CustomEmojiWithDefaultPressableActionProps = {
 };
 
 function CustomEmojiWithDefaultPressableAction({emojiKey, children}: CustomEmojiWithDefaultPressableActionProps) {
-    if (emojiKey === 'action-menu-icon') {
+    if (emojiKey === 'actionMenuIcon') {
         return <FloatingActionButtonAndPopover isEmoji>{children}</FloatingActionButtonAndPopover>;
     }
 

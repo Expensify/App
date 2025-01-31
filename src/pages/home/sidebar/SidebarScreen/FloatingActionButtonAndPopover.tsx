@@ -472,7 +472,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isE
     const popoverMenu = (
         <PopoverMenu
             onClose={hideCreateMenu}
-            isVisible={isCreateMenuActive}
+            isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
             anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
             onItemSelected={hideCreateMenu}
             fromSidebarMediumScreen={!shouldUseNarrowLayout}
