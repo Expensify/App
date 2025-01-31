@@ -30,7 +30,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
