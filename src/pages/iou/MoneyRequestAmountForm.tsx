@@ -306,18 +306,20 @@ function MoneyRequestAmountForm(
                 )}
             </View>
             <View>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mt5, styles.gap2]}>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
                     <Button
                         shouldShowRightIcon
+                        small
                         iconRight={Expensicons.DownArrow}
                         onPress={onCurrencyButtonPress}
                         text={currency}
                     />
                     <Button
                         shouldShowRightIcon
+                        small
                         iconRight={Expensicons.PlusMinus}
                         onPress={onFlipAmount}
-                        text={'Flip'}
+                        text={translate('iou.flip')}
                     />
                 </View>
             </View>
