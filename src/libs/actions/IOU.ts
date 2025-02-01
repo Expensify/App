@@ -6611,10 +6611,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
 
     if (transactionViolations) {
         removeSettledAndApprovedTransactions(
-            transactionViolations
-                .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-                .map((violation) => violation?.data?.duplicates ?? [])
-                .flat(),
+            transactionViolations.filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION).flatMap((violation) => violation?.data?.duplicates ?? []),
         ).forEach((duplicateID) => {
             const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
             if (!duplicateTransactionsViolations) {
@@ -6630,7 +6627,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
 
             const optimisticViolations: OnyxTypes.TransactionViolations = duplicateTransactionsViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
-            if (duplicateTransactionIDs) {
+            if (duplicateTransactionIDs.length > 0) {
                 optimisticViolations.push({
                     ...dulipcateViolation,
                     data: {
@@ -6643,7 +6640,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-                value: optimisticViolations || null,
+                value: optimisticViolations.length > 0 ? optimisticViolations : null,
             });
 
             failureData.push({
