@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo} from 'react';
+import React, {memo, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
+import {EarlyDiscountContext} from '@components/EarlyDiscountContext';
 import Icon from '@components/Icon';
 import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
@@ -111,6 +112,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const {isDiscountBannerDismissed} = useContext(EarlyDiscountContext);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -158,7 +160,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = !!account && isDiscountBannerDismissed && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -218,7 +220,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const getGuideBookButtonStyles = () => {
         if (isChatUsedForOnboarding) {
-            return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
+            return [styles.pb3, styles.pl5, styles.w50, styles.pr5, styles.flex1];
         }
         return [styles.pb3, styles.ph5];
     };

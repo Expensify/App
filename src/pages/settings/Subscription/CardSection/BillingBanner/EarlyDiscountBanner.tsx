@@ -1,7 +1,9 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import {EarlyDiscountContext} from '@components/EarlyDiscountContext';
+import {CalendarSolid} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,13 +28,14 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
-    const [isDismissed, setIsDismissed] = useState(false);
+    const {isDiscountBannerDismissed, setIsDiscountBannerDismissed} = useContext(EarlyDiscountContext);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
@@ -56,7 +60,16 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
                     <Button
                         style={shouldUseNarrowLayout && styles.flex1}
                         text={translate('subscription.billingBanner.earlyDiscount.noThanks')}
-                        onPress={() => setIsDismissed(true)}
+                        onPress={() => setIsDiscountBannerDismissed()}
+                    />
+                )}
+                {(!shouldUseNarrowLayout || discountInfo?.discountType === 50) && (
+                    <Button
+                        text={translate('getAssistancePage.scheduleADemo')}
+                        onPress={() => {
+                            openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                        }}
+                        style={shouldUseNarrowLayout && styles.flex1}
                     />
                 )}
             </View>
@@ -67,7 +80,7 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
         return null;
     }
 
-    if (isDismissed && !isSubscriptionPage) {
+    if (isDiscountBannerDismissed && !isSubscriptionPage) {
         return null;
     }
 
