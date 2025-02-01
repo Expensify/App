@@ -21,7 +21,7 @@ const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationC
             };
             const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             return () => backHandler.remove();
-        }, [selectionMode, onClearSelection, onNavigationCallBack]),
+        }, [selectionMode?.isEnabled, onClearSelection, onNavigationCallBack]),
     );
 };
 
