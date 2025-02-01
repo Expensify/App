@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -9,6 +9,7 @@ import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -17,6 +18,7 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -42,6 +44,8 @@ function SearchPageBottomTab() {
         top: topBarOffset.get(),
     }));
 
+    const triggerScrollEvent = useScrollEventEmitter({tooltipName: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP});
+
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             const {contentOffset, layoutMeasurement, contentSize} = event;
@@ -54,9 +58,14 @@ function SearchPageBottomTab() {
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                 topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                topBarOffset.set(
+                    withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}, () => {
+                        runOnJS(triggerScrollEvent)();
+                    }),
+                );
             }
             scrollOffset.set(currentOffset);
+            runOnJS(triggerScrollEvent)();
         },
     });
 

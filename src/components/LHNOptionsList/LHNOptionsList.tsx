@@ -15,6 +15,7 @@ import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
@@ -63,6 +64,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
         onFirstItemRendered();
     }, [onFirstItemRendered]);
+
+    const triggerScrollEvent = useScrollEventEmitter({tooltipName: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP});
 
     const emptyLHNSubtitle = useMemo(
         () => (
@@ -239,8 +242,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            triggerScrollEvent();
         },
-        [route, saveScrollOffset],
+        [route, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
