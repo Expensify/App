@@ -198,6 +198,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
+                name={CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP}
+                shouldHideOnEdge={true}
             >
                 <View>
                     <Hoverable>
