@@ -395,7 +395,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         onTooltipPress={onFiltersButtonPress}
                     >
                         <Button
-                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            innerStyles={!isCannedQuery && [styles.searchAutocompleteInputResults, styles.borderNone]}
                             text={translate('search.filtersHeader')}
                             icon={Expensicons.Filters}
                             onPress={onFiltersButtonPress}
