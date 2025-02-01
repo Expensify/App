@@ -28,12 +28,17 @@ const story: Meta<typeof ComposerWithNavigation> = {
 
 const parser = new ExpensiMark();
 
+const DEFAULT_VALUE = `Composer can do the following:
+
+     * It can contain MD e.g. *bold* _italic_
+     * Supports Pasted Images via Ctrl+V`;
+
 function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
     const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
-    const [comment, setComment] = useState(props.defaultValue);
+    const [comment, setComment] = useState(DEFAULT_VALUE);
     const renderedHTML = parser.replace(comment ?? '');
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: props.defaultValue?.length ?? 0, end: props.defaultValue?.length ?? 0, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: DEFAULT_VALUE.length, end: DEFAULT_VALUE.length, positionX: 0, positionY: 0}));
 
     return (
         <View>
@@ -79,10 +84,6 @@ Default.args = {
     autoFocus: true,
     placeholder: 'Compose Text Here',
     placeholderTextColor: defaultTheme.placeholderText,
-    defaultValue: `Composer can do the following:
-
-     * It can contain MD e.g. *bold* _italic_
-     * Supports Pasted Images via Ctrl+V`,
     isDisabled: false,
     maxLines: 16,
 };
