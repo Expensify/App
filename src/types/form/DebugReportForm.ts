@@ -33,7 +33,6 @@ const INPUT_IDS = {
     POLICY_ID: 'policyID',
     POLICY_NAME: 'policyName',
     PRIVATE_NOTES: 'privateNotes',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     PRIVATE_IS_ARCHIVED: 'private_isArchived',
     REPORT_ID: 'reportID',
     REPORT_NAME: 'reportName',

@@ -1,6 +1,6 @@
-import type FocusTrap from 'focus-trap-react';
+import type {FocusTrapProps} from 'focus-trap-react';
 
-type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
+type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
 type FocusTrapForModalProps = {
     children: React.ReactNode;
