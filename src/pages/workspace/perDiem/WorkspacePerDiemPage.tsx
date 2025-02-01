@@ -24,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -278,6 +279,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
         setSelectedPerDiem([]);
     }, [setSelectedPerDiem, selectionMode?.isEnabled]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedPerDiem([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 

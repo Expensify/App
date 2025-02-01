@@ -27,6 +27,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -453,6 +454,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
         setSelectedEmployees([]);
     }, [setSelectedEmployees, selectionMode?.isEnabled]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedEmployees([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const getCustomListHeader = () => {
         return (

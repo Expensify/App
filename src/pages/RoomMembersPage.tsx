@@ -20,6 +20,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -208,6 +209,14 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             setSearchValue('');
         }
     }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedMembers([]),
+        onNavigationCallBack: () => {
+            setSearchValue('');
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        },
+    });
 
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];

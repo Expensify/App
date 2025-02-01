@@ -49,6 +49,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -103,6 +104,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         setSelectedCategories({});
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedCategories({}),
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean, categoryName: string) => {

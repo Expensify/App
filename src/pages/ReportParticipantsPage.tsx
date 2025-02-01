@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -106,6 +107,18 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSearchValue('');
         }
     }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedMembers([]),
+        onNavigationCallBack: () => {
+            if (!report) {
+                return;
+            }
+
+            setSearchValue('');
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        },
+    });
 
     const getParticipants = () => {
         let result: MemberOption[] = [];
