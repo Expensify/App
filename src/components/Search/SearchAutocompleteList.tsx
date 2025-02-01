@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -38,7 +37,8 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
-import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
+import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import type {SearchFilterKey, UserFriendlyKey} from './types';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -49,7 +49,7 @@ type AutocompleteItemData = {
 
 type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListDataType<OptionData | SearchQueryItem>> | undefined;
 
-type SearchRouterListProps = {
+type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
 
@@ -117,9 +117,8 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-// Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
-function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
+function SearchAutocompleteList(
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -465,7 +464,7 @@ function SearchRouterList(
             }
 
             const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-            setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)} `);
+            setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
@@ -495,6 +494,6 @@ function SearchRouterList(
     );
 }
 
-export default forwardRef(SearchRouterList);
+export default forwardRef(SearchAutocompleteList);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};

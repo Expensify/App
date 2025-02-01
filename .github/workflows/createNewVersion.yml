@@ -87,6 +87,7 @@ jobs:
         run: |
           cd Mobile-Expensify
           git fetch --depth=1 origin main
+          git checkout main
           git reset --hard origin/main
 
       - name: Generate HybridApp version
@@ -138,7 +139,6 @@ jobs:
       - name: Commit new E/App version
         run: |
           git add \
-            ./Mobile-Expensify \
             ./package.json \
             ./package-lock.json \
             ./android/app/build.gradle \
@@ -146,6 +146,11 @@ jobs:
             ./ios/NewExpensifyTests/Info.plist \
             ./ios/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+      - name: Update Mobile-Expensify submodule in E/App
+        run: |
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git push origin main
 
       - name: Announce failed workflow in Slack
