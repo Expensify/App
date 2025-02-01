@@ -17,13 +17,14 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -132,7 +133,7 @@ function PaymentCardForm({
     currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const {translate} = useLocalize();
     const route = useRoute();
@@ -143,30 +144,33 @@ function PaymentCardForm({
     const [cardNumber, setCardNumber] = useState('');
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
-        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
-        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        if (values.expirationDate && !isValidExpirationDate(values.expirationDate)) {
             errors.expirationDate = translate(label.error.expirationDate);
         }
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate(label.error.securityCode);
         }
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate('bankAccount.error.zipCode');
+        // If tempered with, this can block users from adding payment cards so
+        // do not touch unless you are aware of the context.
+        // See issue: https://github.com/Expensify/App/issues/55493#issuecomment-2616349754
+        if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
         }
 
         if (!values.acceptTerms) {
@@ -201,7 +205,7 @@ function PaymentCardForm({
         setCardNumber(validCardNumber);
     }, []);
 
-    if (!shouldShowPaymentCardForm) {
+    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata)) {
         return null;
     }
 

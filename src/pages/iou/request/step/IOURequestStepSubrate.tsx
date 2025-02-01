@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -35,7 +35,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE> & {
+type IOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE> & {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The report linked to the transaction */
@@ -59,13 +59,13 @@ function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[]
         }));
 }
 
-function IOURequestStepWaypoint({
+function IOURequestStepSubrate({
     route: {
         params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepWaypointProps) {
+}: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const customUnit = getPerDiemCustomUnit(policy);
@@ -83,6 +83,20 @@ function IOURequestStepWaypoint({
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
     const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;
+    const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
+    const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
+
+    const onChangeQuantity = useCallback((newValue: string) => {
+        // replace all characters that are not spaces or digits
+        let validQuantity = newValue.replace(/[^0-9]/g, '');
+        validQuantity = validQuantity.match(/(?:\d *){1,12}/)?.[0] ?? '';
+        setQuantityValue(validQuantity);
+    }, []);
+
+    useEffect(() => {
+        setSubrateValue(currentSubrate?.id);
+        setQuantityValue(currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined);
+    }, [currentSubrate?.id, currentSubrate?.quantity]);
 
     // Hide the menu when there is only one subrate
     const shouldShowThreeDotsButton = filledSubrateCount > 1 && !isEmptyObject(currentSubrate);
@@ -100,16 +114,15 @@ function IOURequestStepWaypoint({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const quantityValue = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateValue = values[`subrate${pageIndex}`] ?? '';
-        const quantityInt = parseInt(quantityValue, 10);
-        if (quantityValue === '') {
-            addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
-        }
-        if (subrateValue === '' || !validOptions.some(({value}) => value === subrateValue)) {
+        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const subrateVal = values[`subrate${pageIndex}`] ?? '';
+        const quantityInt = parseInt(quantityVal, 10);
+        if (subrateVal === '' || !validOptions.some(({value}) => value === subrateVal)) {
             addErrorMessage(errors, `subrate${pageIndex}`, translate('common.error.fieldRequired'));
         }
-        if (Number.isNaN(quantityInt)) {
+        if (quantityVal === '') {
+            addErrorMessage(errors, `quantity${pageIndex}`, translate('common.error.fieldRequired'));
+        } else if (Number.isNaN(quantityInt)) {
             addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.invalidQuantity'));
         } else if (quantityInt <= 0) {
             addErrorMessage(errors, `quantity${pageIndex}`, translate('iou.error.quantityGreaterThanZero'));
@@ -119,17 +132,17 @@ function IOURequestStepWaypoint({
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>) => {
-        const quantityValue = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateValue = String(values[`subrate${pageIndex}`] ?? '');
-        const quantityInt = parseInt(quantityValue, 10);
-        const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateValue);
+        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
+        const quantityInt = parseInt(quantityVal, 10);
+        const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
 
         if (parsedIndex === filledSubrateCount) {
-            addSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
+            addSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
         } else {
-            updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
+            updateSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
         }
 
         if (backTo) {
@@ -161,7 +174,7 @@ function IOURequestStepWaypoint({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepWaypoint.displayName}
+            testID={IOURequestStepSubrate.displayName}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -202,7 +215,7 @@ function IOURequestStepWaypoint({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
-                    shouldValidateOnChange={false}
+                    shouldValidateOnChange
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                 >
@@ -212,8 +225,10 @@ function IOURequestStepWaypoint({
                             InputComponent={ValuePicker}
                             inputID={`subrate${pageIndex}`}
                             label={translate('common.subrate')}
+                            value={subrateValue}
                             defaultValue={currentSubrate?.id}
                             items={validOptions}
+                            onValueChange={(value) => setSubrateValue(value as string)}
                         />
                     </View>
                     <InputWrapperWithRef
@@ -222,8 +237,10 @@ function IOURequestStepWaypoint({
                         ref={inputCallbackRef}
                         containerStyles={[styles.mt4]}
                         label={translate('iou.quantity')}
-                        defaultValue={currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined}
+                        value={quantityValue}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
+                        onChangeText={onChangeQuantity}
                     />
                 </FormProvider>
             </FullPageNotFoundView>
@@ -231,6 +248,6 @@ function IOURequestStepWaypoint({
     );
 }
 
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
+IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));
