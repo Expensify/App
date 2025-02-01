@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isSelfDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -139,11 +140,20 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
 function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const rootParentReport = getRootParentReport(destinationReport);
-
-    // The "Move report" flow only supports moving expenses to a policy expense chat or a 1:1 DM.
+    // The "Move report" flow only supports moving expenses from selfDM to:
+    // 1. A policy expense chat
+    // 2. A 1:1 DM
+    // However, in the olddot, expenses could be moved back to a self-DM.
+    // To maintain consistency and handle this case, we provide a fallback message.
+    if (isSelfDM(rootParentReport)) {
+        return translateLocal('iou.changedTheExpense');
+    }
     const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
     const policyName = getPolicyName(rootParentReport, true);
-
+    // If we can't determine either the report name or policy name, return the default message
+    if (isEmpty(policyName) && !reportName) {
+        return translateLocal('iou.changedTheExpense');
+    }
     return translateLocal('iou.movedFromSelfDM', {
         reportName,
         workspaceName: !isEmpty(policyName) ? policyName : undefined,
