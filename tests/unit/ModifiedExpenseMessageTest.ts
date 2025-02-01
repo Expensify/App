@@ -396,5 +396,50 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when move report', () => {
+            it('return the message "changed the expense" when moving an expense from an expense chat or 1:1 DM to selfDM', () => {
+                // Given the selfDM report and report action
+                const report = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: 1,
+                    },
+                };
+
+                const expectedResult = 'changed the expense';
+                // When the expense move from an expense chat or 1:1 DM to selfDM
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                // Then it should return the 'changed the expense' message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "changed the expense" when reportName and workspace name are empty', () => {
+                // Given the report with empty name and report action
+                const report = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    reportName: '',
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: 1,
+                    },
+                };
+
+                const expectedResult = 'changed the expense';
+                // When the expense move from expense chat with reportName empty
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                // Then it should return the 'changed the expense' message
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
