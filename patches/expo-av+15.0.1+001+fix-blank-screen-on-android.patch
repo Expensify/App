@@ -1,0 +1,177 @@
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
+index 8835a39..41709f6 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
+@@ -63,6 +63,8 @@ class SimpleExoPlayerData extends PlayerData
+   private boolean mIsLoading = true;
+   private final Context mReactContext;
+ 
++  private Surface mSurface = null;
++
+   SimpleExoPlayerData(final AVManagerInterface avModule, final Context context, final Uri uri, final String overridingExtension, final Map<String, Object> requestHeaders) {
+     super(avModule, uri, requestHeaders);
+     mReactContext = context;
+@@ -228,8 +230,9 @@ class SimpleExoPlayerData extends PlayerData
+ 
+   @Override
+   public void tryUpdateVideoSurface(final Surface surface) {
+-    if (mSimpleExoPlayer != null) {
++    if (mSimpleExoPlayer != null && mSurface != surface) {
+       mSimpleExoPlayer.setVideoSurface(surface);
++      mSurface = surface;
+     }
+   }
+ 
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
+index 41a5979..5b7ad75 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
+@@ -20,6 +20,10 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   private boolean mIsAttachedToWindow = false;
+   private Surface mSurface = null;
+   private boolean mVisible = true;
++  private int mBufferWidth = 0;
++  private int mBufferHeight = 0;
++  private int mPositionX = 0;
++  private int mPositionY = 0;
+ 
+   public VideoTextureView(final Context themedReactContext, VideoView videoView) {
+     super(themedReactContext, null, 0);
+@@ -53,7 +57,14 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+       getTransform(prevMatrix);
+       if (!matrix.equals(prevMatrix)) {
+         setTransform(matrix);
++        float[] values = new float[9];
++        matrix.getValues(values);
++        mBufferWidth = (int)(getWidth() * values[Matrix.MSCALE_X]);
++        mBufferHeight = (int)(getHeight() * values[Matrix.MSCALE_Y]);
++        mPositionX = (int)(values[Matrix.MTRANS_X]);
++        mPositionY = (int)(values[Matrix.MTRANS_Y]);
+         invalidate();
++        mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+       }
+     }
+   }
+@@ -69,6 +80,7 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+       onVisibilityChanged(this, View.INVISIBLE);
+       onVisibilityChanged(this, View.VISIBLE);
+     }
++    mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+   }
+ 
+   // TextureView
+@@ -76,7 +88,8 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   @Override
+   public void onSurfaceTextureAvailable(final SurfaceTexture surfaceTexture, final int width, final int height) {
+     mSurface = new Surface(surfaceTexture);
+-    mVideoView.tryUpdateVideoSurface(mSurface);
++    mVideoView.tryUpdateVideoSurface();
++    mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+   }
+ 
+   @Override
+@@ -86,13 +99,12 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+ 
+   @Override
+   public void onSurfaceTextureUpdated(final SurfaceTexture surfaceTexture) {
+-    // no-op
++    mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+   }
+ 
+   @Override
+   public boolean onSurfaceTextureDestroyed(final SurfaceTexture surfaceTexture) {
+     mSurface = null;
+-    mVideoView.tryUpdateVideoSurface(null);
+     return true;
+   }
+ 
+@@ -108,11 +120,13 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   protected void onAttachedToWindow() {
+     super.onAttachedToWindow();
+     mIsAttachedToWindow = true;
+-    mVideoView.tryUpdateVideoSurface(mSurface);
++    mVideoView.tryUpdateVideoSurface();
++    mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+   }
+ 
+   protected void onVisibilityChanged(View changedView, int visibility) {
+     super.onVisibilityChanged(changedView, visibility);
+     mVisible = visibility == View.VISIBLE;
++    mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
+   }
+ }
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
+index 1acb32b..89b27d8 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
+@@ -4,8 +4,11 @@ import android.annotation.SuppressLint;
+ import android.content.Context;
+ import android.os.Bundle;
+ import android.util.Pair;
++import android.view.Gravity;
+ import android.view.MotionEvent;
+ import android.view.Surface;
++import android.view.SurfaceControl;
++import android.view.SurfaceView;
+ import android.widget.FrameLayout;
+ 
+ import androidx.annotation.NonNull;
+@@ -62,6 +65,10 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+   private boolean mShouldShowFullscreenPlayerOnLoad = false;
+   private FullscreenVideoPlayerPresentationChangeProgressListener mFullscreenVideoPlayerPresentationOnLoadChangeListener = null;
+ 
++  private Surface mSurface;
++  private SurfaceControl mSurfaceControl;
++  private SurfaceView mSurfaceView;
++
+   public VideoView(@NonNull Context context, VideoViewWrapper videoViewWrapper, AppContext appContext) {
+     super(context);
+ 
+@@ -70,6 +77,11 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+     mAVModule = appContext.getLegacyModuleRegistry().getModule(AVManagerInterface.class);
+     mAVModule.registerVideoViewForAudioLifecycle(this);
+ 
++    mSurfaceView = new SurfaceView(context);
++    mSurfaceControl = new SurfaceControl.Builder().setName("ExpoAVSurfaceControl").setBufferSize(0, 0).build();
++    mSurface = new Surface(mSurfaceControl);
++    addView(mSurfaceView);
++
+     mVideoTextureView = new VideoTextureView(context, this);
+     addView(mVideoTextureView, generateDefaultLayoutParams());
+ 
+@@ -387,7 +399,7 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+         mVideoTextureView.scaleVideoSize(mPlayerData.getVideoWidthHeight(), mResizeMode);
+ 
+         if (mVideoTextureView.isAttachedToWindow()) {
+-          mPlayerData.tryUpdateVideoSurface(mVideoTextureView.getSurface());
++          mPlayerData.tryUpdateVideoSurface(mSurface);
+         }
+ 
+         if (promise != null) {
+@@ -471,12 +483,24 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+ 
+   // TextureView
+ 
+-  public void tryUpdateVideoSurface(Surface surface) {
++  public void tryUpdateVideoSurface() {
+     if (mPlayerData != null) {
+-      mPlayerData.tryUpdateVideoSurface(surface);
++      mPlayerData.tryUpdateVideoSurface(mSurface);
+     }
+   }
+ 
++  public void updateSurfaceView(boolean visible, int bufferWidth, int bufferHeight, int positionX, int positionY) {
++    new SurfaceControl.Transaction()
++      .reparent(mSurfaceControl, mSurfaceView.getSurfaceControl())
++      .setBufferSize(mSurfaceControl, bufferWidth, bufferHeight)
++      .setPosition(mSurfaceControl, 0, 0)
++      .setVisibility(mSurfaceControl, visible && bufferWidth > 0 && bufferHeight > 0)
++      .apply();
++    mSurfaceView.layout(positionX, positionY, positionX + Math.max(bufferWidth, 1), positionY + Math.max(bufferHeight, 1));
++    mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(Math.max(bufferWidth, 1), Math.max(bufferHeight, 1), Gravity.CENTER));
++    mSurfaceView.requestLayout();
++  }
++
+   // AudioEventHandler
+ 
+   @Override
