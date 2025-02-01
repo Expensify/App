@@ -81,9 +81,9 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
     let lastPolicyPaymentMethod = null;
     if (item.policyID) {
         if (typeof lastPaymentMethod?.[item.policyID] === 'string') {
-            lastPolicyPaymentMethod = lastPaymentMethod?.[item.policyID];
+            lastPolicyPaymentMethod = lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
         }
-        lastPolicyPaymentMethod = (lastPaymentMethod?.[item.policyID] as LastPaymentMethodType).DEFAULT;
+        lastPolicyPaymentMethod = (lastPaymentMethod?.[item.policyID] as LastPaymentMethodType)?.DEFAULT as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     }
 
     if (!lastPolicyPaymentMethod) {

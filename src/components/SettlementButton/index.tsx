@@ -225,7 +225,7 @@ function SettlementButton({
     };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
-        IOU.savePreferredPaymentMethod(id, value);
+        IOU.savePreferredPaymentMethod(id, value, undefined);
     };
 
     return (
