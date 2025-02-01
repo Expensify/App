@@ -1221,7 +1221,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedReport(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
@@ -1251,7 +1251,11 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
-function clearTaskErrors(reportID: string) {
+function clearTaskErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report
