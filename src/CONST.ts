@@ -6549,6 +6549,12 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
     },
+    LAST_PAYMENT_METHOD: {
+        DEFAULT: 'DEFAULT',
+        IOU: 'IOU',
+        EXPENSE: 'EXPENSE',
+        INVOICE: 'INVOICE',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

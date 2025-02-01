@@ -19,7 +19,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {openReport} from './Report';
 
@@ -78,7 +78,13 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
+    let lastPolicyPaymentMethod = null;
+    if (item.policyID) {
+        if (typeof lastPaymentMethod?.[item.policyID] === 'string') {
+            lastPolicyPaymentMethod = lastPaymentMethod?.[item.policyID];
+        }
+        lastPolicyPaymentMethod = (lastPaymentMethod?.[item.policyID] as LastPaymentMethodType).DEFAULT;
+    }
 
     if (!lastPolicyPaymentMethod) {
         goToItem();
