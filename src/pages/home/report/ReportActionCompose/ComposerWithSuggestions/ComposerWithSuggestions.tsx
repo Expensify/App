@@ -836,6 +836,7 @@ function ComposerWithSuggestions(
                         }
                         if (isMobileWebKit()) {
                             isTouchEndedRef.current = false;
+                            // In iOS browsers, open the keyboard after a timeout, or it will close briefly.
                             setTimeout(() => {
                                 if (!isTouchEndedRef.current) {
                                     // Don't open the keyboard on long press so the callout menu can show.
