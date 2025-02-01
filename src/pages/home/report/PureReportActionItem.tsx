@@ -1010,7 +1010,7 @@ function PureReportActionItem({
                             childReportID={`${action.childReportID}`}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
-                            isHovered={hovered}
+                            isHovered={hovered || isContextMenuActive}
                             icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
@@ -1045,7 +1045,7 @@ function PureReportActionItem({
                     shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
                     iouReport={iouReport}
-                    isHovered={hovered}
+                    isHovered={hovered || isContextMenuActive}
                     isActive={isReportActionActive && !isContextMenuActive}
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
