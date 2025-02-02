@@ -419,7 +419,6 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
                 await waitForBatchedUpdates();
 
-                // Given the correct text message
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
 
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
@@ -446,7 +445,6 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                // Given the correct text message
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
 
                 // When the expense is moved to an expense chat with reportName empty
@@ -473,7 +471,6 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                // Given the correct text message
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName, workspaceName: policyExpenseChat.policyName});
 
                 // When the expense is moved to an expense chat with both reportName and policyName are present
@@ -499,7 +496,6 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                // Given the correct text message
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName});
 
                 // When the expense is moved to an expense chat with only reportName is present
