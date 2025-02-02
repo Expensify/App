@@ -6,14 +6,10 @@ import CONST from '@src/CONST';
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.
  */
 const useScrollEventEmitter = <T extends Object>(additinalEmitData: T) => {
-    const [lastScrollEvent, setLastScrollEvent] = useState<number | null>(null);
     const isScrollingRef = useRef<boolean>(false);
+    let timeout: NodeJS.Timeout | null = null; // Timeout for detecting the end of scrolling
 
     const triggerScrollEvent = useCallback(() => {
-        setLastScrollEvent(Date.now());
-    }, []);
-
-    useEffect(() => {
         const emitScrolling = (isScrolling: boolean) => {
             DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, {
                 isScrolling,
@@ -28,13 +24,19 @@ const useScrollEventEmitter = <T extends Object>(additinalEmitData: T) => {
         }
 
         // End the scroll and emit after a brief timeout to detect the end of scrolling
-        const timeout = setTimeout(() => {
+        if (timeout) {
+            clearTimeout(timeout); // Clear any existing timeout
+        }
+
+        timeout = setTimeout(() => {
             emitScrolling(false);
             isScrollingRef.current = false;
         }, 250);
+    }, [additinalEmitData]);
 
-        return () => clearTimeout(timeout);
-    }, [lastScrollEvent]);
+    useEffect(() => {
+        triggerScrollEvent();
+    }, [triggerScrollEvent]);
 
     return triggerScrollEvent;
 };
