@@ -62,7 +62,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1241,8 +1241,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is a Policy Expense chat.
  */
 function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (option && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat) || false;
+    return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(option && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat);
 }
 
 function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -5596,6 +5595,43 @@ function buildOptimisticModifiedExpenseReportAction(
 }
 
 /**
+ * Builds an optimistic DETACH_RECEIPT report action with a randomly generated reportActionID.
+ */
+function buildOptimisticDetachReceipt(reportID: string | undefined, transactionID: string, merchant: string = CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        isAttachmentOnly: false,
+        originalMessage: {
+            transactionID,
+            merchant: `${merchant}`,
+        },
+        message: [
+            {
+                type: 'COMMENT',
+                html: `detached a receipt from expense '${merchant}'`,
+                text: `detached a receipt from expense '${merchant}'`,
+                whisperedTo: [],
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
+        reportID,
+        shouldShow: true,
+    };
+}
+
+/**
  * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
  * @param transactionThreadID - The reportID of the transaction thread
  * @param movedToReportID - The reportID of the report the transaction is moved to
@@ -6412,6 +6448,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    shouldEscapeText = true,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6426,7 +6463,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description: getParsedComment(description ?? ''),
+        description: getParsedComment(description ?? '', {shouldEscapeText}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -8459,16 +8496,17 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    iouReport: OnyxInputOrEntry<Report> | undefined,
-    report: OnyxInputOrEntry<Report> | undefined,
-): number | undefined {
+function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, report: OnyxEntry<Report>): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
             const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
-            return isPolicyExpenseChat(report) ? ownerAccountID : actorAccountID;
+
+            if (isPolicyExpenseChat(report)) {
+                return ownerAccountID;
+            }
+
+            return actorAccountID;
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
@@ -8478,6 +8516,7 @@ function getReportActionActorAccountID(
             return reportAction?.actorAccountID;
     }
 }
+
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
@@ -8915,6 +8954,7 @@ export {
     buildOptimisticAnnounceChat,
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
+    buildOptimisticDetachReceipt,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildTransactionThread,
@@ -9212,6 +9252,7 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
+    prepareOnboardingOnyxData,
 };
 
 export type {

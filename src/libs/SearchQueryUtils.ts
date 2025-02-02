@@ -67,10 +67,10 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space.
+ * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
  */
 function sanitizeSearchValue(str: string) {
-    if (str.includes(' ')) {
+    if (str.includes(' ') || str.includes(`\xA0`)) {
         return `"${str}"`;
     }
     return str;
@@ -657,10 +657,6 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
 }
 
-function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters;
-}
-
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
@@ -740,5 +736,4 @@ export {
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
-    isDefaultExpensesQuery,
 };
