@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import CONST from '@src/CONST';
+import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
@@ -418,7 +419,9 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
                 await waitForBatchedUpdates();
 
-                const expectedResult = 'changed the expense';
+                // Given the correct text message
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
                 const result = ModifiedExpenseMessage.getForReportAction(selfDMReport.reportID, reportAction);
                 // Then it should return the 'changed the expense' message
@@ -426,8 +429,8 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('return the message "changed the expense" when reportName and workspace name are empty', async () => {
-                // Given the report with empty name and report action
-                const emptyReportNameReport = {
+                // Given the policyExpenseChat with reportName is empty and report action
+                const policyExpenseChat = {
                     ...report,
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     reportName: '',
@@ -437,16 +440,71 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        movedToReportID: emptyReportNameReport.reportID,
+                        movedToReportID: policyExpenseChat.reportID,
                     },
                 };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${emptyReportNameReport.reportID}`]: emptyReportNameReport});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                const expectedResult = 'changed the expense';
-                // When the expense is moved from an expense chat with reportName empty
-                const result = ModifiedExpenseMessage.getForReportAction(emptyReportNameReport.reportID, reportAction);
+                // Given the correct text message
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+
+                // When the expense is moved to an expense chat with reportName empty
+                const result = ModifiedExpenseMessage.getForReportAction(policyExpenseChat.reportID, reportAction);
                 // Then it should return the 'changed the expense' message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "moved expense from self DM to ${policyName}" when both reportName and policyName are present', async () => {
+                // Given the policyExpenseChat with both reportName and policyName are present and report action
+                const policyExpenseChat = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: false,
+                    policyName: 'fake policyName',
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: policyExpenseChat.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
+                await waitForBatchedUpdates();
+
+                // Given the correct text message
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName, workspaceName: policyExpenseChat.policyName});
+
+                // When the expense is moved to an expense chat with both reportName and policyName are present
+                const result = ModifiedExpenseMessage.getForReportAction(policyExpenseChat.reportID, reportAction);
+                // Then it should return the correct text message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "moved expense from self DM to chat with ${reportName}" when only reportName is present', async () => {
+                // Given the policyExpenseChat with only reportName is present and report action
+                const policyExpenseChat = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: false,
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: policyExpenseChat.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
+                await waitForBatchedUpdates();
+
+                // Given the correct text message
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName});
+
+                // When the expense is moved to an expense chat with only reportName is present
+                const result = ModifiedExpenseMessage.getForReportAction(policyExpenseChat.reportID, reportAction);
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
         });
