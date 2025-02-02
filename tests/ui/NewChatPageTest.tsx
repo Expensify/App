@@ -21,6 +21,7 @@ describe('NewChatPage', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
     });
 
     it('should scroll to top when adding a user to the group selection', async () => {
