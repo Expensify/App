@@ -365,8 +365,8 @@ function BaseSelectionList<TItem extends ListItem>(
             if (!isFocused && !isScreenFocused) {
                 return;
             }
+            // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
                 if (sections.length > 1) {
                     // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
                     // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
