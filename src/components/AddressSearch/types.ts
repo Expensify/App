@@ -26,6 +26,19 @@ type PredefinedPlace = Place & {
     name?: string;
 };
 
+type LocationBias = {
+    rectangle: {
+        low: {
+            latitude: number;
+            longitude: number;
+        };
+        high: {
+            latitude: number;
+            longitude: number;
+        };
+    };
+};
+
 type AddressSearchProps = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
@@ -82,7 +95,7 @@ type AddressSearchProps = {
     resultTypes?: string;
 
     /** Location bias for querying search results. */
-    locationBias?: string;
+    locationBias?: LocationBias | undefined;
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
