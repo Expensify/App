@@ -1704,6 +1704,11 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             isAuthTokenRequired?: string;
             fileName?: string;
             attachmentLink?: string;
+
+            /** Whether it is a receipt attachment or not */
+            isReceiptAttachment?: boolean;
+            /** Whether the modal should be open by default */
+            defaultOpen?: boolean;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

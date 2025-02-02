@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -88,6 +89,9 @@ type AuthScreensProps = {
     /** The last Onyx update ID was applied to the client */
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
+
+const platform = getPlatform();
+const isWeb = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILEWEB;
 
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -506,7 +510,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
+                            presentation: isWeb ? Presentation.TRANSPARENT_MODAL : undefined,
                         }}
                         getComponent={loadReportAttachments}
                         listeners={modalScreenListeners}
