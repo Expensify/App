@@ -48,6 +48,7 @@ function SearchPageBottomTab() {
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
+            runOnJS(triggerScrollEvent)();
             const {contentOffset, layoutMeasurement, contentSize} = event;
             if (windowHeight > contentSize.height) {
                 return;
@@ -65,7 +66,6 @@ function SearchPageBottomTab() {
                 );
             }
             scrollOffset.set(currentOffset);
-            runOnJS(triggerScrollEvent)();
         },
     });
 
