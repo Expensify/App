@@ -388,10 +388,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const previsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-    
+
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
 
-    const [isNavigatingToDeletedMessage, setIsNavigatingToDeletedMessage] = useState(false);
+    const [isNavigatingToAction, setIsNavigatingToAction] = useState(false);
 
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
@@ -424,7 +424,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedMessage) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToAction) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -741,21 +741,21 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     useEffect(() => {
         // Only handle deletion cases when there's a deleted action
         if (!isLinkedActionDeleted) {
-            setIsNavigatingToDeletedMessage(false);
+            setIsNavigatingToAction(false);
             return;
         }
 
-        // Set navigation state when user clicks a deleted message link
+        // Set navigation state when user clicks a deleted Action link
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
-            setIsNavigatingToDeletedMessage(true);
+            setIsNavigatingToAction(true);
             return;
         }
 
-        // Clear params when message gets deleted while viewing
-        if (!isNavigatingToDeletedMessage && previsLinkedActionDeleted === false) {
+        // Clear params when Action gets deleted while heighlighted
+        if (!isNavigatingToAction && previsLinkedActionDeleted === false) {
             Navigation.setParams({reportActionID: ''});
         }
-    }, [isLinkedActionDeleted, previsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedMessage]);
+    }, [isLinkedActionDeleted, previsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToAction]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
