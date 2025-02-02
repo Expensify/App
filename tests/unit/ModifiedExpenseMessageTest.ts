@@ -400,7 +400,7 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when move report', () => {
+        describe('when moving an expense', () => {
             beforeEach(() => Onyx.clear());
             it('return the message "changed the expense" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
                 // Given the selfDM report and report action
@@ -419,7 +419,7 @@ describe('ModifiedExpenseMessage', () => {
                 await waitForBatchedUpdates();
 
                 const expectedResult = 'changed the expense';
-                // When the expense move from an expense chat or 1:1 DM to selfDM
+                // When the expense is moved from an expense chat or 1:1 DM to selfDM
                 const result = ModifiedExpenseMessage.getForReportAction(selfDMReport.reportID, reportAction);
                 // Then it should return the 'changed the expense' message
                 expect(result).toEqual(expectedResult);
@@ -444,7 +444,7 @@ describe('ModifiedExpenseMessage', () => {
                 await waitForBatchedUpdates();
 
                 const expectedResult = 'changed the expense';
-                // When the expense move from expense chat with reportName empty
+                // When the expense is moved from an expense chat with reportName empty
                 const result = ModifiedExpenseMessage.getForReportAction(emptyReportNameReport.reportID, reportAction);
                 // Then it should return the 'changed the expense' message
                 expect(result).toEqual(expectedResult);
