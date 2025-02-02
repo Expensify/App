@@ -387,7 +387,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [linkedAction, report],
     );
 
-    const [isClearingDeletedLinkedAction, setIsClearingDeletedLinkedAction] = useState<boolean | undefined>();
+    const previsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
+    
+    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+
+    const [isNavigatingToDeletedMessage, setIsNavigatingToDeletedMessage] = useState(false);
 
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
@@ -420,7 +424,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isClearingDeletedLinkedAction === false) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedMessage) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -735,23 +739,23 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [fetchReport]);
 
     useEffect(() => {
-
-        if (!isLinkedActionDeleted || isClearingDeletedLinkedAction)
-        {
+        // Only handle deletion cases when there's a deleted action
+        if (!isLinkedActionDeleted) {
+            setIsNavigatingToDeletedMessage(false);
             return;
         }
 
-        Navigation.setParams({reportActionID: ''});
-        setIsClearingDeletedLinkedAction(true);
-    }, [isLinkedActionDeleted, isClearingDeletedLinkedAction]);
-
-
-    useEffect(() => {
-        if (!isClearingDeletedLinkedAction || reportActionIDFromRoute) {
+        // Set navigation state when user clicks a deleted message link
+        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
+            setIsNavigatingToDeletedMessage(true);
             return;
         }
-        setIsClearingDeletedLinkedAction(false);
-    }, [isClearingDeletedLinkedAction, reportActionIDFromRoute]);
+
+        // Clear params when message gets deleted while viewing
+        if (!isNavigatingToDeletedMessage && previsLinkedActionDeleted === false) {
+            Navigation.setParams({reportActionID: ''});
+        }
+    }, [isLinkedActionDeleted, previsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedMessage]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
@@ -785,7 +789,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         !isDeletedAction(mostRecentReportAction);
 
     const lastRoute = usePrevious(route);
-    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
 
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
