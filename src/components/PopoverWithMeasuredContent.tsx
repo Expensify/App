@@ -2,6 +2,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -66,23 +67,14 @@ function PopoverWithMeasuredContent({
     const [popoverWidth, setPopoverWidth] = useState(popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(popoverDimensions.height);
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const prevIsVisible = usePrevious(isVisible);
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    /**
-     * When Popover becomes visible, we need to recalculate the Dimensions.
-     * Skip render on Popover until recalculations are done by setting isContentMeasured to false as early as possible.
-     */
-    if (!isPopoverVisible && isVisible) {
+    if (!prevIsVisible && isVisible) {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(modalId);
         }
-        // When Popover is shown recalculate
-        setIsContentMeasured(popoverDimensions.width > 0 && popoverDimensions.height > 0);
-        setIsPopoverVisible(true);
-    } else if (isPopoverVisible && !isVisible) {
-        setIsPopoverVisible(false);
     }
 
     /**
@@ -147,7 +139,7 @@ function PopoverWithMeasuredContent({
     return isContentMeasured ? (
         <Popover
             shouldHandleNavigationBack={shouldHandleNavigationBack}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={{height: popoverHeight, width: popoverWidth}}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}
             withoutOverlay={withoutOverlay}
