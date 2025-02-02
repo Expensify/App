@@ -603,6 +603,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SettlementDateParams = {
+    settlementDate: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -816,4 +820,5 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    SettlementDateParams,
 };
