@@ -4,17 +4,17 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
-import * as LoginUtils from './LoginUtils';
+import {appendCountryCode} from './LoginUtils';
 import Navigation from './Navigation/Navigation';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PhoneNumberUtils from './PhoneNumber';
-import * as UserUtils from './UserUtils';
+import {getCurrentAddress, getFormattedStreet} from './PersonalDetailsUtils';
+import {parsePhoneNumber} from './PhoneNumber';
+import {getSecondaryPhoneLogin} from './UserUtils';
 
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
-    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber ?? '');
-    const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+    const address = getCurrentAddress(privatePersonalDetails);
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber ?? '');
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
@@ -61,7 +61,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  */
 function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
 
     return {
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -72,7 +72,7 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
         addressLine2: draftValues?.addressLine2 || address?.street.split('\n')[1] || '',
         city: draftValues?.city || address?.city || '',
         country: draftValues?.country || address?.country || '',
-        phoneNumber: draftValues?.phoneNumber || phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
+        phoneNumber: draftValues?.phoneNumber || phoneNumber || getSecondaryPhoneLogin(loginList) || '',
         state: draftValues?.state || address?.state || '',
         zipPostCode: draftValues?.zipPostCode || address?.zip || '',
         /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -90,7 +90,7 @@ function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCard
         legalFirstName,
         legalLastName,
         phoneNumber,
-        addresses: [...(privatePersonalDetails?.addresses ?? []), {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
+        addresses: [...(privatePersonalDetails?.addresses ?? []), {street: getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
     };
 }
 
