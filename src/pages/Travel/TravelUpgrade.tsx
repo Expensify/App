@@ -64,14 +64,13 @@ function TravelUpgrade() {
                     />
                 </ScreenWrapper>
             </Modal>
-            {!!isUpgraded && (
+            {isUpgraded ? (
                 <UpgradeConfirmation
                     onConfirmUpgrade={() => Navigation.goBack()}
                     policyName=""
                     isTravelUpgrade
                 />
-            )}
-            {!isUpgraded && (
+            ) : (
                 <UpgradeIntro
                     feature={feature}
                     onUpgrade={() => setShouldShowConfirmation(true)}
