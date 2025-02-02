@@ -332,7 +332,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     forwardedRef={validateCodeFormRef}
                 />
 
-                {!isValidateCodeActionModalVisible && getMenuItems()}
+                {!isValidateCodeActionModalVisible && !!loginData.validatedDate && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
