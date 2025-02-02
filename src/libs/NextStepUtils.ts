@@ -11,7 +11,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
-import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getCorrectedAutoReportingFrequency, getReimburserAccountID, hasVBBA} from './PolicyUtils';
 import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
@@ -94,8 +94,36 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
+    const hasBankAccount = hasVBBA(policyID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
+
+    const nextStepPayExpense = {
+        type,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for ',
+            },
+            reimburserAccountID === -1
+                ? {
+                      text: 'an admin',
+                  }
+                : {
+                      text: getDisplayNameForParticipant(reimburserAccountID),
+                      type: 'strong',
+                  },
+            {
+                text: ' to ',
+            },
+            {
+                text: !hasBankAccount ? 'pay' : 'finish setting up',
+            },
+            {
+                text: !hasBankAccount ? ' %expenses.' : ' a business bank account.',
+            },
+        ],
+    };
 
     const noActionRequired = {
         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
@@ -221,6 +249,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
+            if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+                optimisticNextStep = nextStepPayExpense;
+                break;
+            }
             // Another owner
             optimisticNextStep = {
                 type,
