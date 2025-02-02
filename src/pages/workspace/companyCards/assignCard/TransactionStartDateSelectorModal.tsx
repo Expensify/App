@@ -51,7 +51,6 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={TransactionStartDateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
@@ -63,10 +62,9 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     formID={ONYXKEYS.FORMS.ASSIGN_CARD_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
-                    style={[styles.flex1, styles.mh5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
-                    submitButtonStyles={[styles.mb0, styles.pb0, styles.mh0]}
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
