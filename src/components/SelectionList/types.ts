@@ -655,6 +655,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
+    isScreenFocused?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -122,6 +122,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        isScreenFocused = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -361,8 +362,11 @@ function BaseSelectionList<TItem extends ListItem>(
      */
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
-            // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
+            if (!isFocused && !isScreenFocused) {
+                return;
+            }
             if (canSelectMultiple) {
+                // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
                 if (sections.length > 1) {
                     // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
                     // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
@@ -401,6 +405,8 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex,
             onSelectRow,
             shouldPreventDefaultFocusOnSelectRow,
+            isFocused,
+            isScreenFocused,
         ],
     );
 
