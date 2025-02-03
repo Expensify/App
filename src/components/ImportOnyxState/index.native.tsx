@@ -33,10 +33,10 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             return;
         }
 
-        rollbackOngoingRequest();
         setIsLoading(true);
         readOnyxFile(file.uri)
             .then((fileContent: string) => {
+                rollbackOngoingRequest();
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
                 const currentUserSessionCopy = {...session};
                 setPreservedUserSession(currentUserSessionCopy);

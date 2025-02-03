@@ -21,7 +21,6 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             return;
         }
 
-        rollbackOngoingRequest();
         setIsLoading(true);
 
         const blob = new Blob([file as BlobPart]);
@@ -30,6 +29,7 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
         response
             .text()
             .then((text) => {
+                rollbackOngoingRequest();
                 const fileContent = text;
 
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
