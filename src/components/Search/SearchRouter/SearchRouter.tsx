@@ -7,6 +7,9 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
+import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -33,9 +36,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-import SearchRouterInput from './SearchRouterInput';
-import type {GetAdditionalSectionsCallback} from './SearchRouterList';
-import SearchRouterList from './SearchRouterList';
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
@@ -83,8 +83,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
-    // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
+    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
+    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
@@ -212,6 +213,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
         [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
     );
 
+    const setTextAndUpdateSelection = useCallback(
+        (text: string) => {
+            setTextInputValue(text);
+            setSelection({start: text.length, end: text.length});
+        },
+        [setSelection, setTextInputValue],
+    );
+
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
@@ -221,7 +230,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item);
-                    onSearchQueryChange(`${searchQuery} `, true);
+                    const newSearchQuery = `${searchQuery}\u00A0`;
+                    onSearchQueryChange(newSearchQuery, true);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item);
                     if (autocompleteKey && item.autocompleteID) {
@@ -231,7 +242,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)} `);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    onSearchQueryChange(newSearchQuery);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -289,7 +302,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             )}
             {isRecentSearchesDataLoaded && (
                 <>
-                    <SearchRouterInput
+                    <SearchInputSelectionWrapper
                         value={textInputValue}
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
@@ -304,20 +317,21 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                             onListItemPress(focusedOption);
                         }}
                         caretHidden={shouldHideInputCaret}
-                        routerListRef={listRef}
+                        autocompleteListRef={listRef}
                         shouldShowOfflineMessage
                         wrapperStyle={[styles.border, styles.alignItemsCenter]}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                         wrapperFocusedStyle={[styles.borderColorFocus]}
                         isSearchingForReports={isSearchingForReports}
+                        selection={selection}
                         ref={textInputRef}
                     />
-                    <SearchRouterList
+                    <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
-                        setTextQuery={setTextInputValue}
+                        setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
                     />
