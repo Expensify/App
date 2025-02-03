@@ -68,7 +68,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            setShareDestinationValue(task?.parentReportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
+            setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
             createTaskAndNavigate(
                 task?.parentReportID ?? CONST.REPORT.DEFAULT_REPORT_ID,
@@ -132,7 +132,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
-                        isMarkdownEnabled
+                        type="markdown"
                     />
                 </View>
             </FormProvider>
