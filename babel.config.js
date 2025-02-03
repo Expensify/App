@@ -30,6 +30,8 @@ const defaultPlugins = [
     // source code transformation as we do not use class property assignment.
     '@babel/plugin-transform-class-properties',
 
+    './babel-perf',
+
     // Keep it last
     'react-native-reanimated/plugin',
 ];
