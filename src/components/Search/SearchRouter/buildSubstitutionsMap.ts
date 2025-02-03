@@ -1,9 +1,9 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import * as parser from '@libs/SearchParser/autocompleteParser';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {parse} from '@libs/SearchParser/autocompleteParser';
+import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -26,11 +26,12 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
  */
 function buildSubstitutionsMap(
     query: string,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
+    personalDetails: PersonalDetailsList | undefined,
+    reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
+    cardList: CardList,
 ): SubstitutionMap {
-    const parsedQuery = parser.parse(query) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsedQuery.ranges;
 
@@ -59,9 +60,10 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
         ) {
-            const displayValue = SearchQueryUtils.getFilterDisplayValue(filterKey, filterValue, personalDetails, reports);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

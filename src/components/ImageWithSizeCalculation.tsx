@@ -123,6 +123,13 @@ function ImageWithSizeCalculation({
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
+                waitForSession={() => {
+                    // Called when the image should wait for a valid session to reload
+                    // At the moment this function is called, the image is not in cache anymore
+                    isLoadedRef.current = false;
+                    setIsImageCached(false);
+                    setIsLoading(true);
+                }}
                 objectPosition={objectPosition}
             />
             {isLoading && !isImageCached && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}

@@ -11,7 +11,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {AppState, DeviceEventEmitter, findNodeHandle, InteractionManager, Keyboard, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -734,6 +734,21 @@ function ComposerWithSuggestions(
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
         tag.set(findNodeHandle(textInputRef.current) ?? -1);
     }, [tag]);
+
+    useEffect(() => {
+        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+            if (!nextAppState.match(/inactive|background/)) {
+                focus(true);
+                return;
+            }
+
+            Keyboard.dismiss();
+        });
+
+        return () => {
+            appStateSubscription.remove();
+        };
+    }, [focus]);
 
     useFocusedInputHandler(
         {
