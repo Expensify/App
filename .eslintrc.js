@@ -123,8 +123,9 @@ module.exports = {
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
         'plugin:prettier/recommended',
+        'plugin:@cspell/recommended'
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation', '@cspell'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: path.resolve(__dirname, './tsconfig.json'),
@@ -221,6 +222,12 @@ module.exports = {
             },
         ],
         'react-compiler/react-compiler': 'error',
+
+        // cspell
+        '@cspell/spellchecker': [
+            'error',
+            { 'cspell': { 'words': [] }  }
+        ],
 
         // Disallow usage of certain functions and imports
         'no-restricted-syntax': [
