@@ -53,6 +53,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
+import {
+    setPolicyPreventSelfApproval,
+} from '@userActions/Policy/Policy';
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
@@ -214,12 +217,18 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
 
+        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
+        const newEmployeesCount = previousEmployeesCount - accountIDsToRemove.length;
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             Member.removeMembers(accountIDsToRemove, route.params.policyID);
+            if (newEmployeesCount === 1 && policy?.preventSelfApproval) {
+                // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+                setPolicyPreventSelfApproval(route.params.policyID, false);
+            }
         });
     };
 
