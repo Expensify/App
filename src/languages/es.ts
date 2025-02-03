@@ -4532,8 +4532,8 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
-                    toUpgrade: 'Para mejorar, haz clic',
-                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a Controlar.',
+                    toUpgrade: 'Para mejorar, haz clic en',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
             },
         },
@@ -4552,8 +4552,8 @@ const translations = {
                     benefit4: 'Controles de seguridad mejorados',
                     headsUp: '¡Atención!',
                     multiWorkspaceNote:
-                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic',
-                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a Recopilar.',
+                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic en',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a',
                 },
             },
             completed: {
