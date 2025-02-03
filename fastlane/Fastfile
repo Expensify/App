@@ -484,6 +484,10 @@ platform :ios do
     )
 
     install_provisioning_profile(
+      path: "./ios/NewApp_AdHoc_Share_Extension.mobileprovision"
+    )
+
+    install_provisioning_profile(
       path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
