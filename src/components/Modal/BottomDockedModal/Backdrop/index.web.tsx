@@ -1,15 +1,54 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
-import {FadeIn, FadeOut} from '@components/Modal/BottomDockedModal/animations';
+import Animated, {Easing, Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+
+/**
+ * Due to issues with react-native-reanimated Keyframes the easing type doesn't account for bezier functions
+ * and we also need to use internal .build() function to make the easing apply on each mount.
+ *
+ * This causes problems with both eslint & Typescript and is going to be fixed in react-native-reanimated 3.17 with these PRs merged:
+ * https://github.com/software-mansion/react-native-reanimated/pull/6960
+ * https://github.com/software-mansion/react-native-reanimated/pull/6958
+ *
+ * Once that's added we can apply our changes to files in BottomDockedModal/Backdrop/*.tsx and BottomDockedModal/Container/*.tsx
+ */
+
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 300, animationOutTiming = 300}: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const Entering = useMemo(() => {
+        const FadeIn = new Keyframe({
+            from: {opacity: 0},
+            to: {
+                opacity: 0.72,
+                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+                easing,
+            },
+        });
+
+        return FadeIn.duration(animationInTiming);
+    }, [animationInTiming]);
+
+    const Exiting = useMemo(() => {
+        const FadeOut = new Keyframe({
+            from: {opacity: 0.72},
+            to: {
+                opacity: 0,
+                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+                easing,
+            },
+        });
+
+        return FadeOut.duration(animationOutTiming);
+    }, [animationOutTiming]);
 
     if (!customBackdrop) {
         return (
@@ -20,8 +59,8 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
             >
                 <Animated.View
                     style={[styles.modalBackdrop, style]}
-                    entering={FadeIn.duration(animationInTiming)}
-                    exiting={FadeOut.duration(animationOutTiming)}
+                    entering={Entering}
+                    exiting={Exiting}
                 />
             </PressableWithoutFeedback>
         );
@@ -29,8 +68,8 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
 
     return (
         <Animated.View
-            entering={FadeIn.duration(animationInTiming)}
-            exiting={FadeOut.duration(animationOutTiming)}
+            entering={Entering}
+            exiting={Exiting}
         >
             <View style={[styles.modalBackdrop, style]}>{!!customBackdrop && customBackdrop}</View>
         </Animated.View>

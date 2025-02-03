@@ -1,17 +1,35 @@
 import React, {useEffect, useMemo} from 'react';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {ContainerFadeOut} from '@components/Modal/BottomDockedModal/animations';
+import Animated, {Easing, Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ModalProps from '@components/Modal/BottomDockedModal/types';
 import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+
+/**
+ * Due to issues with react-native-reanimated Keyframes the easing type doesn't account for bezier functions
+ * and we also need to use internal .build() function to make the easing apply on each mount.
+ *
+ * This causes problems with both eslint & Typescript and is going to be fixed in react-native-reanimated 3.17 with these PRs merged:
+ * https://github.com/software-mansion/react-native-reanimated/pull/6960
+ * https://github.com/software-mansion/react-native-reanimated/pull/6958
+ *
+ * Once that's added we can apply our changes to files in BottomDockedModal/Backdrop/*.tsx and BottomDockedModal/Container/*.tsx
+ */
+
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
     const styles = useThemeStyles();
     const opacity = useSharedValue(0);
     const isInitiated = useSharedValue(false);
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    useEffect(() => onCloseCallBack, []);
+    useEffect(
+        () => () => {
+            setTimeout(onCloseCallBack, animationOutTiming);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [],
+    );
 
     useEffect(() => {
         if (isInitiated.get()) {
@@ -33,13 +51,18 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
         return {opacity: opacity.get()};
     }, [opacity]);
 
-    const FadeOut = useMemo(() => {
-        return ContainerFadeOut.duration(animationOutTiming).withCallback(() => {
-            'worklet';
-
-            runOnJS(onCloseCallBack)();
+    const Exiting = useMemo(() => {
+        const FadeOut = new Keyframe({
+            from: {opacity: 1},
+            to: {
+                opacity: 0,
+                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+                easing,
+            },
         });
-    }, [animationOutTiming, onCloseCallBack]);
+
+        return FadeOut.duration(animationOutTiming);
+    }, [animationOutTiming]);
 
     return (
         <Animated.View
@@ -49,7 +72,7 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
         >
             <Animated.View
                 style={[styles.modalAnimatedContainer, animatedStyles]}
-                exiting={FadeOut}
+                exiting={Exiting}
             >
                 {props.children}
             </Animated.View>

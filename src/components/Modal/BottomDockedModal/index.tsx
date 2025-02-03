@@ -21,8 +21,6 @@ function BottomDockedModal({
     hasBackdrop = true,
     backdropColor = 'black',
     backdropOpacity = 0.72,
-    backdropTransitionInTiming = 300,
-    backdropTransitionOutTiming = 300,
     customBackdrop = null,
     deviceHeight: deviceHeightProp = null,
     deviceWidth: deviceWidthProp = null,
@@ -139,15 +137,12 @@ function BottomDockedModal({
     }, [onModalShow]);
 
     const onCloseCallBack = useCallback(() => {
-        if (!isTransitioning && getPlatform() === CONST.PLATFORM.WEB) {
-            return;
-        }
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (getPlatform() !== CONST.PLATFORM.IOS) {
             onModalHide();
         }
-    }, [onModalHide, isTransitioning]);
+    }, [onModalHide]);
 
     const containerView = (
         <Container
@@ -168,8 +163,8 @@ function BottomDockedModal({
             style={backdropStyle}
             customBackdrop={customBackdrop}
             onBackdropPress={onBackdropPress}
-            animationInTiming={backdropTransitionInTiming}
-            animationOutTiming={backdropTransitionOutTiming}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
         />
     );

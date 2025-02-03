@@ -57,7 +57,7 @@ type PopoverMenuItem = MenuItemProps & {
     pendingAction?: PendingAction;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'> &
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
     Pick<BottomDockedModalProps, 'animationInDelay'> & {
         /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
         shouldUseNewModal?: boolean;
@@ -170,6 +170,7 @@ function PopoverMenu({
     animationInDelay,
     animationOut = 'fadeOut',
     animationInTiming = CONST.ANIMATED_TRANSITION,
+    animationOutTiming,
     disableAnimation = true,
     withoutOverlay = false,
     shouldSetModalVisibility = true,
@@ -361,6 +362,7 @@ function PopoverMenu({
             animationOut={animationOut}
             animationInDelay={animationInDelay}
             animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             disableAnimation={disableAnimation}
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
