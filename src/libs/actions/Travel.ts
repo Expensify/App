@@ -44,9 +44,9 @@ Onyx.connect({
 
 let isSingleNewDotEntry: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    key: ONYXKEYS.HYBRID_APP,
     callback: (val) => {
-        isSingleNewDotEntry = val;
+        isSingleNewDotEntry = val?.isSingleNewDotEntry;
     },
 });
 
@@ -137,7 +137,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
                 }
 
                 Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
             })
             ?.catch(() => {
                 setCtaErrorMessage(translate('travel.errorMessage'));
