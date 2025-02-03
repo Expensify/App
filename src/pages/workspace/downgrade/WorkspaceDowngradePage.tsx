@@ -45,6 +45,11 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         downgradeToTeam(policy.id);
     };
 
+    const onClose = () => {
+        setIsDowngradeWarningModalOpen(false);
+        Navigation.dismissModal();
+    };
+
     if (!canPerformDowngrade) {
         return <NotFoundPage />;
     }
@@ -84,11 +89,9 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             <ConfirmModal
                 title={translate('workspace.moreFeatures.companyCards.downgradeTitle')}
                 isVisible={isDowngradeWarningModalOpen}
-                onConfirm={() => {
-                    setIsDowngradeWarningModalOpen(false);
-                }}
+                onConfirm={onClose}
                 shouldShowCancelButton={false}
-                onCancel={() => setIsDowngradeWarningModalOpen(false)}
+                onCancel={onClose}
                 prompt={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
                 confirmText={translate('common.buttonConfirm')}
             />
