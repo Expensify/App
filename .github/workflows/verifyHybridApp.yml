@@ -20,6 +20,9 @@ on:
       # TODO: Remove, just here for debugging
       - '**.yml'
 
+env:
+  IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-verify-main
   cancel-in-progress: true
@@ -28,6 +31,7 @@ jobs:
   verify_android:
     name: Verify Android HybridApp builds on main
     runs-on: ubuntu-latest-xl
+    if: env.IS_PR_FROM_FORK == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,6 +68,7 @@ jobs:
   verify_ios:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
+    if: env.IS_PR_FROM_FORK == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
