@@ -53,7 +53,7 @@ type Metainfo = {
     // Sometimes modal screens don't have information about what should be visible under the overlay.
     // That means such screen can have different screens under the overlay depending on what was already in the state.
     // If the screens in the bottom tab and central pane are not mandatory for this state, we want to have this information.
-    // It will help us later with creating proper diff betwen current and desired state.
+    // It will help us later with creating proper diff between current and desired state.
     isCentralPaneAndBottomTabMandatory: boolean;
     isFullScreenNavigatorMandatory: boolean;
 };
@@ -126,7 +126,7 @@ function getParamsFromRoute(screenName: string): string[] {
 
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
-    // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
+    // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
         if (stateForBackTo) {
@@ -193,7 +193,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
     const migratedUserModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR);
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
-    const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
+    const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR);
 
     if (rhpNavigator) {
         // Routes

@@ -27,7 +27,7 @@
     box-shadow: inset 0px 0px 0px 1px #5AB0FF !important;
 }
 
-/* This is needed to dsiable the blue outline that shows up once the payment page is opened through keyboard */
+/* This is needed to disable the blue outline that shows up once the payment page is opened through keyboard */
 #onfido-mount [tabindex="-1"]:focus-visible,
 #onfido-mount [tabindex="-1"]:focus[data-focusvisible-polyfill] {
     box-shadow: none !important;

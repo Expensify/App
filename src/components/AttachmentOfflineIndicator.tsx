@@ -45,7 +45,7 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
             {!isPreview && (
                 <View>
                     <Text style={[styles.notFoundTextHeader]}>{translate('common.youAppearToBeOffline')}</Text>
-                    <Text>{translate('common.attachementWillBeAvailableOnceBackOnline')}</Text>
+                    <Text>{translate('common.attachmentWillBeAvailableOnceBackOnline')}</Text>
                 </View>
             )}
         </View>

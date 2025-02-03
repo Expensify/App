@@ -17,7 +17,7 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
 
-        // Sometimes we call requests that are successfull but they don't have any response or any success/failure/finally data to set. Let's return early since
+        // Sometimes we call requests that are successful but they don't have any response or any success/failure/finally data to set. Let's return early since
         // we don't need to store anything here.
         if (!onyxUpdates && !request.successData && !request.failureData && !request.finallyData) {
             return Promise.resolve(response);

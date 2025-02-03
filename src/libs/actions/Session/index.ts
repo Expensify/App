@@ -995,7 +995,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
+                message: 'unlinkLoginForm.successfullyUnlinkedLogin',
             },
         },
         {

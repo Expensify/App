@@ -440,11 +440,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         if (Number.isNaN(clearAfterTime.getTime())) {
             return;
         }
-        const subMilisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
-        if (subMilisecondsTime > 0) {
+        const subMillisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
+        if (subMillisecondsTime > 0) {
             const timeoutID = setTimeout(() => {
                 clearStatus();
-            }, subMilisecondsTime);
+            }, subMillisecondsTime);
             return () => {
                 clearTimeout(timeoutID);
             };
@@ -578,7 +578,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={MigratedUserWelcomeModalNavigator}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                        name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={FeatureTrainingModalNavigator}
                         listeners={modalScreenListeners}

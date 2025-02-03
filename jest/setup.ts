@@ -92,7 +92,7 @@ jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () =
 jest.mock(
     '@react-native/virtualized-lists/Interaction/Batchinator',
     () =>
-        class SyncBachinator {
+        class SyncBatchinator {
             #callback: () => void;
 
             constructor(callback: () => void) {

@@ -334,7 +334,7 @@ function ReportActionCompose({
         }
     }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
 
-    // We are returning a callback here as we want to incoke the method on unmount only
+    // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
         () => () => {
             if (!isActiveEmojiPickerAction(report?.reportID)) {
@@ -348,8 +348,8 @@ function ReportActionCompose({
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
-    const reportRecipientAcountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails?.[reportRecipientAcountIDs[0]];
+    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
@@ -389,7 +389,7 @@ function ReportActionCompose({
 
     const validateMaxLength = useCallback(
         (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (taskCommentMatch) {
                 const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
                 setHasExceededMaxCommentLength(false);

@@ -271,7 +271,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionModifiedCurrency = usePrevious(transaction?.modifiedCurrency);
     const previousCustomUnitRateID = usePrevious(customUnitRateID);
     useEffect(() => {
-        // previousTransaction is in the condition because if it is falsey, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
+        // previousTransaction is in the condition because if it is falsy, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
         // tax even if the other parameters are the same against their previous values.
         if (
             !shouldShowTax ||

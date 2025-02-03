@@ -62,7 +62,7 @@ type PusherWithAuthParams = InstanceType<typeof Pusher> & {
 
 type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
 
-type PusherSubscribtionErrorData = {type?: string; error?: string; status?: string};
+type PusherSubscriptionErrorData = {type?: string; error?: string; status?: string};
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -279,7 +279,7 @@ function subscribe<EventName extends PusherEventName>(
                             onResubscribe();
                         });
 
-                        channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
+                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,

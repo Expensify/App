@@ -982,7 +982,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The Item record to associate with lines on an invoice created via Expensify */
         invoiceItem?: string;
 
-        /** The internaID of the selected subsidiary in NetSuite */
+        /** The internalID of the selected subsidiary in NetSuite */
         subsidiaryID?: string;
 
         /** The default vendor to use for Transactions in NetSuite */
@@ -1009,7 +1009,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
-        /** The accounting Method for NetSuite conenction config */
+        /** The accounting Method for NetSuite connection config */
         accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 
         /** Collection of errors coming from BE */
@@ -1050,7 +1050,7 @@ type NetSuiteConnection = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Config object used solely to store auto-sync settings */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
@@ -1123,10 +1123,10 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
  * Sage Intacct dimension type
  */
 type SageIntacctDimension = {
-    /** Name of user defined dimention */
+    /** Name of user defined dimension */
     dimension: string;
 
-    /** Mapping value for user defined dimention */
+    /** Mapping value for user defined dimension */
     mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
 };
 
@@ -1150,7 +1150,7 @@ type SageIntacctMappingType = {
     /** Mapping type for Sage Intacct */
     projects: SageIntacctMappingValue;
 
-    /** User defined dimention type for Sage Intacct */
+    /** User defined dimension type for Sage Intacct */
     dimensions: SageIntacctDimension[];
 };
 

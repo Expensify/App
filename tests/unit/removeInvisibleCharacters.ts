@@ -83,7 +83,7 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
             expect(StringUtils.removeInvisibleCharacters(key)).toBe(key);
         });
     });
-    it('remove invisible characters (editpad)', () => {
+    it('remove invisible characters (edit-pad)', () => {
         expect(StringUtils.removeInvisibleCharacters('test\u0020')).toBe('test');
         expect(StringUtils.removeInvisibleCharacters('test\u00A0')).toBe('test');
         expect(StringUtils.removeInvisibleCharacters('test\u2000')).toBe('test');
@@ -129,7 +129,7 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         expect(StringUtils.removeInvisibleCharacters('test\n\n\ntest')).toBe('test\n\n\ntest');
         expect(StringUtils.removeInvisibleCharacters('test\n\n\n\ntest')).toBe('test\n\n\n\ntest');
 
-        // multiple newlinest with multiple texts
+        // multiple newlines with multiple texts
         expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest')).toBe('test\ntest\ntest');
         expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest\ntest')).toBe('test\ntest\ntest\ntest');
         expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest\ntest\ntest')).toBe('test\ntest\ntest\ntest\ntest');

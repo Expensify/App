@@ -29,7 +29,7 @@ function AllSettingsScreen() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     /**
-     * Retuns a list of menu items data for All workspaces settings
+     * Returns a list of menu items data for All workspaces settings
      * @returns {Object} object with translationKey, style and items
      */
     const menuItems = useMemo(() => {

@@ -206,7 +206,7 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
                         prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {members: membersLength}),
                     },
                 },

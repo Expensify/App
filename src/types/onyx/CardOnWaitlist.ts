@@ -1,7 +1,7 @@
 /** Card on waitlist data model */
 type CardOnWaitlist = {
     /** Whether the user uses the bank account on another domain */
-    bankAccountIsNotOn0therDomain: boolean;
+    bankAccountIsNotOnOtherDomain: boolean;
 
     /** Domain name in "+@expensify-policy<policyID>.exfy" format */
     domainName: string;

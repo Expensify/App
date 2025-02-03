@@ -5270,8 +5270,8 @@ function buildOptimisticIOUReportAction(
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
-            // In case of pay someone action, we dont store the comment
-            // and there is no single transctionID to link the action to.
+            // In case of pay someone action, we don't store the comment
+            // and there is no single transactionID to link the action to.
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;

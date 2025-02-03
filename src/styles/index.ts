@@ -1709,7 +1709,7 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
-        breadcrumsContainer: {
+        breadcrumbsContainer: {
             minHeight: 24,
         },
 

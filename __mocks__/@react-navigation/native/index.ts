@@ -46,7 +46,7 @@ const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}})
 const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
 
 export {
-    // Overriden modules
+    // Overridden modules
     useIsFocused,
     useTheme,
     useNavigation,

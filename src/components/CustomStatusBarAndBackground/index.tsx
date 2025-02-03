@@ -106,7 +106,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             };
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
+            // Force update if the root status bar is back on active or it won't overwrite the nested status bar style
             if (!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
                 callUpdateStatusBarAppearance();
                 callUpdateStatusBarBackgroundColor();

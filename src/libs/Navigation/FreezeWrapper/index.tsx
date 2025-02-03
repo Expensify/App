@@ -32,7 +32,7 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
         return () => unsubscribe();
     }, [isFocused, isScreenBlurred, navigation]);
 
-    // Decouple the Suspense render task so it won't be interuptted by React's concurrent mode
+    // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
     useLayoutEffect(() => {
         setFreezed(!isFocused && isScreenBlurred && !keepVisible);
