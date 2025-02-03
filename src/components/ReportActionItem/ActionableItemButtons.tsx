@@ -38,7 +38,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     );
 }
 
-ActionableItemButtons.displayName = 'ActionableItemButtton';
+ActionableItemButtons.displayName = 'ActionableItemButton';
 
 export default ActionableItemButtons;
 export type {ActionableItem};

@@ -142,7 +142,7 @@ function HeaderWithBackButton({
                 shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
-                // be falsey, hence using !== undefined explicitly
+                // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2, styles.pr2],
                 shouldOverlay && StyleSheet.absoluteFillObject,

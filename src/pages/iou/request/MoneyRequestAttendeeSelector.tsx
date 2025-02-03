@@ -14,7 +14,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -48,7 +48,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();

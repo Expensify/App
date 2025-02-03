@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 const {
-    CONCEIRGE_LHN_GBR,
+    CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
     WORKSPACE_CHAT_CREATE,
     QUICK_ACTION_BUTTON,
@@ -30,13 +30,13 @@ type TooltipData = {
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
-    [CONCEIRGE_LHN_GBR]: {
+    [CONCIERGE_LHN_GBR]: {
         content: [
             {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
             {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
-        name: CONCEIRGE_LHN_GBR,
+        onHideTooltip: () => dismissProductTraining(CONCIERGE_LHN_GBR),
+        name: CONCIERGE_LHN_GBR,
         priority: 1300,
         shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
     },

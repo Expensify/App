@@ -15,7 +15,7 @@ import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -85,7 +85,7 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});

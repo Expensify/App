@@ -32,6 +32,14 @@
     "linecap",
     "linejoin",
     "deeplink",
+    "Idology",
+    "Intacct",
+    "NSURL",
+    "codegen",
+    "Highlightable",
+    "Hoverable",
+    "tabindex",
+    "RNFS",
   ],
   "ignorePaths": [
     "node_modules",
@@ -52,6 +60,10 @@
     "assets/emojis/en.ts",
     "assets/emojis/es.ts",
     "patches/**",
+    "docs/assets/Files/**",
+    "ios/NewExpensify.xcodeproj/**",
+    "ios/GoogleService-Info.plist",
+    "ios/GoogleService-Info-DEV.plist",
   ],
   "useGitignore": true
 }

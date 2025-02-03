@@ -6550,7 +6550,7 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
-        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         QUICK_ACTION_BUTTON: 'quickActionButton',
         WORKSPACE_CHAT_CREATE: 'workspaceChatCreate',

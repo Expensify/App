@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 
 const {
-    CONCEIRGE_LHN_GBR,
+    CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
     WORKSPACE_CHAT_CREATE,
     QUICK_ACTION_BUTTON,
@@ -23,7 +23,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
      */
-    [CONCEIRGE_LHN_GBR]: string;
+    [CONCIERGE_LHN_GBR]: string;
 
     /**
      * When user dismisses the renameSavedSearch product training tooltip, we store the timestamp here.
