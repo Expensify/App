@@ -243,7 +243,7 @@ type TrackedExpenseReportInformation = {
     moneyRequestPreviewReportActionID: string | undefined;
     moneyRequestReportID: string | undefined;
     moneyRequestCreatedReportActionID: string | undefined;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID: string;
     transactionThreadReportID: string | undefined;
@@ -4082,7 +4082,7 @@ function updateMoneyRequestDistanceRate(
 
 const getConvertTrackedExpenseInformation = (
     transactionID: string | undefined,
-    actionableWhisperReportActionID: string,
+    actionableWhisperReportActionID: string | undefined,
     moneyRequestReportID: string | undefined,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
@@ -4738,7 +4738,7 @@ function trackExpense(
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
-            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
             const transactionParams: TrackedExpenseTransactionParams = {
@@ -4783,7 +4783,7 @@ function trackExpense(
             break;
         }
         case CONST.IOU.ACTION.SHARE: {
-            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
             const transactionParams: TrackedExpenseTransactionParams = {
