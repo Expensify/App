@@ -299,15 +299,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
                     isError: transactionAmount === 0,
-                    translationPath: 'common.error.enterAmount',
+                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
                     isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
-                    translationPath: 'common.error.enterMerchant',
+                    translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
                 },
                 date: {
                     isError: transactionDate === '',
-                    translationPath: 'common.error.enterDate',
+                    translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
                 },
             };
 
@@ -334,7 +334,22 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
+        [
+            transactionAmount,
+            isSettled,
+            isCancelled,
+            isPolicyExpenseChat,
+            isEmptyMerchant,
+            transactionDate,
+            readonly,
+            hasErrors,
+            hasViolations,
+            translate,
+            getViolationsForField,
+            canEditAmount,
+            canEditDate,
+            canEditMerchant,
+        ],
     );
 
     const distanceRequestFields = (
