@@ -1,16 +1,17 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type { OnyxEntry } from 'react-native-onyx';
-import type { Report } from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const ACTIVE_WORKSPACE_ID = '3';
 const REPORT_ID = '4';
-const USER_ID = '5'
+const USER_ID = '5';
 const mockFindLastAccessedReport = jest.fn();
 const mockShouldOpenOnAdminRoom = jest.fn();
 
@@ -71,7 +72,7 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should navigate to LHN if it is onboarding workspace chat on small screens', () => {
-        const lastAccessedReport = { reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID };
+        const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
