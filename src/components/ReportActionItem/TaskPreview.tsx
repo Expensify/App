@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfActionIsAllowed} from '@libs/actions/Session';
+import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from '@libs/actions/Task';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -108,7 +108,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
                             disabled={!canActionTask(taskReport, currentUserPersonalDetails.accountID, taskOwnerAccountID, taskAssigneeAccountID)}
-                            onPress={checkIfActionIsAllowed(() => {
+                            onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     reopenTask(taskReport, taskReportID);
                                 } else {
