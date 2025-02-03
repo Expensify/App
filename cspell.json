@@ -1,0 +1,27 @@
+{
+  "language": "en",
+  "words": [
+    "ONYXKEYS",
+    "xero",
+    "Pressable",
+    "NETSUITE",
+    "onfido",
+    "Expensicons",
+    "QUICKBOOKS",
+    "Mapbox",
+    "fullstory",
+    "ngneat",
+    "falso",
+    "OLDDOT",
+    "NEWDOT",
+    "gorhom",
+    "Chronos",
+    "WDYR",
+    "welldone",
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "src/languages/es.ts",
+  ],
+  "useGitignore": true
+}

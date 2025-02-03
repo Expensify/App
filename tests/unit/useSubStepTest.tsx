@@ -46,7 +46,7 @@ describe('useSubStep hook', () => {
             expect(mockOnFinished).toHaveBeenCalledTimes(1);
         });
 
-        it('returns component at requested substep when calling moveTo', () => {
+        it('returns component at requested subStep when calling moveTo', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({bodyContent: [MockSubStepComponent2, MockSubStepComponent, MockSubStepComponent], onFinished: mockOnFinished, startFrom: 2}),
             );
@@ -64,7 +64,7 @@ describe('useSubStep hook', () => {
             expect(componentToRender).toBe(MockSubStepComponent2);
         });
 
-        it('returns substep component at the previous index when calling prevScreen (if possible)', () => {
+        it('returns subStep component at the previous index when calling prevScreen (if possible)', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({bodyContent: [MockSubStepComponent2, MockSubStepComponent, MockSubStepComponent], onFinished: mockOnFinished, startFrom: 1}),
             );
@@ -85,7 +85,7 @@ describe('useSubStep hook', () => {
             expect(componentToRender).toBe(MockSubStepComponent2);
         });
 
-        it('stays on the first substep component when calling prevScreen on the first screen', () => {
+        it('stays on the first subStep component when calling prevScreen on the first screen', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({bodyContent: [MockSubStepComponent2, MockSubStepComponent, MockSubStepComponent], onFinished: mockOnFinished, startFrom: 0}),
             );
@@ -121,7 +121,7 @@ describe('useSubStep hook', () => {
             expect(mockOnFinished2).toHaveBeenCalledTimes(1);
         });
 
-        it('returns component at requested substep when calling moveTo even though the step is marked as skipped', () => {
+        it('returns component at requested subStep when calling moveTo even though the step is marked as skipped', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({bodyContent: [MockSubStepComponent2, MockSubStepComponent3, MockSubStepComponent], onFinished: mockOnFinished, startFrom: 2, skipSteps: [1]}),
             );
@@ -139,7 +139,7 @@ describe('useSubStep hook', () => {
             expect(componentToRender).toBe(MockSubStepComponent3);
         });
 
-        it('returns substep component at the previous index when calling prevScreen (if possible)', () => {
+        it('returns subStep component at the previous index when calling prevScreen (if possible)', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({
                     bodyContent: [MockSubStepComponent, MockSubStepComponent2, MockSubStepComponent3, MockSubStepComponent4],
@@ -165,7 +165,7 @@ describe('useSubStep hook', () => {
             expect(componentToRender).toBe(MockSubStepComponent2);
         });
 
-        it('stays on the first substep component when calling prevScreen on the second screen if the first screen is skipped', () => {
+        it('stays on the first subStep component when calling prevScreen on the second screen if the first screen is skipped', () => {
             const {result, rerender} = renderHook(() =>
                 useSubStep({bodyContent: [MockSubStepComponent, MockSubStepComponent2, MockSubStepComponent3], onFinished: mockOnFinished, startFrom: 1, skipSteps: [0]}),
             );

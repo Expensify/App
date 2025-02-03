@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 const {
     CONCEIRGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
+    WORKSPACE_CHAT_CREATE,
     QUICK_ACTION_BUTTON,
     SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
@@ -33,7 +33,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the workspaceChatCreate product training tooltip, we store the timestamp here.
      */
-    [WORKSAPCE_CHAT_CREATE]: string;
+    [WORKSPACE_CHAT_CREATE]: string;
 
     /**
      * When user dismisses the quickActionButton product training tooltip, we store the timestamp here.

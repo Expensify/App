@@ -6,7 +6,7 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCEIRGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
+    WORKSPACE_CHAT_CREATE,
     QUICK_ACTION_BUTTON,
     SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
@@ -71,14 +71,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1150,
         shouldShow: () => true,
     },
-    [WORKSAPCE_CHAT_CREATE]: {
+    [WORKSPACE_CHAT_CREATE]: {
         content: [
             {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
             {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
             {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
-        name: WORKSAPCE_CHAT_CREATE,
+        onHideTooltip: () => dismissProductTraining(WORKSPACE_CHAT_CREATE),
+        name: WORKSPACE_CHAT_CREATE,
         priority: 1100,
         shouldShow: () => true,
     },

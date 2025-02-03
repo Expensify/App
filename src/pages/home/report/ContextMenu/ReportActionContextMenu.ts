@@ -91,8 +91,8 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
  * @param contextMenuAnchor - popoverAnchor
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
- * @param originalReportID - The currrent Report Id of the reportAction
- * @param draftMessage - ReportAction Draftmessage
+ * @param originalReportID - The current Report Id of the reportAction
+ * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
  * @param isArchivedRoom - Whether the provided report is an archived room

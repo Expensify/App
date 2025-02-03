@@ -33,22 +33,22 @@ function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windo
  * @param menuHeight - The height of the menu itself.
  * @param windowHeight - The height of the Window.
  * @param anchorHeight - The height of anchor component
- * @param shoudSwitchPositionIfOverflow -
+ * @param shouldSwitchPositionIfOverflow -
  */
-function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number, anchorHeight: number, shoudSwitchPositionIfOverflow = false): number {
+function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number, anchorHeight: number, shouldSwitchPositionIfOverflow = false): number {
     const popoverBottomEdge = anchorTopEdge + menuHeight;
     let canSwitchPosition = false;
 
     if (anchorTopEdge < 0) {
         // Anchor is in top window Edge, shift bottom by a multiple of four.
         canSwitchPosition = popoverBottomEdge + menuHeight + anchorHeight <= windowHeight;
-        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow && canSwitchPosition ? menuHeight + anchorHeight : 0 - anchorTopEdge);
+        return roundToNearestMultipleOfFour(shouldSwitchPositionIfOverflow && canSwitchPosition ? menuHeight + anchorHeight : 0 - anchorTopEdge);
     }
 
     if (popoverBottomEdge > windowHeight) {
         // Anchor is in Bottom window Edge, shift top by a multiple of four.
         canSwitchPosition = anchorTopEdge - menuHeight - anchorHeight >= 0;
-        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow && canSwitchPosition ? -(menuHeight + anchorHeight) : windowHeight - popoverBottomEdge);
+        return roundToNearestMultipleOfFour(shouldSwitchPositionIfOverflow && canSwitchPosition ? -(menuHeight + anchorHeight) : windowHeight - popoverBottomEdge);
     }
 
     // Anchor is not in the gutter, so no need to shift it vertically

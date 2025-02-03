@@ -172,7 +172,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersonalDetails]);
 
     /**
-     * Retuns a list of menu items data for workspace section
+     * Returns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
      */
     const workspaceMenuItemsData: Menu = useMemo(() => {
@@ -214,7 +214,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
 
     /**
-     * Retuns a list of menu items data for general section
+     * Returns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {

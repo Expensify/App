@@ -139,7 +139,7 @@ function ReportActionCompose({
     const isScreenFocused = useIsFocused();
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE,
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_CHAT_CREATE,
         shouldShowEducationalTooltip && isScreenFocused,
     );
 
