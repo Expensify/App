@@ -3746,6 +3746,9 @@ const translations = {
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
+                downgradeTitle: 'No se puede degradar el trabajo',
+                downgradeSubTitle:
+                    'Este espacio de trabajo tiene dos o más fuentes de alimentación de tarjetas externas conectadas. Los espacios de trabajo de recopilación solo permiten hasta una fuente de alimentación de tarjetas externa. Por favor, arréglelo o haga lo que sea antes de cambiar a una versión inferior.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
             },
             workflows: {

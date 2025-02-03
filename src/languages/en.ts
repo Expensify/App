@@ -3702,6 +3702,9 @@ const translations = {
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
+                downgradeTitle: `Can't downgrade work`,
+                downgradeSubTitle:
+                    'This workspace has two or more external card feeds connected. Collect workspaces only allow up to 1 external card feed. Please fix it or whatever before downgrading.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
