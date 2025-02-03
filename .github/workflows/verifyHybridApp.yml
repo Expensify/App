@@ -65,7 +65,6 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Build Android Debug
-        working-directory: Mobile-Expensify/Android
         run: |
           if ! npm run android-hybrid-build
           then
