@@ -1,10 +1,9 @@
 import React from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BankAccountStep from './BankAccountStep';
+import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
@@ -14,40 +13,21 @@ import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {
     USDBankAccountStep: string;
-    policyName: string;
     policyID: string | undefined;
-    isValidateCodeActionModalVisible: boolean;
-    setIsValidateCodeActionModalVisible: (isVisible: boolean) => void;
     onBackButtonPress: () => void;
     requestorStepRef: React.RefObject<View>;
     onfidoToken: string;
 };
 
-function USDVerifiedBankAccountFlow({
-    USDBankAccountStep,
-    policyName,
-    policyID,
-    isValidateCodeActionModalVisible,
-    setIsValidateCodeActionModalVisible,
-    onBackButtonPress,
-    requestorStepRef,
-    onfidoToken,
-}: USDVerifiedBankAccountFlowProps) {
-    const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackButtonPress, requestorStepRef, onfidoToken}: USDVerifiedBankAccountFlowProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             return (
-                <BankAccountStep
-                    reimbursementAccount={reimbursementAccount}
+                <BankInfo
                     onBackButtonPress={onBackButtonPress}
-                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                    plaidLinkOAuthToken={plaidLinkToken}
-                    policyName={policyName}
                     policyID={policyID}
-                    isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                    toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
                 />
             );
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:

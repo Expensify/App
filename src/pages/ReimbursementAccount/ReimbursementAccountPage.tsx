@@ -100,8 +100,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.created && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY;
-    }, [achData?.bankAccountID, achData?.created, nonUSDBankAccountStep]);
+        return !!achData?.bankAccountID && !!achData?.created;
+    }, [achData?.bankAccountID, achData?.created]);
 
     /**
      * Calculates the state used to show the "Continue with setup" view.
@@ -111,11 +111,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      */
     const getShouldShowContinueSetupButtonValue = useCallback(() => {
         if (hasForeignCurrency) {
-            return hasInProgressNonUSDVBBA();
+            return hasInProgressNonUSDVBBA() && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY;
         }
 
         return hasInProgressVBBA();
-    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
+    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA, nonUSDBankAccountStep]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -383,7 +383,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    const shouldShowEntryPoint = shouldShowContinueSetupButton === true || (hasForeignCurrency && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+    const subStep = achData?.subStep ?? '';
+    const shouldShowEntryPoint =
+        shouldShowContinueSetupButton === true ||
+        (hasForeignCurrency && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY) ||
+        (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && subStep === '');
 
     if (shouldShowEntryPoint) {
         return (
@@ -410,10 +414,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     return (
         <USDVerifiedBankAccountFlow
             USDBankAccountStep={currentStep}
-            policyName={policyName}
             policyID={policyIDParam}
-            isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-            setIsValidateCodeActionModalVisible={setIsValidateCodeActionModalVisible}
             onBackButtonPress={goBack}
             requestorStepRef={requestorStepRef}
             onfidoToken={onfidoToken}
