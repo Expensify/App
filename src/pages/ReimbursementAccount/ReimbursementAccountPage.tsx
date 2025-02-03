@@ -41,11 +41,11 @@ import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
 import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
+import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoint';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
@@ -94,14 +94,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
-    function hasInProgressVBBA(): boolean {
+    const hasInProgressVBBA = useCallback((): boolean => {
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
-    }
+    }, [achData?.bankAccountID, achData?.state]);
 
     /** Returns true if user passed first step of flow for non USD VBBA */
-    function hasInProgressNonUSDVBBA(): boolean {
-        return !!achData?.bankAccountID && !!achData?.created;
-    }
+    const hasInProgressNonUSDVBBA = useCallback((): boolean => {
+        return !!achData?.bankAccountID && !!achData?.created && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY;
+    }, [achData?.bankAccountID, achData?.created, nonUSDBankAccountStep]);
 
     /**
      * Calculates the state used to show the "Continue with setup" view.
@@ -109,7 +109,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      * for USD workspace, if a bank account setup is already in progress and no specific further step was passed in the url
      * we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    const getShouldShowContinueSetupButtonInitialValue = useCallback(() => {
+    const getShouldShowContinueSetupButtonValue = useCallback(() => {
         if (hasForeignCurrency) {
             return hasInProgressNonUSDVBBA();
         }
@@ -223,8 +223,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
-    }, [getShouldShowContinueSetupButtonInitialValue, hasACHDataBeenLoaded]);
+        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
+
+        return () => {
+            setShouldShowContinueSetupButton(null);
+        };
+    }, [getShouldShowContinueSetupButtonValue, hasACHDataBeenLoaded]);
 
     const continueUSDVBBASetup = () => {
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
@@ -379,13 +383,17 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    if (shouldShowContinueSetupButton === true) {
+    const shouldShowEntryPoint = shouldShowContinueSetupButton === true || (hasForeignCurrency && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+
+    if (shouldShowEntryPoint) {
         return (
-            <ContinueBankAccountSetup
+            <VerifiedBankAccountFlowEntryPoint
                 reimbursementAccount={reimbursementAccount}
                 onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
                 policyName={policyName}
                 onBackButtonPress={Navigation.goBack}
+                shouldShowContinueSetupButton={shouldShowContinueSetupButton}
+                hasForeignCurrency={hasForeignCurrency}
             />
         );
     }
