@@ -142,9 +142,9 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
  */
 function parseForLiveMarkdown(
     input: string,
-    userLogins: string[],
     userDisplayName: string,
     map: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
@@ -182,7 +182,7 @@ function parseForLiveMarkdown(
                 type = 'syntax';
             }
 
-            if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.includes(range.value) || range.value === userDisplayName)) {
+            if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.get().includes(range.value) || range.value === userDisplayName)) {
                 type = 'mention-here';
             }
 

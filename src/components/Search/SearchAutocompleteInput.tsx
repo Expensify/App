@@ -118,6 +118,10 @@ function SearchAutocompleteInput(
     }, [activeWorkspaceID, allPoliciesTags]);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const emailList = Object.keys(loginList ?? {});
+    const emailListSharedValue = useSharedValue(emailList);
+
     useEffect(() => {
         if (lastMap.current && !isEqual(lastMap.current, substitutionMap)) {
             lastMap.current = substitutionMap;
@@ -125,10 +129,15 @@ function SearchAutocompleteInput(
         setMap(lastMap.current ?? {});
     }, [substitutionMap, lastMap]);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const emailList = Object.keys(loginList ?? {});
-
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            emailListSharedValue.set(emailList);
+        })();
+    }, [emailList, emailListSharedValue]);
 
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
@@ -137,6 +146,7 @@ function SearchAutocompleteInput(
             currencySharedValue.set(currencyAutocompleteList);
         })();
     }, [currencyAutocompleteList, currencySharedValue]);
+
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
             'worklet';
@@ -144,6 +154,7 @@ function SearchAutocompleteInput(
             categorySharedValue.set(categoryAutocompleteList);
         })();
     }, [categorySharedValue, categoryAutocompleteList]);
+
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
             'worklet';
@@ -156,9 +167,9 @@ function SearchAutocompleteInput(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, emailList, currentUserPersonalDetails.displayName ?? '', map, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', map, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
         },
-        [currentUserPersonalDetails.displayName, map, currencySharedValue, categorySharedValue, tagSharedValue, emailList],
+        [currentUserPersonalDetails.displayName, map, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
