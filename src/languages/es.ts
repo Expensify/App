@@ -4742,38 +4742,40 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
-        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `agregó la categoría "${categoryName}"`,
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `Renombró la categoría "${oldName}" a "${newName}".`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `agregó la etiqueta "${tagName}" a la lista "${tagListName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
             if (oldValue) {
-                return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} de "${oldValue}" a "${newValue}"`;
+                return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `agregó el Campo de Informe ${fieldType} "${fieldName}"`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
-            `actualizó el campo del informe "${fieldName}"; estableció el valor predeterminado como "${defaultValue}"`,
+            `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
-        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `agregó una nueva tasa de "${rateName}" para "${customUnitName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
-            `actualizó "Evitar la autoaprobación" de "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}"`,
+            `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `cambió el monto máximo de gasto requerido sin recibo de ${oldValue} a ${newValue}`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `cambió el monto máximo de gasto para violaciones de ${oldValue} a ${newValue}`,
+            `cambió el monto máximo de gasto requerido sin recibo a ${newValue} (previamente ${oldValue})`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto para violaciones a ${newValue} (previamente ${oldValue})`,
         updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `actualizó "Antigüedad Máxima de Gastos (días)" de "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}" a "${newValue}"`,
-        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `actualizó "Refacturar gastos a clientes" de "${oldValue}" a "${newValue}"`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Aplicar título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
+            `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
-                ? `estableció la descripción de este espacio de trabajo en "${newDescription}"`
-                : `actualizó la descripción de este espacio de trabajo de "${oldDescription}" a "${newDescription}"`,
+                ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
+                : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
@@ -4789,10 +4791,10 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada de ${oldCurrency} a ${newCurrency}`,
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
-            `actualizó la frecuencia de generación automática de informes de "${oldFrequency}" a "${newFrequency}"`,
-        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `Actualizó el Modo de Aprobación de "${oldValue}" a "${newValue}".`,
+            `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
