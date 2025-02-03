@@ -27,21 +27,21 @@ concurrency:
 jobs:
   comment_on_fork:
     name: Verify Android HybridApp builds on main
-    # Only run on pull requests that are not on a fork
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    # Only run on pull requests that *are* a fork
+#    if: ${{ github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     steps:
       - name: Comment on forks
         run: |
-          gh pr comment ${{ github.event.number }} --body \
+          gh pr comment ${{github.event.pull_request.html_url }} --body \
           ":warning: This PR is possibly changing native code, it may cause problems with HybridApp. Please run an AdHoc build to verify that HybridApp will not break. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:
     name: Verify Android HybridApp builds on main
     runs-on: ubuntu-latest-xl
-    # Only run on pull requests that are not on a fork
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    # Only run on pull requests that are *not* on a fork
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,8 +78,8 @@ jobs:
   verify_ios:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
-    # Only run on pull requests that are not on a fork
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    # Only run on pull requests that are *not* on a fork
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
