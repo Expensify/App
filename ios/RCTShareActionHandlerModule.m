@@ -4,7 +4,7 @@
 #import <React/RCTLog.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-NSString *const ShareExtensionGroupId = @"group.com.expensify";
+NSString *const ShareExtensionGroupId = @"group.com.expensify.new";
 NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 @implementation RCTShareActionHandlerModule

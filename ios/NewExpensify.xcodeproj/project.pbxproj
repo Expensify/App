@@ -73,7 +73,7 @@
 			remoteGlobalIDString = 7FD73C9A2B23CE9500420AF3;
 			remoteInfo = NotificationServiceExtension;
 		};
-		E5A27B9F2C7F427F002C36BF /* PBXContainerItemProxy */ = {
+				E5A27B9F2C7F427F002C36BF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
@@ -1192,7 +1192,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 707151F8A56D2431696273AB /* Pods-NewExpensify.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -1350,7 +1349,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 46B1FE4DE317D30C25A74C15 /* Pods-NewExpensify.debugdevelopment.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -1391,7 +1389,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = F8839E9820F4C312BD1C9339 /* Pods-NewExpensify.releasedevelopment.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -2164,7 +2161,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = EFA5CA89CC675CA3370CF89E /* Pods-NewExpensify.debugproduction.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -2314,7 +2310,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 289D101B1119F719AAC9EB8B /* Pods-NewExpensify.debugadhoc.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -2458,7 +2453,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 417E30386DDC804B3693037A /* Pods-NewExpensify.releaseproduction.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -2598,7 +2592,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8EFE0319D586C1078DB926FD /* Pods-NewExpensify.releaseadhoc.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
@@ -2831,7 +2824,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.ShareViewController;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.ShareViewController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -2909,7 +2902,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.ShareViewController;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.ShareViewController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
