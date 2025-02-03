@@ -28,6 +28,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OnEmojiSelected} from '@libs/actions/EmojiPickerAction';
+import {isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
+import {inputFocusChange} from '@libs/actions/InputFocus';
+import {areAllModalsHidden} from '@libs/actions/Modal';
+import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@libs/actions/Report';
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
@@ -48,10 +53,6 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
-import * as InputFocus from '@userActions/InputFocus';
-import * as Modal from '@userActions/Modal';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -155,7 +156,7 @@ type SwitchToCurrentReportProps = {
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
     isFocused: () => boolean;
     /**
@@ -174,7 +175,7 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
     (reportID: string) => {
-        Report.broadcastUserIsTyping(reportID);
+        broadcastUserIsTyping(reportID);
     },
     1000,
     {
@@ -266,7 +267,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -307,7 +308,7 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                Report.saveReportDraftComment(selectedReportID, newComment);
+                saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
         [],
@@ -319,7 +320,7 @@ function ComposerWithSuggestions(
                 callback();
                 return;
             }
-            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
         });
 
         return () => {
@@ -417,7 +418,7 @@ function ComposerWithSuggestions(
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportDraftComment(reportID, newCommentConverted);
+                saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -461,7 +462,7 @@ function ComposerWithSuggestions(
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
-                    Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -544,7 +545,7 @@ function ComposerWithSuggestions(
         if (!suggestionsRef.current) {
             return false;
         }
-        InputFocus.inputFocusChange(false);
+        inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -579,7 +580,7 @@ function ComposerWithSuggestions(
      */
     const checkComposerVisibility = useCallback(() => {
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
-        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
+        const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
     }, [isMenuVisible, modal, isFocused]);
 
@@ -672,7 +673,7 @@ function ComposerWithSuggestions(
         }
 
         if (editFocused) {
-            InputFocus.inputFocusChange(false);
+            inputFocusChange(false);
             return;
         }
         focus(true);
