@@ -11,7 +11,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
-    AddCommentOrAttachementParams,
+    AddCommentOrAttachmentParams,
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
@@ -184,7 +184,7 @@ type Video = {
     height: number;
 };
 
-type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
+type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
 
 type TaskForParameters =
     | {
@@ -204,12 +204,12 @@ type TaskForParameters =
       } & TaskMessage);
 
 type GuidedSetupData = Array<
-    | ({type: 'message'} & AddCommentOrAttachementParams)
+    | ({type: 'message'} & AddCommentOrAttachmentParams)
     | TaskForParameters
     | ({
           type: 'video';
       } & Video &
-          AddCommentOrAttachementParams)
+          AddCommentOrAttachmentParams)
 >;
 
 type ReportError = {
@@ -602,7 +602,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
-    const parameters: AddCommentOrAttachementParams = {
+    const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
@@ -2923,7 +2923,7 @@ function openReportFromDeepLink(url: string) {
 
                         const handleDeeplinkNavigation = () => {
                             // We want to disconnect the connection so it won't trigger the deeplink again
-                            // every time the data is changed, for example, when relogin.
+                            // every time the data is changed, for example, when re-login.
                             Onyx.disconnect(connection);
 
                             const state = navigationRef.getRootState();
@@ -3671,7 +3671,7 @@ function prepareOnboardingOnyxData(
     // Text message
     const textComment = buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachementParams = {
+    const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
         reportActionID: textCommentAction.reportActionID,
         reportComment: textComment.commentText,

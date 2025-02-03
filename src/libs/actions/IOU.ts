@@ -866,14 +866,14 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubRates = transaction?.comment?.customUnit?.subRates ?? [];
 
-    if (index >= existingSubrates.length) {
+    if (index >= existingSubRates.length) {
         return;
     }
 
-    const newSubrates = [...existingSubrates];
-    newSubrates.splice(index, 1, {quantity, id, name, rate});
+    const newSubRates = [...existingSubRates];
+    newSubRates.splice(index, 1, {quantity, id, name, rate});
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -885,7 +885,7 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
             ...transaction?.comment,
             customUnit: {
                 ...transaction?.comment?.customUnit,
-                subRates: newSubrates,
+                subRates: newSubRates,
                 quantity: null,
             },
         },
@@ -904,14 +904,14 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubRates = transaction?.comment?.customUnit?.subRates ?? [];
 
-    if (index !== existingSubrates.length) {
+    if (index !== existingSubRates.length) {
         return;
     }
 
-    const newSubrates = [...existingSubrates];
-    newSubrates.push({quantity, id, name, rate});
+    const newSubRates = [...existingSubRates];
+    newSubRates.push({quantity, id, name, rate});
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -923,7 +923,7 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
             ...transaction?.comment,
             customUnit: {
                 ...transaction?.comment?.customUnit,
-                subRates: newSubrates,
+                subRates: newSubRates,
                 quantity: null,
             },
         },
@@ -2565,7 +2565,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
-    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport([payerAccountID, payeeAccountID]);
@@ -2816,7 +2816,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
-    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport([payerAccountID, payeeAccountID]);
@@ -3514,7 +3514,7 @@ function getUpdateMoneyRequestParams(
     }
 
     const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
-    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
+    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
     if ('attendees' in transactionChanges && !!overLimitViolation) {
         const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
         if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
@@ -3560,7 +3560,7 @@ function getUpdateMoneyRequestParams(
 
     if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxdata = ViolationsUtils.getViolationsOnyxData(
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
             policy,
@@ -3568,7 +3568,7 @@ function getUpdateMoneyRequestParams(
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
         );
-        optimisticData.push(violationsOnyxdata);
+        optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -3580,7 +3580,7 @@ function getUpdateMoneyRequestParams(
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxdata.value,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
                     },
                 },
             });

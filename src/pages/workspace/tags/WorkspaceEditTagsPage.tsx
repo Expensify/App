@@ -50,10 +50,10 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         [translate, policyTags, route.params.orderWeight],
     );
 
-    const updateTaglistName = useCallback(
+    const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+                Tag.renamePolicyTagList(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
             Navigation.goBack(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
@@ -84,7 +84,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                    onSubmit={updateTaglistName}
+                    onSubmit={updateTagListName}
                     validate={validateTagName}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline

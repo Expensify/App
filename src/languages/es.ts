@@ -796,7 +796,7 @@ const translations = {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
-        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
+        importMembersSuccessfulDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
             rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',

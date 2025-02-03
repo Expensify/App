@@ -93,7 +93,7 @@ export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAu
 export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuthParams';
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
-export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
+export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -183,7 +183,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
-export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
+export type {default as RenamePolicyTagListParams} from './RenamePolicyTagListParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';

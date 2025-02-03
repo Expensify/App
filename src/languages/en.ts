@@ -800,7 +800,7 @@ const translations = {
         emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
-        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
+        importMembersSuccessfulDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
             rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',

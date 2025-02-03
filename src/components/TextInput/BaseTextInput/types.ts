@@ -50,7 +50,7 @@ type CustomBaseTextInputProps = {
     disableKeyboard?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     * Auto-grow input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -58,7 +58,7 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Autogrow input container height based on the entered text
+     * Auto-grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
 

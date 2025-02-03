@@ -98,7 +98,7 @@ function ReportFooter({
                 return new Date(dateString) >= new Date();
             } catch (error) {
                 // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
-                Log.alert(`[${CONST.ERROR.ENSURE_BUGBOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
+                Log.alert(`[${CONST.ERROR.ENSURE_BUG_BOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
                 return false;
             }
         },

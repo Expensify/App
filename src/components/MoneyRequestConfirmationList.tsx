@@ -770,7 +770,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
-        // Keep 'transaction' out to ensure that we autoselect the option only once
+        // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
@@ -795,7 +795,7 @@ function MoneyRequestConfirmationList({
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
-        // Keep 'transaction' out to ensure that we autoselect the option only once
+        // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, policyTagLists, policyTags]);
 

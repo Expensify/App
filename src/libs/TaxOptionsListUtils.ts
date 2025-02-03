@@ -32,8 +32,8 @@ type TaxSection = {
  * Sorts tax rates alphabetically by name.
  */
 function sortTaxRates(taxRates: TaxRates): TaxRate[] {
-    const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
-    return sortedtaxRates;
+    const sortedTaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
+    return sortedTaxRates;
 }
 
 /**

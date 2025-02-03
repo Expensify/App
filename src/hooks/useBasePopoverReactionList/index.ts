@@ -41,7 +41,7 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
 
     /**
      * Get the BasePopoverReactionList anchor position
-     * We calculate the achor coordinates from measureInWindow async method
+     * We calculate the anchor coordinates from measureInWindow async method
      */
     function getReactionListMeasuredLocation(): Promise<{x: number; y: number}> {
         return new Promise((resolve) => {

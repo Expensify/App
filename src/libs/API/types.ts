@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-// We have to disable esling for this import because otherwise the import will be 300 lines long
+// We have to disable eslint for this import because otherwise the import will be 300 lines long
 // eslint-disable-next-line no-restricted-syntax
 import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
@@ -165,7 +165,7 @@ const WRITE_COMMANDS = {
     DELETE_POLICY_REPORT_FIELD: 'DeletePolicyReportField',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
-    RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
+    RENAME_POLICY_TAG_LIST: 'RenamePolicyTagList',
     DELETE_POLICY_TAGS: 'DeletePolicyTags',
     UPDATE_POLICY_TAG_GL_CODE: 'UpdatePolicyTagGLCode',
     CREATE_TASK: 'CreateTask',
@@ -232,7 +232,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     SET_POLICY_BILLABLE_MODE: ' SetPolicyBillableMode',
     DISABLE_POLICY_BILLABLE_MODE: 'DisablePolicyBillableExpenses',
-    SET_WORKSPACE_ERECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
+    SET_WORKSPACE_E_RECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
     SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED: 'SetPolicyCategoryDescriptionRequired',
     SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT: 'SetWorkspaceCategoryDescriptionHint',
     SET_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'SetPolicyCategoryReceiptsRequired',
@@ -535,9 +535,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
-    [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachementParams;
-    [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
-    [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
+    [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachmentParams;
+    [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
+    [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
@@ -599,7 +599,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.DeletePolicyReportField;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
-    [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglistParams;
+    [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTagListParams;
     [WRITE_COMMANDS.CREATE_POLICY_TAG]: Parameters.CreatePolicyTagsParams;
     [WRITE_COMMANDS.RENAME_POLICY_TAG]: Parameters.RenamePolicyTagsParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE]: Parameters.UpdatePolicyTagGLCodeParams;
@@ -718,7 +718,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
     [WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE]: Parameters.SetPolicyBillableModeParams;
     [WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE]: Parameters.DisablePolicyBillableModeParams;
-    [WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED]: Parameters.SetWorkspaceEReceiptsEnabled;
+    [WRITE_COMMANDS.SET_WORKSPACE_E_RECEIPTS_ENABLED]: Parameters.SetWorkspaceEReceiptsEnabled;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksOnlineAutoCreateVendorParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
@@ -911,7 +911,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE]: Parameters.UpdateInvoiceCompanyWebsiteParams;
 
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
-    // Dismis Product Training
+    // Dismiss Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
 };
 

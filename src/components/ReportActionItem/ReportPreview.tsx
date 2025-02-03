@@ -509,7 +509,7 @@ function ReportPreview({
             return;
         }
 
-        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
+        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECK_MARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
     }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
     useEffect(() => {
@@ -517,7 +517,7 @@ function ReportPreview({
             return;
         }
 
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
+        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {

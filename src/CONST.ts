@@ -376,9 +376,9 @@ const CONST = {
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
-    ANIMATION_PAID_CHECKMARK_DELAY: 300,
-    ANIMATION_THUMBSUP_DURATION: 250,
-    ANIMATION_THUMBSUP_DELAY: 200,
+    ANIMATION_PAID_CHECK_MARK_DELAY: 300,
+    ANIMATION_THUMBS_UP_DURATION: 250,
+    ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
@@ -768,7 +768,7 @@ const CONST = {
         ANDROID: 'android',
         WEB: 'web',
         DESKTOP: 'desktop',
-        MOBILEWEB: 'mobileweb',
+        MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
@@ -1486,7 +1486,7 @@ const CONST = {
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
-        ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        ENSURE_BUG_BOT: 'ENSURE_BUG_BOT',
         PUSHER_ERROR: 'PusherError',
         WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
@@ -1687,7 +1687,7 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
-    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
+    IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_ITEM_TYPES: {
@@ -2808,7 +2808,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
-        XLARGE: 'xlarge',
+        X_LARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
@@ -6407,7 +6407,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',

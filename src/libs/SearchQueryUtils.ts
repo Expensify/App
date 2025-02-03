@@ -696,7 +696,7 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
-        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+        Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
         return;
     }
 

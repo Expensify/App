@@ -136,7 +136,7 @@ function BaseReportActionContextMenu({
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
-    const threedotRef = useRef<View>(null);
+    const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canEvict: false,
@@ -367,7 +367,7 @@ function BaseReportActionContextMenu({
                                 ref={(ref) => {
                                     menuItemRefs.current[index] = ref;
                                 }}
-                                buttonRef={isMenuAction ? threedotRef : {current: null}}
+                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
                                 icon={contextAction.icon}
                                 text={text ?? ''}
                                 successIcon={contextAction.successIcon}
@@ -376,7 +376,7 @@ function BaseReportActionContextMenu({
                                 key={contextAction.textTranslateKey}
                                 onPress={(event) =>
                                     interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
                                         contextAction.isAnonymousAction,
                                     )
                                 }

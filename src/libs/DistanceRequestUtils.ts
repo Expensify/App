@@ -138,7 +138,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 
 /**
  * @param unit Unit that should be used to display the distance
- * @param rate Expensable amount allowed per unit
+ * @param rate Expendable amount allowed per unit
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
@@ -173,7 +173,7 @@ function getRateForDisplay(
  * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
- * @param rate Expensable amount allowed per unit
+ * @param rate Expendable amount allowed per unit
  * @param translate Translate function
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that describes the distance traveled
@@ -206,7 +206,7 @@ function getDistanceForDisplay(
  * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
- * @param rate Expensable amount allowed per unit
+ * @param rate Expendable amount allowed per unit
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit

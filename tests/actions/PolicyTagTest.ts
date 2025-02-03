@@ -154,7 +154,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('RenamePolicyTaglist', () => {
+    describe('RenamePolicyTagList', () => {
         it('rename policy tag list', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
@@ -170,7 +170,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.renamePolicyTaglist(
+                    Tag.renamePolicyTagList(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
@@ -238,7 +238,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.renamePolicyTaglist(
+                    Tag.renamePolicyTagList(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,

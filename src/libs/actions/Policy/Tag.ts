@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
     OpenPolicyTagsPageParams,
-    RenamePolicyTaglistParams,
+    RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
@@ -696,7 +696,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
+function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
@@ -736,7 +736,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters: RenamePolicyTaglistParams = {
+    const parameters: RenamePolicyTagListParams = {
         policyID,
         oldName,
         newName,
@@ -1056,7 +1056,7 @@ export {
     enablePolicyTags,
     openPolicyTagsPage,
     renamePolicyTag,
-    renamePolicyTaglist,
+    renamePolicyTagList,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
     setPolicyTagApprover,

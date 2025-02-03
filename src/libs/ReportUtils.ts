@@ -996,7 +996,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 
 /**
  * Get the policy type from a given report
- * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @param policies must have OnyxKey prefix (i.e 'policy_') for keys
  */
 function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';

@@ -75,7 +75,7 @@ function findColumnName(header: string): string {
         case 'reporttotal':
         case 'reporttotalthreshold':
         case 'approvallimit':
-            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHHOLD;
+            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD;
             break;
 
         case 'alternate':

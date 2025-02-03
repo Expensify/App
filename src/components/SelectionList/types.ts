@@ -310,7 +310,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -513,7 +513,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to call preventDefault() on pressing enter key or not */
     shouldPreventDefault?: boolean;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the TextInput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Custom content to display in the header */
@@ -582,10 +582,10 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
-    /** Styles applid for the title of the list item */
+    /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
     /** This may improve scroll performance for large lists */

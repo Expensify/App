@@ -201,7 +201,7 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
-    popoverzIndex: 10000,
+    popoverZIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,

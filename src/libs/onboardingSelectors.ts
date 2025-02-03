@@ -29,7 +29,7 @@ function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKE
  * `true` means the user has completed the hybrid app onboarding flow
  * `false` means the user has not completed the hybrid app onboarding flow
  */
-function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRYNEWDOT>): {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} {
+function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRY_NEW_DOT>): {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} {
     let isHybridAppOnboardingCompleted = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
     const hasBeenAddedToNudgeMigration = !!tryNewDotData?.nudgeMigration?.timestamp;
 
