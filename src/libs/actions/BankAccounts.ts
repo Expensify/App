@@ -14,7 +14,7 @@ import type {
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type {SaveCorpayOnboardingDirectorInformation} from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +23,7 @@ import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form';
+import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -66,6 +66,12 @@ function clearPlaid(): Promise<void | void[]> {
     return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
 
+function clearInternationalBankAccount() {
+    return clearPlaid()
+        .then(() => Onyx.set(ONYXKEYS.CORPAY_FIELDS, null))
+        .then(() => Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, null));
+}
+
 function openPlaidView() {
     clearPlaid().then(() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
@@ -77,10 +83,16 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
-    clearPlaid().then(() => {
+function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: string, source?: string, isUserValidated = true) {
+    clearInternationalBankAccount().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        if (policyID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+        }
+        if (source) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
@@ -200,7 +212,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount) {
+function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -211,6 +223,12 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
     };
+    if (policyID) {
+        parameters.policyID = policyID;
+    }
+    if (source) {
+        parameters.source = source;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -703,7 +721,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
@@ -779,6 +797,56 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     return errorFields;
 }
 
+function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdrawal?: boolean, isBusinessBankAccount?: boolean) {
+    API.write(
+        WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS,
+        {countryISO: bankCountry, currency: bankCurrency, isWithdrawal, isBusinessBankAccount},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                    value: {
+                        bankCountry,
+                        bankCurrency: bankCurrency ?? null,
+                    },
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+    const inputData = {
+        ...data,
+        classification,
+        destinationCountry,
+        preferredMethod,
+        setupType: 'manual',
+        fieldsType: 'international',
+        country: data.bankCountry,
+        currency: data.bankCurrency,
+    };
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -808,8 +876,10 @@ export {
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
-    getCorpayBankAccountFields,
+    fetchCorpayFields,
     clearReimbursementAccountBankCreation,
+    getCorpayBankAccountFields,
+    createCorpayBankAccountForWalletFlow,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
