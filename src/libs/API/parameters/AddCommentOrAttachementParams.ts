@@ -1,6 +1,8 @@
 import type {FileObject} from '@components/AttachmentModal';
 
 type AddCommentOrAttachementParams = {
+    attachmentID?: string;
+    attachmentVersion?: string;
     reportID: string;
     reportActionID?: string;
     commentReportActionID?: string | null;

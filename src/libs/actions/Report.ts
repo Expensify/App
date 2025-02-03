@@ -72,6 +72,7 @@ import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -546,13 +547,14 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let attachmentID: number | undefined;
+    let attachmentID = rand64();
+    const attachmentVersion = rand64();
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     let optimisticAttachment: Attachment | undefined;
 
     if (text && !file) {
-        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, attachmentID, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -561,13 +563,13 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction(text, file, attachmentID, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
 
         optimisticAttachment = {
             attachmentID,
             localSource: file.uri,
-            localVersion: Number(NumberUtils.rand64()),
+            localVersion: attachmentVersion,
         };
     }
 
@@ -613,9 +615,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     }
 
     const parameters: AddCommentOrAttachementParams = {
-        /** TODO: require BE changes
-        attachmentID,
-        */
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
@@ -624,6 +623,11 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
         idempotencyKey: Str.guid(),
     };
+
+    if (file) {
+        parameters.attachmentID = attachmentID;
+        parameters.attachmentVersion = attachmentVersion;
+    }
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
@@ -3691,7 +3695,7 @@ function prepareOnboardingOnyxData(
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
     // Text message
-    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
+    const textComment = buildOptimisticAddCommentReportAction(data.message, undefined, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
@@ -3702,7 +3706,7 @@ function prepareOnboardingOnyxData(
     let videoCommentAction: OptimisticAddCommentReportAction | null = null;
     let videoMessage: AddCommentOrAttachementParams | null = null;
     if ('video' in data && data.video) {
-        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+        const videoComment = buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, undefined, actorAccountID, 2);
         videoCommentAction = videoComment.reportAction;
         videoMessage = {
             reportID: targetChatReportID,
@@ -3710,6 +3714,8 @@ function prepareOnboardingOnyxData(
             reportComment: videoComment.commentText,
         };
     }
+
+    let createWorkspaceTaskReportID;
     const tasksData = data.tasks
         .filter((task) => {
             if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
@@ -3789,8 +3795,9 @@ function prepareOnboardingOnyxData(
         });
 
     // Sign-off welcome message
-    const welcomeSignOffComment = ReportUtils.buildOptimisticAddCommentReportAction(
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(
         Localize.translateLocal('onboarding.welcomeSignOffTitle'),
+        undefined,
         undefined,
         actorAccountID,
         tasksData.length + 3,

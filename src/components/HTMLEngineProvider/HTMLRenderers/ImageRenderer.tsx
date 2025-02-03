@@ -72,7 +72,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
     const attachmentID = Number(htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || CONST.DEFAULT_NUMBER_ID);
 
-    const imageSource = Attachment.getAttachmentSource(attachmentID) || source;
+    const imageSource = Attachment.getAttachmentSource(attachmentID) || processedPreviewSource;
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
@@ -83,10 +83,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     if (!fileInfo.fileExtension) {
         fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
     }
-
+    console.log('caiming', imageSource, htmlAttribs);
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={imageSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
