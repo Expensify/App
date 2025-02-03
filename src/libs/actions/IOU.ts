@@ -46,6 +46,7 @@ import {
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
+import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -126,7 +127,7 @@ import {
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isSelfDM,
     isSettled,
@@ -148,6 +149,7 @@ import {
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
     isAmountMissing,
+    isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
@@ -325,6 +327,8 @@ type RequestMoneyTransactionParams = {
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
+    waypoints?: WaypointCollection;
+    customUnitRateID?: string;
 };
 
 type PerDiemExpenseTransactionParams = {
@@ -3176,7 +3180,7 @@ function getTrackExpenseInformation(
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
     if (isDraftReportLocal) {
-        const workspaceData = buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
+        const workspaceData = buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
         successData.push(...workspaceData.successData);
@@ -4272,6 +4276,38 @@ const getConvertTrackedExpenseInformation = (
     return {optimisticData, successData, failureData, modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID};
 };
 
+type ConvertTrackedWorkspaceParams = {
+    category: string | undefined;
+    tag: string | undefined;
+    taxCode: string;
+    taxAmount: number;
+    billable: boolean | undefined;
+    policyID: string;
+    receipt: Receipt | undefined;
+    waypoints?: string;
+    customUnitRateID?: string;
+};
+
+type AddTrackedExpenseToPolicyParam = {
+    amount: number;
+    currency: string;
+    comment: string;
+    created: string;
+    merchant: string;
+    transactionID: string;
+    reimbursable: boolean;
+    actionableWhisperReportActionID: string;
+    moneyRequestReportID: string;
+    reportPreviewReportActionID: string;
+    modifiedExpenseReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestPreviewReportActionID: string;
+} & ConvertTrackedWorkspaceParams;
+
+function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
+    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
+}
+
 function convertTrackedExpenseToRequest(
     payerAccountID: number,
     payerEmail: string,
@@ -4293,6 +4329,7 @@ function convertTrackedExpenseToRequest(
     merchant: string,
     created: string,
     attendees?: Attendee[],
+    workspaceParams?: ConvertTrackedWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -4314,6 +4351,28 @@ function convertTrackedExpenseToRequest(
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
+
+    if (workspaceParams) {
+        const params = {
+            amount,
+            currency,
+            comment,
+            created,
+            merchant,
+            reimbursable: true,
+            transactionID,
+            actionableWhisperReportActionID,
+            moneyRequestReportID,
+            moneyRequestCreatedReportActionID,
+            moneyRequestPreviewReportActionID,
+            modifiedExpenseReportActionID,
+            reportPreviewReportActionID,
+            ...workspaceParams,
+        };
+
+        addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
+        return;
+    }
 
     const parameters = {
         attendees,
@@ -4375,6 +4434,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        engagementChoice: createdWorkspaceParams?.engagementChoice,
+        guidedSetupData: createdWorkspaceParams?.guidedSetupData,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4433,6 +4494,8 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        engagementChoice: createdWorkspaceParams?.engagementChoice,
+        guidedSetupData: createdWorkspaceParams?.guidedSetupData,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4460,13 +4523,22 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
+        waypoints,
+        customUnitRateID,
     } = transactionParams;
+
+    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const existingTransactionID =
+        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
+            ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+            : undefined;
+    const existingTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -4499,10 +4571,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         policyParams,
         transactionParams,
         moneyRequestReportID,
-        existingTransactionID:
-            isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
-                ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-                : undefined,
+        existingTransactionID,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
@@ -4512,7 +4582,20 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-
+            const workspaceParams =
+                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
+                    ? {
+                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          category,
+                          tag,
+                          taxCode,
+                          taxAmount,
+                          billable,
+                          policyID: chatReport.policyID,
+                          waypoints: sanitizedWaypoints,
+                          customUnitRateID,
+                      }
+                    : undefined;
             convertTrackedExpenseToRequest(
                 payerAccountID,
                 payerEmail,
@@ -4534,6 +4617,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 merchant,
                 created,
                 attendees,
+                workspaceParams,
             );
             break;
         }
@@ -4553,7 +4637,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                receipt: receipt instanceof Blob ? receipt : undefined,
+                receipt: isFileUploadable(receipt) ? receipt : undefined,
                 receiptState: receipt?.state,
                 category,
                 tag,
@@ -4836,11 +4920,7 @@ function trackExpense({
         value: recentServerValidatedWaypoints,
     });
 
-    // Type guard that checks if trackedReceipt is of type Receipt
-    function isReceipt(receiptParam: Receipt | Blob): receiptParam is Receipt {
-        return (receiptParam as Receipt).state !== undefined;
-    }
-    const receiptState = isReceipt(trackedReceipt) ? trackedReceipt.state : undefined;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
@@ -4859,7 +4939,9 @@ function trackExpense({
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID: mileageRate,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -4902,9 +4984,9 @@ function trackExpense({
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
-                customUnitRateID,
+                customUnitRateID: mileageRate,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -4943,8 +5025,8 @@ function trackExpense({
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
-                receiptState,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receiptState: trackedReceipt?.state,
                 category,
                 tag,
                 taxCode,
@@ -5236,7 +5318,7 @@ function createSplitsAndOnyxData(
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
-        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         const splitAmount = splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
         const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false);
 
@@ -5863,7 +5945,7 @@ function startSplitBill({
     });
 
     participants.forEach((participant) => {
-        const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         if (!isPolicyExpenseChat) {
             return;
         }
@@ -7472,7 +7554,7 @@ function getReportFromHoldRequestsOnyxData(
     const newParentReportActionID = rand64();
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
     const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
     const optimisticExpenseReport = isPolicyExpenseChat
@@ -8051,7 +8133,7 @@ function canIOUBePaid(
     invoiceReceiverPolicy?: SearchPolicy,
     shouldCheckApprovedState = true,
 ) {
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
@@ -9026,8 +9108,8 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChatReportUtils(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtils(chatReport), selected: true}];
+    if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
