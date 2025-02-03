@@ -15,6 +15,7 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -1671,6 +1672,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        customEmoji: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            verticalAlign: 'bottom',
+            ...(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -variables.iconSizeNormal / 4} : {}),
         },
 
         sidebarFooterUsername: {
@@ -3686,13 +3694,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        searchRouterInputResults: {
+        searchAutocompleteInputResults: {
             backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
 
-        searchRouterInputResultsFocused: {
+        searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
@@ -3710,17 +3718,7 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        narrowSearchHeaderStyle: {
-            paddingTop: 1,
-            flex: 1,
-        },
-
-        narrowSearchRouterInactiveStyle: {
-            position: 'relative',
-            flex: 1,
-        },
-
-        narrowSearchRouterActiveStyle: {
+        searchTopBarStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4375,6 +4373,10 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
