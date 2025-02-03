@@ -1616,7 +1616,7 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
  */
 function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
     if (!reportID || !transactionID) {
-        return;
+        return undefined;
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
