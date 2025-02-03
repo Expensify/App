@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import CONST from '@src/CONST';
@@ -15,14 +16,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
 
-    const fieldIds = corpayFields.map((field) => field.id);
+    const bankAccountDetailsFields = useMemo(() => {
+        return corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
+    }, [corpayFields]);
+
+    const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            corpayFields.forEach((field) => {
+            corpayFields?.formFields?.forEach((field) => {
                 const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
                 if (field.isRequired && !values[fieldID]) {
@@ -30,7 +36,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 }
 
                 field.validationRules.forEach((rule) => {
-                    if (rule.regEx) {
+                    if (!rule.regEx) {
                         return;
                     }
 
@@ -54,10 +60,10 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     });
 
     const inputs = useMemo(() => {
-        return corpayFields.map((field) => {
+        return bankAccountDetailsFields?.map((field) => {
             return (
                 <View
-                    style={[styles.flex2, styles.mb6]}
+                    style={styles.mb6}
                     key={field.id}
                 >
                     <InputWrapper
@@ -71,7 +77,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 </View>
             );
         });
-    }, [corpayFields, styles.flex2, styles.mb6, isEditing]);
+    }, [bankAccountDetailsFields, styles.mb6, isEditing]);
 
     return (
         <FormProvider
@@ -84,6 +90,12 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>
                 {inputs}
+                {!inputs && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        color={theme.spinner}
+                    />
+                )}
             </View>
         </FormProvider>
     );

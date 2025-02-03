@@ -3,6 +3,7 @@ import React from 'react';
 import colors from '@styles/theme/colors';
 import Button from '@src/components/Button';
 import type {ButtonProps} from '@src/components/Button';
+import CONST from '@src/CONST';
 
 const buttonText = 'Click me';
 const accessibilityLabel = 'button-label';
@@ -17,7 +18,7 @@ describe('Button Component', () => {
             />,
         );
     const onPress = jest.fn();
-    const getButton = () => screen.getByText(buttonText);
+    const getButton = () => screen.getByRole(CONST.ROLE.BUTTON, {name: buttonText});
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -55,15 +56,18 @@ describe('Button Component', () => {
         renderButton({isLoading: true});
 
         // Then the loading state is displayed
-        expect(getButton()).toBeDisabled();
+        expect(screen.getByText(buttonText)).not.toBeVisible();
     });
 
     it('disables button when isDisabled is true', () => {
-        // Given the component is rendered with isDisabled true
-        renderButton({isDisabled: true});
+        // Given the component is rendered with isDisabled set to true
+        renderButton({isDisabled: true, onPress});
 
-        // Then the button is disabled
-        expect(getButton()).toBeDisabled();
+        // When the button is pressed
+        fireEvent.press(getButton());
+
+        // Then the onPress function should not be called
+        expect(onPress).not.toHaveBeenCalled();
     });
 
     it('sets accessibility label correctly', () => {

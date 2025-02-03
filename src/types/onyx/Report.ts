@@ -184,6 +184,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
+        /** Errors used by Search to show RBR */
+        errors?: OnyxCommon.Errors;
+
         /** Whether the report is waiting on a bank account */
         isWaitingOnBankAccount?: boolean;
 
@@ -219,10 +222,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
-
-        /** Whether the report is archived */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        private_isArchived?: string;
 
         /** The report's welcome message */
         welcomeMessage?: string;

@@ -16,6 +16,8 @@ import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
+import type {CorpayFields, CorpayFormField} from './CorpayFields';
+import type CorpayOnboardingFields from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -98,6 +100,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type User from './User';
@@ -125,6 +128,7 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
+    CorpayOnboardingFields,
     Currency,
     CurrencyList,
     CustomStatusDraft,
@@ -241,6 +245,9 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    CorpayFields,
+    CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
+    TravelProvisioning,
 };

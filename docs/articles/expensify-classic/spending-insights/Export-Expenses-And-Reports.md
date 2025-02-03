@@ -82,7 +82,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:title} | Would output "Expense Expenses to 2019-11-05" assuming that is the report's title.| 
 | Report ID |  Number is a unique number per report and can be used to identify specific reports.|
 | {report:id} | Would output R00I7J3xs5fn assuming that is the report's ID.| 
-| Old Report ID | A unique number per report and can be used to identify specific reports as well. Every report has both an ID and an old ID - they're simply different ways of showing the same information in either [base10](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.twinkl.co.uk%2Fteaching-wiki%2Fbase-10) or base62. | 
+| Old Report ID | A unique number per report and can be used to identify specific reports as well. Every report has both an ID and an old ID - they're simply different ways of showing the same information in either base10 or base62. | 
 | {report:oldID} | Would output R3513250790654885 assuming that is the report's old ID.| 
 | Reimbursement ID | The unique number for a report that's been reimbursed via ACH in Expensify. The reimbursement ID is searchable on the Reports page and is found on your bank statement in the line-item detail for the reimbursed amount.| 
 | {report:reimbursementid} | Would output 123456789109876 assuming that is the ID on the line-item detail for the reimbursed amount in your business bank account.| 
@@ -100,7 +100,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | Created date | The expense report was originally created by the user.| 
 | {report:created} | Would output 2010-09-15 12:00:00 assuming the expense report was created on September 15th, 2010 at noon.| 
 | {report:created:yyyy-MM-dd} | Would output 2010-09-15 assuming the expense report was created on September 15, 2010.| 
-| | Note -  All Date Formulas accept an optional format string. The default if one is not provided is yyyy-MM-dd hh:mm:ss.  For a full breakdown, check out the Date Formatting [here](https://community.expensify.com/discussion/5799/deep-dive-date-formating-for-formulas/p1?new=1).| 
+| | Note -  All Date Formulas accept an optional format string. The default if one is not provided is yyyy-MM-dd hh:mm:ss.  For a full breakdown, check out the Date Formatting [here](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#date-formats).| 
 | StartDate | Is the date of the earliest expense on the report.| 
 | {report:startdate} | Would output 2010-09-15 assuming that is the date of the earliest expense on the report.| 
 | EndDate|  Is the date of the last expense on the report.| 

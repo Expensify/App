@@ -23,6 +23,7 @@ import type StatePicker from '@components/StatePicker';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
+import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
@@ -69,7 +70,8 @@ type ValidInputs =
     | typeof StatePicker
     | typeof ConstantSelector
     | typeof UploadFile
-    | typeof PushRowWithModal;
+    | typeof PushRowWithModal
+    | typeof TimeModalPicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {

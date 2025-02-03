@@ -15,7 +15,7 @@ function getTopmostBottomTabRoute(state: State<RootStackParamList> | undefined):
         throw new Error('BottomTabNavigator route have no routes.');
     }
 
-    return {name: topmostBottomTabRoute.name as BottomTabName, params: topmostBottomTabRoute.params};
+    return {name: topmostBottomTabRoute.name as BottomTabName, params: topmostBottomTabRoute.params, key: topmostBottomTabRoute.key};
 }
 
 export default getTopmostBottomTabRoute;

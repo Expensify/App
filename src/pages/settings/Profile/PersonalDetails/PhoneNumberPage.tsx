@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -28,6 +29,7 @@ function PhoneNumberPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
@@ -54,7 +56,7 @@ function PhoneNumberPage() {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
             }
             const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
@@ -97,6 +99,7 @@ function PhoneNumberPage() {
                         >
                             <InputWrapper
                                 InputComponent={TextInput}
+                                ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
                                 name="lfname"
                                 label={translate('common.phoneNumber')}

@@ -40,7 +40,10 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
-    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
+    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
+    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
@@ -51,7 +54,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
-        const transactionID = route.params.transactionID ?? -1;
+        const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);

@@ -1,4 +1,4 @@
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {AccountData} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -6,7 +6,7 @@ type FormattedSelectedPaymentMethodIcon = {
     icon: IconAsset;
     iconHeight?: number;
     iconWidth?: number;
-    iconStyles?: ViewStyle[];
+    iconStyles?: StyleProp<ViewStyle>;
     iconSize?: number;
 };
 
