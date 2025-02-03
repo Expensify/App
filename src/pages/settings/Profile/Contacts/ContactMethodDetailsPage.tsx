@@ -13,7 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import ValidateCodeActionWithoutModal from '@components/ValidateCodeActionWithoutModal';
+import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -55,7 +55,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
+    const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
 
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
 
@@ -163,7 +163,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
 
     useEffect(() => {
-        setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
+        setIsValidateCodeFormVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
@@ -172,7 +172,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
-        if (isValidateCodeActionModalVisible && !isDefaultContactMethod) {
+        if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
                 icon: Trashcan,
                 text: translate('common.remove'),
@@ -180,7 +180,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             });
         }
         return menuItems;
-    }, [isValidateCodeActionModalVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
+    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -318,9 +318,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 )}
 
-                <ValidateCodeActionWithoutModal
+                <ValidateCodeActionForm
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
+                    isVisible={isValidateCodeFormVisible && !loginData.validatedDate && !!loginData}
                     validatePendingAction={loginData.pendingFields?.validateCodeSent}
                     handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
@@ -330,7 +330,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     forwardedRef={validateCodeFormRef}
                 />
 
-                {!isValidateCodeActionModalVisible && !!loginData.validatedDate && getMenuItems()}
+                {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );

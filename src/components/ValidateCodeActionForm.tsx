@@ -9,14 +9,14 @@ import type {ValidateCodeActionModalProps} from './ValidateCodeActionModal/type'
 import ValidateCodeForm from './ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 
-type ValidateCodeActionWithoutModalProps = {
+type ValidateCodeActionFormProps = {
     /** Ref for validate code form */
     forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
 };
 
-type ValidateCodeActionProps = ValidateCodeActionModalProps & ValidateCodeActionWithoutModalProps;
+type ValidateCodeActionProps = ValidateCodeActionModalProps & ValidateCodeActionFormProps;
 
-function ValidateCodeActionWithoutModal({
+function ValidateCodeActionForm({
     isVisible,
     descriptionPrimary,
     descriptionSecondary,
@@ -73,10 +73,10 @@ function ValidateCodeActionWithoutModal({
     }
 }
 
-ValidateCodeActionWithoutModal.displayName = 'ValidateCodeActionWithoutModal';
+ValidateCodeActionForm.displayName = 'ValidateCodeActionForm';
 
 export default forwardRef<ValidateCodeFormHandle, ValidateCodeActionProps>((props, ref) => (
-    <ValidateCodeActionWithoutModal
+    <ValidateCodeActionForm
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
