@@ -6,15 +6,13 @@ import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
-import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import getPlatform from '@libs/getPlatform';
 // eslint-disable-next-line no-restricted-imports
@@ -44,10 +42,8 @@ function SignInPageLayout(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {preferredLocale} = useLocalize();
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
     const scrollViewRef = useRef<RNScrollView>(null);
-    const prevPreferredLocale = usePrevious(preferredLocale);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
@@ -72,14 +68,6 @@ function SignInPageLayout(
     useImperativeHandle(ref, () => ({
         scrollPageToTop,
     }));
-
-    useEffect(() => {
-        if (prevPreferredLocale !== preferredLocale) {
-            return;
-        }
-
-        scrollPageToTop();
-    }, [welcomeHeader, welcomeText, prevPreferredLocale, preferredLocale]);
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
@@ -174,7 +162,7 @@ function SignInPageLayout(
                         style={[
                             styles.flex1,
                             styles.flexColumn,
-                            Browser.isMobileSafari() ? styles.overflowHidden : {},
+                            isMobileSafari() ? styles.overflowHidden : {},
                             StyleUtils.getMinimumHeight(backgroundImageHeight),
                             StyleUtils.getSignInBgStyles(theme),
                         ]}

@@ -7,13 +7,13 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -27,7 +27,6 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -42,6 +41,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
+import type {ListItemType} from './WorkspaceMemberRoleSelectionModal';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
@@ -63,10 +64,16 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
+    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
         [policy?.name, currentUserPersonalDetails?.displayName],
     );
+
+    const openRoleSelectionModal = useCallback(() => {
+        setIsRoleSelectionModalVisible(true);
+    }, []);
 
     const getDefaultWelcomeNote = useCallback(() => {
         return (
@@ -75,14 +82,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             workspaceInviteMessageDraft ??
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (Parser.htmlToMarkdown(policy?.description ?? '') ||
-                translate('workspace.common.welcomeNote', {
-                    workspaceName: policy?.name ?? '',
-                }))
+            translate('workspace.common.welcomeNote')
         );
-    }, [workspaceInviteMessageDraft, policy, translate, formData]);
+    }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
         if (isOnyxLoading) {
@@ -130,22 +132,37 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const policyName = policy?.name;
 
-    const roleItems = useMemo(() => {
-        return Object.values(CONST.POLICY.ROLE).map((roleValue) => {
-            let label = '';
-            if (roleValue === CONST.POLICY.ROLE.USER) {
-                label = translate('common.member');
-            } else if (roleValue === CONST.POLICY.ROLE.ADMIN) {
-                label = translate('common.admin');
-            } else {
-                label = translate('common.auditor');
-            }
-            return {
-                label,
-                value: roleValue,
-            };
-        });
-    }, [translate]);
+    const roleItems: ListItemType[] = useMemo(
+        () => [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.USER,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ],
+        [role, translate],
+    );
+
+    const changeRole = useCallback(({value}: ListItemType) => {
+        setIsRoleSelectionModalVisible(false);
+        setRole(value);
+    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -203,13 +220,17 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            <InputWrapper
-                                inputID={INPUT_IDS.ROLE}
-                                InputComponent={ValuePicker}
-                                label={translate('common.role')}
+                            <MenuItemWithTopDescription
+                                title={translate(`workspace.common.roleName`, {role})}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                            <WorkspaceMemberDetailsRoleSelectionModal
+                                isVisible={isRoleSelectionModalVisible}
                                 items={roleItems}
-                                value={role}
-                                onValueChange={(value) => setRole(value as typeof role)}
+                                onRoleChange={changeRole}
+                                onClose={() => setIsRoleSelectionModalVisible(false)}
                             />
                         </View>
                         <InputWrapper

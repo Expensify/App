@@ -68,7 +68,10 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
+            }
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
             return getUrlWithBackToParam(baseRoute, backTo);
         },
@@ -341,7 +344,12 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS_SHARE_CODE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
+        },
     },
     ATTACHMENTS: {
         route: 'attachment',
@@ -518,7 +526,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_ATTENDEE: {
