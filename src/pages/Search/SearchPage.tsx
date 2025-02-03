@@ -30,12 +30,12 @@ function SearchPage({route}: SearchPageProps) {
     // 2. On unmount: Stops video when leaving this screen
     // in narrow layout, the reset will be handled by the attachment modal, so we don't need to do it here to preserve autoplay
     useEffect(() => {
-        if(shouldUseNarrowLayout){
+        if (shouldUseNarrowLayout) {
             return;
         }
         resetVideoPlayerData();
         return () => {
-            if(shouldUseNarrowLayout){
+            if (shouldUseNarrowLayout) {
                 return;
             }
             resetVideoPlayerData();

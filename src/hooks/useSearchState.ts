@@ -3,8 +3,8 @@ import {useContext, useMemo} from 'react';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import SCREENS from '@src/SCREENS';
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 
 type SearchStateResult = {
     isOnSearch: boolean;
@@ -20,8 +20,8 @@ const useSearchState = (): SearchStateResult => {
     // We are using these contexts directly instead of useRoute, because those will throw an error if used outside a navigator.
     // const route = useContext(NavigationRouteContext) as PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
     const route = useContext(NavigationRouteContext);
-    const {q, type} = (route?.params as { q?: string; type?: string }) ?? { q: undefined, type: undefined };
-    const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH ;
+    const {q, type} = (route?.params as {q?: string; type?: string}) ?? {q: undefined, type: undefined};
+    const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;
 
     return useMemo(() => {
         if (!route) {
