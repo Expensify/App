@@ -144,6 +144,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
@@ -195,7 +196,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -2564,6 +2564,12 @@ const translations = {
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
             confirmation: 'Número de confirmación',
+            cancellationPolicies: {
+                unknown: 'Desconocido',
+                nonRefundable: 'No reembolsable',
+                freeCancellationUntil: 'Cancelación gratuita hasta',
+                partiallyRefundable: 'Parcialmente reembolsable',
+            },
         },
         car: 'Auto',
         carDetails: {
@@ -2672,8 +2678,8 @@ const translations = {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName || 'un espacio de trabajo'}! Saca el máximo provecho de Expensify descargando la aplicación en use.expensify.com/download.`,
+            defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -3549,6 +3555,8 @@ const translations = {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `El saldo se liquidará el ${settlementDate}.`,
+            settleBalance: 'Liquidar saldo',
             cardLimit: 'Límite de la tarjeta',
             remainingLimit: 'Límite restante',
             requestLimitIncrease: 'Solicitar aumento de límite',

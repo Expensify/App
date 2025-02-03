@@ -897,6 +897,15 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
+    const parameters = {
+        feedCountry,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -920,5 +929,6 @@ export {
     updateSelectedFeed,
     deactivateCard,
     getCardDefaultName,
+    queueExpensifyCardForBilling,
 };
 export type {ReplacementReason};
