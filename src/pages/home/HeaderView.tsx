@@ -9,6 +9,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -42,6 +43,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
@@ -61,7 +63,7 @@ import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,9 +106,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -156,7 +160,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
-    const join = checkIfActionIsAllowed(() => joinRoom(report));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
     const canJoin = canJoinChat(report, parentReportAction, policy);
 
@@ -184,7 +188,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner(), [firstDayFreeTrial, lastDayFreeTrial]);
+    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -380,6 +384,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         </View>
                     </View>
                 )}
+                <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
             {shouldShowDiscount && isChatUsedForOnboarding && <EarlyDiscountBanner isSubscriptionPage={false} />}
         </>
