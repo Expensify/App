@@ -994,7 +994,7 @@ const translations = {
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
-        movedToSelfDM: 'movió el gasto a su propio mensaje',
+        movedToSelfDM: 'movió el gasto a su propio mensaje directo',
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
