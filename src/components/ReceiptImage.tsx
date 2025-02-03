@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {type LayoutChangeEvent, View} from 'react-native';
+import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -137,22 +138,29 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt || isThumbnail || true) {
-        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+    if (isEReceipt) {
         return (
             <View style={[styles.mw100, styles.h100]}>
                 <View
                     onLayout={onParentLayout}
                     style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
                 >
-                    <EReceipt
-                        transactionID={transactionID ?? '-1'}
-                        isThumbnail
-                        // iconSize={iconSize}/
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        // {...props}
-                    />
+                    <EReceipt transactionID={transactionID} />
                 </View>
+            </View>
+        );
+    }
+
+    if (isThumbnail) {
+        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        return (
+            <View style={style ?? [styles.w100, styles.h100]}>
+                <EReceiptThumbnail
+                    transactionID={transactionID ?? '-1'}
+                    iconSize={iconSize}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                />
             </View>
         );
     }

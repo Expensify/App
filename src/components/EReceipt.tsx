@@ -5,10 +5,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCardDescription} from '@libs/CardUtils';
+import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import {getCardName} from '@libs/TransactionUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -23,7 +23,7 @@ import Text from './Text';
 
 type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
-    transactionID: string;
+    transactionID: string | undefined;
 };
 
 const backgroundImages = {
@@ -46,9 +46,9 @@ function EReceipt({transactionID}: EReceiptProps) {
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const transactionDetails = getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : MCCIcons['Airlines'];
+    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
     const tripIcon = getTripEReceiptIcon(transaction);
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
@@ -62,16 +62,15 @@ function EReceipt({transactionID}: EReceiptProps) {
         merchant: transactionMerchant,
         created: transactionDate,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
-    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency ?? '');
+    } = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
+    const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = TransactionUtils.getCardName(transaction) ?? (transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '');
+    const cardDescription = getCardName(transaction) ?? (transactionCardID ? getCardDescription(transactionCardID) : '');
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
 
-    console.log('eewwe');
     return (
         <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter]}>
