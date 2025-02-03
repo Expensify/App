@@ -76,6 +76,10 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else {
+            // Determine the domain to associate with the workspace during provisioning in Spotnana.
+            // - If all admins share the same private domain, the workspace is tied to it automatically.
+            // - If admins have multiple private domains, the user must select one.
+            // - Public domains are not allowed; an error page is shown in that case.
             const adminDomains = getAdminsPrivateEmailDomains(policy);
             if (adminDomains.length === 0) {
                 Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
