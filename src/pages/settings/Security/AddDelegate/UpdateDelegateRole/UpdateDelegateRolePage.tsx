@@ -73,7 +73,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             return;
                         }
 
-                        requestValidationCode();
                         Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                     }}
                     sections={[{data: roleOptions}]}
