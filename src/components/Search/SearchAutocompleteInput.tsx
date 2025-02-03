@@ -5,6 +5,8 @@ import {View} from 'react-native';
 import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
+import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -68,9 +70,6 @@ type SearchAutocompleteInputProps = {
 
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
-
-    /** input style */
-    inputStyle?: StyleProp<TextStyle>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
 function SearchAutocompleteInput(
@@ -92,7 +91,6 @@ function SearchAutocompleteInput(
         rightComponent,
         isSearchingForReports,
         selection,
-        inputStyle,
         substitutionMap,
     }: SearchAutocompleteInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -130,6 +128,9 @@ function SearchAutocompleteInput(
         setMap(lastMap.current ?? {});
     }, [substitutionMap, lastMap]);
 
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const emailList = Object.keys(loginList ?? {});
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     useEffect(() => {
@@ -165,9 +166,9 @@ function SearchAutocompleteInput(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(input, emailList, personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue);
         },
-        [personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue],
+        [personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue, emailList],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -199,7 +200,7 @@ function SearchAutocompleteInput(
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pr3]}
-                        inputStyle={[inputWidth, inputStyle]}
+                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         onFocus={() => {
                             setIsFocused(true);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);

@@ -142,6 +142,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
  */
 function parseForLiveMarkdown(
     input: string,
+    userLogins: string[],
     details: SharedValue<{login: string | undefined; userDisplayName: string | undefined}>,
     map: SubstitutionMap,
     currencyList: SharedValue<string[]>,
@@ -184,6 +185,10 @@ function parseForLiveMarkdown(
             }
             if (range.key === 'syntax') {
                 type = 'syntax';
+            }
+
+            if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.includes(range.value) || range.value === userDisplayName)) {
+                type = 'mention-here';
             }
 
             return {...range, type};
