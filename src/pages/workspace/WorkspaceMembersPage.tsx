@@ -36,11 +36,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailsByIDs, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isPolicyAdmin, isPaidGroupPolicy, isDeletedPolicyEmployee, isExpensifyTeam} from '@libs/PolicyUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import {close} from '@userActions/Modal';
-import {isApprover, openWorkspaceMembersPage, clearInviteDraft, removeMembers, clearWorkspaceOwnerChangeFlow, clearDeleteMemberError, clearAddMemberError, updateWorkspaceMembersRole, downloadMembersCSV} from '@userActions/Policy/Member';
+import {
+    clearAddMemberError,
+    clearDeleteMemberError,
+    clearInviteDraft,
+    clearWorkspaceOwnerChangeFlow,
+    downloadMembersCSV,
+    isApprover,
+    openWorkspaceMembersPage,
+    removeMembers,
+    updateWorkspaceMembersRole,
+} from '@userActions/Policy/Member';
 import {dismissAddedWithPrimaryLoginMessages, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
