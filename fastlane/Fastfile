@@ -474,7 +474,8 @@ platform :ios do
           configuration: "Debug",
           sdk: "iphonesimulator",
           skip_codesigning: true,
-          export_method: "debugging"
+          skip_archive: true,
+          export_method: "development"
       )
       setIOSBuildOutputsInEnv()
     end
