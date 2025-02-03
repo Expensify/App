@@ -145,7 +145,7 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     // However, in the olddot, expenses could be moved back to a self-DM.
     // To maintain consistency and handle this case, we provide a fallback message.
     if (isSelfDM(rootParentReport)) {
-        return translateLocal('iou.changedTheExpense');
+        return translateLocal('iou.movedToSelfDM');
     }
     const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
     const policyName = getPolicyName(rootParentReport, true);

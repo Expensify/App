@@ -403,7 +403,7 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving an expense', () => {
             beforeEach(() => Onyx.clear());
-            it('return the message "changed the expense" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
+            it('return the message "moved expense to self DM" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
                 // Given the selfDM report and report action
                 const selfDMReport = {
                     ...report,
@@ -419,11 +419,11 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToSelfDM');
 
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
                 const result = ModifiedExpenseMessage.getForReportAction(selfDMReport.reportID, reportAction);
-                // Then it should return the 'changed the expense' message
+                // Then it should return the 'moved expense to self DM' message
                 expect(result).toEqual(expectedResult);
             });
 
