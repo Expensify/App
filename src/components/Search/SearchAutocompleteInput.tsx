@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useState, useLayoutEffect} from 'react';
+import React, {forwardRef, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,10 +11,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
-import {parseFSAttributes} from '@libs/Fullstory';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
