@@ -56,7 +56,9 @@ When an expense is submitted to a workspace, your approver will receive an email
 ![Click Scan]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-3.png){:width="100%"}
 ![Enter workspace or individual's name]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-4.png){:width="100%"}
 
-{% include info.html %}SmartScan can only detect and process text written in the Latin alphabet.{% include end-info.html %}
+{% include info.html %}
+SmartScan can only detect and process text written in the Latin alphabet.
+{% include end-info.html %}
 
 {% include info.html %}
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
