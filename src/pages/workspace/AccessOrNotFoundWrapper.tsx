@@ -7,50 +7,42 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import * as IOUUtils from '@libs/IOUUtils';
+import {openWorkspace} from '@libs/actions/Policy/Policy';
+import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
+import {canCreateRequest} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Policy from '@userActions/Policy/Policy';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const ACCESS_VARIANTS = {
-    [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy),
-    [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isControlPolicy(policy),
-    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>, login: string) => PolicyUtils.isPolicyAdmin(policy, login),
-    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
-        policy: OnyxEntry<OnyxTypes.Policy>,
-        login: string,
-        report: OnyxEntry<OnyxTypes.Report>,
-        allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null,
-        iouType?: IOUType,
-    ) =>
+    [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isPaidGroupPolicy(policy),
+    [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
+    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => isPolicyAdmin(policy, login),
+    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<Policy>, login: string, report: OnyxEntry<Report>, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) =>
         !!iouType &&
-        IOUUtils.isValidMoneyRequestType(iouType) &&
+        isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
-        (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
-        (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies, login)),
-} as const satisfies Record<
-    string,
-    (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null, iouType?: IOUType) => boolean
->;
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType)) &&
+        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
+} as const satisfies Record<string, (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) => boolean>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: OnyxEntry<Report>;
 
     /** The report currently being looked at */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    policy: OnyxEntry<Policy>;
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
@@ -82,7 +74,7 @@ type AccessOrNotFoundWrapperProps = {
     iouType?: IOUType;
 
     /** The list of all policies */
-    allPolicies?: OnyxCollection<OnyxTypes.Policy>;
+    allPolicies?: OnyxCollection<Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
@@ -97,6 +89,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
+            shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
                     Navigation.dismissModal();
@@ -127,8 +120,8 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
-    const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
+    const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
 
     useEffect(() => {
@@ -137,13 +130,13 @@ function AccessOrNotFoundWrapper({
             return;
         }
 
-        Policy.openWorkspace(policyID, []);
+        openWorkspace(policyID, []);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
 
-    const isFeatureEnabled = featureName ? PolicyUtils.isPolicyFeatureEnabled(policy, featureName) : true;
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
 
     const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const {isOffline} = useNetwork();
@@ -153,9 +146,8 @@ function AccessOrNotFoundWrapper({
         return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
     }, true);
 
-    const isPolicyNotAccessible = !PolicyUtils.isPolicyAccessible(policy);
+    const isPolicyNotAccessible = !isPolicyAccessible(policy);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
-
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can have unexpectedly have 'Not Found' be shown.
