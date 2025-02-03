@@ -52,17 +52,7 @@ describe('navigateAfterOnboarding', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should navigate to LHN on small screens', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const lastAccessedReport = { reportID: REPORT_ID, policyID: 'policyID' };
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
-        mockShouldOpenOnAdminRoom.mockReturnValue(false);
-
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, undefined, false);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should not navigate to the last accessed report if it is a concierge chat report', () => {
+    it('should navigate to LHN if it is a concierge chat on small screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {
             reportID: REPORT_ID,
@@ -80,7 +70,7 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 
-    it('should not navigate to the last accessed report if it matches the onboarding policy ID', () => {
+    it('should navigate to LHN if it is onboarding workspace chat on small screens', () => {
         const lastAccessedReport = { reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID };
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
