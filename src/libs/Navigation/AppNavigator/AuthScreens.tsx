@@ -93,7 +93,7 @@ type AuthScreensProps = {
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILEWEB;
 
-const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
+const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
@@ -512,7 +512,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             headerShown: false,
                             presentation: isWeb ? Presentation.TRANSPARENT_MODAL : undefined,
                         }}
-                        getComponent={loadReportAttachments}
+                        getComponent={loadAttachmentModalScreen}
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
