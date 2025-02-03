@@ -2,13 +2,14 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -56,6 +57,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isFeedAdded = !isPending && !isNoFeed;
     const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
 
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -82,6 +84,16 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         if (!selectedFeed) {
             return;
         }
+
+        const isCommercialFeed = isCustomFeed(selectedFeed);
+
+        // If the feed is a direct feed (not a commercial feed) and the user is offline,
+        // show the offline alert modal to inform them of the connectivity issue.
+        if (!isCommercialFeed && isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
         const data: Partial<AssignCardData> = {
             bankName: selectedFeed,
         };
@@ -158,6 +170,15 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <ConfirmModal
+                title={translate('common.youAppearToBeOffline')}
+                isVisible={shouldShowOfflineModal}
+                onConfirm={() => setShouldShowOfflineModal(false)}
+                onCancel={() => setShouldShowOfflineModal(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('common.offlinePrompt')}
+                shouldShowCancelButton={false}
             />
         </AccessOrNotFoundWrapper>
     );
