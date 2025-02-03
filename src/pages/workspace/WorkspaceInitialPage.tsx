@@ -459,7 +459,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     title={policyName}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
-                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route, true));
+                            Navigation.resetToHome();
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
                             Navigation.dismissModal();
                         }
