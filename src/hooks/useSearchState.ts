@@ -1,7 +1,5 @@
 import {NavigationRouteContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -9,7 +7,6 @@ import SCREENS from '@src/SCREENS';
 type SearchStateResult = {
     isOnSearch: boolean;
     hashKey?: string;
-    isSearchAttachmentModal?: boolean;
 };
 
 /**
@@ -21,9 +18,10 @@ const useSearchState = (): SearchStateResult => {
     // const route = useContext(NavigationRouteContext) as PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
     const route = useContext(NavigationRouteContext);
     const {q, type} = (route?.params as {q?: string; type?: string}) ?? {q: undefined, type: undefined};
-    const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;
 
     return useMemo(() => {
+        const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;
+
         if (!route) {
             return {isOnSearch: false, hashKey: undefined};
         }
@@ -33,7 +31,7 @@ const useSearchState = (): SearchStateResult => {
         const isOnSearch = ((route?.name === SCREENS.SEARCH.CENTRAL_PANE || route?.name === SCREENS.SEARCH.BOTTOM_TAB) && !!hashKey) || isSearchAttachmentModal;
 
         return {hashKey, isOnSearch};
-    }, [q, route]);
+    }, [q, type, route]);
 };
 
 export default useSearchState;

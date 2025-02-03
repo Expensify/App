@@ -96,7 +96,12 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const shouldUseSnapshot = isOnSearch && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
 
     // Create selector function that handles both regular and snapshot data
-    const selector = selectorProp ? (data: OnyxValue<OnyxKey> | undefined) => selectorProp(shouldUseSnapshot ? getKeyData(data as SearchResults, key) : data) : undefined;
+    const selector = useMemo(() => {
+        if (!selectorProp) {
+            return undefined;
+        }
+        return (data: OnyxValue<OnyxKey> | undefined) => selectorProp(shouldUseSnapshot ? getKeyData(data as SearchResults, key) : data);
+    }, [selectorProp, shouldUseSnapshot, key]);
 
     const onyxOptions = {...optionsWithoutSelector, selector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
@@ -112,7 +117,7 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
 
         const keyData = getKeyData(originalResult[0] as SearchResults, key, useOnyxOptions?.initialValue);
         return [keyData, originalResult[1]] as OriginalUseOnyxReturnType;
-    }, [shouldUseSnapshot, originalResult, key, useOnyxOptions?.initialValue]);
+    }, [shouldUseSnapshot, originalResult, key, useOnyxOptions?.initialValue, selector]);
 
     return result;
 };
