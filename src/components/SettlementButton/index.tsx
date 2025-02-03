@@ -11,10 +11,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {doesReportBelongToWorkspace, isExpenseReport as isExpenseReportReportUtils, isIndividualInvoiceRoom, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
+import {
+    doesReportBelongToWorkspace,
+    isExpenseReport as isExpenseReportUtil,
+    isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
+    isInvoiceReport as isInvoiceReportUtil,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
-import {approveMoneyRequest, savePreferredPaymentMethod} from '@userActions/IOU';
+import {approveMoneyRequest, savePreferredPaymentMethod as savePreferredPaymentMethodIOU} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,7 +54,6 @@ function SettlementButton({
     onPress,
     pressOnEnter = false,
     policyID = '-1',
-    shouldUseSuccessStyle = true,
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
@@ -80,12 +84,12 @@ function SettlementButton({
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportReportUtils(iouReport)) || false;
+    const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const isExpenseReport = isExpenseReportReportUtils(iouReport);
+        const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
@@ -141,7 +145,7 @@ function SettlementButton({
                     onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
                 }));
 
-            if (isIndividualInvoiceRoom(chatReport)) {
+            if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: Expensicons.User,
@@ -268,7 +272,6 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
-                    success={shouldUseSuccessStyle}
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
@@ -285,7 +288,7 @@ function SettlementButton({
                         if (policyID === '-1') {
                             return;
                         }
-                        savePreferredPaymentMethod(policyIDKey, option.value);
+                        savePreferredPaymentMethodIOU(policyIDKey, option.value);
                     }}
                     style={style}
                     wrapperStyle={wrapperStyle}
