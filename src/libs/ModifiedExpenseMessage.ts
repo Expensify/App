@@ -139,14 +139,13 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
 function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const rootParentReport = getRootParentReport(destinationReport);
-    // The "Move report" flow only supports moving expenses from selfDM to:
-    // 1. A policy expense chat
-    // 2. A 1:1 DM
-    // However, in the olddot, expenses could be moved back to a self-DM.
-    // To maintain consistency and handle this case, we provide a fallback message.
+    // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
         return translateLocal('iou.movedToSelfDM');
     }
+    // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
+    // - A policy expense chat
+    // - A 1:1 DM
     const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
     const policyName = getPolicyName(rootParentReport, true);
     // If we can't determine either the report name or policy name, return the default message
