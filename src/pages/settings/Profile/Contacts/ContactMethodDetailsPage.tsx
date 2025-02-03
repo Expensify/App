@@ -30,6 +30,7 @@ import {
     setContactMethodAsDefault,
     validateSecondaryLogin,
 } from '@libs/actions/User';
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -270,21 +271,23 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
             testID={ContactMethodDetailsPage.displayName}
             focusTrapSettings={{
-                focusTrapOptions: {
-                    // It is added because input form's focusing bothers transition animation:
-                    // https://github.com/Expensify/App/issues/53884#issuecomment-2594568960
-                    checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
-                        return new Promise((resolve) => {
-                            const interval = setInterval(() => {
-                                const trapContainer = trapContainers.at(0);
-                                if (!trapContainer || (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden')) {
-                                    resolve();
-                                    clearInterval(interval);
-                                }
-                            }, 5);
-                        });
-                    },
-                },
+                focusTrapOptions: !isMobileSafari()
+                    ? undefined
+                    : {
+                          // It is added because input form's focusing bothers transition animation:
+                          // https://github.com/Expensify/App/issues/53884#issuecomment-2594568960
+                          checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
+                              return new Promise((resolve) => {
+                                  const interval = setInterval(() => {
+                                      const trapContainer = trapContainers.at(0);
+                                      if (!trapContainer || (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden')) {
+                                          resolve();
+                                          clearInterval(interval);
+                                      }
+                                  }, 5);
+                              });
+                          },
+                      },
             }}
         >
             <HeaderWithBackButton
