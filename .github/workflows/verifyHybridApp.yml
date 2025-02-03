@@ -68,9 +68,6 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Install New Expensify Gems
-        run: bundle install
-
       - name: Build Android Debug
         run: |
           if ! npm run android-hybrid-build
@@ -111,9 +108,6 @@ jobs:
         uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
-
-      - name: Install New Expensify Gems
-        run: bundle install
 
       - name: Cache Pod dependencies
         uses: actions/cache@v4
