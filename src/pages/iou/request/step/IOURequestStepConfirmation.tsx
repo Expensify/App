@@ -291,10 +291,24 @@ function IOURequestStepConfirmation({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    customUnitRateID,
                 },
             });
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
+        [
+            report,
+            transaction,
+            transactionTaxCode,
+            transactionTaxAmount,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            action,
+            customUnitRateID,
+        ],
     );
 
     const submitPerDiemExpense = useCallback(

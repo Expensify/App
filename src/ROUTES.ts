@@ -68,7 +68,10 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
+            }
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
             return getUrlWithBackToParam(baseRoute, backTo);
         },
@@ -185,6 +188,10 @@ const ROUTES = {
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    },
+    SETTINGS_REPORT_FRAUD_CONFIRMATION: {
+        route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
     },
     SETTINGS_DOMAINCARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
@@ -337,7 +344,12 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS_SHARE_CODE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
+        },
     },
     ATTACHMENTS: {
         route: 'attachment',
@@ -514,7 +526,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_ATTENDEE: {
@@ -1580,7 +1592,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
-    TRAVEL_TCS: 'travel/terms',
+    TRAVEL_TCS: {
+        route: 'travel/terms/:domain/accept',
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
+    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1591,6 +1606,12 @@ const ROUTES = {
         getRoute: (reportID: string, transactionID: string, reservationIndex: number, backTo?: string) =>
             getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
     },
+    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
+    TRAVEL_DOMAIN_PERMISSION_INFO: {
+        route: 'travel/domain-permission/:domain/info',
+        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
+    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
