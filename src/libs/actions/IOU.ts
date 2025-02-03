@@ -46,6 +46,7 @@ import {
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
+import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -4430,7 +4431,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: receipt instanceof Blob ? receipt : undefined,
+                          receipt: isFileUploadable(receipt) ? receipt : undefined,
                           category,
                           tag,
                           taxCode,
@@ -4482,7 +4483,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                receipt: receipt instanceof Blob ? receipt : undefined,
+                receipt: isFileUploadable(receipt) ? receipt : undefined,
                 receiptState: receipt?.state,
                 category,
                 tag,
@@ -4752,7 +4753,7 @@ function trackExpense(
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
             };
@@ -4797,7 +4798,7 @@ function trackExpense(
                 category,
                 tag,
                 billable,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
             };
@@ -4838,7 +4839,7 @@ function trackExpense(
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt: trackedReceipt instanceof Blob ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
                 tag,
