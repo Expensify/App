@@ -10,11 +10,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -27,11 +27,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {canEditTaxRate as canEditTaxRatePolicyUtils, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -62,13 +62,13 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentConnectionName(policy);
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
@@ -111,24 +111,42 @@ function WorkspaceTaxesPage({
         [defaultExternalID, foreignTaxDefault, translate],
     );
 
+    const updateWorkspaceTaxEnabled = useCallback(
+        (value: boolean, taxID: string) => {
+            setPolicyTaxesEnabled(policyID, [taxID], value);
+        },
+        [policyID],
+    );
+
     const taxesList = useMemo<ListItem[]>(() => {
         if (!policy) {
             return [];
         }
         return Object.entries(policy.taxRates?.taxes ?? {})
-            .map(([key, value]) => ({
-                text: value.name,
-                alternateText: textForDefault(key, value),
-                keyForList: key,
-                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
-                isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
-                errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                rightElement: <ListItemRightCaretWithLabel labelText={!value.isDisabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-            }))
+            .map(([key, value]) => {
+                const canEditTaxRate = policy && canEditTaxRatePolicyUtils(policy, key);
+
+                return {
+                    text: value.name,
+                    alternateText: textForDefault(key, value),
+                    keyForList: key,
+                    isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
+                    isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
+                    errors: value.errors ?? getLatestErrorFieldForAnyField(value),
+                    rightElement: (
+                        <Switch
+                            isOn={!value.isDisabled}
+                            disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                            onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
+                        />
+                    ),
+                };
+            })
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate]);
+    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -332,7 +350,7 @@ function WorkspaceTaxesPage({
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
                     listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     showScrollIndicator={false}
