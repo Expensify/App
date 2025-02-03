@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   comment_on_fork:
-    name: Verify Android HybridApp builds on main
+    name: Comment on all PRs that are forks
     # Only run on pull requests that *are* a fork
     if: ${{ github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
