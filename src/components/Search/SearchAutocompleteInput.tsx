@@ -103,6 +103,7 @@ function SearchAutocompleteInput(
                 <View
                     style={styles.flex1}
                     fsClass="fs-unmask"
+                    testID="fs-unmask"
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
