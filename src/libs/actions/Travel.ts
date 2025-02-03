@@ -114,7 +114,12 @@ function provisionDomain(domain: string) {
     Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
 }
 
-function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
+function bookATrip(
+    translate: LocaleContextProps['translate'],
+    setCtaErrorMessage: Dispatch<SetStateAction<string>>,
+    setRootStatusBarEnabled: (isEnabled: boolean) => void,
+    ctaErrorMessage = '',
+): void {
     if (!activePolicyID) {
         return;
     }
@@ -138,6 +143,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
 
                 Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
                 NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                setRootStatusBarEnabled(false);
             })
             ?.catch(() => {
                 setCtaErrorMessage(translate('travel.errorMessage'));
