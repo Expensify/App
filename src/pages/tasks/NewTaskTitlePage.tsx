@@ -85,7 +85,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
                         autoGrowHeight
-                        isMarkdownEnabled
+                        type="markdown"
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>

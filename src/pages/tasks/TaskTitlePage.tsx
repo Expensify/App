@@ -114,7 +114,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 shouldSubmitForm={false}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                isMarkdownEnabled
+                                type="markdown"
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;

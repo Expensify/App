@@ -115,7 +115,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         value={Parser.htmlToMarkdown(Parser.replace(taskTitle))}
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
-                        isMarkdownEnabled
+                        type="markdown"
                     />
                 </View>
                 <View style={styles.mb5}>
