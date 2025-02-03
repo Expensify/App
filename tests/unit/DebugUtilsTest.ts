@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
@@ -784,10 +785,14 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
         it('returns correct reason when report is archived', async () => {
+            const reportNameValuePairs = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
-                private_isArchived: 'true',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -1059,9 +1064,6 @@ describe('DebugUtils', () => {
             };
             await Onyx.multiSet({
                 ...MOCK_REPORTS,
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}2` as const]: {
-                    private_isArchived: false,
-                },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,

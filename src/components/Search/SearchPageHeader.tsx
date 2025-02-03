@@ -392,9 +392,10 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                         wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
+                        onTooltipPress={onFiltersButtonPress}
                     >
                         <Button
-                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            innerStyles={!isCannedQuery && [styles.searchAutocompleteInputResults, styles.borderNone]}
                             text={translate('search.filtersHeader')}
                             icon={Expensicons.Filters}
                             onPress={onFiltersButtonPress}
