@@ -2719,7 +2719,7 @@ const translations = {
                 }
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envía tus gastos aquí:',
+            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
         },
