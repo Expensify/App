@@ -280,7 +280,7 @@ function SuggestionMention(
                 });
             }
 
-            const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail) => {
+            const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail, index, array) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
                 if (!detail?.login || detail.isOptimisticPersonalDetail) {
                     return false;
@@ -302,7 +302,9 @@ function SuggestionMention(
                     return false;
                 }
 
-                return true;
+                // on staging server, in specific cases (see issue) BE returns duplicated personalDetails
+                // entries with the same `login` which we need to filter out
+                return array.findIndex((arrayDetail) => arrayDetail?.login === detail?.login) === index;
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
@@ -334,7 +336,7 @@ function SuggestionMention(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
             Object.values(reportBatch ?? {}).forEach((report) => {
-                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID ?? '-1')) {
+                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {

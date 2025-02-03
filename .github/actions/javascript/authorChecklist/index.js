@@ -3484,6 +3484,332 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
+/***/ 9105:
+/***/ ((module) => {
+
+"use strict";
+
+
+const object = {};
+const hasOwnProperty = object.hasOwnProperty;
+const forOwn = (object, callback) => {
+	for (const key in object) {
+		if (hasOwnProperty.call(object, key)) {
+			callback(key, object[key]);
+		}
+	}
+};
+
+const extend = (destination, source) => {
+	if (!source) {
+		return destination;
+	}
+	forOwn(source, (key, value) => {
+		destination[key] = value;
+	});
+	return destination;
+};
+
+const forEach = (array, callback) => {
+	const length = array.length;
+	let index = -1;
+	while (++index < length) {
+		callback(array[index]);
+	}
+};
+
+const fourHexEscape = (hex) => {
+	return '\\u' + ('0000' + hex).slice(-4);
+}
+
+const hexadecimal = (code, lowercase) => {
+	let hexadecimal = code.toString(16);
+	if (lowercase) return hexadecimal;
+	return hexadecimal.toUpperCase();
+};
+
+const toString = object.toString;
+const isArray = Array.isArray;
+const isBuffer = (value) => {
+	return typeof Buffer === 'function' && Buffer.isBuffer(value);
+};
+const isObject = (value) => {
+	// This is a very simple check, but it’s good enough for what we need.
+	return toString.call(value) == '[object Object]';
+};
+const isString = (value) => {
+	return typeof value == 'string' ||
+		toString.call(value) == '[object String]';
+};
+const isNumber = (value) => {
+	return typeof value == 'number' ||
+		toString.call(value) == '[object Number]';
+};
+const isFunction = (value) => {
+	return typeof value == 'function';
+};
+const isMap = (value) => {
+	return toString.call(value) == '[object Map]';
+};
+const isSet = (value) => {
+	return toString.call(value) == '[object Set]';
+};
+
+/*--------------------------------------------------------------------------*/
+
+// https://mathiasbynens.be/notes/javascript-escapes#single
+const singleEscapes = {
+	'\\': '\\\\',
+	'\b': '\\b',
+	'\f': '\\f',
+	'\n': '\\n',
+	'\r': '\\r',
+	'\t': '\\t'
+	// `\v` is omitted intentionally, because in IE < 9, '\v' == 'v'.
+	// '\v': '\\x0B'
+};
+const regexSingleEscape = /[\\\b\f\n\r\t]/;
+
+const regexDigit = /[0-9]/;
+const regexWhitespace = /[\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
+
+const escapeEverythingRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^]/g;
+const escapeNonAsciiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^ !#-&\(-\[\]-_a-~]/g;
+
+const jsesc = (argument, options) => {
+	const increaseIndentation = () => {
+		oldIndent = indent;
+		++options.indentLevel;
+		indent = options.indent.repeat(options.indentLevel)
+	};
+	// Handle options
+	const defaults = {
+		'escapeEverything': false,
+		'minimal': false,
+		'isScriptContext': false,
+		'quotes': 'single',
+		'wrap': false,
+		'es6': false,
+		'json': false,
+		'compact': true,
+		'lowercaseHex': false,
+		'numbers': 'decimal',
+		'indent': '\t',
+		'indentLevel': 0,
+		'__inline1__': false,
+		'__inline2__': false
+	};
+	const json = options && options.json;
+	if (json) {
+		defaults.quotes = 'double';
+		defaults.wrap = true;
+	}
+	options = extend(defaults, options);
+	if (
+		options.quotes != 'single' &&
+		options.quotes != 'double' &&
+		options.quotes != 'backtick'
+	) {
+		options.quotes = 'single';
+	}
+	const quote = options.quotes == 'double' ?
+		'"' :
+		(options.quotes == 'backtick' ?
+			'`' :
+			'\''
+		);
+	const compact = options.compact;
+	const lowercaseHex = options.lowercaseHex;
+	let indent = options.indent.repeat(options.indentLevel);
+	let oldIndent = '';
+	const inline1 = options.__inline1__;
+	const inline2 = options.__inline2__;
+	const newLine = compact ? '' : '\n';
+	let result;
+	let isEmpty = true;
+	const useBinNumbers = options.numbers == 'binary';
+	const useOctNumbers = options.numbers == 'octal';
+	const useDecNumbers = options.numbers == 'decimal';
+	const useHexNumbers = options.numbers == 'hexadecimal';
+
+	if (json && argument && isFunction(argument.toJSON)) {
+		argument = argument.toJSON();
+	}
+
+	if (!isString(argument)) {
+		if (isMap(argument)) {
+			if (argument.size == 0) {
+				return 'new Map()';
+			}
+			if (!compact) {
+				options.__inline1__ = true;
+				options.__inline2__ = false;
+			}
+			return 'new Map(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isSet(argument)) {
+			if (argument.size == 0) {
+				return 'new Set()';
+			}
+			return 'new Set(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isBuffer(argument)) {
+			if (argument.length == 0) {
+				return 'Buffer.from([])';
+			}
+			return 'Buffer.from(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isArray(argument)) {
+			result = [];
+			options.wrap = true;
+			if (inline1) {
+				options.__inline1__ = false;
+				options.__inline2__ = true;
+			}
+			if (!inline2) {
+				increaseIndentation();
+			}
+			forEach(argument, (value) => {
+				isEmpty = false;
+				if (inline2) {
+					options.__inline2__ = false;
+				}
+				result.push(
+					(compact || inline2 ? '' : indent) +
+					jsesc(value, options)
+				);
+			});
+			if (isEmpty) {
+				return '[]';
+			}
+			if (inline2) {
+				return '[' + result.join(', ') + ']';
+			}
+			return '[' + newLine + result.join(',' + newLine) + newLine +
+				(compact ? '' : oldIndent) + ']';
+		} else if (isNumber(argument)) {
+			if (json) {
+				// Some number values (e.g. `Infinity`) cannot be represented in JSON.
+				return JSON.stringify(argument);
+			}
+			if (useDecNumbers) {
+				return String(argument);
+			}
+			if (useHexNumbers) {
+				let hexadecimal = argument.toString(16);
+				if (!lowercaseHex) {
+					hexadecimal = hexadecimal.toUpperCase();
+				}
+				return '0x' + hexadecimal;
+			}
+			if (useBinNumbers) {
+				return '0b' + argument.toString(2);
+			}
+			if (useOctNumbers) {
+				return '0o' + argument.toString(8);
+			}
+		} else if (!isObject(argument)) {
+			if (json) {
+				// For some values (e.g. `undefined`, `function` objects),
+				// `JSON.stringify(value)` returns `undefined` (which isn’t valid
+				// JSON) instead of `'null'`.
+				return JSON.stringify(argument) || 'null';
+			}
+			return String(argument);
+		} else { // it’s an object
+			result = [];
+			options.wrap = true;
+			increaseIndentation();
+			forOwn(argument, (key, value) => {
+				isEmpty = false;
+				result.push(
+					(compact ? '' : indent) +
+					jsesc(key, options) + ':' +
+					(compact ? '' : ' ') +
+					jsesc(value, options)
+				);
+			});
+			if (isEmpty) {
+				return '{}';
+			}
+			return '{' + newLine + result.join(',' + newLine) + newLine +
+				(compact ? '' : oldIndent) + '}';
+		}
+	}
+
+	const regex = options.escapeEverything ? escapeEverythingRegex : escapeNonAsciiRegex;
+	result = argument.replace(regex, (char, pair, lone, quoteChar, index, string) => {
+		if (pair) {
+			if (options.minimal) return pair;
+			const first = pair.charCodeAt(0);
+			const second = pair.charCodeAt(1);
+			if (options.es6) {
+				// https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+				const codePoint = (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+				const hex = hexadecimal(codePoint, lowercaseHex);
+				return '\\u{' + hex + '}';
+			}
+			return fourHexEscape(hexadecimal(first, lowercaseHex)) + fourHexEscape(hexadecimal(second, lowercaseHex));
+		}
+
+		if (lone) {
+			return fourHexEscape(hexadecimal(lone.charCodeAt(0), lowercaseHex));
+		}
+
+		if (
+			char == '\0' &&
+			!json &&
+			!regexDigit.test(string.charAt(index + 1))
+		) {
+			return '\\0';
+		}
+
+		if (quoteChar) {
+			if (quoteChar == quote || options.escapeEverything) {
+				return '\\' + quoteChar;
+			}
+			return quoteChar;
+		}
+
+		if (regexSingleEscape.test(char)) {
+			// no need for a `hasOwnProperty` check here
+			return singleEscapes[char];
+		}
+
+		if (options.minimal && !regexWhitespace.test(char)) {
+			return char;
+		}
+
+		const hex = hexadecimal(char.charCodeAt(0), lowercaseHex);
+		if (json || hex.length > 2) {
+			return fourHexEscape(hex);
+		}
+
+		return '\\x' + ('00' + hex).slice(-2);
+	});
+
+	if (quote == '`') {
+		result = result.replace(/\$\{/g, '\\${');
+	}
+	if (options.isScriptContext) {
+		// https://mathiasbynens.be/notes/etago
+		result = result
+			.replace(/<\/(script|style)/gi, '<\\/$1')
+			.replace(/<!--/g, json ? '\\u003C!--' : '\\x3C!--');
+	}
+	if (options.wrap) {
+		result = quote + result + quote;
+	}
+	return result;
+};
+
+jsesc.version = '3.0.2';
+
+module.exports = jsesc;
+
+
+/***/ }),
+
 /***/ 6898:
 /***/ (function(module) {
 
@@ -10050,6 +10376,8 @@ function useColors() {
 		return false;
 	}
 
+	let m;
+
 	// Is webkit? http://stackoverflow.com/a/16459606/376773
 	// document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
 	return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
@@ -10057,7 +10385,7 @@ function useColors() {
 		(typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
 		// Is firefox >= v31?
 		// https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+		(typeof navigator !== 'undefined' && navigator.userAgent && (m = navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/)) && parseInt(m[1], 10) >= 31) ||
 		// Double check webkit in userAgent just in case we are in a worker
 		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
@@ -10686,11 +11014,11 @@ function getDate() {
 }
 
 /**
- * Invokes `util.format()` with the specified arguments and writes to stderr.
+ * Invokes `util.formatWithOptions()` with the specified arguments and writes to stderr.
  */
 
 function log(...args) {
-	return process.stderr.write(util.format(...args) + '\n');
+	return process.stderr.write(util.formatWithOptions(exports.inspectOpts, ...args) + '\n');
 }
 
 /**
@@ -10890,343 +11218,6 @@ exports.matchToToken = function(match) {
   else if (match[12]) token.type = "whitespace"
   return token
 }
-
-
-/***/ }),
-
-/***/ 5733:
-/***/ ((module) => {
-
-"use strict";
-
-
-const object = {};
-const hasOwnProperty = object.hasOwnProperty;
-const forOwn = (object, callback) => {
-	for (const key in object) {
-		if (hasOwnProperty.call(object, key)) {
-			callback(key, object[key]);
-		}
-	}
-};
-
-const extend = (destination, source) => {
-	if (!source) {
-		return destination;
-	}
-	forOwn(source, (key, value) => {
-		destination[key] = value;
-	});
-	return destination;
-};
-
-const forEach = (array, callback) => {
-	const length = array.length;
-	let index = -1;
-	while (++index < length) {
-		callback(array[index]);
-	}
-};
-
-const toString = object.toString;
-const isArray = Array.isArray;
-const isBuffer = Buffer.isBuffer;
-const isObject = (value) => {
-	// This is a very simple check, but it’s good enough for what we need.
-	return toString.call(value) == '[object Object]';
-};
-const isString = (value) => {
-	return typeof value == 'string' ||
-		toString.call(value) == '[object String]';
-};
-const isNumber = (value) => {
-	return typeof value == 'number' ||
-		toString.call(value) == '[object Number]';
-};
-const isFunction = (value) => {
-	return typeof value == 'function';
-};
-const isMap = (value) => {
-	return toString.call(value) == '[object Map]';
-};
-const isSet = (value) => {
-	return toString.call(value) == '[object Set]';
-};
-
-/*--------------------------------------------------------------------------*/
-
-// https://mathiasbynens.be/notes/javascript-escapes#single
-const singleEscapes = {
-	'"': '\\"',
-	'\'': '\\\'',
-	'\\': '\\\\',
-	'\b': '\\b',
-	'\f': '\\f',
-	'\n': '\\n',
-	'\r': '\\r',
-	'\t': '\\t'
-	// `\v` is omitted intentionally, because in IE < 9, '\v' == 'v'.
-	// '\v': '\\x0B'
-};
-const regexSingleEscape = /["'\\\b\f\n\r\t]/;
-
-const regexDigit = /[0-9]/;
-const regexWhitelist = /[ !#-&\(-\[\]-_a-~]/;
-
-const jsesc = (argument, options) => {
-	const increaseIndentation = () => {
-		oldIndent = indent;
-		++options.indentLevel;
-		indent = options.indent.repeat(options.indentLevel)
-	};
-	// Handle options
-	const defaults = {
-		'escapeEverything': false,
-		'minimal': false,
-		'isScriptContext': false,
-		'quotes': 'single',
-		'wrap': false,
-		'es6': false,
-		'json': false,
-		'compact': true,
-		'lowercaseHex': false,
-		'numbers': 'decimal',
-		'indent': '\t',
-		'indentLevel': 0,
-		'__inline1__': false,
-		'__inline2__': false
-	};
-	const json = options && options.json;
-	if (json) {
-		defaults.quotes = 'double';
-		defaults.wrap = true;
-	}
-	options = extend(defaults, options);
-	if (
-		options.quotes != 'single' &&
-		options.quotes != 'double' &&
-		options.quotes != 'backtick'
-	) {
-		options.quotes = 'single';
-	}
-	const quote = options.quotes == 'double' ?
-		'"' :
-		(options.quotes == 'backtick' ?
-			'`' :
-			'\''
-		);
-	const compact = options.compact;
-	const lowercaseHex = options.lowercaseHex;
-	let indent = options.indent.repeat(options.indentLevel);
-	let oldIndent = '';
-	const inline1 = options.__inline1__;
-	const inline2 = options.__inline2__;
-	const newLine = compact ? '' : '\n';
-	let result;
-	let isEmpty = true;
-	const useBinNumbers = options.numbers == 'binary';
-	const useOctNumbers = options.numbers == 'octal';
-	const useDecNumbers = options.numbers == 'decimal';
-	const useHexNumbers = options.numbers == 'hexadecimal';
-
-	if (json && argument && isFunction(argument.toJSON)) {
-		argument = argument.toJSON();
-	}
-
-	if (!isString(argument)) {
-		if (isMap(argument)) {
-			if (argument.size == 0) {
-				return 'new Map()';
-			}
-			if (!compact) {
-				options.__inline1__ = true;
-				options.__inline2__ = false;
-			}
-			return 'new Map(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isSet(argument)) {
-			if (argument.size == 0) {
-				return 'new Set()';
-			}
-			return 'new Set(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isBuffer(argument)) {
-			if (argument.length == 0) {
-				return 'Buffer.from([])';
-			}
-			return 'Buffer.from(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isArray(argument)) {
-			result = [];
-			options.wrap = true;
-			if (inline1) {
-				options.__inline1__ = false;
-				options.__inline2__ = true;
-			}
-			if (!inline2) {
-				increaseIndentation();
-			}
-			forEach(argument, (value) => {
-				isEmpty = false;
-				if (inline2) {
-					options.__inline2__ = false;
-				}
-				result.push(
-					(compact || inline2 ? '' : indent) +
-					jsesc(value, options)
-				);
-			});
-			if (isEmpty) {
-				return '[]';
-			}
-			if (inline2) {
-				return '[' + result.join(', ') + ']';
-			}
-			return '[' + newLine + result.join(',' + newLine) + newLine +
-				(compact ? '' : oldIndent) + ']';
-		} else if (isNumber(argument)) {
-			if (json) {
-				// Some number values (e.g. `Infinity`) cannot be represented in JSON.
-				return JSON.stringify(argument);
-			}
-			if (useDecNumbers) {
-				return String(argument);
-			}
-			if (useHexNumbers) {
-				let hexadecimal = argument.toString(16);
-				if (!lowercaseHex) {
-					hexadecimal = hexadecimal.toUpperCase();
-				}
-				return '0x' + hexadecimal;
-			}
-			if (useBinNumbers) {
-				return '0b' + argument.toString(2);
-			}
-			if (useOctNumbers) {
-				return '0o' + argument.toString(8);
-			}
-		} else if (!isObject(argument)) {
-			if (json) {
-				// For some values (e.g. `undefined`, `function` objects),
-				// `JSON.stringify(value)` returns `undefined` (which isn’t valid
-				// JSON) instead of `'null'`.
-				return JSON.stringify(argument) || 'null';
-			}
-			return String(argument);
-		} else { // it’s an object
-			result = [];
-			options.wrap = true;
-			increaseIndentation();
-			forOwn(argument, (key, value) => {
-				isEmpty = false;
-				result.push(
-					(compact ? '' : indent) +
-					jsesc(key, options) + ':' +
-					(compact ? '' : ' ') +
-					jsesc(value, options)
-				);
-			});
-			if (isEmpty) {
-				return '{}';
-			}
-			return '{' + newLine + result.join(',' + newLine) + newLine +
-				(compact ? '' : oldIndent) + '}';
-		}
-	}
-
-	const string = argument;
-	// Loop over each code unit in the string and escape it
-	let index = -1;
-	const length = string.length;
-	result = '';
-	while (++index < length) {
-		const character = string.charAt(index);
-		if (options.es6) {
-			const first = string.charCodeAt(index);
-			if ( // check if it’s the start of a surrogate pair
-				first >= 0xD800 && first <= 0xDBFF && // high surrogate
-				length > index + 1 // there is a next code unit
-			) {
-				const second = string.charCodeAt(index + 1);
-				if (second >= 0xDC00 && second <= 0xDFFF) { // low surrogate
-					// https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
-					const codePoint = (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
-					let hexadecimal = codePoint.toString(16);
-					if (!lowercaseHex) {
-						hexadecimal = hexadecimal.toUpperCase();
-					}
-					result += '\\u{' + hexadecimal + '}';
-					++index;
-					continue;
-				}
-			}
-		}
-		if (!options.escapeEverything) {
-			if (regexWhitelist.test(character)) {
-				// It’s a printable ASCII character that is not `"`, `'` or `\`,
-				// so don’t escape it.
-				result += character;
-				continue;
-			}
-			if (character == '"') {
-				result += quote == character ? '\\"' : character;
-				continue;
-			}
-			if (character == '`') {
-				result += quote == character ? '\\`' : character;
-				continue;
-			}
-			if (character == '\'') {
-				result += quote == character ? '\\\'' : character;
-				continue;
-			}
-		}
-		if (
-			character == '\0' &&
-			!json &&
-			!regexDigit.test(string.charAt(index + 1))
-		) {
-			result += '\\0';
-			continue;
-		}
-		if (regexSingleEscape.test(character)) {
-			// no need for a `hasOwnProperty` check here
-			result += singleEscapes[character];
-			continue;
-		}
-		const charCode = character.charCodeAt(0);
-		if (options.minimal && charCode != 0x2028 && charCode != 0x2029) {
-			result += character;
-			continue;
-		}
-		let hexadecimal = charCode.toString(16);
-		if (!lowercaseHex) {
-			hexadecimal = hexadecimal.toUpperCase();
-		}
-		const longhand = hexadecimal.length > 2 || json;
-		const escaped = '\\' + (longhand ? 'u' : 'x') +
-			('0000' + hexadecimal).slice(longhand ? -4 : -2);
-		result += escaped;
-		continue;
-	}
-	if (options.wrap) {
-		result = quote + result + quote;
-	}
-	if (quote == '`') {
-		result = result.replace(/\$\{/g, '\\\$\{');
-	}
-	if (options.isScriptContext) {
-		// https://mathiasbynens.be/notes/etago
-		return result
-			.replace(/<\/(script|style)/gi, '<\\/$1')
-			.replace(/<!--/g, json ? '\\u003C!--' : '\\x3C!--');
-	}
-	return result;
-};
-
-jsesc.version = '2.5.2';
-
-module.exports = jsesc;
 
 
 /***/ }),
@@ -11667,7 +11658,7 @@ var y = d * 365.25;
  * @api public
  */
 
-module.exports = function(val, options) {
+module.exports = function (val, options) {
   options = options || {};
   var type = typeof val;
   if (type === 'string' && val.length > 0) {
@@ -13563,63 +13554,80 @@ function onceStrict (fn) {
 /***/ }),
 
 /***/ 7023:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
-let tty = __nccwpck_require__(6224)
-
+let p = process || {}, argv = p.argv || [], env = p.env || {}
 let isColorSupported =
-	!("NO_COLOR" in process.env || process.argv.includes("--no-color")) &&
-	("FORCE_COLOR" in process.env ||
-		process.argv.includes("--color") ||
-		process.platform === "win32" ||
-		(tty.isatty(1) && process.env.TERM !== "dumb") ||
-		"CI" in process.env)
+	!(!!env.NO_COLOR || argv.includes("--no-color")) &&
+	(!!env.FORCE_COLOR || argv.includes("--color") || p.platform === "win32" || ((p.stdout || {}).isTTY && env.TERM !== "dumb") || !!env.CI)
 
-let formatter =
-	(open, close, replace = open) =>
+let formatter = (open, close, replace = open) =>
 	input => {
-		let string = "" + input
-		let index = string.indexOf(close, open.length)
-		return ~index
-			? open + replaceClose(string, close, replace, index) + close
-			: open + string + close
+		let string = "" + input, index = string.indexOf(close, open.length)
+		return ~index ? open + replaceClose(string, close, replace, index) + close : open + string + close
 	}
 
 let replaceClose = (string, close, replace, index) => {
-	let start = string.substring(0, index) + replace
-	let end = string.substring(index + close.length)
-	let nextIndex = end.indexOf(close)
-	return ~nextIndex ? start + replaceClose(end, close, replace, nextIndex) : start + end
+	let result = "", cursor = 0
+	do {
+		result += string.substring(cursor, index) + replace
+		cursor = index + close.length
+		index = string.indexOf(close, cursor)
+	} while (~index)
+	return result + string.substring(cursor)
 }
 
-let createColors = (enabled = isColorSupported) => ({
-	isColorSupported: enabled,
-	reset: enabled ? s => `\x1b[0m${s}\x1b[0m` : String,
-	bold: enabled ? formatter("\x1b[1m", "\x1b[22m", "\x1b[22m\x1b[1m") : String,
-	dim: enabled ? formatter("\x1b[2m", "\x1b[22m", "\x1b[22m\x1b[2m") : String,
-	italic: enabled ? formatter("\x1b[3m", "\x1b[23m") : String,
-	underline: enabled ? formatter("\x1b[4m", "\x1b[24m") : String,
-	inverse: enabled ? formatter("\x1b[7m", "\x1b[27m") : String,
-	hidden: enabled ? formatter("\x1b[8m", "\x1b[28m") : String,
-	strikethrough: enabled ? formatter("\x1b[9m", "\x1b[29m") : String,
-	black: enabled ? formatter("\x1b[30m", "\x1b[39m") : String,
-	red: enabled ? formatter("\x1b[31m", "\x1b[39m") : String,
-	green: enabled ? formatter("\x1b[32m", "\x1b[39m") : String,
-	yellow: enabled ? formatter("\x1b[33m", "\x1b[39m") : String,
-	blue: enabled ? formatter("\x1b[34m", "\x1b[39m") : String,
-	magenta: enabled ? formatter("\x1b[35m", "\x1b[39m") : String,
-	cyan: enabled ? formatter("\x1b[36m", "\x1b[39m") : String,
-	white: enabled ? formatter("\x1b[37m", "\x1b[39m") : String,
-	gray: enabled ? formatter("\x1b[90m", "\x1b[39m") : String,
-	bgBlack: enabled ? formatter("\x1b[40m", "\x1b[49m") : String,
-	bgRed: enabled ? formatter("\x1b[41m", "\x1b[49m") : String,
-	bgGreen: enabled ? formatter("\x1b[42m", "\x1b[49m") : String,
-	bgYellow: enabled ? formatter("\x1b[43m", "\x1b[49m") : String,
-	bgBlue: enabled ? formatter("\x1b[44m", "\x1b[49m") : String,
-	bgMagenta: enabled ? formatter("\x1b[45m", "\x1b[49m") : String,
-	bgCyan: enabled ? formatter("\x1b[46m", "\x1b[49m") : String,
-	bgWhite: enabled ? formatter("\x1b[47m", "\x1b[49m") : String,
-})
+let createColors = (enabled = isColorSupported) => {
+	let f = enabled ? formatter : () => String
+	return {
+		isColorSupported: enabled,
+		reset: f("\x1b[0m", "\x1b[0m"),
+		bold: f("\x1b[1m", "\x1b[22m", "\x1b[22m\x1b[1m"),
+		dim: f("\x1b[2m", "\x1b[22m", "\x1b[22m\x1b[2m"),
+		italic: f("\x1b[3m", "\x1b[23m"),
+		underline: f("\x1b[4m", "\x1b[24m"),
+		inverse: f("\x1b[7m", "\x1b[27m"),
+		hidden: f("\x1b[8m", "\x1b[28m"),
+		strikethrough: f("\x1b[9m", "\x1b[29m"),
+
+		black: f("\x1b[30m", "\x1b[39m"),
+		red: f("\x1b[31m", "\x1b[39m"),
+		green: f("\x1b[32m", "\x1b[39m"),
+		yellow: f("\x1b[33m", "\x1b[39m"),
+		blue: f("\x1b[34m", "\x1b[39m"),
+		magenta: f("\x1b[35m", "\x1b[39m"),
+		cyan: f("\x1b[36m", "\x1b[39m"),
+		white: f("\x1b[37m", "\x1b[39m"),
+		gray: f("\x1b[90m", "\x1b[39m"),
+
+		bgBlack: f("\x1b[40m", "\x1b[49m"),
+		bgRed: f("\x1b[41m", "\x1b[49m"),
+		bgGreen: f("\x1b[42m", "\x1b[49m"),
+		bgYellow: f("\x1b[43m", "\x1b[49m"),
+		bgBlue: f("\x1b[44m", "\x1b[49m"),
+		bgMagenta: f("\x1b[45m", "\x1b[49m"),
+		bgCyan: f("\x1b[46m", "\x1b[49m"),
+		bgWhite: f("\x1b[47m", "\x1b[49m"),
+
+		blackBright: f("\x1b[90m", "\x1b[39m"),
+		redBright: f("\x1b[91m", "\x1b[39m"),
+		greenBright: f("\x1b[92m", "\x1b[39m"),
+		yellowBright: f("\x1b[93m", "\x1b[39m"),
+		blueBright: f("\x1b[94m", "\x1b[39m"),
+		magentaBright: f("\x1b[95m", "\x1b[39m"),
+		cyanBright: f("\x1b[96m", "\x1b[39m"),
+		whiteBright: f("\x1b[97m", "\x1b[39m"),
+
+		bgBlackBright: f("\x1b[100m", "\x1b[49m"),
+		bgRedBright: f("\x1b[101m", "\x1b[49m"),
+		bgGreenBright: f("\x1b[102m", "\x1b[49m"),
+		bgYellowBright: f("\x1b[103m", "\x1b[49m"),
+		bgBlueBright: f("\x1b[104m", "\x1b[49m"),
+		bgMagentaBright: f("\x1b[105m", "\x1b[49m"),
+		bgCyanBright: f("\x1b[106m", "\x1b[49m"),
+		bgWhiteBright: f("\x1b[107m", "\x1b[49m"),
+	}
+}
 
 module.exports = createColors()
 module.exports.createColors = createColors
@@ -13761,41 +13769,6 @@ module.exports = {
 	supportsColor: getSupportLevel,
 	stdout: getSupportLevel(process.stdout),
 	stderr: getSupportLevel(process.stderr)
-};
-
-
-/***/ }),
-
-/***/ 9049:
-/***/ ((module) => {
-
-"use strict";
-
-
-let fastProto = null;
-
-// Creates an object with permanently fast properties in V8. See Toon Verwaest's
-// post https://medium.com/@tverwaes/setting-up-prototypes-in-v8-ec9c9491dfe2#5f62
-// for more details. Use %HasFastProperties(object) and the Node.js flag
-// --allow-natives-syntax to check whether an object has fast properties.
-function FastObject(o) {
-	// A prototype object will have "fast properties" enabled once it is checked
-	// against the inline property cache of a function, e.g. fastProto.property:
-	// https://github.com/v8/v8/blob/6.0.122/test/mjsunit/fast-prototype.js#L48-L63
-	if (fastProto !== null && typeof fastProto.property) {
-		const result = fastProto;
-		fastProto = FastObject.prototype = null;
-		return result;
-	}
-	fastProto = FastObject.prototype = o == null ? Object.create(null) : o;
-	return new FastObject;
-}
-
-// Initialize the inline property cache of FastObject
-FastObject();
-
-module.exports = function toFastproperties(o) {
-	return FastObject(o);
 };
 
 
@@ -17285,7 +17258,7 @@ const CONST = {
     },
     ACTIONS: {
         CREATED: 'created',
-        EDIT: 'edited',
+        EDITED: 'edited',
     },
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
@@ -17304,6 +17277,8 @@ const CONST = {
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
     NO_ACTION: 'NO_ACTION',
+    ACTION_EDIT: 'ACTION_EDIT',
+    ACTION_REQUIRED: 'ACTION_REQUIRED',
     OPENAI_POLL_RATE: 1500,
     OPENAI_POLL_TIMEOUT: 90000,
 };
@@ -17595,7 +17570,9 @@ class GithubUtils {
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
@@ -17676,6 +17653,7 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
+    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
@@ -18504,6 +18482,7 @@ function Program(node) {
 function BlockStatement(node) {
   var _node$directives2;
   this.tokenChar(123);
+  const exit = this.enterDelimited();
   const directivesLen = (_node$directives2 = node.directives) == null ? void 0 : _node$directives2.length;
   if (directivesLen) {
     var _node$directives$trai2;
@@ -18516,7 +18495,6 @@ function BlockStatement(node) {
       this.newline(newline);
     }
   }
-  const exit = this.enterForStatementInit(false);
   this.printSequence(node.body, {
     indent: true
   });
@@ -18628,7 +18606,7 @@ function ClassBody(node) {
     this.tokenChar(125);
   } else {
     this.newline();
-    const exit = this.enterForStatementInit(false);
+    const exit = this.enterDelimited();
     this.printSequence(node.body, {
       indent: true
     });
@@ -18793,7 +18771,8 @@ const {
   isCallExpression,
   isLiteral,
   isMemberExpression,
-  isNewExpression
+  isNewExpression,
+  isPattern
 } = _t;
 function UnaryExpression(node) {
   const {
@@ -18818,7 +18797,9 @@ function DoExpression(node) {
 }
 function ParenthesizedExpression(node) {
   this.tokenChar(40);
+  const exit = this.enterDelimited();
   this.print(node.expression);
+  exit();
   this.rightParens(node);
 }
 function UpdateExpression(node) {
@@ -18826,7 +18807,7 @@ function UpdateExpression(node) {
     this.token(node.operator);
     this.print(node.argument);
   } else {
-    this.printTerminatorless(node.argument, true);
+    this.print(node.argument, true);
     this.token(node.operator);
   }
 }
@@ -18856,7 +18837,7 @@ function NewExpression(node, parent) {
     this.token("?.");
   }
   this.tokenChar(40);
-  const exit = this.enterForStatementInit(false);
+  const exit = this.enterDelimited();
   this.printList(node.arguments);
   exit();
   this.rightParens(node);
@@ -18918,7 +18899,7 @@ function OptionalCallExpression(node) {
   }
   this.print(node.typeArguments);
   this.tokenChar(40);
-  const exit = this.enterForStatementInit(false);
+  const exit = this.enterDelimited();
   this.printList(node.arguments);
   exit();
   this.rightParens(node);
@@ -18928,7 +18909,7 @@ function CallExpression(node) {
   this.print(node.typeArguments);
   this.print(node.typeParameters);
   this.tokenChar(40);
-  const exit = this.enterForStatementInit(false);
+  const exit = this.enterDelimited();
   this.printList(node.arguments);
   exit();
   this.rightParens(node);
@@ -18940,7 +18921,7 @@ function AwaitExpression(node) {
   this.word("await");
   if (node.argument) {
     this.space();
-    this.printTerminatorless(node.argument, false);
+    this.printTerminatorless(node.argument);
   }
 }
 function YieldExpression(node) {
@@ -18954,7 +18935,7 @@ function YieldExpression(node) {
   } else {
     if (node.argument) {
       this.space();
-      this.printTerminatorless(node.argument, false);
+      this.printTerminatorless(node.argument);
     }
   }
 }
@@ -18968,7 +18949,7 @@ function ExpressionStatement(node) {
 }
 function AssignmentPattern(node) {
   this.print(node.left);
-  if (node.left.type === "Identifier") {
+  if (node.left.type === "Identifier" || isPattern(node.left)) {
     if (node.left.optional) this.tokenChar(63);
     this.print(node.left.typeAnnotation);
   }
@@ -19004,7 +18985,7 @@ function MemberExpression(node) {
     computed = true;
   }
   if (computed) {
-    const exit = this.enterForStatementInit(false);
+    const exit = this.enterDelimited();
     this.tokenChar(91);
     this.print(node.property);
     this.tokenChar(93);
@@ -20028,7 +20009,7 @@ function _params(node, idNode, parentNode) {
   this._noLineTerminator = noLineTerminator;
 }
 function _parameters(parameters) {
-  const exit = this.enterForStatementInit(false);
+  const exit = this.enterDelimited();
   const paramLength = parameters.length;
   for (let i = 0; i < paramLength; i++) {
     this._param(parameters[i]);
@@ -20544,7 +20525,7 @@ function ForStatement(node) {
   this.space();
   this.tokenChar(40);
   {
-    const exit = this.enterForStatementInit(true);
+    const exit = this.enterForStatementInit();
     this.tokenContext |= _index.TokenContext.forHead;
     this.print(node.init);
     exit();
@@ -20581,7 +20562,7 @@ function ForXStatement(node) {
   this.noIndentInnerCommentsHere();
   this.tokenChar(40);
   {
-    const exit = isForOf ? null : this.enterForStatementInit(true);
+    const exit = isForOf ? null : this.enterForStatementInit();
     this.tokenContext |= isForOf ? _index.TokenContext.forOfHead : _index.TokenContext.forInHead;
     this.print(node.left);
     exit == null || exit();
@@ -20607,28 +20588,28 @@ function DoWhileStatement(node) {
   this.tokenChar(41);
   this.semicolon();
 }
-function printStatementAfterKeyword(printer, node, isLabel) {
+function printStatementAfterKeyword(printer, node) {
   if (node) {
     printer.space();
-    printer.printTerminatorless(node, isLabel);
+    printer.printTerminatorless(node);
   }
   printer.semicolon();
 }
 function BreakStatement(node) {
   this.word("break");
-  printStatementAfterKeyword(this, node.label, true);
+  printStatementAfterKeyword(this, node.label);
 }
 function ContinueStatement(node) {
   this.word("continue");
-  printStatementAfterKeyword(this, node.label, true);
+  printStatementAfterKeyword(this, node.label);
 }
 function ReturnStatement(node) {
   this.word("return");
-  printStatementAfterKeyword(this, node.argument, false);
+  printStatementAfterKeyword(this, node.argument);
 }
 function ThrowStatement(node) {
   this.word("throw");
-  printStatementAfterKeyword(this, node.argument, false);
+  printStatementAfterKeyword(this, node.argument);
 }
 function LabeledStatement(node) {
   this.print(node.label);
@@ -20828,7 +20809,7 @@ exports.StringLiteral = StringLiteral;
 exports.TopicReference = TopicReference;
 exports.TupleExpression = TupleExpression;
 var _t = __nccwpck_require__(7912);
-var _jsesc = __nccwpck_require__(5733);
+var _jsesc = __nccwpck_require__(9105);
 const {
   isAssignmentPattern,
   isIdentifier
@@ -20849,7 +20830,7 @@ function ObjectExpression(node) {
   const props = node.properties;
   this.tokenChar(123);
   if (props.length) {
-    const exit = this.enterForStatementInit(false);
+    const exit = this.enterDelimited();
     this.space();
     this.printList(props, {
       indent: true,
@@ -20891,7 +20872,7 @@ function ArrayExpression(node) {
   const elems = node.elements;
   const len = elems.length;
   this.tokenChar(91);
-  const exit = this.enterForStatementInit(false);
+  const exit = this.enterDelimited();
   for (let i = 0; i < elems.length; i++) {
     const elem = elems[i];
     if (elem) {
@@ -21050,6 +21031,7 @@ exports.TSSatisfiesExpression = exports.TSAsExpression = TSTypeExpression;
 exports.TSBigIntKeyword = TSBigIntKeyword;
 exports.TSBooleanKeyword = TSBooleanKeyword;
 exports.TSCallSignatureDeclaration = TSCallSignatureDeclaration;
+exports.TSInterfaceHeritage = exports.TSExpressionWithTypeArguments = exports.TSClassImplements = TSClassImplements;
 exports.TSConditionalType = TSConditionalType;
 exports.TSConstructSignatureDeclaration = TSConstructSignatureDeclaration;
 exports.TSConstructorType = TSConstructorType;
@@ -21058,7 +21040,6 @@ exports.TSDeclareMethod = TSDeclareMethod;
 exports.TSEnumDeclaration = TSEnumDeclaration;
 exports.TSEnumMember = TSEnumMember;
 exports.TSExportAssignment = TSExportAssignment;
-exports.TSExpressionWithTypeArguments = TSExpressionWithTypeArguments;
 exports.TSExternalModuleReference = TSExternalModuleReference;
 exports.TSFunctionType = TSFunctionType;
 exports.TSImportEqualsDeclaration = TSImportEqualsDeclaration;
@@ -21411,8 +21392,7 @@ function TSConditionalType(node) {
   this.print(node.falseType);
 }
 function TSInferType(node) {
-  this.token("infer");
-  this.space();
+  this.word("infer");
   this.print(node.typeParameter);
 }
 function TSParenthesizedType(node) {
@@ -21482,7 +21462,7 @@ function tokenIfPlusMinus(self, tok) {
 function TSLiteralType(node) {
   this.print(node.literal);
 }
-function TSExpressionWithTypeArguments(node) {
+function TSClassImplements(node) {
   this.print(node.expression);
   this.print(node.typeParameters);
 }
@@ -21536,14 +21516,12 @@ function TSTypeAliasDeclaration(node) {
   this.semicolon();
 }
 function TSTypeExpression(node) {
-  var _expression$trailingC;
   const {
     type,
     expression,
     typeAnnotation
   } = node;
-  const forceParens = (_expression$trailingC = expression.trailingComments) == null ? void 0 : _expression$trailingC.some(c => c.type === "CommentLine" || /[\r\n\u2028\u2029]/.test(c.value));
-  this.print(expression, true, undefined, forceParens);
+  this.print(expression, true);
   this.space();
   this.word(type === "TSAsExpression" ? "as" : "satisfies");
   this.space();
@@ -21845,6 +21823,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.TokenContext = void 0;
+exports.isLastChild = isLastChild;
 exports.needsParens = needsParens;
 exports.needsWhitespace = needsWhitespace;
 exports.needsWhitespaceAfter = needsWhitespaceAfter;
@@ -21854,6 +21833,7 @@ var parens = __nccwpck_require__(8444);
 var _t = __nccwpck_require__(7912);
 const {
   FLIPPED_ALIAS_KEYS,
+  VISITOR_KEYS,
   isCallExpression,
   isDecorator,
   isExpressionStatement,
@@ -21937,6 +21917,22 @@ function isDecoratorMemberExpression(node) {
     default:
       return false;
   }
+}
+function isLastChild(parent, child) {
+  const visitorKeys = VISITOR_KEYS[parent.type];
+  for (let i = visitorKeys.length - 1; i >= 0; i--) {
+    const val = parent[visitorKeys[i]];
+    if (val === child) {
+      return true;
+    } else if (Array.isArray(val)) {
+      let j = val.length - 1;
+      while (j >= 0 && val[j] === null) j--;
+      return j >= 0 && val[j] === child;
+    } else if (val) {
+      return false;
+    }
+  }
+  return false;
 }
 
 //# sourceMappingURL=index.js.map
@@ -22341,6 +22337,7 @@ var n = __nccwpck_require__(9223);
 var _t = __nccwpck_require__(7912);
 var generatorFunctions = __nccwpck_require__(8312);
 const {
+  isExpression,
   isFunction,
   isStatement,
   isClassBody,
@@ -22351,6 +22348,9 @@ const SCIENTIFIC_NOTATION = /e/i;
 const ZERO_DECIMAL_INTEGER = /\.0+$/;
 const HAS_NEWLINE = /[\n\r\u2028\u2029]/;
 const HAS_NEWLINE_OR_BlOCK_COMMENT_END = /[\n\r\u2028\u2029]|\*\//;
+function commentIsNewline(c) {
+  return c.type === "CommentLine" || HAS_NEWLINE.test(c.value);
+}
 const {
   needsParens
 } = n;
@@ -22362,8 +22362,8 @@ class Printer {
     this._indent = 0;
     this._indentRepeat = 0;
     this._insideAux = false;
-    this._parenPushNewlineState = null;
     this._noLineTerminator = false;
+    this._noLineTerminatorAfterNode = null;
     this._printAuxAfterOnNextUserNode = false;
     this._printedComments = new Set();
     this._endsWithInteger = false;
@@ -22377,12 +22377,24 @@ class Printer {
     this._inputMap = map == null ? void 0 : map._inputMap;
     this._buf = new _buffer.default(map, format.indent.style[0]);
   }
-  enterForStatementInit(val) {
-    const old = this.inForStatementInit;
-    if (old === val) return () => {};
-    this.inForStatementInit = val;
+  enterForStatementInit() {
+    if (this.inForStatementInit) return () => {};
+    this.inForStatementInit = true;
     return () => {
-      this.inForStatementInit = old;
+      this.inForStatementInit = false;
+    };
+  }
+  enterDelimited() {
+    const oldInForStatementInit = this.inForStatementInit;
+    const oldNoLineTerminatorAfterNode = this._noLineTerminatorAfterNode;
+    if (oldInForStatementInit === false && oldNoLineTerminatorAfterNode === null) {
+      return () => {};
+    }
+    this.inForStatementInit = false;
+    this._noLineTerminatorAfterNode = null;
+    return () => {
+      this.inForStatementInit = oldInForStatementInit;
+      this._noLineTerminatorAfterNode = oldNoLineTerminatorAfterNode;
     };
   }
   generate(ast) {
@@ -22533,7 +22545,6 @@ class Printer {
     this._queue(10);
   }
   _append(str, maybeNewline) {
-    this._maybeAddParen(str);
     this._maybeIndent(str.charCodeAt(0));
     this._buf.append(str, maybeNewline);
     this._endsWithWord = false;
@@ -22541,7 +22552,6 @@ class Printer {
     this._endsWithDiv = false;
   }
   _appendChar(char) {
-    this._maybeAddParenChar(char);
     this._maybeIndent(char);
     this._buf.appendChar(char);
     this._endsWithWord = false;
@@ -22549,7 +22559,6 @@ class Printer {
     this._endsWithDiv = false;
   }
   _queue(char) {
-    this._maybeAddParenChar(char);
     this._maybeIndent(char);
     this._buf.queue(char);
     this._endsWithWord = false;
@@ -22564,47 +22573,6 @@ class Printer {
     if (this._indent && firstChar !== 10 && this.endsWith(10)) {
       return true;
     }
-  }
-  _maybeAddParenChar(char) {
-    const parenPushNewlineState = this._parenPushNewlineState;
-    if (!parenPushNewlineState) return;
-    if (char === 32) {
-      return;
-    }
-    if (char !== 10) {
-      this._parenPushNewlineState = null;
-      return;
-    }
-    this.tokenChar(40);
-    this.indent();
-    parenPushNewlineState.printed = true;
-  }
-  _maybeAddParen(str) {
-    const parenPushNewlineState = this._parenPushNewlineState;
-    if (!parenPushNewlineState) return;
-    const len = str.length;
-    let i;
-    for (i = 0; i < len && str.charCodeAt(i) === 32; i++) continue;
-    if (i === len) {
-      return;
-    }
-    const cha = str.charCodeAt(i);
-    if (cha !== 10) {
-      if (cha !== 47 || i + 1 === len) {
-        this._parenPushNewlineState = null;
-        return;
-      }
-      const chaPost = str.charCodeAt(i + 1);
-      if (chaPost === 42) {
-        return;
-      } else if (chaPost !== 47) {
-        this._parenPushNewlineState = null;
-        return;
-      }
-    }
-    this.tokenChar(40);
-    this.indent();
-    parenPushNewlineState.printed = true;
   }
   catchUp(line) {
     if (!this.format.retainLines) return;
@@ -22627,25 +22595,12 @@ class Printer {
   _getIndent() {
     return this._indentRepeat * this._indent;
   }
-  printTerminatorless(node, isLabel) {
-    if (isLabel) {
-      this._noLineTerminator = true;
-      this.print(node);
-    } else {
-      const terminatorState = {
-        printed: false
-      };
-      this._parenPushNewlineState = terminatorState;
-      this.print(node);
-      if (terminatorState.printed) {
-        this.dedent();
-        this.newline();
-        this.tokenChar(41);
-      }
-    }
+  printTerminatorless(node) {
+    this._noLineTerminator = true;
+    this.print(node);
   }
-  print(node, noLineTerminatorAfter, trailingCommentsLineOffset, forceParens) {
-    var _node$extra, _node$leadingComments;
+  print(node, noLineTerminatorAfter, trailingCommentsLineOffset) {
+    var _node$extra, _node$leadingComments, _node$leadingComments2;
     if (!node) return;
     this._endsWithInnerRaw = false;
     const nodeType = node.type;
@@ -22664,7 +22619,7 @@ class Printer {
     this._insideAux = node.loc == null;
     this._maybeAddAuxComment(this._insideAux && !oldInAux);
     const parenthesized = (_node$extra = node.extra) == null ? void 0 : _node$extra.parenthesized;
-    let shouldPrintParens = forceParens || parenthesized && format.retainFunctionParens && nodeType === "FunctionExpression" || needsParens(node, parent, this.tokenContext, this.inForStatementInit);
+    let shouldPrintParens = parenthesized && format.retainFunctionParens && nodeType === "FunctionExpression" || needsParens(node, parent, this.tokenContext, this.inForStatementInit);
     if (!shouldPrintParens && parenthesized && (_node$leadingComments = node.leadingComments) != null && _node$leadingComments.length && node.leadingComments[0].type === "CommentBlock") {
       const parentType = parent == null ? void 0 : parent.type;
       switch (parentType) {
@@ -22681,11 +22636,35 @@ class Printer {
           shouldPrintParens = true;
       }
     }
-    let exitInForStatementInit;
+    let indentParenthesized = false;
+    if (!shouldPrintParens && this._noLineTerminator && ((_node$leadingComments2 = node.leadingComments) != null && _node$leadingComments2.some(commentIsNewline) || this.format.retainLines && node.loc && node.loc.start.line > this._buf.getCurrentLine())) {
+      shouldPrintParens = true;
+      indentParenthesized = true;
+    }
+    let oldNoLineTerminatorAfterNode;
+    let oldInForStatementInitWasTrue;
+    if (!shouldPrintParens) {
+      noLineTerminatorAfter || (noLineTerminatorAfter = parent && this._noLineTerminatorAfterNode === parent && n.isLastChild(parent, node));
+      if (noLineTerminatorAfter) {
+        var _node$trailingComment;
+        if ((_node$trailingComment = node.trailingComments) != null && _node$trailingComment.some(commentIsNewline)) {
+          if (isExpression(node)) shouldPrintParens = true;
+        } else {
+          oldNoLineTerminatorAfterNode = this._noLineTerminatorAfterNode;
+          this._noLineTerminatorAfterNode = node;
+        }
+      }
+    }
     if (shouldPrintParens) {
       this.tokenChar(40);
+      if (indentParenthesized) this.indent();
       this._endsWithInnerRaw = false;
-      exitInForStatementInit = this.enterForStatementInit(false);
+      if (this.inForStatementInit) {
+        oldInForStatementInitWasTrue = true;
+        this.inForStatementInit = false;
+      }
+      oldNoLineTerminatorAfterNode = this._noLineTerminatorAfterNode;
+      this._noLineTerminatorAfterNode = null;
     }
     this._lastCommentLine = 0;
     this._printLeadingComments(node, parent);
@@ -22693,9 +22672,13 @@ class Printer {
     this.exactSource(loc, printMethod.bind(this, node, parent));
     if (shouldPrintParens) {
       this._printTrailingComments(node, parent);
+      if (indentParenthesized) {
+        this.dedent();
+        this.newline();
+      }
       this.tokenChar(41);
       this._noLineTerminator = noLineTerminatorAfter;
-      exitInForStatementInit();
+      if (oldInForStatementInitWasTrue) this.inForStatementInit = true;
     } else if (noLineTerminatorAfter && !this._noLineTerminator) {
       this._noLineTerminator = true;
       this._printTrailingComments(node, parent);
@@ -22705,6 +22688,9 @@ class Printer {
     this._currentNode = parent;
     format.concise = oldConcise;
     this._insideAux = oldInAux;
+    if (oldNoLineTerminatorAfterNode !== undefined) {
+      this._noLineTerminatorAfterNode = oldNoLineTerminatorAfterNode;
+    }
     this._endsWithInnerRaw = false;
   }
   _maybeAddAuxComment(enteredPositionlessNode) {
@@ -22766,8 +22752,8 @@ class Printer {
       opts.iterator == null || opts.iterator(node, i);
       if (i < len - 1) separator == null || separator();
       if (opts.statement) {
-        var _node$trailingComment;
-        if (!((_node$trailingComment = node.trailingComments) != null && _node$trailingComment.length)) {
+        var _node$trailingComment2;
+        if (!((_node$trailingComment2 = node.trailingComments) != null && _node$trailingComment2.length)) {
           this._lastCommentLine = 0;
         }
         if (i + 1 === len) {
@@ -22894,14 +22880,6 @@ class Printer {
     }
     let val;
     if (isBlockComment) {
-      const {
-        _parenPushNewlineState
-      } = this;
-      if ((_parenPushNewlineState == null ? void 0 : _parenPushNewlineState.printed) === false && HAS_NEWLINE.test(comment.value)) {
-        this.tokenChar(40);
-        this.indent();
-        _parenPushNewlineState.printed = true;
-      }
       val = `/*${comment.value}*/`;
       if (this.format.indent.adjustMultilineComment) {
         var _comment$loc;
@@ -23799,13 +23777,13 @@ Object.defineProperty(exports, "__esModule", ({
 exports.isIdentifierChar = isIdentifierChar;
 exports.isIdentifierName = isIdentifierName;
 exports.isIdentifierStart = isIdentifierStart;
-let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c88\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7ca\ua7d0\ua7d1\ua7d3\ua7d5-\ua7d9\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
-let nonASCIIidentifierChars = "\u200c\u200d\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0898-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
+let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c8a\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7cd\ua7d0\ua7d1\ua7d3\ua7d5-\ua7dc\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
+let nonASCIIidentifierChars = "\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0897-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
 const nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
 const nonASCIIidentifier = new RegExp("[" + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "]");
 nonASCIIidentifierStartChars = nonASCIIidentifierChars = null;
-const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 68, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 349, 41, 7, 1, 79, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 159, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 264, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 4026, 582, 8634, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 689, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 43, 8, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 757, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
-const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 370, 1, 81, 2, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 193, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 84, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 406, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 9, 5351, 0, 7, 14, 13835, 9, 87, 9, 39, 4, 60, 6, 26, 9, 1014, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4706, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 983, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
+const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 4, 51, 13, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 39, 27, 10, 22, 251, 41, 7, 1, 17, 2, 60, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 31, 9, 2, 0, 3, 0, 2, 37, 2, 0, 26, 0, 2, 0, 45, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 200, 32, 32, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 26, 3994, 6, 582, 6842, 29, 1763, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 433, 44, 212, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 42, 9, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 229, 29, 3, 0, 496, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
+const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 7, 9, 32, 4, 318, 1, 80, 3, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 68, 8, 2, 0, 3, 0, 2, 3, 2, 4, 2, 0, 15, 1, 83, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 7, 19, 58, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 343, 9, 54, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 10, 5350, 0, 7, 14, 11465, 27, 2343, 9, 87, 9, 39, 4, 60, 6, 26, 9, 535, 9, 470, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4178, 9, 519, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 245, 1, 2, 9, 726, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
 function isInAstralSet(code, set) {
   let pos = 0x10000;
   for (let i = 0, length = set.length; i < length; i += 2) {
@@ -25436,13 +25414,13 @@ function getExportedToken(token) {
     context.push(types.j_expr, types.j_oTag);
   };
 }
-let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c88\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7ca\ua7d0\ua7d1\ua7d3\ua7d5-\ua7d9\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
-let nonASCIIidentifierChars = "\u200c\u200d\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0898-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
+let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c8a\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7cd\ua7d0\ua7d1\ua7d3\ua7d5-\ua7dc\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
+let nonASCIIidentifierChars = "\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0897-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
 const nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
 const nonASCIIidentifier = new RegExp("[" + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "]");
 nonASCIIidentifierStartChars = nonASCIIidentifierChars = null;
-const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 68, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 349, 41, 7, 1, 79, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 159, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 264, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 4026, 582, 8634, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 689, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 43, 8, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 757, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
-const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 370, 1, 81, 2, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 193, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 84, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 406, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 9, 5351, 0, 7, 14, 13835, 9, 87, 9, 39, 4, 60, 6, 26, 9, 1014, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4706, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 983, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
+const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 4, 51, 13, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 39, 27, 10, 22, 251, 41, 7, 1, 17, 2, 60, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 31, 9, 2, 0, 3, 0, 2, 37, 2, 0, 26, 0, 2, 0, 45, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 200, 32, 32, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 26, 3994, 6, 582, 6842, 29, 1763, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 433, 44, 212, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 42, 9, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 229, 29, 3, 0, 496, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
+const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 7, 9, 32, 4, 318, 1, 80, 3, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 68, 8, 2, 0, 3, 0, 2, 3, 2, 4, 2, 0, 15, 1, 83, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 7, 19, 58, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 343, 9, 54, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 10, 5350, 0, 7, 14, 11465, 27, 2343, 9, 87, 9, 39, 4, 60, 6, 26, 9, 535, 9, 470, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4178, 9, 519, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 245, 1, 2, 9, 726, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
 function isInAstralSet(code, set) {
   let pos = 0x10000;
   for (let i = 0, length = set.length; i < length; i += 2) {
@@ -27181,7 +27159,6 @@ class Tokenizer extends CommentsParser {
     const startLoc = this.state.curPosition();
     let isFloat = false;
     let isBigInt = false;
-    let isDecimal = false;
     let hasExponent = false;
     let isOctal = false;
     if (!startsWithDot && this.readInt(10) === null) {
@@ -27231,7 +27208,7 @@ class Tokenizer extends CommentsParser {
         this.raise(Errors.InvalidDecimal, startLoc);
       }
       ++this.state.pos;
-      isDecimal = true;
+      var isDecimal = true;
     }
     if (isIdentifierStart(this.codePointAtPos(this.state.pos))) {
       throw this.raise(Errors.NumberIdentifier, this.state.curPosition());
@@ -28079,9 +28056,6 @@ var flow = superClass => class FlowParserMixin extends superClass {
   }
   shouldParseTypes() {
     return this.getPluginOption("flow", "all") || this.flowPragma === "flow";
-  }
-  shouldParseEnums() {
-    return !!this.getPluginOption("flow", "enums");
   }
   finishToken(type, val) {
     if (type !== 133 && type !== 13 && type !== 28) {
@@ -29149,7 +29123,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
         this.next();
         return this.flowParseInterface(node);
       }
-    } else if (this.shouldParseEnums() && this.isContextual(126)) {
+    } else if (this.plugins.get("flow").enums && this.isContextual(126)) {
       const node = this.startNode();
       this.next();
       return this.flowParseEnumDeclaration(node);
@@ -29182,7 +29156,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
     const {
       type
     } = this.state;
-    if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 126) {
+    if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.plugins.get("flow").enums && type === 126) {
       return !this.state.containsEsc;
     }
     return super.shouldParseExportDeclaration();
@@ -29191,13 +29165,13 @@ var flow = superClass => class FlowParserMixin extends superClass {
     const {
       type
     } = this.state;
-    if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 126) {
+    if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.plugins.get("flow").enums && type === 126) {
       return this.state.containsEsc;
     }
     return super.isExportDefaultSpecifier();
   }
   parseExportDefaultExpression() {
-    if (this.shouldParseEnums() && this.isContextual(126)) {
+    if (this.plugins.get("flow").enums && this.isContextual(126)) {
       const node = this.startNode();
       this.next();
       return this.flowParseEnumDeclaration(node);
@@ -29350,7 +29324,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
       const declarationNode = this.startNode();
       this.next();
       return this.flowParseInterface(declarationNode);
-    } else if (this.shouldParseEnums() && this.isContextual(126)) {
+    } else if (this.plugins.get("flow").enums && this.isContextual(126)) {
       node.exportKind = "value";
       const declarationNode = this.startNode();
       this.next();
@@ -29581,7 +29555,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
     }
     return result;
   }
-  parseAssignableListItemTypes(param) {
+  parseFunctionParamType(param) {
     if (this.eat(17)) {
       if (param.type !== "Identifier") {
         this.raise(FlowErrors.PatternIsOptional, param);
@@ -31283,7 +31257,11 @@ class LValParser extends NodeUtils {
       } else if (this.eat(close)) {
         break;
       } else if (this.match(21)) {
-        elts.push(this.parseAssignableListItemTypes(this.parseRestBinding(), flags));
+        let rest = this.parseRestBinding();
+        if (this.hasPlugin("flow") || flags & 2) {
+          rest = this.parseFunctionParamType(rest);
+        }
+        elts.push(rest);
         if (!this.checkCommaAfterRest(closeCharCode)) {
           this.expect(close);
           break;
@@ -31328,14 +31306,16 @@ class LValParser extends NodeUtils {
   }
   parseAssignableListItem(flags, decorators) {
     const left = this.parseMaybeDefault();
-    this.parseAssignableListItemTypes(left, flags);
+    if (this.hasPlugin("flow") || flags & 2) {
+      this.parseFunctionParamType(left);
+    }
     const elt = this.parseMaybeDefault(left.loc.start, left);
     if (decorators.length) {
       left.decorators = decorators;
     }
     return elt;
   }
-  parseAssignableListItemTypes(param, flags) {
+  parseFunctionParamType(param) {
     return param;
   }
   parseMaybeDefault(startLoc, left) {
@@ -31817,7 +31797,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       node.options = null;
     }
     if (this.eat(12)) {
-      this.expectImportAttributesPlugin();
+      if (!this.hasPlugin("importAssertions")) {
+        this.expectPlugin("importAttributes");
+      }
       if (!this.match(11)) {
         node.options = super.parseMaybeAssignAllowIn();
         this.eat(12);
@@ -32945,7 +32927,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       this.raise(TSErrors.UnexpectedParameterModifier, startLoc);
     }
     const left = this.parseMaybeDefault();
-    this.parseAssignableListItemTypes(left, flags);
+    if (flags & 2) {
+      this.parseFunctionParamType(left);
+    }
     const elt = this.parseMaybeDefault(left.loc.start, left);
     if (accessibility || readonly || override) {
       const pp = this.startNodeAt(startLoc);
@@ -33597,8 +33581,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     }
     return super.parseArrow(node);
   }
-  parseAssignableListItemTypes(param, flags) {
-    if (!(flags & 2)) return param;
+  parseFunctionParamType(param) {
     if (this.eat(17)) {
       param.optional = true;
     }
@@ -34288,8 +34271,10 @@ function validatePlugins(pluginsMap) {
       }
     }
   }
-  if (pluginsMap.has("importAttributes") && pluginsMap.has("importAssertions")) {
-    throw new Error("Cannot combine importAssertions and importAttributes plugins.");
+  if (pluginsMap.has("importAssertions")) {
+    if (pluginsMap.has("importAttributes")) {
+      throw new Error("Cannot combine importAssertions and importAttributes plugins.");
+    }
   }
   if (pluginsMap.has("recordAndTuple")) {
     const syntaxType = pluginsMap.get("recordAndTuple").syntaxType;
@@ -34320,38 +34305,39 @@ const mixinPlugins = {
   placeholders
 };
 const mixinPluginNames = Object.keys(mixinPlugins);
-const defaultOptions = {
-  sourceType: "script",
-  sourceFilename: undefined,
-  startColumn: 0,
-  startLine: 1,
-  allowAwaitOutsideFunction: false,
-  allowReturnOutsideFunction: false,
-  allowNewTargetOutsideFunction: false,
-  allowImportExportEverywhere: false,
-  allowSuperOutsideMethod: false,
-  allowUndeclaredExports: false,
-  plugins: [],
-  strictMode: null,
-  ranges: false,
-  tokens: false,
-  createImportExpressions: false,
-  createParenthesizedExpressions: false,
-  errorRecovery: false,
-  attachComment: true,
-  annexB: true
-};
+function createDefaultOptions() {
+  return {
+    sourceType: "script",
+    sourceFilename: undefined,
+    startColumn: 0,
+    startLine: 1,
+    allowAwaitOutsideFunction: false,
+    allowReturnOutsideFunction: false,
+    allowNewTargetOutsideFunction: false,
+    allowImportExportEverywhere: false,
+    allowSuperOutsideMethod: false,
+    allowUndeclaredExports: false,
+    plugins: [],
+    strictMode: null,
+    ranges: false,
+    tokens: false,
+    createImportExpressions: false,
+    createParenthesizedExpressions: false,
+    errorRecovery: false,
+    attachComment: true,
+    annexB: true
+  };
+}
 function getOptions(opts) {
+  const options = createDefaultOptions();
   if (opts == null) {
-    return Object.assign({}, defaultOptions);
+    return options;
   }
   if (opts.annexB != null && opts.annexB !== false) {
     throw new Error("The `annexB` option can only be set to `false`.");
   }
-  const options = {};
-  for (const key of Object.keys(defaultOptions)) {
-    var _opts$key;
-    options[key] = (_opts$key = opts[key]) != null ? _opts$key : defaultOptions[key];
+  for (const key of Object.keys(options)) {
+    if (opts[key] != null) options[key] = opts[key];
   }
   return options;
 }
@@ -34824,18 +34810,11 @@ class ExpressionParser extends LValParser {
   atPossibleAsyncArrow(base) {
     return base.type === "Identifier" && base.name === "async" && this.state.lastTokEndLoc.index === base.end && !this.canInsertSemicolon() && base.end - base.start === 5 && base.start === this.state.potentialArrowAt;
   }
-  expectImportAttributesPlugin() {
-    if (!this.hasPlugin("importAssertions")) {
-      this.expectPlugin("importAttributes");
-    }
-  }
   finishCallExpression(node, optional) {
     if (node.callee.type === "Import") {
       if (node.arguments.length === 2) {
-        {
-          if (!this.hasPlugin("moduleAttributes")) {
-            this.expectImportAttributesPlugin();
-          }
+        if (!(this.hasPlugin("moduleAttributes") || this.hasPlugin("importAssertions"))) {
+          this.expectPlugin("importAttributes");
         }
       }
       if (node.arguments.length === 0 || node.arguments.length > 2) {
@@ -34941,8 +34920,6 @@ class ExpressionParser extends LValParser {
         return this.parseNumericLiteral(this.state.value);
       case 135:
         return this.parseBigIntLiteral(this.state.value);
-      case 136:
-        return this.parseDecimalLiteral(this.state.value);
       case 133:
         return this.parseStringLiteral(this.state.value);
       case 84:
@@ -35039,6 +35016,9 @@ class ExpressionParser extends LValParser {
           break;
         }
       default:
+        if (type === 136) {
+          return this.parseDecimalLiteral(this.state.value);
+        }
         if (tokenIsIdentifier(type)) {
           if (this.isContextual(127) && this.lookaheadInLineCharCode() === 123) {
             return this.parseModuleExpression();
@@ -35628,9 +35608,6 @@ class ExpressionParser extends LValParser {
           case 135:
             key = this.parseBigIntLiteral(value);
             break;
-          case 136:
-            key = this.parseDecimalLiteral(value);
-            break;
           case 138:
             {
               const privateKeyLoc = this.state.startLoc;
@@ -35645,6 +35622,10 @@ class ExpressionParser extends LValParser {
               break;
             }
           default:
+            if (type === 136) {
+              key = this.parseDecimalLiteral(value);
+              break;
+            }
             this.unexpected();
         }
       }
@@ -35938,7 +35919,9 @@ class ExpressionParser extends LValParser {
       node.options = null;
     }
     if (this.eat(12)) {
-      this.expectImportAttributesPlugin();
+      if (!(this.hasPlugin("moduleAttributes") || this.hasPlugin("importAssertions"))) {
+        this.expectPlugin("importAttributes");
+      }
       if (!this.match(11)) {
         node.options = this.parseMaybeAssignAllowIn();
         this.eat(12);
@@ -37895,21 +37878,25 @@ class StatementParser extends ExpressionParser {
   }
   maybeParseImportAttributes(node) {
     let attributes;
-    let useWith = false;
+    {
+      var useWith = false;
+    }
     if (this.match(76)) {
       if (this.hasPrecedingLineBreak() && this.lookaheadCharCode() === 40) {
         return;
       }
       this.next();
-      {
-        if (this.hasPlugin("moduleAttributes")) {
-          attributes = this.parseModuleAttributes();
-        } else {
-          this.expectImportAttributesPlugin();
-          attributes = this.parseImportAttributes();
+      if (this.hasPlugin("moduleAttributes")) {
+        attributes = this.parseModuleAttributes();
+      } else {
+        if (!this.hasPlugin("importAssertions")) {
+          this.expectPlugin("importAttributes");
         }
+        attributes = this.parseImportAttributes();
       }
-      useWith = true;
+      {
+        useWith = true;
+      }
     } else if (this.isContextual(94) && !this.hasPrecedingLineBreak()) {
       if (this.hasPlugin("importAttributes")) {
         if (this.getPluginOption("importAttributes", "deprecatedAssertSyntax") !== true) {
@@ -38384,7 +38371,7 @@ exports.merge = merge;
 exports.normalizeReplacements = normalizeReplacements;
 exports.validate = validate;
 const _excluded = ["placeholderWhitelist", "placeholderPattern", "preserveComments", "syntacticPlaceholders"];
-function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (e.includes(n)) continue; t[n] = r[n]; } return t; }
 function merge(a, b) {
   const {
     placeholderWhitelist = a.placeholderWhitelist,
@@ -38727,7 +38714,7 @@ function applyReplacement(placeholder, ast, replacement) {
   function set(parent, key, value) {
     const node = parent[key];
     parent[key] = value;
-    if (node.type === "Identifier") {
+    if (node.type === "Identifier" || node.type === "Placeholder") {
       if (node.typeAnnotation) {
         value.typeAnnotation = node.typeAnnotation;
       }
@@ -45805,88 +45792,140 @@ exports.voidTypeAnnotation = voidTypeAnnotation;
 exports.whileStatement = whileStatement;
 exports.withStatement = withStatement;
 exports.yieldExpression = yieldExpression;
-var _validateNode = __nccwpck_require__(2282);
+var _validate = __nccwpck_require__(8036);
 var _deprecationWarning = __nccwpck_require__(496);
+var utils = __nccwpck_require__(4106);
+const {
+  validateInternal: validate
+} = _validate;
+const {
+  NODE_FIELDS
+} = utils;
 function arrayExpression(elements = []) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ArrayExpression",
     elements
-  });
+  };
+  const defs = NODE_FIELDS.ArrayExpression;
+  validate(defs.elements, node, "elements", elements, 1);
+  return node;
 }
 function assignmentExpression(operator, left, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "AssignmentExpression",
     operator,
     left,
     right
-  });
+  };
+  const defs = NODE_FIELDS.AssignmentExpression;
+  validate(defs.operator, node, "operator", operator);
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function binaryExpression(operator, left, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BinaryExpression",
     operator,
     left,
     right
-  });
+  };
+  const defs = NODE_FIELDS.BinaryExpression;
+  validate(defs.operator, node, "operator", operator);
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function interpreterDirective(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "InterpreterDirective",
     value
-  });
+  };
+  const defs = NODE_FIELDS.InterpreterDirective;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function directive(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Directive",
     value
-  });
+  };
+  const defs = NODE_FIELDS.Directive;
+  validate(defs.value, node, "value", value, 1);
+  return node;
 }
 function directiveLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DirectiveLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.DirectiveLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function blockStatement(body, directives = []) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BlockStatement",
     body,
     directives
-  });
+  };
+  const defs = NODE_FIELDS.BlockStatement;
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.directives, node, "directives", directives, 1);
+  return node;
 }
 function breakStatement(label = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BreakStatement",
     label
-  });
+  };
+  const defs = NODE_FIELDS.BreakStatement;
+  validate(defs.label, node, "label", label, 1);
+  return node;
 }
 function callExpression(callee, _arguments) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "CallExpression",
     callee,
     arguments: _arguments
-  });
+  };
+  const defs = NODE_FIELDS.CallExpression;
+  validate(defs.callee, node, "callee", callee, 1);
+  validate(defs.arguments, node, "arguments", _arguments, 1);
+  return node;
 }
 function catchClause(param = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "CatchClause",
     param,
     body
-  });
+  };
+  const defs = NODE_FIELDS.CatchClause;
+  validate(defs.param, node, "param", param, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function conditionalExpression(test, consequent, alternate) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ConditionalExpression",
     test,
     consequent,
     alternate
-  });
+  };
+  const defs = NODE_FIELDS.ConditionalExpression;
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.consequent, node, "consequent", consequent, 1);
+  validate(defs.alternate, node, "alternate", alternate, 1);
+  return node;
 }
 function continueStatement(label = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ContinueStatement",
     label
-  });
+  };
+  const defs = NODE_FIELDS.ContinueStatement;
+  validate(defs.label, node, "label", label, 1);
+  return node;
 }
 function debuggerStatement() {
   return {
@@ -45894,11 +45933,15 @@ function debuggerStatement() {
   };
 }
 function doWhileStatement(test, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DoWhileStatement",
     test,
     body
-  });
+  };
+  const defs = NODE_FIELDS.DoWhileStatement;
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function emptyStatement() {
   return {
@@ -45906,88 +45949,139 @@ function emptyStatement() {
   };
 }
 function expressionStatement(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExpressionStatement",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.ExpressionStatement;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function file(program, comments = null, tokens = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "File",
     program,
     comments,
     tokens
-  });
+  };
+  const defs = NODE_FIELDS.File;
+  validate(defs.program, node, "program", program, 1);
+  validate(defs.comments, node, "comments", comments, 1);
+  validate(defs.tokens, node, "tokens", tokens);
+  return node;
 }
 function forInStatement(left, right, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ForInStatement",
     left,
     right,
     body
-  });
+  };
+  const defs = NODE_FIELDS.ForInStatement;
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function forStatement(init = null, test = null, update = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ForStatement",
     init,
     test,
     update,
     body
-  });
+  };
+  const defs = NODE_FIELDS.ForStatement;
+  validate(defs.init, node, "init", init, 1);
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.update, node, "update", update, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function functionDeclaration(id = null, params, body, generator = false, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "FunctionDeclaration",
     id,
     params,
     body,
     generator,
     async
-  });
+  };
+  const defs = NODE_FIELDS.FunctionDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.generator, node, "generator", generator);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function functionExpression(id = null, params, body, generator = false, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "FunctionExpression",
     id,
     params,
     body,
     generator,
     async
-  });
+  };
+  const defs = NODE_FIELDS.FunctionExpression;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.generator, node, "generator", generator);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function identifier(name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Identifier",
     name
-  });
+  };
+  const defs = NODE_FIELDS.Identifier;
+  validate(defs.name, node, "name", name);
+  return node;
 }
 function ifStatement(test, consequent, alternate = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "IfStatement",
     test,
     consequent,
     alternate
-  });
+  };
+  const defs = NODE_FIELDS.IfStatement;
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.consequent, node, "consequent", consequent, 1);
+  validate(defs.alternate, node, "alternate", alternate, 1);
+  return node;
 }
 function labeledStatement(label, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "LabeledStatement",
     label,
     body
-  });
+  };
+  const defs = NODE_FIELDS.LabeledStatement;
+  validate(defs.label, node, "label", label, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function stringLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "StringLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.StringLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function numericLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "NumericLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.NumericLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function nullLiteral() {
   return {
@@ -45995,59 +46089,90 @@ function nullLiteral() {
   };
 }
 function booleanLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BooleanLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.BooleanLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function regExpLiteral(pattern, flags = "") {
-  return (0, _validateNode.default)({
+  const node = {
     type: "RegExpLiteral",
     pattern,
     flags
-  });
+  };
+  const defs = NODE_FIELDS.RegExpLiteral;
+  validate(defs.pattern, node, "pattern", pattern);
+  validate(defs.flags, node, "flags", flags);
+  return node;
 }
 function logicalExpression(operator, left, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "LogicalExpression",
     operator,
     left,
     right
-  });
+  };
+  const defs = NODE_FIELDS.LogicalExpression;
+  validate(defs.operator, node, "operator", operator);
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function memberExpression(object, property, computed = false, optional = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "MemberExpression",
     object,
     property,
     computed,
     optional
-  });
+  };
+  const defs = NODE_FIELDS.MemberExpression;
+  validate(defs.object, node, "object", object, 1);
+  validate(defs.property, node, "property", property, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.optional, node, "optional", optional);
+  return node;
 }
 function newExpression(callee, _arguments) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "NewExpression",
     callee,
     arguments: _arguments
-  });
+  };
+  const defs = NODE_FIELDS.NewExpression;
+  validate(defs.callee, node, "callee", callee, 1);
+  validate(defs.arguments, node, "arguments", _arguments, 1);
+  return node;
 }
 function program(body, directives = [], sourceType = "script", interpreter = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Program",
     body,
     directives,
     sourceType,
     interpreter
-  });
+  };
+  const defs = NODE_FIELDS.Program;
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.directives, node, "directives", directives, 1);
+  validate(defs.sourceType, node, "sourceType", sourceType);
+  validate(defs.interpreter, node, "interpreter", interpreter, 1);
+  return node;
 }
 function objectExpression(properties) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectExpression",
     properties
-  });
+  };
+  const defs = NODE_FIELDS.ObjectExpression;
+  validate(defs.properties, node, "properties", properties, 1);
+  return node;
 }
 function objectMethod(kind = "method", key, params, body, computed = false, generator = false, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectMethod",
     kind,
     key,
@@ -46056,55 +46181,91 @@ function objectMethod(kind = "method", key, params, body, computed = false, gene
     computed,
     generator,
     async
-  });
+  };
+  const defs = NODE_FIELDS.ObjectMethod;
+  validate(defs.kind, node, "kind", kind);
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.generator, node, "generator", generator);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function objectProperty(key, value, computed = false, shorthand = false, decorators = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectProperty",
     key,
     value,
     computed,
     shorthand,
     decorators
-  });
+  };
+  const defs = NODE_FIELDS.ObjectProperty;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.shorthand, node, "shorthand", shorthand);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  return node;
 }
 function restElement(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "RestElement",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.RestElement;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function returnStatement(argument = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ReturnStatement",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.ReturnStatement;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function sequenceExpression(expressions) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "SequenceExpression",
     expressions
-  });
+  };
+  const defs = NODE_FIELDS.SequenceExpression;
+  validate(defs.expressions, node, "expressions", expressions, 1);
+  return node;
 }
 function parenthesizedExpression(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ParenthesizedExpression",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.ParenthesizedExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function switchCase(test = null, consequent) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "SwitchCase",
     test,
     consequent
-  });
+  };
+  const defs = NODE_FIELDS.SwitchCase;
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.consequent, node, "consequent", consequent, 1);
+  return node;
 }
 function switchStatement(discriminant, cases) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "SwitchStatement",
     discriminant,
     cases
-  });
+  };
+  const defs = NODE_FIELDS.SwitchStatement;
+  validate(defs.discriminant, node, "discriminant", discriminant, 1);
+  validate(defs.cases, node, "cases", cases, 1);
+  return node;
 }
 function thisExpression() {
   return {
@@ -46112,187 +46273,291 @@ function thisExpression() {
   };
 }
 function throwStatement(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ThrowStatement",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.ThrowStatement;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function tryStatement(block, handler = null, finalizer = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TryStatement",
     block,
     handler,
     finalizer
-  });
+  };
+  const defs = NODE_FIELDS.TryStatement;
+  validate(defs.block, node, "block", block, 1);
+  validate(defs.handler, node, "handler", handler, 1);
+  validate(defs.finalizer, node, "finalizer", finalizer, 1);
+  return node;
 }
 function unaryExpression(operator, argument, prefix = true) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "UnaryExpression",
     operator,
     argument,
     prefix
-  });
+  };
+  const defs = NODE_FIELDS.UnaryExpression;
+  validate(defs.operator, node, "operator", operator);
+  validate(defs.argument, node, "argument", argument, 1);
+  validate(defs.prefix, node, "prefix", prefix);
+  return node;
 }
 function updateExpression(operator, argument, prefix = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "UpdateExpression",
     operator,
     argument,
     prefix
-  });
+  };
+  const defs = NODE_FIELDS.UpdateExpression;
+  validate(defs.operator, node, "operator", operator);
+  validate(defs.argument, node, "argument", argument, 1);
+  validate(defs.prefix, node, "prefix", prefix);
+  return node;
 }
 function variableDeclaration(kind, declarations) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "VariableDeclaration",
     kind,
     declarations
-  });
+  };
+  const defs = NODE_FIELDS.VariableDeclaration;
+  validate(defs.kind, node, "kind", kind);
+  validate(defs.declarations, node, "declarations", declarations, 1);
+  return node;
 }
 function variableDeclarator(id, init = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "VariableDeclarator",
     id,
     init
-  });
+  };
+  const defs = NODE_FIELDS.VariableDeclarator;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.init, node, "init", init, 1);
+  return node;
 }
 function whileStatement(test, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "WhileStatement",
     test,
     body
-  });
+  };
+  const defs = NODE_FIELDS.WhileStatement;
+  validate(defs.test, node, "test", test, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function withStatement(object, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "WithStatement",
     object,
     body
-  });
+  };
+  const defs = NODE_FIELDS.WithStatement;
+  validate(defs.object, node, "object", object, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function assignmentPattern(left, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "AssignmentPattern",
     left,
     right
-  });
+  };
+  const defs = NODE_FIELDS.AssignmentPattern;
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function arrayPattern(elements) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ArrayPattern",
     elements
-  });
+  };
+  const defs = NODE_FIELDS.ArrayPattern;
+  validate(defs.elements, node, "elements", elements, 1);
+  return node;
 }
 function arrowFunctionExpression(params, body, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ArrowFunctionExpression",
     params,
     body,
     async,
     expression: null
-  });
+  };
+  const defs = NODE_FIELDS.ArrowFunctionExpression;
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function classBody(body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassBody",
     body
-  });
+  };
+  const defs = NODE_FIELDS.ClassBody;
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function classExpression(id = null, superClass = null, body, decorators = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassExpression",
     id,
     superClass,
     body,
     decorators
-  });
+  };
+  const defs = NODE_FIELDS.ClassExpression;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.superClass, node, "superClass", superClass, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  return node;
 }
 function classDeclaration(id = null, superClass = null, body, decorators = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassDeclaration",
     id,
     superClass,
     body,
     decorators
-  });
+  };
+  const defs = NODE_FIELDS.ClassDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.superClass, node, "superClass", superClass, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  return node;
 }
 function exportAllDeclaration(source) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportAllDeclaration",
     source
-  });
+  };
+  const defs = NODE_FIELDS.ExportAllDeclaration;
+  validate(defs.source, node, "source", source, 1);
+  return node;
 }
 function exportDefaultDeclaration(declaration) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportDefaultDeclaration",
     declaration
-  });
+  };
+  const defs = NODE_FIELDS.ExportDefaultDeclaration;
+  validate(defs.declaration, node, "declaration", declaration, 1);
+  return node;
 }
 function exportNamedDeclaration(declaration = null, specifiers = [], source = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportNamedDeclaration",
     declaration,
     specifiers,
     source
-  });
+  };
+  const defs = NODE_FIELDS.ExportNamedDeclaration;
+  validate(defs.declaration, node, "declaration", declaration, 1);
+  validate(defs.specifiers, node, "specifiers", specifiers, 1);
+  validate(defs.source, node, "source", source, 1);
+  return node;
 }
 function exportSpecifier(local, exported) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportSpecifier",
     local,
     exported
-  });
+  };
+  const defs = NODE_FIELDS.ExportSpecifier;
+  validate(defs.local, node, "local", local, 1);
+  validate(defs.exported, node, "exported", exported, 1);
+  return node;
 }
 function forOfStatement(left, right, body, _await = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ForOfStatement",
     left,
     right,
     body,
     await: _await
-  });
+  };
+  const defs = NODE_FIELDS.ForOfStatement;
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.await, node, "await", _await);
+  return node;
 }
 function importDeclaration(specifiers, source) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportDeclaration",
     specifiers,
     source
-  });
+  };
+  const defs = NODE_FIELDS.ImportDeclaration;
+  validate(defs.specifiers, node, "specifiers", specifiers, 1);
+  validate(defs.source, node, "source", source, 1);
+  return node;
 }
 function importDefaultSpecifier(local) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportDefaultSpecifier",
     local
-  });
+  };
+  const defs = NODE_FIELDS.ImportDefaultSpecifier;
+  validate(defs.local, node, "local", local, 1);
+  return node;
 }
 function importNamespaceSpecifier(local) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportNamespaceSpecifier",
     local
-  });
+  };
+  const defs = NODE_FIELDS.ImportNamespaceSpecifier;
+  validate(defs.local, node, "local", local, 1);
+  return node;
 }
 function importSpecifier(local, imported) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportSpecifier",
     local,
     imported
-  });
+  };
+  const defs = NODE_FIELDS.ImportSpecifier;
+  validate(defs.local, node, "local", local, 1);
+  validate(defs.imported, node, "imported", imported, 1);
+  return node;
 }
 function importExpression(source, options = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportExpression",
     source,
     options
-  });
+  };
+  const defs = NODE_FIELDS.ImportExpression;
+  validate(defs.source, node, "source", source, 1);
+  validate(defs.options, node, "options", options, 1);
+  return node;
 }
 function metaProperty(meta, property) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "MetaProperty",
     meta,
     property
-  });
+  };
+  const defs = NODE_FIELDS.MetaProperty;
+  validate(defs.meta, node, "meta", meta, 1);
+  validate(defs.property, node, "property", property, 1);
+  return node;
 }
 function classMethod(kind = "method", key, params, body, computed = false, _static = false, generator = false, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassMethod",
     kind,
     key,
@@ -46302,19 +46567,35 @@ function classMethod(kind = "method", key, params, body, computed = false, _stat
     static: _static,
     generator,
     async
-  });
+  };
+  const defs = NODE_FIELDS.ClassMethod;
+  validate(defs.kind, node, "kind", kind);
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.static, node, "static", _static);
+  validate(defs.generator, node, "generator", generator);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function objectPattern(properties) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectPattern",
     properties
-  });
+  };
+  const defs = NODE_FIELDS.ObjectPattern;
+  validate(defs.properties, node, "properties", properties, 1);
+  return node;
 }
 function spreadElement(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "SpreadElement",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.SpreadElement;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function _super() {
   return {
@@ -46322,38 +46603,57 @@ function _super() {
   };
 }
 function taggedTemplateExpression(tag, quasi) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TaggedTemplateExpression",
     tag,
     quasi
-  });
+  };
+  const defs = NODE_FIELDS.TaggedTemplateExpression;
+  validate(defs.tag, node, "tag", tag, 1);
+  validate(defs.quasi, node, "quasi", quasi, 1);
+  return node;
 }
 function templateElement(value, tail = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TemplateElement",
     value,
     tail
-  });
+  };
+  const defs = NODE_FIELDS.TemplateElement;
+  validate(defs.value, node, "value", value);
+  validate(defs.tail, node, "tail", tail);
+  return node;
 }
 function templateLiteral(quasis, expressions) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TemplateLiteral",
     quasis,
     expressions
-  });
+  };
+  const defs = NODE_FIELDS.TemplateLiteral;
+  validate(defs.quasis, node, "quasis", quasis, 1);
+  validate(defs.expressions, node, "expressions", expressions, 1);
+  return node;
 }
 function yieldExpression(argument = null, delegate = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "YieldExpression",
     argument,
     delegate
-  });
+  };
+  const defs = NODE_FIELDS.YieldExpression;
+  validate(defs.argument, node, "argument", argument, 1);
+  validate(defs.delegate, node, "delegate", delegate);
+  return node;
 }
 function awaitExpression(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "AwaitExpression",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.AwaitExpression;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function _import() {
   return {
@@ -46361,36 +46661,53 @@ function _import() {
   };
 }
 function bigIntLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BigIntLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.BigIntLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function exportNamespaceSpecifier(exported) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportNamespaceSpecifier",
     exported
-  });
+  };
+  const defs = NODE_FIELDS.ExportNamespaceSpecifier;
+  validate(defs.exported, node, "exported", exported, 1);
+  return node;
 }
 function optionalMemberExpression(object, property, computed = false, optional) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "OptionalMemberExpression",
     object,
     property,
     computed,
     optional
-  });
+  };
+  const defs = NODE_FIELDS.OptionalMemberExpression;
+  validate(defs.object, node, "object", object, 1);
+  validate(defs.property, node, "property", property, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.optional, node, "optional", optional);
+  return node;
 }
 function optionalCallExpression(callee, _arguments, optional) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "OptionalCallExpression",
     callee,
     arguments: _arguments,
     optional
-  });
+  };
+  const defs = NODE_FIELDS.OptionalCallExpression;
+  validate(defs.callee, node, "callee", callee, 1);
+  validate(defs.arguments, node, "arguments", _arguments, 1);
+  validate(defs.optional, node, "optional", optional);
+  return node;
 }
 function classProperty(key, value = null, typeAnnotation = null, decorators = null, computed = false, _static = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassProperty",
     key,
     value,
@@ -46398,10 +46715,18 @@ function classProperty(key, value = null, typeAnnotation = null, decorators = nu
     decorators,
     computed,
     static: _static
-  });
+  };
+  const defs = NODE_FIELDS.ClassProperty;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.static, node, "static", _static);
+  return node;
 }
 function classAccessorProperty(key, value = null, typeAnnotation = null, decorators = null, computed = false, _static = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassAccessorProperty",
     key,
     value,
@@ -46409,38 +46734,65 @@ function classAccessorProperty(key, value = null, typeAnnotation = null, decorat
     decorators,
     computed,
     static: _static
-  });
+  };
+  const defs = NODE_FIELDS.ClassAccessorProperty;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  validate(defs.computed, node, "computed", computed);
+  validate(defs.static, node, "static", _static);
+  return node;
 }
 function classPrivateProperty(key, value = null, decorators = null, _static = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassPrivateProperty",
     key,
     value,
     decorators,
     static: _static
-  });
+  };
+  const defs = NODE_FIELDS.ClassPrivateProperty;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  validate(defs.static, node, "static", _static);
+  return node;
 }
 function classPrivateMethod(kind = "method", key, params, body, _static = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassPrivateMethod",
     kind,
     key,
     params,
     body,
     static: _static
-  });
+  };
+  const defs = NODE_FIELDS.ClassPrivateMethod;
+  validate(defs.kind, node, "kind", kind);
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.static, node, "static", _static);
+  return node;
 }
 function privateName(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "PrivateName",
     id
-  });
+  };
+  const defs = NODE_FIELDS.PrivateName;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function staticBlock(body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "StaticBlock",
     body
-  });
+  };
+  const defs = NODE_FIELDS.StaticBlock;
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function anyTypeAnnotation() {
   return {
@@ -46448,10 +46800,13 @@ function anyTypeAnnotation() {
   };
 }
 function arrayTypeAnnotation(elementType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ArrayTypeAnnotation",
     elementType
-  });
+  };
+  const defs = NODE_FIELDS.ArrayTypeAnnotation;
+  validate(defs.elementType, node, "elementType", elementType, 1);
+  return node;
 }
 function booleanTypeAnnotation() {
   return {
@@ -46459,10 +46814,13 @@ function booleanTypeAnnotation() {
   };
 }
 function booleanLiteralTypeAnnotation(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BooleanLiteralTypeAnnotation",
     value
-  });
+  };
+  const defs = NODE_FIELDS.BooleanLiteralTypeAnnotation;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function nullLiteralTypeAnnotation() {
   return {
@@ -46470,91 +46828,142 @@ function nullLiteralTypeAnnotation() {
   };
 }
 function classImplements(id, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ClassImplements",
     id,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.ClassImplements;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function declareClass(id, typeParameters = null, _extends = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareClass",
     id,
     typeParameters,
     extends: _extends,
     body
-  });
+  };
+  const defs = NODE_FIELDS.DeclareClass;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.extends, node, "extends", _extends, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function declareFunction(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareFunction",
     id
-  });
+  };
+  const defs = NODE_FIELDS.DeclareFunction;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function declareInterface(id, typeParameters = null, _extends = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareInterface",
     id,
     typeParameters,
     extends: _extends,
     body
-  });
+  };
+  const defs = NODE_FIELDS.DeclareInterface;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.extends, node, "extends", _extends, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function declareModule(id, body, kind = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareModule",
     id,
     body,
     kind
-  });
+  };
+  const defs = NODE_FIELDS.DeclareModule;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.kind, node, "kind", kind);
+  return node;
 }
 function declareModuleExports(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareModuleExports",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.DeclareModuleExports;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function declareTypeAlias(id, typeParameters = null, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareTypeAlias",
     id,
     typeParameters,
     right
-  });
+  };
+  const defs = NODE_FIELDS.DeclareTypeAlias;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function declareOpaqueType(id, typeParameters = null, supertype = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareOpaqueType",
     id,
     typeParameters,
     supertype
-  });
+  };
+  const defs = NODE_FIELDS.DeclareOpaqueType;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.supertype, node, "supertype", supertype, 1);
+  return node;
 }
 function declareVariable(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareVariable",
     id
-  });
+  };
+  const defs = NODE_FIELDS.DeclareVariable;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function declareExportDeclaration(declaration = null, specifiers = null, source = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareExportDeclaration",
     declaration,
     specifiers,
     source
-  });
+  };
+  const defs = NODE_FIELDS.DeclareExportDeclaration;
+  validate(defs.declaration, node, "declaration", declaration, 1);
+  validate(defs.specifiers, node, "specifiers", specifiers, 1);
+  validate(defs.source, node, "source", source, 1);
+  return node;
 }
 function declareExportAllDeclaration(source) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclareExportAllDeclaration",
     source
-  });
+  };
+  const defs = NODE_FIELDS.DeclareExportAllDeclaration;
+  validate(defs.source, node, "source", source, 1);
+  return node;
 }
 function declaredPredicate(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DeclaredPredicate",
     value
-  });
+  };
+  const defs = NODE_FIELDS.DeclaredPredicate;
+  validate(defs.value, node, "value", value, 1);
+  return node;
 }
 function existsTypeAnnotation() {
   return {
@@ -46562,27 +46971,41 @@ function existsTypeAnnotation() {
   };
 }
 function functionTypeAnnotation(typeParameters = null, params, rest = null, returnType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "FunctionTypeAnnotation",
     typeParameters,
     params,
     rest,
     returnType
-  });
+  };
+  const defs = NODE_FIELDS.FunctionTypeAnnotation;
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.rest, node, "rest", rest, 1);
+  validate(defs.returnType, node, "returnType", returnType, 1);
+  return node;
 }
 function functionTypeParam(name = null, typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "FunctionTypeParam",
     name,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.FunctionTypeParam;
+  validate(defs.name, node, "name", name, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function genericTypeAnnotation(id, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "GenericTypeAnnotation",
     id,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.GenericTypeAnnotation;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function inferredPredicate() {
   return {
@@ -46590,33 +47013,50 @@ function inferredPredicate() {
   };
 }
 function interfaceExtends(id, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "InterfaceExtends",
     id,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.InterfaceExtends;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function interfaceDeclaration(id, typeParameters = null, _extends = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "InterfaceDeclaration",
     id,
     typeParameters,
     extends: _extends,
     body
-  });
+  };
+  const defs = NODE_FIELDS.InterfaceDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.extends, node, "extends", _extends, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function interfaceTypeAnnotation(_extends = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "InterfaceTypeAnnotation",
     extends: _extends,
     body
-  });
+  };
+  const defs = NODE_FIELDS.InterfaceTypeAnnotation;
+  validate(defs.extends, node, "extends", _extends, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function intersectionTypeAnnotation(types) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "IntersectionTypeAnnotation",
     types
-  });
+  };
+  const defs = NODE_FIELDS.IntersectionTypeAnnotation;
+  validate(defs.types, node, "types", types, 1);
+  return node;
 }
 function mixedTypeAnnotation() {
   return {
@@ -46629,16 +47069,22 @@ function emptyTypeAnnotation() {
   };
 }
 function nullableTypeAnnotation(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "NullableTypeAnnotation",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.NullableTypeAnnotation;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function numberLiteralTypeAnnotation(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "NumberLiteralTypeAnnotation",
     value
-  });
+  };
+  const defs = NODE_FIELDS.NumberLiteralTypeAnnotation;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function numberTypeAnnotation() {
   return {
@@ -46646,44 +47092,67 @@ function numberTypeAnnotation() {
   };
 }
 function objectTypeAnnotation(properties, indexers = [], callProperties = [], internalSlots = [], exact = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeAnnotation",
     properties,
     indexers,
     callProperties,
     internalSlots,
     exact
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeAnnotation;
+  validate(defs.properties, node, "properties", properties, 1);
+  validate(defs.indexers, node, "indexers", indexers, 1);
+  validate(defs.callProperties, node, "callProperties", callProperties, 1);
+  validate(defs.internalSlots, node, "internalSlots", internalSlots, 1);
+  validate(defs.exact, node, "exact", exact);
+  return node;
 }
 function objectTypeInternalSlot(id, value, optional, _static, method) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeInternalSlot",
     id,
     value,
     optional,
     static: _static,
     method
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeInternalSlot;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.optional, node, "optional", optional);
+  validate(defs.static, node, "static", _static);
+  validate(defs.method, node, "method", method);
+  return node;
 }
 function objectTypeCallProperty(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeCallProperty",
     value,
     static: null
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeCallProperty;
+  validate(defs.value, node, "value", value, 1);
+  return node;
 }
 function objectTypeIndexer(id = null, key, value, variance = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeIndexer",
     id,
     key,
     value,
     variance,
     static: null
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeIndexer;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.variance, node, "variance", variance, 1);
+  return node;
 }
 function objectTypeProperty(key, value, variance = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeProperty",
     key,
     value,
@@ -46693,35 +47162,56 @@ function objectTypeProperty(key, value, variance = null) {
     optional: null,
     proto: null,
     static: null
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeProperty;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  validate(defs.variance, node, "variance", variance, 1);
+  return node;
 }
 function objectTypeSpreadProperty(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ObjectTypeSpreadProperty",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.ObjectTypeSpreadProperty;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function opaqueType(id, typeParameters = null, supertype = null, impltype) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "OpaqueType",
     id,
     typeParameters,
     supertype,
     impltype
-  });
+  };
+  const defs = NODE_FIELDS.OpaqueType;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.supertype, node, "supertype", supertype, 1);
+  validate(defs.impltype, node, "impltype", impltype, 1);
+  return node;
 }
 function qualifiedTypeIdentifier(id, qualification) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "QualifiedTypeIdentifier",
     id,
     qualification
-  });
+  };
+  const defs = NODE_FIELDS.QualifiedTypeIdentifier;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.qualification, node, "qualification", qualification, 1);
+  return node;
 }
 function stringLiteralTypeAnnotation(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "StringLiteralTypeAnnotation",
     value
-  });
+  };
+  const defs = NODE_FIELDS.StringLiteralTypeAnnotation;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function stringTypeAnnotation() {
   return {
@@ -46739,70 +47229,105 @@ function thisTypeAnnotation() {
   };
 }
 function tupleTypeAnnotation(types) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TupleTypeAnnotation",
     types
-  });
+  };
+  const defs = NODE_FIELDS.TupleTypeAnnotation;
+  validate(defs.types, node, "types", types, 1);
+  return node;
 }
 function typeofTypeAnnotation(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeofTypeAnnotation",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.TypeofTypeAnnotation;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function typeAlias(id, typeParameters = null, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeAlias",
     id,
     typeParameters,
     right
-  });
+  };
+  const defs = NODE_FIELDS.TypeAlias;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function typeAnnotation(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeAnnotation",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TypeAnnotation;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function typeCastExpression(expression, typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeCastExpression",
     expression,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TypeCastExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function typeParameter(bound = null, _default = null, variance = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeParameter",
     bound,
     default: _default,
     variance,
     name: null
-  });
+  };
+  const defs = NODE_FIELDS.TypeParameter;
+  validate(defs.bound, node, "bound", bound, 1);
+  validate(defs.default, node, "default", _default, 1);
+  validate(defs.variance, node, "variance", variance, 1);
+  return node;
 }
 function typeParameterDeclaration(params) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeParameterDeclaration",
     params
-  });
+  };
+  const defs = NODE_FIELDS.TypeParameterDeclaration;
+  validate(defs.params, node, "params", params, 1);
+  return node;
 }
 function typeParameterInstantiation(params) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TypeParameterInstantiation",
     params
-  });
+  };
+  const defs = NODE_FIELDS.TypeParameterInstantiation;
+  validate(defs.params, node, "params", params, 1);
+  return node;
 }
 function unionTypeAnnotation(types) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "UnionTypeAnnotation",
     types
-  });
+  };
+  const defs = NODE_FIELDS.UnionTypeAnnotation;
+  validate(defs.types, node, "types", types, 1);
+  return node;
 }
 function variance(kind) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Variance",
     kind
-  });
+  };
+  const defs = NODE_FIELDS.Variance;
+  validate(defs.kind, node, "kind", kind);
+  return node;
 }
 function voidTypeAnnotation() {
   return {
@@ -46810,106 +47335,157 @@ function voidTypeAnnotation() {
   };
 }
 function enumDeclaration(id, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumDeclaration",
     id,
     body
-  });
+  };
+  const defs = NODE_FIELDS.EnumDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function enumBooleanBody(members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumBooleanBody",
     members,
     explicitType: null,
     hasUnknownMembers: null
-  });
+  };
+  const defs = NODE_FIELDS.EnumBooleanBody;
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function enumNumberBody(members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumNumberBody",
     members,
     explicitType: null,
     hasUnknownMembers: null
-  });
+  };
+  const defs = NODE_FIELDS.EnumNumberBody;
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function enumStringBody(members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumStringBody",
     members,
     explicitType: null,
     hasUnknownMembers: null
-  });
+  };
+  const defs = NODE_FIELDS.EnumStringBody;
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function enumSymbolBody(members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumSymbolBody",
     members,
     hasUnknownMembers: null
-  });
+  };
+  const defs = NODE_FIELDS.EnumSymbolBody;
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function enumBooleanMember(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumBooleanMember",
     id,
     init: null
-  });
+  };
+  const defs = NODE_FIELDS.EnumBooleanMember;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function enumNumberMember(id, init) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumNumberMember",
     id,
     init
-  });
+  };
+  const defs = NODE_FIELDS.EnumNumberMember;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.init, node, "init", init, 1);
+  return node;
 }
 function enumStringMember(id, init) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumStringMember",
     id,
     init
-  });
+  };
+  const defs = NODE_FIELDS.EnumStringMember;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.init, node, "init", init, 1);
+  return node;
 }
 function enumDefaultedMember(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "EnumDefaultedMember",
     id
-  });
+  };
+  const defs = NODE_FIELDS.EnumDefaultedMember;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function indexedAccessType(objectType, indexType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "IndexedAccessType",
     objectType,
     indexType
-  });
+  };
+  const defs = NODE_FIELDS.IndexedAccessType;
+  validate(defs.objectType, node, "objectType", objectType, 1);
+  validate(defs.indexType, node, "indexType", indexType, 1);
+  return node;
 }
 function optionalIndexedAccessType(objectType, indexType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "OptionalIndexedAccessType",
     objectType,
     indexType,
     optional: null
-  });
+  };
+  const defs = NODE_FIELDS.OptionalIndexedAccessType;
+  validate(defs.objectType, node, "objectType", objectType, 1);
+  validate(defs.indexType, node, "indexType", indexType, 1);
+  return node;
 }
 function jsxAttribute(name, value = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXAttribute",
     name,
     value
-  });
+  };
+  const defs = NODE_FIELDS.JSXAttribute;
+  validate(defs.name, node, "name", name, 1);
+  validate(defs.value, node, "value", value, 1);
+  return node;
 }
 function jsxClosingElement(name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXClosingElement",
     name
-  });
+  };
+  const defs = NODE_FIELDS.JSXClosingElement;
+  validate(defs.name, node, "name", name, 1);
+  return node;
 }
 function jsxElement(openingElement, closingElement = null, children, selfClosing = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXElement",
     openingElement,
     closingElement,
     children,
     selfClosing
-  });
+  };
+  const defs = NODE_FIELDS.JSXElement;
+  validate(defs.openingElement, node, "openingElement", openingElement, 1);
+  validate(defs.closingElement, node, "closingElement", closingElement, 1);
+  validate(defs.children, node, "children", children, 1);
+  validate(defs.selfClosing, node, "selfClosing", selfClosing);
+  return node;
 }
 function jsxEmptyExpression() {
   return {
@@ -46917,64 +47493,97 @@ function jsxEmptyExpression() {
   };
 }
 function jsxExpressionContainer(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXExpressionContainer",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.JSXExpressionContainer;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function jsxSpreadChild(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXSpreadChild",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.JSXSpreadChild;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function jsxIdentifier(name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXIdentifier",
     name
-  });
+  };
+  const defs = NODE_FIELDS.JSXIdentifier;
+  validate(defs.name, node, "name", name);
+  return node;
 }
 function jsxMemberExpression(object, property) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXMemberExpression",
     object,
     property
-  });
+  };
+  const defs = NODE_FIELDS.JSXMemberExpression;
+  validate(defs.object, node, "object", object, 1);
+  validate(defs.property, node, "property", property, 1);
+  return node;
 }
 function jsxNamespacedName(namespace, name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXNamespacedName",
     namespace,
     name
-  });
+  };
+  const defs = NODE_FIELDS.JSXNamespacedName;
+  validate(defs.namespace, node, "namespace", namespace, 1);
+  validate(defs.name, node, "name", name, 1);
+  return node;
 }
 function jsxOpeningElement(name, attributes, selfClosing = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXOpeningElement",
     name,
     attributes,
     selfClosing
-  });
+  };
+  const defs = NODE_FIELDS.JSXOpeningElement;
+  validate(defs.name, node, "name", name, 1);
+  validate(defs.attributes, node, "attributes", attributes, 1);
+  validate(defs.selfClosing, node, "selfClosing", selfClosing);
+  return node;
 }
 function jsxSpreadAttribute(argument) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXSpreadAttribute",
     argument
-  });
+  };
+  const defs = NODE_FIELDS.JSXSpreadAttribute;
+  validate(defs.argument, node, "argument", argument, 1);
+  return node;
 }
 function jsxText(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXText",
     value
-  });
+  };
+  const defs = NODE_FIELDS.JSXText;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function jsxFragment(openingFragment, closingFragment, children) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "JSXFragment",
     openingFragment,
     closingFragment,
     children
-  });
+  };
+  const defs = NODE_FIELDS.JSXFragment;
+  validate(defs.openingFragment, node, "openingFragment", openingFragment, 1);
+  validate(defs.closingFragment, node, "closingFragment", closingFragment, 1);
+  validate(defs.children, node, "children", children, 1);
+  return node;
 }
 function jsxOpeningFragment() {
   return {
@@ -46992,17 +47601,24 @@ function noop() {
   };
 }
 function placeholder(expectedNode, name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Placeholder",
     expectedNode,
     name
-  });
+  };
+  const defs = NODE_FIELDS.Placeholder;
+  validate(defs.expectedNode, node, "expectedNode", expectedNode);
+  validate(defs.name, node, "name", name, 1);
+  return node;
 }
 function v8IntrinsicIdentifier(name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "V8IntrinsicIdentifier",
     name
-  });
+  };
+  const defs = NODE_FIELDS.V8IntrinsicIdentifier;
+  validate(defs.name, node, "name", name);
+  return node;
 }
 function argumentPlaceholder() {
   return {
@@ -47010,61 +47626,91 @@ function argumentPlaceholder() {
   };
 }
 function bindExpression(object, callee) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "BindExpression",
     object,
     callee
-  });
+  };
+  const defs = NODE_FIELDS.BindExpression;
+  validate(defs.object, node, "object", object, 1);
+  validate(defs.callee, node, "callee", callee, 1);
+  return node;
 }
 function importAttribute(key, value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ImportAttribute",
     key,
     value
-  });
+  };
+  const defs = NODE_FIELDS.ImportAttribute;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.value, node, "value", value, 1);
+  return node;
 }
 function decorator(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "Decorator",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.Decorator;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function doExpression(body, async = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DoExpression",
     body,
     async
-  });
+  };
+  const defs = NODE_FIELDS.DoExpression;
+  validate(defs.body, node, "body", body, 1);
+  validate(defs.async, node, "async", async);
+  return node;
 }
 function exportDefaultSpecifier(exported) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ExportDefaultSpecifier",
     exported
-  });
+  };
+  const defs = NODE_FIELDS.ExportDefaultSpecifier;
+  validate(defs.exported, node, "exported", exported, 1);
+  return node;
 }
 function recordExpression(properties) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "RecordExpression",
     properties
-  });
+  };
+  const defs = NODE_FIELDS.RecordExpression;
+  validate(defs.properties, node, "properties", properties, 1);
+  return node;
 }
 function tupleExpression(elements = []) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TupleExpression",
     elements
-  });
+  };
+  const defs = NODE_FIELDS.TupleExpression;
+  validate(defs.elements, node, "elements", elements, 1);
+  return node;
 }
 function decimalLiteral(value) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "DecimalLiteral",
     value
-  });
+  };
+  const defs = NODE_FIELDS.DecimalLiteral;
+  validate(defs.value, node, "value", value);
+  return node;
 }
 function moduleExpression(body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "ModuleExpression",
     body
-  });
+  };
+  const defs = NODE_FIELDS.ModuleExpression;
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function topicReference() {
   return {
@@ -47072,16 +47718,22 @@ function topicReference() {
   };
 }
 function pipelineTopicExpression(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "PipelineTopicExpression",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.PipelineTopicExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function pipelineBareFunction(callee) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "PipelineBareFunction",
     callee
-  });
+  };
+  const defs = NODE_FIELDS.PipelineBareFunction;
+  validate(defs.callee, node, "callee", callee, 1);
+  return node;
 }
 function pipelinePrimaryTopicReference() {
   return {
@@ -47089,77 +47741,121 @@ function pipelinePrimaryTopicReference() {
   };
 }
 function tsParameterProperty(parameter) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSParameterProperty",
     parameter
-  });
+  };
+  const defs = NODE_FIELDS.TSParameterProperty;
+  validate(defs.parameter, node, "parameter", parameter, 1);
+  return node;
 }
 function tsDeclareFunction(id = null, typeParameters = null, params, returnType = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSDeclareFunction",
     id,
     typeParameters,
     params,
     returnType
-  });
+  };
+  const defs = NODE_FIELDS.TSDeclareFunction;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.returnType, node, "returnType", returnType, 1);
+  return node;
 }
 function tsDeclareMethod(decorators = null, key, typeParameters = null, params, returnType = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSDeclareMethod",
     decorators,
     key,
     typeParameters,
     params,
     returnType
-  });
+  };
+  const defs = NODE_FIELDS.TSDeclareMethod;
+  validate(defs.decorators, node, "decorators", decorators, 1);
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.params, node, "params", params, 1);
+  validate(defs.returnType, node, "returnType", returnType, 1);
+  return node;
 }
 function tsQualifiedName(left, right) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSQualifiedName",
     left,
     right
-  });
+  };
+  const defs = NODE_FIELDS.TSQualifiedName;
+  validate(defs.left, node, "left", left, 1);
+  validate(defs.right, node, "right", right, 1);
+  return node;
 }
 function tsCallSignatureDeclaration(typeParameters = null, parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSCallSignatureDeclaration",
     typeParameters,
     parameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSCallSignatureDeclaration;
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsConstructSignatureDeclaration(typeParameters = null, parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSConstructSignatureDeclaration",
     typeParameters,
     parameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSConstructSignatureDeclaration;
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsPropertySignature(key, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSPropertySignature",
     key,
     typeAnnotation,
     kind: null
-  });
+  };
+  const defs = NODE_FIELDS.TSPropertySignature;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsMethodSignature(key, typeParameters = null, parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSMethodSignature",
     key,
     typeParameters,
     parameters,
     typeAnnotation,
     kind: null
-  });
+  };
+  const defs = NODE_FIELDS.TSMethodSignature;
+  validate(defs.key, node, "key", key, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsIndexSignature(parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSIndexSignature",
     parameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSIndexSignature;
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsAnyKeyword() {
   return {
@@ -47232,292 +47928,452 @@ function tsThisType() {
   };
 }
 function tsFunctionType(typeParameters = null, parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSFunctionType",
     typeParameters,
     parameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSFunctionType;
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsConstructorType(typeParameters = null, parameters, typeAnnotation = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSConstructorType",
     typeParameters,
     parameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSConstructorType;
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.parameters, node, "parameters", parameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsTypeReference(typeName, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeReference",
     typeName,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeReference;
+  validate(defs.typeName, node, "typeName", typeName, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function tsTypePredicate(parameterName, typeAnnotation = null, asserts = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypePredicate",
     parameterName,
     typeAnnotation,
     asserts
-  });
+  };
+  const defs = NODE_FIELDS.TSTypePredicate;
+  validate(defs.parameterName, node, "parameterName", parameterName, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  validate(defs.asserts, node, "asserts", asserts);
+  return node;
 }
 function tsTypeQuery(exprName, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeQuery",
     exprName,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeQuery;
+  validate(defs.exprName, node, "exprName", exprName, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function tsTypeLiteral(members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeLiteral",
     members
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeLiteral;
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function tsArrayType(elementType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSArrayType",
     elementType
-  });
+  };
+  const defs = NODE_FIELDS.TSArrayType;
+  validate(defs.elementType, node, "elementType", elementType, 1);
+  return node;
 }
 function tsTupleType(elementTypes) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTupleType",
     elementTypes
-  });
+  };
+  const defs = NODE_FIELDS.TSTupleType;
+  validate(defs.elementTypes, node, "elementTypes", elementTypes, 1);
+  return node;
 }
 function tsOptionalType(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSOptionalType",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSOptionalType;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsRestType(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSRestType",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSRestType;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsNamedTupleMember(label, elementType, optional = false) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSNamedTupleMember",
     label,
     elementType,
     optional
-  });
+  };
+  const defs = NODE_FIELDS.TSNamedTupleMember;
+  validate(defs.label, node, "label", label, 1);
+  validate(defs.elementType, node, "elementType", elementType, 1);
+  validate(defs.optional, node, "optional", optional);
+  return node;
 }
 function tsUnionType(types) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSUnionType",
     types
-  });
+  };
+  const defs = NODE_FIELDS.TSUnionType;
+  validate(defs.types, node, "types", types, 1);
+  return node;
 }
 function tsIntersectionType(types) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSIntersectionType",
     types
-  });
+  };
+  const defs = NODE_FIELDS.TSIntersectionType;
+  validate(defs.types, node, "types", types, 1);
+  return node;
 }
 function tsConditionalType(checkType, extendsType, trueType, falseType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSConditionalType",
     checkType,
     extendsType,
     trueType,
     falseType
-  });
+  };
+  const defs = NODE_FIELDS.TSConditionalType;
+  validate(defs.checkType, node, "checkType", checkType, 1);
+  validate(defs.extendsType, node, "extendsType", extendsType, 1);
+  validate(defs.trueType, node, "trueType", trueType, 1);
+  validate(defs.falseType, node, "falseType", falseType, 1);
+  return node;
 }
 function tsInferType(typeParameter) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSInferType",
     typeParameter
-  });
+  };
+  const defs = NODE_FIELDS.TSInferType;
+  validate(defs.typeParameter, node, "typeParameter", typeParameter, 1);
+  return node;
 }
 function tsParenthesizedType(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSParenthesizedType",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSParenthesizedType;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsTypeOperator(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeOperator",
     typeAnnotation,
     operator: null
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeOperator;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsIndexedAccessType(objectType, indexType) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSIndexedAccessType",
     objectType,
     indexType
-  });
+  };
+  const defs = NODE_FIELDS.TSIndexedAccessType;
+  validate(defs.objectType, node, "objectType", objectType, 1);
+  validate(defs.indexType, node, "indexType", indexType, 1);
+  return node;
 }
 function tsMappedType(typeParameter, typeAnnotation = null, nameType = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSMappedType",
     typeParameter,
     typeAnnotation,
     nameType
-  });
+  };
+  const defs = NODE_FIELDS.TSMappedType;
+  validate(defs.typeParameter, node, "typeParameter", typeParameter, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  validate(defs.nameType, node, "nameType", nameType, 1);
+  return node;
 }
 function tsLiteralType(literal) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSLiteralType",
     literal
-  });
+  };
+  const defs = NODE_FIELDS.TSLiteralType;
+  validate(defs.literal, node, "literal", literal, 1);
+  return node;
 }
 function tsExpressionWithTypeArguments(expression, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSExpressionWithTypeArguments",
     expression,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.TSExpressionWithTypeArguments;
+  validate(defs.expression, node, "expression", expression, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function tsInterfaceDeclaration(id, typeParameters = null, _extends = null, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSInterfaceDeclaration",
     id,
     typeParameters,
     extends: _extends,
     body
-  });
+  };
+  const defs = NODE_FIELDS.TSInterfaceDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.extends, node, "extends", _extends, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function tsInterfaceBody(body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSInterfaceBody",
     body
-  });
+  };
+  const defs = NODE_FIELDS.TSInterfaceBody;
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function tsTypeAliasDeclaration(id, typeParameters = null, typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeAliasDeclaration",
     id,
     typeParameters,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeAliasDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsInstantiationExpression(expression, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSInstantiationExpression",
     expression,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.TSInstantiationExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function tsAsExpression(expression, typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSAsExpression",
     expression,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSAsExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsSatisfiesExpression(expression, typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSSatisfiesExpression",
     expression,
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSSatisfiesExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsTypeAssertion(typeAnnotation, expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeAssertion",
     typeAnnotation,
     expression
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeAssertion;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function tsEnumDeclaration(id, members) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSEnumDeclaration",
     id,
     members
-  });
+  };
+  const defs = NODE_FIELDS.TSEnumDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.members, node, "members", members, 1);
+  return node;
 }
 function tsEnumMember(id, initializer = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSEnumMember",
     id,
     initializer
-  });
+  };
+  const defs = NODE_FIELDS.TSEnumMember;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.initializer, node, "initializer", initializer, 1);
+  return node;
 }
 function tsModuleDeclaration(id, body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSModuleDeclaration",
     id,
     body
-  });
+  };
+  const defs = NODE_FIELDS.TSModuleDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function tsModuleBlock(body) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSModuleBlock",
     body
-  });
+  };
+  const defs = NODE_FIELDS.TSModuleBlock;
+  validate(defs.body, node, "body", body, 1);
+  return node;
 }
 function tsImportType(argument, qualifier = null, typeParameters = null) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSImportType",
     argument,
     qualifier,
     typeParameters
-  });
+  };
+  const defs = NODE_FIELDS.TSImportType;
+  validate(defs.argument, node, "argument", argument, 1);
+  validate(defs.qualifier, node, "qualifier", qualifier, 1);
+  validate(defs.typeParameters, node, "typeParameters", typeParameters, 1);
+  return node;
 }
 function tsImportEqualsDeclaration(id, moduleReference) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSImportEqualsDeclaration",
     id,
     moduleReference,
     isExport: null
-  });
+  };
+  const defs = NODE_FIELDS.TSImportEqualsDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  validate(defs.moduleReference, node, "moduleReference", moduleReference, 1);
+  return node;
 }
 function tsExternalModuleReference(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSExternalModuleReference",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.TSExternalModuleReference;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function tsNonNullExpression(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSNonNullExpression",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.TSNonNullExpression;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function tsExportAssignment(expression) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSExportAssignment",
     expression
-  });
+  };
+  const defs = NODE_FIELDS.TSExportAssignment;
+  validate(defs.expression, node, "expression", expression, 1);
+  return node;
 }
 function tsNamespaceExportDeclaration(id) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSNamespaceExportDeclaration",
     id
-  });
+  };
+  const defs = NODE_FIELDS.TSNamespaceExportDeclaration;
+  validate(defs.id, node, "id", id, 1);
+  return node;
 }
 function tsTypeAnnotation(typeAnnotation) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeAnnotation",
     typeAnnotation
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeAnnotation;
+  validate(defs.typeAnnotation, node, "typeAnnotation", typeAnnotation, 1);
+  return node;
 }
 function tsTypeParameterInstantiation(params) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeParameterInstantiation",
     params
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeParameterInstantiation;
+  validate(defs.params, node, "params", params, 1);
+  return node;
 }
 function tsTypeParameterDeclaration(params) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeParameterDeclaration",
     params
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeParameterDeclaration;
+  validate(defs.params, node, "params", params, 1);
+  return node;
 }
 function tsTypeParameter(constraint = null, _default = null, name) {
-  return (0, _validateNode.default)({
+  const node = {
     type: "TSTypeParameter",
     constraint,
     default: _default,
     name
-  });
+  };
+  const defs = NODE_FIELDS.TSTypeParameter;
+  validate(defs.constraint, node, "constraint", constraint, 1);
+  validate(defs.default, node, "default", _default, 1);
+  validate(defs.name, node, "name", name);
+  return node;
 }
 function NumberLiteral(value) {
   (0, _deprecationWarning.default)("NumberLiteral", "NumericLiteral", "The node type ");
@@ -49163,31 +50019,6 @@ function createTSUnionType(typeAnnotations) {
 
 /***/ }),
 
-/***/ 2282:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = validateNode;
-var _validate = __nccwpck_require__(8036);
-var _index = __nccwpck_require__(7912);
-function validateNode(node) {
-  const keys = _index.BUILDER_KEYS[node.type];
-  for (const key of keys) {
-    (0, _validate.default)(node, key, node[key]);
-  }
-  return node;
-}
-
-//# sourceMappingURL=validateNode.js.map
-
-
-/***/ }),
-
 /***/ 4093:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -50121,7 +50952,7 @@ const defineType = (0, _utils.defineAliasedType)("Standardized");
 defineType("ArrayExpression", {
   fields: {
     elements: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeOrValueType)("null", "Expression", "SpreadElement"))),
+      validate: (0, _utils.arrayOf)((0, _utils.assertNodeOrValueType)("null", "Expression", "SpreadElement")),
       default: !process.env.BABEL_TYPES_8_BREAKING ? [] : undefined
     }
   },
@@ -50131,17 +50962,16 @@ defineType("ArrayExpression", {
 defineType("AssignmentExpression", {
   fields: {
     operator: {
-      validate: function () {
-        if (!process.env.BABEL_TYPES_8_BREAKING) {
-          return (0, _utils.assertValueType)("string");
-        }
+      validate: !process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.assertValueType)("string") : Object.assign(function () {
         const identifier = (0, _utils.assertOneOf)(..._index.ASSIGNMENT_OPERATORS);
         const pattern = (0, _utils.assertOneOf)("=");
         return function (node, key, val) {
           const validator = (0, _is.default)("Pattern", node.left) ? pattern : identifier;
           validator(node, key, val);
         };
-      }()
+      }(), {
+        type: "string"
+      })
     },
     left: {
       validate: !process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.assertNodeType)("LVal", "OptionalMemberExpression") : (0, _utils.assertNodeType)("Identifier", "MemberExpression", "OptionalMemberExpression", "ArrayPattern", "ObjectPattern", "TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression")
@@ -50209,12 +51039,10 @@ defineType("BlockStatement", {
   visitor: ["directives", "body"],
   fields: {
     directives: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Directive"))),
+      validate: (0, _utils.arrayOfType)("Directive"),
       default: []
     },
-    body: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Statement")))
-    }
+    body: (0, _utils.validateArrayOfType)("Statement")
   },
   aliases: ["Scopable", "BlockParent", "Block", "Statement"]
 });
@@ -50236,12 +51064,10 @@ defineType("CallExpression", {
     callee: {
       validate: (0, _utils.assertNodeType)("Expression", "Super", "V8IntrinsicIdentifier")
     },
-    arguments: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Expression", "SpreadElement", "ArgumentPlaceholder")))
-    }
+    arguments: (0, _utils.validateArrayOfType)("Expression", "SpreadElement", "ArgumentPlaceholder")
   }, !process.env.BABEL_TYPES_8_BREAKING ? {
     optional: {
-      validate: (0, _utils.assertOneOf)(true, false),
+      validate: (0, _utils.assertValueType)("boolean"),
       optional: true
     }
   } : {}, {
@@ -50381,9 +51207,7 @@ defineType("ForStatement", {
   }
 });
 const functionCommon = () => ({
-  params: {
-    validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Identifier", "Pattern", "RestElement")))
-  },
+  params: (0, _utils.validateArrayOfType)("Identifier", "Pattern", "RestElement"),
   generator: {
     default: false
   },
@@ -50427,8 +51251,7 @@ defineType("FunctionDeclaration", {
     }
   }),
   aliases: ["Scopable", "Function", "BlockParent", "FunctionParent", "Statement", "Pureish", "Declaration"],
-  validate: function () {
-    if (!process.env.BABEL_TYPES_8_BREAKING) return () => {};
+  validate: !process.env.BABEL_TYPES_8_BREAKING ? undefined : function () {
     const identifier = (0, _utils.assertNodeType)("Identifier");
     return function (parent, key, node) {
       if (!(0, _is.default)("ExportDefaultDeclaration", parent)) {
@@ -50464,7 +51287,7 @@ const patternLikeCommon = () => ({
     optional: true
   },
   decorators: {
-    validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+    validate: (0, _utils.arrayOfType)("Decorator"),
     optional: true
   }
 });
@@ -50475,18 +51298,16 @@ defineType("Identifier", {
   aliases: ["Expression", "PatternLike", "LVal", "TSEntityName"],
   fields: Object.assign({}, patternLikeCommon(), {
     name: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("string"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertValueType)("string"), Object.assign(function (node, key, val) {
         if (!(0, _isValidIdentifier.default)(val, false)) {
           throw new TypeError(`"${val}" is not a valid identifier name`);
         }
       }, {
         type: "string"
-      }))
+      })) : (0, _utils.assertValueType)("string")
     }
   }),
-  validate(parent, key, node) {
-    if (!process.env.BABEL_TYPES_8_BREAKING) return;
+  validate: process.env.BABEL_TYPES_8_BREAKING ? function (parent, key, node) {
     const match = /\.(\w+)$/.exec(key);
     if (!match) return;
     const [, parentKey] = match;
@@ -50513,7 +51334,7 @@ defineType("Identifier", {
     if (((0, _helperValidatorIdentifier.isKeyword)(node.name) || (0, _helperValidatorIdentifier.isReservedWord)(node.name, false)) && node.name !== "this") {
       throw new TypeError(`"${node.name}" is not a valid identifier`);
     }
-  }
+  } : undefined
 });
 defineType("IfStatement", {
   visitor: ["test", "consequent", "alternate"],
@@ -50590,15 +51411,14 @@ defineType("RegExpLiteral", {
       validate: (0, _utils.assertValueType)("string")
     },
     flags: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("string"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertValueType)("string"), Object.assign(function (node, key, val) {
         const invalid = /[^gimsuy]/.exec(val);
         if (invalid) {
           throw new TypeError(`"${invalid[0]}" is not a valid RegExp flag`);
         }
       }, {
         type: "string"
-      })),
+      })) : (0, _utils.assertValueType)("string"),
       default: ""
     }
   }
@@ -50644,7 +51464,7 @@ defineType("MemberExpression", {
     }
   }, !process.env.BABEL_TYPES_8_BREAKING ? {
     optional: {
-      validate: (0, _utils.assertOneOf)(true, false),
+      validate: (0, _utils.assertValueType)("boolean"),
       optional: true
     }
   } : {})
@@ -50666,12 +51486,10 @@ defineType("Program", {
       optional: true
     },
     directives: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Directive"))),
+      validate: (0, _utils.arrayOfType)("Directive"),
       default: []
     },
-    body: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Statement")))
-    }
+    body: (0, _utils.validateArrayOfType)("Statement")
   },
   aliases: ["Scopable", "BlockParent", "Block"]
 });
@@ -50679,9 +51497,7 @@ defineType("ObjectExpression", {
   visitor: ["properties"],
   aliases: ["Expression"],
   fields: {
-    properties: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ObjectMethod", "ObjectProperty", "SpreadElement")))
-    }
+    properties: (0, _utils.validateArrayOfType)("ObjectMethod", "ObjectProperty", "SpreadElement")
   }
 });
 defineType("ObjectMethod", {
@@ -50709,7 +51525,7 @@ defineType("ObjectMethod", {
       }()
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     body: {
@@ -50741,33 +51557,30 @@ defineType("ObjectProperty", {
       validate: (0, _utils.assertNodeType)("Expression", "PatternLike")
     },
     shorthand: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("boolean"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
-        if (val && node.computed) {
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertValueType)("boolean"), Object.assign(function (node, key, shorthand) {
+        if (!shorthand) return;
+        if (node.computed) {
           throw new TypeError("Property shorthand of ObjectProperty cannot be true if computed is true");
+        }
+        if (!(0, _is.default)("Identifier", node.key)) {
+          throw new TypeError("Property shorthand of ObjectProperty cannot be true if key is not an Identifier");
         }
       }, {
         type: "boolean"
-      }), function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
-        if (val && !(0, _is.default)("Identifier", node.key)) {
-          throw new TypeError("Property shorthand of ObjectProperty cannot be true if key is not an Identifier");
-        }
-      }),
+      })) : (0, _utils.assertValueType)("boolean"),
       default: false
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     }
   },
   visitor: ["key", "value", "decorators"],
   aliases: ["UserWhitespacable", "Property", "ObjectMember"],
-  validate: function () {
+  validate: !process.env.BABEL_TYPES_8_BREAKING ? undefined : function () {
     const pattern = (0, _utils.assertNodeType)("Identifier", "Pattern", "TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression", "TSTypeAssertion");
     const expression = (0, _utils.assertNodeType)("Expression");
     return function (parent, key, node) {
-      if (!process.env.BABEL_TYPES_8_BREAKING) return;
       const validator = (0, _is.default)("ObjectPattern", parent) ? pattern : expression;
       validator(node, "value", node.value);
     };
@@ -50783,15 +51596,14 @@ defineType("RestElement", {
       validate: !process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.assertNodeType)("LVal") : (0, _utils.assertNodeType)("Identifier", "ArrayPattern", "ObjectPattern", "MemberExpression", "TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression")
     }
   }),
-  validate(parent, key) {
-    if (!process.env.BABEL_TYPES_8_BREAKING) return;
+  validate: process.env.BABEL_TYPES_8_BREAKING ? function (parent, key) {
     const match = /(\w+)\[(\d+)\]/.exec(key);
     if (!match) throw new Error("Internal Babel error: malformed key.");
     const [, listKey, index] = match;
     if (parent[listKey].length > +index + 1) {
       throw new TypeError(`RestElement must be last element of ${listKey}`);
     }
-  }
+  } : undefined
 });
 defineType("ReturnStatement", {
   visitor: ["argument"],
@@ -50806,9 +51618,7 @@ defineType("ReturnStatement", {
 defineType("SequenceExpression", {
   visitor: ["expressions"],
   fields: {
-    expressions: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Expression")))
-    }
+    expressions: (0, _utils.validateArrayOfType)("Expression")
   },
   aliases: ["Expression"]
 });
@@ -50828,9 +51638,7 @@ defineType("SwitchCase", {
       validate: (0, _utils.assertNodeType)("Expression"),
       optional: true
     },
-    consequent: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Statement")))
-    }
+    consequent: (0, _utils.validateArrayOfType)("Statement")
   }
 });
 defineType("SwitchStatement", {
@@ -50840,9 +51648,7 @@ defineType("SwitchStatement", {
     discriminant: {
       validate: (0, _utils.assertNodeType)("Expression")
     },
-    cases: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("SwitchCase")))
-    }
+    cases: (0, _utils.validateArrayOfType)("SwitchCase")
   }
 });
 defineType("ThisExpression", {
@@ -50862,14 +51668,13 @@ defineType("TryStatement", {
   aliases: ["Statement"],
   fields: {
     block: {
-      validate: (0, _utils.chain)((0, _utils.assertNodeType)("BlockStatement"), Object.assign(function (node) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertNodeType)("BlockStatement"), Object.assign(function (node) {
         if (!node.handler && !node.finalizer) {
           throw new TypeError("TryStatement expects either a handler or finalizer, or both");
         }
       }, {
         oneOfNodeTypes: ["BlockStatement"]
-      }))
+      })) : (0, _utils.assertNodeType)("BlockStatement")
     },
     handler: {
       optional: true,
@@ -50925,35 +51730,30 @@ defineType("VariableDeclaration", {
     kind: {
       validate: (0, _utils.assertOneOf)("var", "let", "const", "using", "await using")
     },
-    declarations: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("VariableDeclarator")))
-    }
+    declarations: (0, _utils.validateArrayOfType)("VariableDeclarator")
   },
-  validate(parent, key, node) {
-    if (!process.env.BABEL_TYPES_8_BREAKING) return;
-    if (!(0, _is.default)("ForXStatement", parent, {
-      left: node
-    })) return;
-    if (node.declarations.length !== 1) {
-      throw new TypeError(`Exactly one VariableDeclarator is required in the VariableDeclaration of a ${parent.type}`);
-    }
-  }
+  validate: process.env.BABEL_TYPES_8_BREAKING ? (() => {
+    const withoutInit = (0, _utils.assertNodeType)("Identifier");
+    return function (parent, key, node) {
+      if ((0, _is.default)("ForXStatement", parent, {
+        left: node
+      })) {
+        if (node.declarations.length !== 1) {
+          throw new TypeError(`Exactly one VariableDeclarator is required in the VariableDeclaration of a ${parent.type}`);
+        }
+      } else {
+        node.declarations.forEach(decl => {
+          if (!decl.init) withoutInit(decl, "id", decl.id);
+        });
+      }
+    };
+  })() : undefined
 });
 defineType("VariableDeclarator", {
   visitor: ["id", "init"],
   fields: {
     id: {
-      validate: function () {
-        if (!process.env.BABEL_TYPES_8_BREAKING) {
-          return (0, _utils.assertNodeType)("LVal");
-        }
-        const normal = (0, _utils.assertNodeType)("Identifier", "ArrayPattern", "ObjectPattern");
-        const without = (0, _utils.assertNodeType)("Identifier");
-        return function (node, key, val) {
-          const validator = node.init ? normal : without;
-          validator(node, key, val);
-        };
-      }()
+      validate: !process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.assertNodeType)("LVal") : (0, _utils.assertNodeType)("Identifier", "ArrayPattern", "ObjectPattern")
     },
     definite: {
       optional: true,
@@ -51001,7 +51801,7 @@ defineType("AssignmentPattern", {
       validate: (0, _utils.assertNodeType)("Expression")
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     }
   })
@@ -51036,9 +51836,7 @@ defineType("ArrowFunctionExpression", {
 defineType("ClassBody", {
   visitor: ["body"],
   fields: {
-    body: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ClassMethod", "ClassPrivateMethod", "ClassProperty", "ClassPrivateProperty", "ClassAccessorProperty", "TSDeclareMethod", "TSIndexSignature", "StaticBlock")))
-    }
+    body: (0, _utils.validateArrayOfType)("ClassMethod", "ClassPrivateMethod", "ClassProperty", "ClassPrivateProperty", "ClassAccessorProperty", "TSDeclareMethod", "TSIndexSignature", "StaticBlock")
   }
 });
 defineType("ClassExpression", {
@@ -51066,11 +51864,11 @@ defineType("ClassExpression", {
       optional: true
     },
     implements: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TSExpressionWithTypeArguments", "ClassImplements"))),
+      validate: (0, _utils.arrayOfType)("TSExpressionWithTypeArguments", "ClassImplements"),
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     mixins: {
@@ -51103,11 +51901,11 @@ defineType("ClassDeclaration", {
       optional: true
     },
     implements: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TSExpressionWithTypeArguments", "ClassImplements"))),
+      validate: (0, _utils.arrayOfType)("TSExpressionWithTypeArguments", "ClassImplements"),
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     mixins: {
@@ -51123,10 +51921,9 @@ defineType("ClassDeclaration", {
       optional: true
     }
   },
-  validate: function () {
+  validate: !process.env.BABEL_TYPES_8_BREAKING ? undefined : function () {
     const identifier = (0, _utils.assertNodeType)("Identifier");
     return function (parent, key, node) {
-      if (!process.env.BABEL_TYPES_8_BREAKING) return;
       if (!(0, _is.default)("ExportDefaultDeclaration", parent)) {
         identifier(node, "id", node.id);
       }
@@ -51144,11 +51941,12 @@ defineType("ExportAllDeclaration", {
     exportKind: (0, _utils.validateOptional)((0, _utils.assertOneOf)("type", "value")),
     attributes: {
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     },
     assertions: {
+      deprecated: true,
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     }
   }
 });
@@ -51156,52 +51954,50 @@ defineType("ExportDefaultDeclaration", {
   visitor: ["declaration"],
   aliases: ["Statement", "Declaration", "ImportOrExportDeclaration", "ExportDeclaration"],
   fields: {
-    declaration: {
-      validate: (0, _utils.assertNodeType)("TSDeclareFunction", "FunctionDeclaration", "ClassDeclaration", "Expression")
-    },
+    declaration: (0, _utils.validateType)("TSDeclareFunction", "FunctionDeclaration", "ClassDeclaration", "Expression"),
     exportKind: (0, _utils.validateOptional)((0, _utils.assertOneOf)("value"))
   }
 });
 defineType("ExportNamedDeclaration", {
   builder: ["declaration", "specifiers", "source"],
-  visitor: ["declaration", "specifiers", "source", "attributes", "assertions"],
+  visitor: process.env ? ["declaration", "specifiers", "source", "attributes"] : ["declaration", "specifiers", "source", "attributes", "assertions"],
   aliases: ["Statement", "Declaration", "ImportOrExportDeclaration", "ExportDeclaration"],
   fields: {
     declaration: {
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertNodeType)("Declaration"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertNodeType)("Declaration"), Object.assign(function (node, key, val) {
         if (val && node.specifiers.length) {
           throw new TypeError("Only declaration or specifiers is allowed on ExportNamedDeclaration");
         }
-      }, {
-        oneOfNodeTypes: ["Declaration"]
-      }), function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
         if (val && node.source) {
           throw new TypeError("Cannot export a declaration from a source");
         }
-      })
+      }, {
+        oneOfNodeTypes: ["Declaration"]
+      })) : (0, _utils.assertNodeType)("Declaration")
     },
     attributes: {
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     },
     assertions: {
+      deprecated: true,
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     },
     specifiers: {
       default: [],
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)(function () {
+      validate: (0, _utils.arrayOf)(function () {
         const sourced = (0, _utils.assertNodeType)("ExportSpecifier", "ExportDefaultSpecifier", "ExportNamespaceSpecifier");
         const sourceless = (0, _utils.assertNodeType)("ExportSpecifier");
         if (!process.env.BABEL_TYPES_8_BREAKING) return sourced;
-        return function (node, key, val) {
+        return Object.assign(function (node, key, val) {
           const validator = node.source ? sourced : sourceless;
           validator(node, key, val);
-        };
-      }()))
+        }, {
+          oneOfNodeTypes: ["ExportSpecifier", "ExportDefaultSpecifier", "ExportNamespaceSpecifier"]
+        });
+      }())
     },
     source: {
       validate: (0, _utils.assertNodeType)("StringLiteral"),
@@ -51238,13 +52034,15 @@ defineType("ForOfStatement", {
         }
         const declaration = (0, _utils.assertNodeType)("VariableDeclaration");
         const lval = (0, _utils.assertNodeType)("Identifier", "MemberExpression", "ArrayPattern", "ObjectPattern", "TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression");
-        return function (node, key, val) {
+        return Object.assign(function (node, key, val) {
           if ((0, _is.default)("VariableDeclaration", val)) {
             declaration(node, key, val);
           } else {
             lval(node, key, val);
           }
-        };
+        }, {
+          oneOfNodeTypes: ["VariableDeclaration", "Identifier", "MemberExpression", "ArrayPattern", "ObjectPattern", "TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression"]
+        });
       }()
     },
     right: {
@@ -51265,11 +52063,12 @@ defineType("ImportDeclaration", {
   fields: {
     attributes: {
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     },
     assertions: {
+      deprecated: true,
       optional: true,
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportAttribute")))
+      validate: (0, _utils.arrayOfType)("ImportAttribute")
     },
     module: {
       optional: true,
@@ -51279,9 +52078,7 @@ defineType("ImportDeclaration", {
       default: null,
       validate: (0, _utils.assertOneOf)("source", "defer")
     },
-    specifiers: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ImportSpecifier", "ImportDefaultSpecifier", "ImportNamespaceSpecifier")))
-    },
+    specifiers: (0, _utils.validateArrayOfType)("ImportSpecifier", "ImportDefaultSpecifier", "ImportNamespaceSpecifier"),
     source: {
       validate: (0, _utils.assertNodeType)("StringLiteral")
     },
@@ -51348,8 +52145,7 @@ defineType("MetaProperty", {
   aliases: ["Expression"],
   fields: {
     meta: {
-      validate: (0, _utils.chain)((0, _utils.assertNodeType)("Identifier"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertNodeType)("Identifier"), Object.assign(function (node, key, val) {
         let property;
         switch (val.name) {
           case "function":
@@ -51369,7 +52165,7 @@ defineType("MetaProperty", {
         }
       }, {
         oneOfNodeTypes: ["Identifier"]
-      }))
+      })) : (0, _utils.assertNodeType)("Identifier")
     },
     property: {
       validate: (0, _utils.assertNodeType)("Identifier")
@@ -51411,9 +52207,7 @@ const classMethodOrPropertyCommon = () => ({
 });
 exports.classMethodOrPropertyCommon = classMethodOrPropertyCommon;
 const classMethodOrDeclareMethodCommon = () => Object.assign({}, functionCommon(), classMethodOrPropertyCommon(), {
-  params: {
-    validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Identifier", "Pattern", "RestElement", "TSParameterProperty")))
-  },
+  params: (0, _utils.validateArrayOfType)("Identifier", "Pattern", "RestElement", "TSParameterProperty"),
   kind: {
     validate: (0, _utils.assertOneOf)("get", "set", "method", "constructor"),
     default: "method"
@@ -51423,7 +52217,7 @@ const classMethodOrDeclareMethodCommon = () => Object.assign({}, functionCommon(
     optional: true
   },
   decorators: {
-    validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+    validate: (0, _utils.arrayOfType)("Decorator"),
     optional: true
   }
 });
@@ -51443,9 +52237,7 @@ defineType("ObjectPattern", {
   builder: ["properties"],
   aliases: ["Pattern", "PatternLike", "LVal"],
   fields: Object.assign({}, patternLikeCommon(), {
-    properties: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("RestElement", "ObjectProperty")))
-    }
+    properties: (0, _utils.validateArrayOfType)("RestElement", "ObjectProperty")
   })
 });
 defineType("SpreadElement", {
@@ -51523,9 +52315,7 @@ defineType("TemplateLiteral", {
   visitor: ["quasis", "expressions"],
   aliases: ["Expression", "Literal"],
   fields: {
-    quasis: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TemplateElement")))
-    },
+    quasis: (0, _utils.validateArrayOfType)("TemplateElement"),
     expressions: {
       validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Expression", "TSType")), function (node, key, val) {
         if (node.quasis.length !== val.length + 1) {
@@ -51541,14 +52331,13 @@ defineType("YieldExpression", {
   aliases: ["Expression", "Terminatorless"],
   fields: {
     delegate: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("boolean"), Object.assign(function (node, key, val) {
-        if (!process.env.BABEL_TYPES_8_BREAKING) return;
+      validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertValueType)("boolean"), Object.assign(function (node, key, val) {
         if (val && !node.argument) {
           throw new TypeError("Property delegate of YieldExpression cannot be true if there is no argument");
         }
       }, {
         type: "boolean"
-      })),
+      })) : (0, _utils.assertValueType)("boolean"),
       default: false
     },
     argument: {
@@ -51625,9 +52414,7 @@ defineType("OptionalCallExpression", {
     callee: {
       validate: (0, _utils.assertNodeType)("Expression")
     },
-    arguments: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Expression", "SpreadElement", "ArgumentPlaceholder")))
-    },
+    arguments: (0, _utils.validateArrayOfType)("Expression", "SpreadElement", "ArgumentPlaceholder"),
     optional: {
       validate: !process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.assertValueType)("boolean") : (0, _utils.chain)((0, _utils.assertValueType)("boolean"), (0, _utils.assertOptionalChainStart)())
     },
@@ -51659,7 +52446,7 @@ defineType("ClassProperty", {
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     readonly: {
@@ -51704,7 +52491,7 @@ defineType("ClassAccessorProperty", {
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     readonly: {
@@ -51738,7 +52525,7 @@ defineType("ClassPrivateProperty", {
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     },
     static: {
@@ -51788,9 +52575,7 @@ defineType("PrivateName", {
 defineType("StaticBlock", {
   visitor: ["body"],
   fields: {
-    body: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Statement")))
-    }
+    body: (0, _utils.validateArrayOfType)("Statement")
   },
   aliases: ["Scopable", "BlockParent", "FunctionParent"]
 });
@@ -51896,30 +52681,30 @@ var _utils = __nccwpck_require__(4106);
   visitor: ["properties"],
   aliases: ["Expression"],
   fields: {
-    properties: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("ObjectProperty", "SpreadElement")))
-    }
+    properties: (0, _utils.validateArrayOfType)("ObjectProperty", "SpreadElement")
   }
 });
 (0, _utils.default)("TupleExpression", {
   fields: {
     elements: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Expression", "SpreadElement"))),
+      validate: (0, _utils.arrayOfType)("Expression", "SpreadElement"),
       default: []
     }
   },
   visitor: ["elements"],
   aliases: ["Expression"]
 });
-(0, _utils.default)("DecimalLiteral", {
-  builder: ["value"],
-  fields: {
-    value: {
-      validate: (0, _utils.assertValueType)("string")
-    }
-  },
-  aliases: ["Expression", "Pureish", "Literal", "Immutable"]
-});
+{
+  (0, _utils.default)("DecimalLiteral", {
+    builder: ["value"],
+    fields: {
+      value: {
+        validate: (0, _utils.assertValueType)("string")
+      }
+    },
+    aliases: ["Expression", "Pureish", "Literal", "Immutable"]
+  });
+}
 (0, _utils.default)("ModuleExpression", {
   visitor: ["body"],
   fields: {
@@ -52032,7 +52817,7 @@ defineType("DeclareModule", {
   visitor: ["id", "body"],
   aliases: ["FlowDeclaration", "Statement", "Declaration"],
   fields: {
-    id: (0, _utils.validateType)(["Identifier", "StringLiteral"]),
+    id: (0, _utils.validateType)("Identifier", "StringLiteral"),
     body: (0, _utils.validateType)("BlockStatement"),
     kind: (0, _utils.validateOptional)((0, _utils.assertOneOf)("CommonJS", "ES"))
   }
@@ -52075,7 +52860,7 @@ defineType("DeclareExportDeclaration", {
   aliases: ["FlowDeclaration", "Statement", "Declaration"],
   fields: {
     declaration: (0, _utils.validateOptionalType)("Flow"),
-    specifiers: (0, _utils.validateOptional)((0, _utils.arrayOfType)(["ExportSpecifier", "ExportNamespaceSpecifier"])),
+    specifiers: (0, _utils.validateOptional)((0, _utils.arrayOfType)("ExportSpecifier", "ExportNamespaceSpecifier")),
     source: (0, _utils.validateOptionalType)("StringLiteral"),
     default: (0, _utils.validateOptional)((0, _utils.assertValueType)("boolean"))
   }
@@ -52103,7 +52888,7 @@ defineType("FunctionTypeAnnotation", {
   aliases: ["FlowType"],
   fields: {
     typeParameters: (0, _utils.validateOptionalType)("TypeParameterDeclaration"),
-    params: (0, _utils.validate)((0, _utils.arrayOfType)("FunctionTypeParam")),
+    params: (0, _utils.validateArrayOfType)("FunctionTypeParam"),
     rest: (0, _utils.validateOptionalType)("FunctionTypeParam"),
     this: (0, _utils.validateOptionalType)("FunctionTypeParam"),
     returnType: (0, _utils.validateType)("FlowType")
@@ -52121,7 +52906,7 @@ defineType("GenericTypeAnnotation", {
   visitor: ["id", "typeParameters"],
   aliases: ["FlowType"],
   fields: {
-    id: (0, _utils.validateType)(["Identifier", "QualifiedTypeIdentifier"]),
+    id: (0, _utils.validateType)("Identifier", "QualifiedTypeIdentifier"),
     typeParameters: (0, _utils.validateOptionalType)("TypeParameterInstantiation")
   }
 });
@@ -52131,7 +52916,7 @@ defineType("InferredPredicate", {
 defineType("InterfaceExtends", {
   visitor: ["id", "typeParameters"],
   fields: {
-    id: (0, _utils.validateType)(["Identifier", "QualifiedTypeIdentifier"]),
+    id: (0, _utils.validateType)("Identifier", "QualifiedTypeIdentifier"),
     typeParameters: (0, _utils.validateOptionalType)("TypeParameterInstantiation")
   }
 });
@@ -52179,7 +52964,7 @@ defineType("ObjectTypeAnnotation", {
   aliases: ["FlowType"],
   builder: ["properties", "indexers", "callProperties", "internalSlots", "exact"],
   fields: {
-    properties: (0, _utils.validate)((0, _utils.arrayOfType)(["ObjectTypeProperty", "ObjectTypeSpreadProperty"])),
+    properties: (0, _utils.validate)((0, _utils.arrayOfType)("ObjectTypeProperty", "ObjectTypeSpreadProperty")),
     indexers: {
       validate: (0, _utils.arrayOfType)("ObjectTypeIndexer"),
       optional: true,
@@ -52238,7 +53023,7 @@ defineType("ObjectTypeProperty", {
   visitor: ["key", "value", "variance"],
   aliases: ["UserWhitespacable"],
   fields: {
-    key: (0, _utils.validateType)(["Identifier", "StringLiteral"]),
+    key: (0, _utils.validateType)("Identifier", "StringLiteral"),
     value: (0, _utils.validateType)("FlowType"),
     kind: (0, _utils.validate)((0, _utils.assertOneOf)("init", "get", "set")),
     static: (0, _utils.validate)((0, _utils.assertValueType)("boolean")),
@@ -52270,7 +53055,7 @@ defineType("QualifiedTypeIdentifier", {
   builder: ["id", "qualification"],
   fields: {
     id: (0, _utils.validateType)("Identifier"),
-    qualification: (0, _utils.validateType)(["Identifier", "QualifiedTypeIdentifier"])
+    qualification: (0, _utils.validateType)("Identifier", "QualifiedTypeIdentifier")
   }
 });
 defineType("StringLiteralTypeAnnotation", {
@@ -52368,7 +53153,7 @@ defineType("EnumDeclaration", {
   visitor: ["id", "body"],
   fields: {
     id: (0, _utils.validateType)("Identifier"),
-    body: (0, _utils.validateType)(["EnumBooleanBody", "EnumNumberBody", "EnumStringBody", "EnumSymbolBody"])
+    body: (0, _utils.validateType)("EnumBooleanBody", "EnumNumberBody", "EnumStringBody", "EnumSymbolBody")
   }
 });
 defineType("EnumBooleanBody", {
@@ -52394,7 +53179,7 @@ defineType("EnumStringBody", {
   visitor: ["members"],
   fields: {
     explicitType: (0, _utils.validate)((0, _utils.assertValueType)("boolean")),
-    members: (0, _utils.validateArrayOfType)(["EnumStringMember", "EnumDefaultedMember"]),
+    members: (0, _utils.validateArrayOfType)("EnumStringMember", "EnumDefaultedMember"),
     hasUnknownMembers: (0, _utils.validate)((0, _utils.assertValueType)("boolean"))
   }
 });
@@ -52536,7 +53321,6 @@ Object.defineProperty(exports, "VISITOR_KEYS", ({
     return _utils.VISITOR_KEYS;
   }
 }));
-var _toFastProperties = __nccwpck_require__(9049);
 __nccwpck_require__(1268);
 __nccwpck_require__(9792);
 __nccwpck_require__(1626);
@@ -52549,14 +53333,6 @@ var _deprecatedAliases = __nccwpck_require__(9563);
 Object.keys(_deprecatedAliases.DEPRECATED_ALIASES).forEach(deprecatedAlias => {
   _utils.FLIPPED_ALIAS_KEYS[deprecatedAlias] = _utils.FLIPPED_ALIAS_KEYS[_deprecatedAliases.DEPRECATED_ALIASES[deprecatedAlias]];
 });
-_toFastProperties(_utils.VISITOR_KEYS);
-_toFastProperties(_utils.ALIAS_KEYS);
-_toFastProperties(_utils.FLIPPED_ALIAS_KEYS);
-_toFastProperties(_utils.NODE_FIELDS);
-_toFastProperties(_utils.BUILDER_KEYS);
-_toFastProperties(_utils.DEPRECATED_KEYS);
-_toFastProperties(_placeholders.PLACEHOLDERS_ALIAS);
-_toFastProperties(_placeholders.PLACEHOLDERS_FLIPPED_ALIAS);
 const TYPES = exports.TYPES = [].concat(Object.keys(_utils.VISITOR_KEYS), Object.keys(_utils.FLIPPED_ALIAS_KEYS), Object.keys(_utils.DEPRECATED_KEYS));
 
 //# sourceMappingURL=index.js.map
@@ -52606,9 +53382,7 @@ defineType("JSXElement", {
       optional: true,
       validate: (0, _utils.assertNodeType)("JSXClosingElement")
     },
-    children: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("JSXText", "JSXExpressionContainer", "JSXSpreadChild", "JSXElement", "JSXFragment")))
-    }
+    children: (0, _utils.validateArrayOfType)("JSXText", "JSXExpressionContainer", "JSXSpreadChild", "JSXElement", "JSXFragment")
   }, {
     selfClosing: {
       validate: (0, _utils.assertValueType)("boolean"),
@@ -52676,9 +53450,7 @@ defineType("JSXOpeningElement", {
     selfClosing: {
       default: false
     },
-    attributes: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("JSXAttribute", "JSXSpreadAttribute")))
-    },
+    attributes: (0, _utils.validateArrayOfType)("JSXAttribute", "JSXSpreadAttribute"),
     typeParameters: {
       validate: (0, _utils.assertNodeType)("TypeParameterInstantiation", "TSTypeParameterInstantiation"),
       optional: true
@@ -52713,9 +53485,7 @@ defineType("JSXFragment", {
     closingFragment: {
       validate: (0, _utils.assertNodeType)("JSXClosingFragment")
     },
-    children: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("JSXText", "JSXExpressionContainer", "JSXSpreadChild", "JSXElement", "JSXFragment")))
-    }
+    children: (0, _utils.validateArrayOfType)("JSXText", "JSXExpressionContainer", "JSXSpreadChild", "JSXElement", "JSXFragment")
   }
 });
 defineType("JSXOpeningFragment", {
@@ -52738,6 +53508,7 @@ defineType("JSXClosingFragment", {
 
 var _utils = __nccwpck_require__(4106);
 var _placeholders = __nccwpck_require__(2122);
+var _core = __nccwpck_require__(1268);
 const defineType = (0, _utils.defineAliasedType)("Miscellaneous");
 {
   defineType("Noop", {
@@ -52747,14 +53518,14 @@ const defineType = (0, _utils.defineAliasedType)("Miscellaneous");
 defineType("Placeholder", {
   visitor: [],
   builder: ["expectedNode", "name"],
-  fields: {
+  fields: Object.assign({
     name: {
       validate: (0, _utils.assertNodeType)("Identifier")
     },
     expectedNode: {
       validate: (0, _utils.assertOneOf)(..._placeholders.PLACEHOLDERS)
     }
-  }
+  }, (0, _core.patternLikeCommon)())
 });
 defineType("V8IntrinsicIdentifier", {
   builder: ["name"],
@@ -52846,7 +53617,7 @@ defineType("TSParameterProperty", {
       optional: true
     },
     decorators: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("Decorator"))),
+      validate: (0, _utils.arrayOfType)("Decorator"),
       optional: true
     }
   }
@@ -52870,7 +53641,7 @@ defineType("TSQualifiedName", {
 });
 const signatureDeclarationCommon = () => ({
   typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterDeclaration"),
-  ["parameters"]: (0, _utils.validateArrayOfType)(["ArrayPattern", "Identifier", "ObjectPattern", "RestElement"]),
+  ["parameters"]: (0, _utils.validateArrayOfType)("ArrayPattern", "Identifier", "ObjectPattern", "RestElement"),
   ["typeAnnotation"]: (0, _utils.validateOptionalType)("TSTypeAnnotation")
 });
 const callConstructSignatureDeclaration = {
@@ -52955,7 +53726,7 @@ defineType("TSTypePredicate", {
   visitor: ["parameterName", "typeAnnotation"],
   builder: ["parameterName", "typeAnnotation", "asserts"],
   fields: {
-    parameterName: (0, _utils.validateType)(["Identifier", "TSThisType"]),
+    parameterName: (0, _utils.validateType)("Identifier", "TSThisType"),
     typeAnnotation: (0, _utils.validateOptionalType)("TSTypeAnnotation"),
     asserts: (0, _utils.validateOptional)(bool)
   }
@@ -52964,7 +53735,7 @@ defineType("TSTypeQuery", {
   aliases: ["TSType"],
   visitor: ["exprName", "typeParameters"],
   fields: {
-    exprName: (0, _utils.validateType)(["TSEntityName", "TSImportType"]),
+    exprName: (0, _utils.validateType)("TSEntityName", "TSImportType"),
     typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation")
   }
 });
@@ -52986,7 +53757,7 @@ defineType("TSTupleType", {
   aliases: ["TSType"],
   visitor: ["elementTypes"],
   fields: {
-    elementTypes: (0, _utils.validateArrayOfType)(["TSType", "TSNamedTupleMember"])
+    elementTypes: (0, _utils.validateArrayOfType)("TSType", "TSNamedTupleMember")
   }
 });
 defineType("TSOptionalType", {
@@ -53100,14 +53871,17 @@ defineType("TSLiteralType", {
     }
   }
 });
-defineType("TSExpressionWithTypeArguments", {
+const expressionWithTypeArguments = {
   aliases: ["TSType"],
   visitor: ["expression", "typeParameters"],
   fields: {
     expression: (0, _utils.validateType)("TSEntityName"),
     typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation")
   }
-});
+};
+{
+  defineType("TSExpressionWithTypeArguments", expressionWithTypeArguments);
+}
 defineType("TSInterfaceDeclaration", {
   aliases: ["Statement", "Declaration"],
   visitor: ["id", "typeParameters", "extends", "body"],
@@ -53175,7 +53949,7 @@ defineType("TSEnumDeclaration", {
 defineType("TSEnumMember", {
   visitor: ["id", "initializer"],
   fields: {
-    id: (0, _utils.validateType)(["Identifier", "StringLiteral"]),
+    id: (0, _utils.validateType)("Identifier", "StringLiteral"),
     initializer: (0, _utils.validateOptionalType)("Expression")
   }
 });
@@ -53185,8 +53959,8 @@ defineType("TSModuleDeclaration", {
   fields: {
     declare: (0, _utils.validateOptional)(bool),
     global: (0, _utils.validateOptional)(bool),
-    id: (0, _utils.validateType)(["Identifier", "StringLiteral"]),
-    body: (0, _utils.validateType)(["TSModuleBlock", "TSModuleDeclaration"])
+    id: (0, _utils.validateType)("Identifier", "StringLiteral"),
+    body: (0, _utils.validateType)("TSModuleBlock", "TSModuleDeclaration")
   }
 });
 defineType("TSModuleBlock", {
@@ -53215,7 +53989,7 @@ defineType("TSImportEqualsDeclaration", {
   fields: {
     isExport: (0, _utils.validate)(bool),
     id: (0, _utils.validateType)("Identifier"),
-    moduleReference: (0, _utils.validateType)(["TSEntityName", "TSExternalModuleReference"]),
+    moduleReference: (0, _utils.validateType)("TSEntityName", "TSExternalModuleReference"),
     importKind: {
       validate: (0, _utils.assertOneOf)("type", "value"),
       optional: true
@@ -53260,17 +54034,13 @@ defineType("TSTypeAnnotation", {
 defineType("TSTypeParameterInstantiation", {
   visitor: ["params"],
   fields: {
-    params: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TSType")))
-    }
+    params: (0, _utils.validateArrayOfType)("TSType")
   }
 });
 defineType("TSTypeParameterDeclaration", {
   visitor: ["params"],
   fields: {
-    params: {
-      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TSTypeParameter")))
-    }
+    params: (0, _utils.validateArrayOfType)("TSTypeParameter")
   }
 });
 defineType("TSTypeParameter", {
@@ -53330,7 +54100,6 @@ exports.assertValueType = assertValueType;
 exports.chain = chain;
 exports["default"] = defineType;
 exports.defineAliasedType = defineAliasedType;
-exports.typeIs = typeIs;
 exports.validate = validate;
 exports.validateArrayOfType = validateArrayOfType;
 exports.validateOptional = validateOptional;
@@ -53359,11 +54128,8 @@ function validate(validate) {
     validate
   };
 }
-function typeIs(typeName) {
-  return typeof typeName === "string" ? assertNodeType(typeName) : assertNodeType(...typeName);
-}
-function validateType(typeName) {
-  return validate(typeIs(typeName));
+function validateType(...typeNames) {
+  return validate(assertNodeType(...typeNames));
 }
 function validateOptional(validate) {
   return {
@@ -53371,29 +54137,30 @@ function validateOptional(validate) {
     optional: true
   };
 }
-function validateOptionalType(typeName) {
+function validateOptionalType(...typeNames) {
   return {
-    validate: typeIs(typeName),
+    validate: assertNodeType(...typeNames),
     optional: true
   };
 }
 function arrayOf(elementType) {
   return chain(assertValueType("array"), assertEach(elementType));
 }
-function arrayOfType(typeName) {
-  return arrayOf(typeIs(typeName));
+function arrayOfType(...typeNames) {
+  return arrayOf(assertNodeType(...typeNames));
 }
-function validateArrayOfType(typeName) {
-  return validate(arrayOfType(typeName));
+function validateArrayOfType(...typeNames) {
+  return validate(arrayOfType(...typeNames));
 }
 function assertEach(callback) {
+  const childValidator = process.env.BABEL_TYPES_8_BREAKING ? _validate.validateChild : () => {};
   function validator(node, key, val) {
     if (!Array.isArray(val)) return;
     for (let i = 0; i < val.length; i++) {
       const subkey = `${key}[${i}]`;
       const v = val[i];
       callback(node, subkey, v);
-      if (process.env.BABEL_TYPES_8_BREAKING) (0, _validate.validateChild)(node, subkey, v);
+      childValidator(node, subkey, v);
     }
   }
   validator.each = callback;
@@ -53501,8 +54268,8 @@ function chain(...fns) {
   }
   return validate;
 }
-const validTypeOpts = ["aliases", "builder", "deprecatedAlias", "fields", "inherits", "visitor", "validate"];
-const validFieldKeys = ["default", "optional", "deprecated", "validate"];
+const validTypeOpts = new Set(["aliases", "builder", "deprecatedAlias", "fields", "inherits", "visitor", "validate"]);
+const validFieldKeys = new Set(["default", "optional", "deprecated", "validate"]);
 const store = {};
 function defineAliasedType(...aliases) {
   return (type, opts = {}) => {
@@ -53544,7 +54311,7 @@ function defineType(type, opts = {}) {
   const aliases = opts.aliases || inherits.aliases || [];
   const builder = opts.builder || inherits.builder || opts.visitor || [];
   for (const k of Object.keys(opts)) {
-    if (!validTypeOpts.includes(k)) {
+    if (!validTypeOpts.has(k)) {
       throw new Error(`Unknown type option "${k}" on ${type}`);
     }
   }
@@ -53565,7 +54332,7 @@ function defineType(type, opts = {}) {
       field.validate = assertValueType(getType(field.default));
     }
     for (const k of Object.keys(field)) {
-      if (!validFieldKeys.includes(k)) {
+      if (!validFieldKeys.has(k)) {
         throw new Error(`Unknown field key "${k}" on ${type}.${key}`);
       }
     }
@@ -54182,6 +54949,9 @@ const react = exports.react = {
 };
 {
   exports.toSequenceExpression = __nccwpck_require__(8902)["default"];
+}
+if (process.env.BABEL_TYPES_8_BREAKING) {
+  console.warn("BABEL_TYPES_8_BREAKING is not supported anymore. Use the latest Babel 8.0.0 pre-release instead!");
 }
 
 //# sourceMappingURL=index.js.map
@@ -57772,7 +58542,7 @@ function is(type, node, opts) {
     }
     return false;
   }
-  if (typeof opts === "undefined") {
+  if (opts === undefined) {
     return true;
   } else {
     return (0, _shallowEqual.default)(node, opts);
@@ -58348,6 +59118,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = validate;
 exports.validateChild = validateChild;
 exports.validateField = validateField;
+exports.validateInternal = validateInternal;
 var _index = __nccwpck_require__(5078);
 function validate(node, key, val) {
   if (!node) return;
@@ -58357,16 +59128,27 @@ function validate(node, key, val) {
   validateField(node, key, val, field);
   validateChild(node, key, val);
 }
+function validateInternal(field, node, key, val, maybeNode) {
+  if (!(field != null && field.validate)) return;
+  if (field.optional && val == null) return;
+  field.validate(node, key, val);
+  if (maybeNode) {
+    var _NODE_PARENT_VALIDATI;
+    const type = val.type;
+    if (type == null) return;
+    (_NODE_PARENT_VALIDATI = _index.NODE_PARENT_VALIDATIONS[type]) == null || _NODE_PARENT_VALIDATI.call(_index.NODE_PARENT_VALIDATIONS, node, key, val);
+  }
+}
 function validateField(node, key, val, field) {
   if (!(field != null && field.validate)) return;
   if (field.optional && val == null) return;
   field.validate(node, key, val);
 }
 function validateChild(node, key, val) {
-  if (val == null) return;
-  const validate = _index.NODE_PARENT_VALIDATIONS[val.type];
-  if (!validate) return;
-  validate(node, key, val);
+  var _NODE_PARENT_VALIDATI2;
+  const type = val == null ? void 0 : val.type;
+  if (type == null) return;
+  (_NODE_PARENT_VALIDATI2 = _index.NODE_PARENT_VALIDATIONS[type]) == null || _NODE_PARENT_VALIDATI2.call(_index.NODE_PARENT_VALIDATIONS, node, key, val);
 }
 
 //# sourceMappingURL=validate.js.map

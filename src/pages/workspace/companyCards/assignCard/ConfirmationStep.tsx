@@ -21,7 +21,7 @@ import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type ConfirmationStepProps = {
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Route to go back to */
     backTo?: Route;
@@ -38,6 +38,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const submit = () => {
+        if (!policyID) {
+            return;
+        }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();

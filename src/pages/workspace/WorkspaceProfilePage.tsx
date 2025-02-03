@@ -19,17 +19,18 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearInviteDraft} from '@libs/actions/Policy/Member';
+import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy/Policy';
+import {getFullSizeAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,13 +55,13 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.id ? getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const hasCardFeedOrExpensifyCard =
@@ -113,14 +114,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const policyDescription =
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        Parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
-    const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const isOwner = PolicyUtils.isPolicyOwner(policy, currentUserAccountID);
+        policy?.description || Parser.replace(translate('workspace.common.defaultDescription'));
+    const readOnly = !isPolicyAdminPolicyUtils(policy);
+    const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
 
@@ -128,7 +124,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         if (policyDraft?.id) {
             return;
         }
-        Policy.openPolicyProfilePage(route.params.policyID);
+        openPolicyProfilePage(route.params.policyID);
     }, [policyDraft?.id, route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
@@ -147,7 +143,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={policy?.avatarURL || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
@@ -165,7 +161,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
 
-        Policy.deleteWorkspace(policy.id, policyName);
+        deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
@@ -231,13 +227,13 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 if (!policy?.id) {
                                     return;
                                 }
-                                Policy.updateWorkspaceAvatar(policy.id, file as File);
+                                updateWorkspaceAvatar(policy.id, file as File);
                             }}
                             onImageRemoved={() => {
                                 if (!policy?.id) {
                                     return;
                                 }
-                                Policy.deleteWorkspaceAvatar(policy.id);
+                                deleteWorkspaceAvatar(policy.id);
                             }}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
@@ -246,9 +242,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 if (!policy?.id) {
                                     return;
                                 }
-                                Policy.clearAvatarErrors(policy.id);
+                                clearAvatarErrors(policy.id);
                             }}
-                            previewSource={UserUtils.getFullSizeAvatar(policy?.avatarURL ?? '')}
+                            previewSource={getFullSizeAvatar(policy?.avatarURL ?? '')}
                             headerTitle={translate('workspace.common.workspaceAvatar')}
                             originalFileName={policy?.originalFileName}
                             disabled={readOnly}
@@ -261,45 +257,41 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
-                                disabled={readOnly}
+                                interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
-                                shouldGreyOutWhenDisabled={false}
-                                shouldUseDefaultCursorWhenDisabled
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.description}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
                                 onClose={() => {
                                     if (!policy?.id) {
                                         return;
                                     }
-                                    Policy.clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
+                                    clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
                                 }}
                             >
                                 <MenuItemWithTopDescription
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
                                     shouldShowRightIcon={!readOnly}
-                                    disabled={readOnly}
+                                    interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.outputCurrency}
-                            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
+                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             onClose={() => {
                                 if (!policy?.id) {
                                     return;
                                 }
-                                Policy.clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS);
+                                clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS);
                             }}
                             errorRowStyles={[styles.mt2]}
                         >
@@ -307,12 +299,10 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    disabled={hasVBA ? true : readOnly}
+                                    shouldShowRightIcon={hasVBA ? false : !readOnly}
+                                    interactive={hasVBA ? false : !readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
                                     hintText={hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                 />
                             </View>
@@ -324,11 +314,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         title={formattedAddress}
                                         description={translate('common.companyAddress')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
@@ -338,14 +326,11 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
-                                        title={PolicyUtils.getUserFriendlyWorkspaceType(policy.type)}
+                                        title={getUserFriendlyWorkspaceType(policy.type)}
                                         description={translate('workspace.common.planType')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
+                                        shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressPlanType}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
                                     />
                                 </View>
                             </OfflineWithFeedback>
@@ -356,7 +341,10 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     <Button
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()))}
+                                        onPress={() => {
+                                            clearInviteDraft(route.params.policyID);
+                                            Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+                                        }}
                                         icon={Expensicons.UserPlus}
                                         style={[styles.mr2]}
                                     />

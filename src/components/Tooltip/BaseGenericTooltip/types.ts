@@ -33,7 +33,13 @@ type BaseGenericTooltipProps = {
 
     /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
-} & Pick<SharedTooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay'>;
+
+    /** Whether it is education tooltip */
+    isEducationTooltip?: boolean;
+} & Pick<
+    SharedTooltipProps,
+    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onTooltipPress'
+>;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {BaseGenericTooltipProps};
