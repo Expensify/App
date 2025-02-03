@@ -588,6 +588,13 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        bottomContentContainer: (shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+        }),
+
         bottomTabBarItem: {
             height: '100%',
             display: 'flex',

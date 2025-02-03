@@ -344,10 +344,10 @@ function ScreenWrapper(
                                         <ImportedStateIndicator />
                                     </>
                                 )}
-                                {bottomContent}
                             </ScreenWrapperStatusContext.Provider>
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
+                    <View style={styles.bottomContentContainer(shouldUseNarrowLayout, paddingBottom)}>{bottomContent}</View>
                 </View>
             </View>
         </FocusTrapForScreens>
