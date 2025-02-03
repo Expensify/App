@@ -84,8 +84,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
-                Navigation.dismissModal();
-                return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
+                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
 
