@@ -34,6 +34,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
@@ -143,9 +144,17 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                ? selectedReports.every(
+                      (report) =>
+                          report.action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          report.policyID &&
+                          (!!lastPaymentMethods[report.policyID] || !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.DEFAULT),
+                  )
                 : selectedTransactionsKeys.every(
-                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                      (id) =>
+                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          selectedTransactions[id].policyID &&
+                          (!!lastPaymentMethods[selectedTransactions[id].policyID] || !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).DEFAULT),
                   ));
 
         if (shouldShowPayOption) {
