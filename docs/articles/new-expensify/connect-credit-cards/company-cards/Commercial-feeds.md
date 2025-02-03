@@ -64,30 +64,40 @@ No information required
 # How to Assign Company Cards
 Once your feed is connected, you can assign cards to employees. To do this, navigate to **Settings > Workspaces > [your workspace] > Company cards**.
 
-![Click the feed name to view the feed selector]({{site.url}}/assets/images/commfeed/commfeed-01.png){:width="100%"}
+![Click the feed name to view the feed selector]({{site.url}}/assets/images/commfeed/commfeed-01-updated.png){:width="100%"}
 
 If you have multiple feeds, click the feed name at the top left to select the appropriate one.
 
-![Select a feed from the feed selector to view it]({{site.url}}/assets/images/commfeed/commfeed-02.png){:width="100%"}
+![Select a feed from the feed selector to view it]({{site.url}}/assets/images/commfeed/commfeed-02-updated.png){:width="100%"}
 
 Click **Assign card** to select an employee. All workspace members appear in the list.
 
-![Click assign card and select an employee from the list]({{site.url}}/assets/images/commfeed/commfeed-03.png){:width="100%"}
+![Click assign card and select an employee from the list]({{site.url}}/assets/images/commfeed/commfeed-03-updated.png){:width="100%"}
 
 Select the card you want to assign. Cards only appear if they have recent transactions.
 
-![Select a card from the list]({{site.url}}/assets/images/commfeed/commfeed-04.png){:width="100%"}
+![Select a card from the list]({{site.url}}/assets/images/commfeed/commfeed-04-updated.png){:width="100%"}
 
 Choose a start date:
 - **From the beginning:** Imports all available transactions (typically 30-90 days).
 - **Custom start date:** Allows you to specify a date.
   
-![Select your transaction start date]({{site.url}}/assets/images/commfeed/commfeed-05.png){:width="100%"}
+![Select your transaction start date]({{site.url}}/assets/images/commfeed/commfeed-05-updated.png){:width="100%"}
 
 Review the details and click **Assign card**. Transactions will import immediately.
 
-![Double check the selections and assign the card]({{site.url}}/assets/images/commfeed/commfeed-06.png){:width="100%"}
+![Double check the selections and assign the card]({{site.url}}/assets/images/commfeed/commfeed-06-updated.png){:width="100%"}
 
+# Managing Cards
+Once a card is assigned, you can manage its settings by navigating to **Settings > Workspaces > [your workspace] > Company cards** and selecting the assigned card.
+
+## Available Card Management Actions:
+- **Rename the Card**: Change the card name for easier identification.
+- **Set a Specific Export Account**: If connected to accounting software like QuickBooks, NetSuite, or Xero, you can assign a unique export account for this card.
+- **Update Transactions**: Manually refresh the card feed to pull in the latest transactions.
+- **Unassign the Card**: Removing a card unassigns it from the employee and deletes unsubmitted expenses from draft reports in their account.
+
+![Manage the card on the card details page]({{site.url}}/assets/images/commfeed/commfeed-07-updated.png){:width="100%"}
 
 # FAQ 
 
