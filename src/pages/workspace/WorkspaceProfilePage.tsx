@@ -27,7 +27,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminUtil, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -55,7 +55,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const isPolicyAdmin = isPolicyAdminUtil(policy);
+    const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -114,13 +114,8 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const policyDescription =
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        Parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
-    const readOnly = !isPolicyAdminUtil(policy);
+        policy?.description || Parser.replace(translate('workspace.common.defaultDescription'));
+    const readOnly = !isPolicyAdminPolicyUtils(policy);
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
