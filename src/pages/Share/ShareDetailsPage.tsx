@@ -21,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
-import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
@@ -83,8 +82,6 @@ function ShareDetailsPage({
                         addAttachment(report.reportID, file, message);
                     }
                 }
-
-                ShareActionHandler.removeSharedFolder();
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
                 Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);

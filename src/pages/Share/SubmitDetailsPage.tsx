@@ -21,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,7 +90,6 @@ function SubmitDetailsPage({
                 linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
             },
         });
-        ShareActionHandler.removeSharedFolder();
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {

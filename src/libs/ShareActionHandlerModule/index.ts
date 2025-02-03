@@ -15,9 +15,6 @@ type ShareActionContent = {
 type ShareActionHandlerModule = {
     // Method to process files, which takes a callback function
     processFiles(callback: (array: ShareActionContent[]) => void): void;
-
-    // Method to remove the shared folder
-    removeSharedFolder(): void;
 };
 
 export default ShareActionHandler;

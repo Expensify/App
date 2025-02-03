@@ -86,22 +86,4 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             callback.invoke(e.toString(), null)
         }
     }
-
-    @ReactMethod
-    fun removeSharedFolder() {
-        try {
-            val sharedPreferences = reactApplicationContext.getSharedPreferences(
-                IntentHandlerConstants.preferencesFile,
-                Context.MODE_PRIVATE
-            );
-            sharedPreferences.edit().remove(IntentHandlerConstants.shareObjectProperty).apply();
-
-            val sharedFolder = File(reactApplicationContext.filesDir, IntentHandlerConstants.shareObjectProperty);
-            if (sharedFolder.exists() && sharedFolder.isDirectory) {
-                sharedFolder.deleteRecursively();
-            }
-        } catch (e: Exception) {
-            Log.e("ShareActionHandlerModule", "Failed to remove shared folder: ${e.message}");
-        }
-    }
 }

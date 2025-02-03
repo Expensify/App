@@ -126,23 +126,4 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     return [NSString stringWithFormat:@"%@_%@", timestamp, filePath];
 }
 
-RCT_EXPORT_METHOD(removeSharedFolder) {
-    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:ShareExtensionGroupId];
-    [defaults removeObjectForKey:ShareExtensionFilesKey];
-    [defaults synchronize];
-    
-    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:ShareExtensionGroupId];
-    NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
-    NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
-    
-    NSError *error = nil;
-    [[NSFileManager defaultManager] removeItemAtPath:sharedFilesFolderPath error:&error];
-    
-    if (error) {
-        NSLog(@"Failed to remove shared folder: %@", error);
-    } else {
-        NSLog(@"Shared folder was successfully removed");
-    }
-}
-
 @end
