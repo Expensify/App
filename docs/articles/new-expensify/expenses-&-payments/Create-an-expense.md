@@ -60,6 +60,8 @@ When an expense is submitted to a workspace, your approver will receive an email
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
 {% include end-info.html %}
 
+{% include info.html %} SmartScan can only detect and process text written in the Latin alphabet. {% include end-info.html %}
+
 ## Manually add an expense
 
 {% include selector.html values="desktop, mobile" %}
