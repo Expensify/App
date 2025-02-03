@@ -2,24 +2,108 @@ name: Build and profile Android apps
 
 on:
   workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull Request number for correct placement of app
+        required: false
+        default: ''
+      OLD_DOT_PULL_REQUEST_NUMBER:
+        description: Old Dot Pull Request number for correct placement of app
+        required: false
+        default: ''
 
 jobs:
+  getBranchRef:
+    runs-on: ubuntu-latest
+    outputs:
+      REF: ${{ steps.getHeadRef.outputs.REF }}
+    steps:
+      - name: Get ND PR commit SHA
+        id: getHeadRef
+        run: |
+          set -e
+          if [[ ${{ github.event.inputs.PULL_REQUEST_NUMBER }} == ' ']]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+  getOldDotBranchRef:
+    runs-on: ubuntu-latest
+    outputs:
+      OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
+    steps:
+      - name: Get OD PR commit SHA
+        id: getHeadRef
+        run: |
+          set -e
+          if [[ ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }} == ' ']]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+  
+  
+  postGitHubCommentBuildStarted:
+    runs-on: ubuntu-latest
+    needs: [getBranchRef, getOldDotBranchRef]
+    steps:
+      - name: Add comment to ND PR 
+        if: ${{ github.event.inputs.PULL_REQUEST_NUMBER != ''}}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }},
+              body: `🚧 @${{ github.actor }} has triggered build profiling. You can view the [workflow run here](${workflowURL}).`
+            });  
+      
+      - name: Add comment to OD PR 
+        if: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: 'Mobile-Expensify',
+              issue_number: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }},
+              body: `🚧 @${{ github.actor }} has triggered build profiling. You can view the [workflow run here](${workflowURL}).`
+            });
+       
   buildHybridAppAndroid:
     name: Build HybridApp Android
+    needs: [getBranchRef, getOldDotBranchRef]
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
+          ref: ${{ needs.getBranchRef || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+      
+      - name: Checkout Old Dot if PR specified
+        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        run: |
           cd Mobile-Expensify
-          git fetch
-          git checkout main
+          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+                
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -88,12 +172,14 @@ jobs:
 
   buildStandaloneAndroid:
     name: Build Standalone Android
+    needs: [getBranchRef]
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ref: ${{ needs.getBranchRef || 'main' }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
