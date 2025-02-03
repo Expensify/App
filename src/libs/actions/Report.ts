@@ -935,7 +935,7 @@ function openReport(
                 onboardingMessage.tasks = updatedTasks;
             }
 
-            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+            const onboardingData = prepareOnboardingOnyxData(choice, onboardingMessage);
 
             if (onboardingData) {
                 optimisticData.push(...onboardingData.optimisticData, {
@@ -3439,7 +3439,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, severity: string) {
+function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
@@ -3619,7 +3619,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function prepareOnboardingOptimisticData(
+function prepareOnboardingOnyxData(
     engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     adminsChatReportID?: string,
@@ -3638,11 +3638,16 @@ function prepareOnboardingOptimisticData(
         data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
-    const shouldPostTasksInAdminsRoom = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+');
+    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
+    type PostTasksInAdminsRoomOnboardingChoices = 'newDotManageTeam' | 'newDotTrackWorkspace';
+    const shouldPostTasksInAdminsRoom =
+        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as PostTasksInAdminsRoomOnboardingChoices) &&
+        !currentUserEmail?.includes('+');
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
-    const targetChatReport = shouldPostTasksInAdminsRoom ? adminsChatReport : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
-    const {reportID: targetChatReportID, policyID: targetChatPolicyID} = targetChatReport ?? {};
+    const targetChatReport = shouldPostTasksInAdminsRoom
+        ? adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID}
+        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
+    const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
         Log.warn('Missing reportID for onboarding optimistic data');
@@ -3653,7 +3658,7 @@ function prepareOnboardingOptimisticData(
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
-    if (assignedGuidePersonalDetail) {
+    if (assignedGuidePersonalDetail && assignedGuidePersonalDetail.accountID) {
         assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
     } else {
         assignedGuideAccountID = generateAccountID(assignedGuideEmail);
@@ -3675,17 +3680,7 @@ function prepareOnboardingOptimisticData(
         reportComment: textComment.commentText,
     };
 
-    let videoCommentAction: OptimisticAddCommentReportAction | null = null;
-    let videoMessage: AddCommentOrAttachementParams | null = null;
-    if ('video' in data && data.video) {
-        const videoComment = buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
-        videoCommentAction = videoComment.reportAction;
-        videoMessage = {
-            reportID: targetChatReportID,
-            reportActionID: videoCommentAction.reportActionID,
-            reportComment: videoComment.commentText,
-        };
-    }
+    let createWorkspaceTaskReportID;
     const tasksData = data.tasks
         .filter((task) => {
             if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
@@ -3693,6 +3688,20 @@ function prepareOnboardingOptimisticData(
             }
 
             if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
+                return false;
+            }
+            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
+            if (
+                task.type === 'viewTour' &&
+                [
+                    CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.SUBMIT,
+                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
+                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
+            ) {
                 return false;
             }
             return true;
@@ -3725,6 +3734,7 @@ function prepareOnboardingOptimisticData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                false,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
@@ -3735,6 +3745,9 @@ function prepareOnboardingOptimisticData(
             const completedTaskReportAction = task.autoCompleted
                 ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
                 : null;
+            if (task.type === 'createWorkspace') {
+                createWorkspaceTaskReportID = currentTask.reportID;
+            }
 
             return {
                 task,
@@ -3910,7 +3923,6 @@ function prepareOnboardingOptimisticData(
 
     const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
     const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
-
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3925,12 +3937,15 @@ function prepareOnboardingOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {choice: engagementChoice},
+            value: {
+                choice: engagementChoice,
+                createWorkspace: createWorkspaceTaskReportID,
+            },
         },
     );
 
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3950,8 +3965,8 @@ function prepareOnboardingOptimisticData(
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
 
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3991,11 +4006,14 @@ function prepareOnboardingOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {choice: null},
+            value: {
+                choice: null,
+                createWorkspace: null,
+            },
         },
     );
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -4047,37 +4065,11 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    const guidedSetupData: GuidedSetupData = shouldPostTasksInAdminsRoom ? [] : [{type: 'message', ...textMessage}];
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    const guidedSetupData: GuidedSetupData = [];
 
-    if (!shouldPostTasksInAdminsRoom && 'video' in data && data.video && videoCommentAction && videoMessage) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
-            },
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {pendingAction: null},
-            },
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-
-        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        guidedSetupData.push({type: 'message', ...textMessage});
     }
 
     type SelfDMParameters = {
@@ -4154,33 +4146,36 @@ function prepareOnboardingOptimisticData(
         }
     }
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
-        },
-    });
+    guidedSetupData.push(...tasksForParameters);
 
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
-        },
-    });
+    if (!introSelected?.choice) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
+            },
+        });
 
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [welcomeSignOffCommentAction.reportActionID]: {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-            } as ReportAction,
-        },
-    });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
 
-    guidedSetupData.push(...tasksForParameters, {type: 'message', ...welcomeSignOffMessage});
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [welcomeSignOffCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+        guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
+    }
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
@@ -4197,7 +4192,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
-    const onboardingData = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
+    const onboardingData = prepareOnboardingOnyxData(engagementChoice, data, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
     if (!onboardingData) {
         return;
     }
@@ -4749,4 +4744,5 @@ export {
     getConciergeReportID,
     setDeleteTransactionNavigateBackUrl,
     clearDeleteTransactionNavigateBackUrl,
+    prepareOnboardingOnyxData,
 };
