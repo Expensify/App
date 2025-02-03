@@ -57,7 +57,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
-    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? -1;
+    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     /**
      * Set position of the payment menu
