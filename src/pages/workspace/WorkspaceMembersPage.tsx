@@ -126,7 +126,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             memberName: getDisplayNameForParticipant(approverAccountID),
             ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber, getPersonalDetailsByIDs, getDisplayNameForParticipant]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
@@ -422,6 +422,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         translate,
         styles.cursorDefault,
         canSelectMultiple,
+        isPolicyWorkspaceAdmin,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
@@ -580,7 +581,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     };
 
     const threeDotsMenuItems = useMemo(() => {
-        if (!isPolicyAdmin) {
+        if (!isPolicyWorkspaceAdmin) {
             return [];
         }
 
@@ -615,7 +616,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin]);
+    }, [policyID, translate, isOffline, isPolicyWorkspaceAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
