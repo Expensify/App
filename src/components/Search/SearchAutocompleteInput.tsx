@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useState} from 'react';
+import React, {forwardRef, useState, useLayoutEffect} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
+import {parseFSAttributes} from '@libs/Fullstory';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -96,6 +97,9 @@ function SearchAutocompleteInput(
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     return (
         <View style={[outerWrapperStyle]}>
