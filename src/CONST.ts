@@ -716,6 +716,13 @@ const CONST = {
                 SIGNER_DETAILS_FORM: 3,
                 HANG_TIGHT: 4,
             },
+            SIGNER_INFO_ADDRESS_DATA: {
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+                COUNTRY: 'nationality',
+            },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },

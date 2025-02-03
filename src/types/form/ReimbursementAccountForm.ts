@@ -139,6 +139,10 @@ type BeneficialOwnersStepExtraProps = {
     beneficialOwnerKeys?: string[];
 };
 
+type SignerInfoStepExtraProps = {
+    [key: string]: string;
+};
+
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
 
 type BankAccountStepProps = {
@@ -375,6 +379,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
+    SignerInfoStepExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
