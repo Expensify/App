@@ -16,7 +16,7 @@ type SharedProps<T> = {
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
-    body?: React.ReactNode;
+    children?: React.ReactNode;
     buttons?: Button[];
     containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;

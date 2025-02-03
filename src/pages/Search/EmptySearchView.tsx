@@ -60,7 +60,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
-    const contentBody = useMemo(() => {
+    const contentChildren = useMemo(() => {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -120,7 +120,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    body: contentBody,
+                    children: contentChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -220,7 +220,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        contentBody,
+        contentChildren,
         hasSeenTour,
         navatticURL,
         shouldRedirectToExpensifyClassic,
@@ -241,11 +241,12 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}
-                body={content.body}
                 buttons={content.buttons}
                 headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
                 lottieWebViewStyles={content.lottieWebViewStyles}
-            />
+            >
+                {content.children}
+            </EmptyStateComponent>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

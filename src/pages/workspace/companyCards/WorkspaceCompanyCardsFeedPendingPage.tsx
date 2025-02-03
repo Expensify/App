@@ -14,13 +14,6 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const body = (
-        <Text>
-            {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-            <TextLink onPress={() => navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>.
-        </Text>
-    );
-
     return (
         <EmptyStateComponent
             SkeletonComponent={CardRowSkeleton}
@@ -30,8 +23,12 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
             headerContentStyles={styles.pendingStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
-            body={body}
-        />
+        >
+            <Text>
+                {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
+                <TextLink onPress={() => navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>.
+            </Text>
+        </EmptyStateComponent>
     );
 }
 
