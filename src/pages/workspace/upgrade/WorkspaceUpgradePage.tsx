@@ -70,8 +70,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
-                        Navigation.dismissModal();
-                        return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                        return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
                     default: {
                         Navigation.goBack();
                         if (route.params.backTo) {
@@ -83,8 +82,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                Navigation.dismissModal();
-                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 Navigation.dismissModal();
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
