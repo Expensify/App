@@ -28,9 +28,16 @@ function SearchPage({route}: SearchPageProps) {
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
     // 2. On unmount: Stops video when leaving this screen
+    // in narrow layout, the reset will be handled by the attachment modal, so we don't need to do it here to preserve autoplay
     useEffect(() => {
+        if(shouldUseNarrowLayout){
+            return;
+        }
         resetVideoPlayerData();
         return () => {
+            if(shouldUseNarrowLayout){
+                return;
+            }
             resetVideoPlayerData();
         };
         // eslint-disable-next-line react-compiler/react-compiler

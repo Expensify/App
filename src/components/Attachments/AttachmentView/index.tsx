@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -31,6 +31,7 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
 import HighResolutionInfo from './HighResolutionInfo';
+import useSearchState from '@hooks/useSearchState';
 
 type AttachmentViewProps = Attachment & {
     /** Whether this view is the active screen  */
@@ -121,6 +122,7 @@ function AttachmentView({
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
     const isUsedInCarousel = !!attachmentCarouselPagerContext?.pagerRef;
+    const { isOnSearch } = useSearchState();
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -297,7 +299,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
-                shouldUseSharedVideoElement={isUsedInCarousel}
+                shouldUseSharedVideoElement={isUsedInCarousel || isOnSearch}
                 isHovered={isHovered}
                 duration={duration}
             />
