@@ -52,9 +52,8 @@ jobs:
 
       - name: Update submodule to match main
         run: |
-          git submodule update --init --remote
+          git submodule update --init --remote --depth 1
           cd Mobile-Expensify
-          git fetch
           git checkout main
 
       - name: Configure MapBox SDK
@@ -97,9 +96,8 @@ jobs:
 
       - name: Update submodule to match main
         run: |
-          git submodule update --init --remote
+          git submodule update --init --remote --depth 1
           cd Mobile-Expensify
-          git fetch
           git checkout main
 
       - name: Configure MapBox SDK
