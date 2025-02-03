@@ -46,13 +46,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
     const selfApproversEmails = getAllSelfApprovers(policy);
 
-    useEffect(() => {
-        if (!canEnablePreventSelfApprovals(policy) || !policy?.preventSelfApproval) {
-            return;
-        }
-        // If the policy has only one user, we disable the "Prevent Self Approvals" feature
-        setPolicyPreventSelfApproval(policyID, false);
-    }, [policy, policyID]);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
