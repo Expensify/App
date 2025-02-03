@@ -10,8 +10,7 @@ export default function useTranslator(source: string, srcLang: string, tgtLang: 
 
     useEffect(() => {
         if (!translatorPromise) {
-            console.log('over here koa')
-            translatorPromise = pipeline('translation', 'Xenova/nllb-200-distilled-600M', { progress_callback: (x) => console.log('over here progress: ', x)});
+            translatorPromise = pipeline('translation', 'Xenova/nllb-200-distilled-600M', { progress_callback: (x) => console.log('progress: ', x)});
         }
 
         // eslint-disable-next-line
@@ -19,16 +18,14 @@ export default function useTranslator(source: string, srcLang: string, tgtLang: 
             if (!source) {
                 return;
             }
-            console.log('over here translating: ', source)
 
             try {
                 const translator = await translatorPromise;
                 const output = await translator(source, {tgt_lang: tgtLang});
                 const translatedText = (output?.[0]?.translation_text as string) || '';
-                console.log('over here translation', {source, translatedText})
+                console.log('translation', {source, translatedText})
                 setText(translatedText);
             } catch (error) {
-                console.error('over here Translation error:', error);
                 return;
             }
         };

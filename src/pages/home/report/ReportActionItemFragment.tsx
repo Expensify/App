@@ -98,7 +98,7 @@ function ReportActionItemFragment({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     let localFragment = {...fragment};
-    const text = useTranslator(localFragment?.html, 'eng_Latn', 'por_Latn');
+    const text = useTranslator(localFragment?.html, 'eng_Latn', 'ron_Latn');
     localFragment = {...fragment, ...{html: text}};
 
     switch (fragment?.type) {
