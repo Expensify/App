@@ -460,7 +460,9 @@ platform :ios do
         scheme: "New Expensify",
         configuration: "Debug",
         sdk: "iphonesimulator",
-        skip_codesigning: true
+        skip_codesigning: true,
+        skip_archive: true,
+        export_method: "development"
     )
     setIOSBuildOutputsInEnv()
   end
