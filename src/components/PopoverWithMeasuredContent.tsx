@@ -71,10 +71,8 @@ function PopoverWithMeasuredContent({
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    if (!prevIsVisible && isVisible) {
-        if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(modalId);
-        }
+    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+        ComposerFocusManager.saveFocusState(modalId);
     }
 
     /**
