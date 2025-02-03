@@ -529,7 +529,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         fetchReport();
-    }, [reportIDFromRoute, isLoadingApp, report, fetchReport, reportMetadata]);
+    }, [reportIDFromRoute, isLoadingApp, report, fetchReport, reportMetadata.isOptimisticReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -576,7 +576,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         fetchReportIfNeeded();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isLoadingReportOnyx, fetchReportIfNeeded]);
+    }, [isLoadingReportOnyx]);
 
     useEffect(() => {
         if (isLoadingReportOnyx || !reportActionIDFromRoute || isLinkedMessagePageReady) {
