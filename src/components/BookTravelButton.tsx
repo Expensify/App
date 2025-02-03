@@ -21,6 +21,12 @@ type BookTravelButtonProps = {
     text: string;
 };
 
+const navigateToAcceptTerms = (domain: string) => {
+    // Remove the previous provision session infromation if any is cached.
+    cleanupTravelProvisioningSession();
+    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+};
+
 function BookTravelButton({text}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -36,11 +42,15 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     const bookATrip = useCallback(() => {
+        setErrorMessage('');
+
+        // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
             setErrorMessage(translate('travel.phoneError'));
             return;
         }
 
+        // An address is required when the Spotnana entity is created for the policy
         if (isEmptyObject(policy?.address)) {
             Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
@@ -63,26 +73,19 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));
                 });
-            if (errorMessage) {
-                setErrorMessage('');
-            }
         } else if (isPolicyProvisioned) {
-            cleanupTravelProvisioningSession();
-            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else {
             const adminDomains = getAdminsPrivateEmailDomains(policy);
-            let routeToNavigateTo;
             if (adminDomains.length === 0) {
-                routeToNavigateTo = ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR;
+                Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
             } else if (adminDomains.length === 1) {
-                cleanupTravelProvisioningSession();
-                routeToNavigateTo = ROUTES.TRAVEL_TCS.getRoute(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
+                navigateToAcceptTerms(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
             } else {
-                routeToNavigateTo = ROUTES.TRAVEL_DOMAIN_SELECTOR;
+                Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
-            Navigation.navigate(routeToNavigateTo);
         }
-    }, [policy, isSingleNewDotEntry, travelSettings, translate, errorMessage, primaryLogin]);
+    }, [policy, isSingleNewDotEntry, travelSettings, translate, primaryLogin]);
 
     return (
         <>
