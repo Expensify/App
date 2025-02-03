@@ -270,11 +270,11 @@ type OriginalMessageChangeLog = {
     /** When was it last modified */
     lastModified?: string;
 
-    /** New role of user */
-    newValue?: string;
+    /** New role of user or new value of the category/tag field */
+    newValue?: boolean | string;
 
-    /** Old role of user */
-    oldValue?: string;
+    /** Old role of user or old value of the category/tag field */
+    oldValue?: boolean | string;
 
     /** Name of connection */
     connectionName?: AllConnectionName;
@@ -311,12 +311,6 @@ type OriginalMessagePolicyChangeLog = {
 
     /** When was it last modified */
     lastModified?: string;
-
-    /** New Value of the category/tag field */
-    newValue?: boolean | string;
-
-    /** Old Value of the category/tag field */
-    oldValue?: boolean | string;
 
     /** Old currency of the workspace */
     oldCurrency?: string;
@@ -398,6 +392,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /**  update type of a report field */
     updateType?: string;
+
+    /** New role of user or new value of the category/tag field */
+    newValue?: boolean | string;
+
+    /** Old role of user or old value of the category/tag field */
+    oldValue?: boolean | string;
 };
 
 /** Model of `join policy changelog` report action */
