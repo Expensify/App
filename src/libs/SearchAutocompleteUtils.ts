@@ -143,7 +143,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 function parseForLiveMarkdown(
     input: string,
     userLogins: string[],
-    details: SharedValue<{login: string | undefined; userDisplayName: string | undefined}>,
+    userDisplayName: string,
     map: SubstitutionMap,
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
@@ -177,12 +177,7 @@ function parseForLiveMarkdown(
         .filter((range) => range.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG || tagList.get().includes(range.value))
         .map((range) => {
             let type = 'mention-user';
-            if (
-                (range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) &&
-                (range.value === details.get().login || range.value === details.get().userDisplayName)
-            ) {
-                type = 'mention-here';
-            }
+
             if (range.key === 'syntax') {
                 type = 'syntax';
             }

@@ -2,11 +2,9 @@ import isEqual from 'lodash/isEqual';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -101,7 +99,6 @@ function SearchAutocompleteInput(
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetailsSharedValue = useSharedValue({login: currentUserPersonalDetails.login, userDisplayName: currentUserPersonalDetails.displayName});
     const lastMap = useRef<SubstitutionMap>({});
     const [map, setMap] = useState({});
 
@@ -137,13 +134,6 @@ function SearchAutocompleteInput(
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
-            personalDetailsSharedValue.set({login: currentUserPersonalDetails.login, userDisplayName: currentUserPersonalDetails.displayName});
-        })();
-    }, [currentUserPersonalDetails, personalDetailsSharedValue]);
-    useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
-            'worklet';
-
             currencySharedValue.set(currencyAutocompleteList);
         })();
     }, [currencyAutocompleteList, currencySharedValue]);
@@ -166,9 +156,9 @@ function SearchAutocompleteInput(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, emailList, personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(input, emailList, currentUserPersonalDetails.displayName ?? '', map, currencySharedValue, categorySharedValue, tagSharedValue);
         },
-        [personalDetailsSharedValue, map, currencySharedValue, categorySharedValue, tagSharedValue, emailList],
+        [currentUserPersonalDetails.displayName, map, currencySharedValue, categorySharedValue, tagSharedValue, emailList],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
