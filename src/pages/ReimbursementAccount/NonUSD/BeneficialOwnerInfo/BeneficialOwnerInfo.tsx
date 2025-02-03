@@ -2,12 +2,12 @@ import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -31,8 +31,7 @@ type BeneficialOwnerInfoProps = {
 };
 
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} =
-    CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 
 type BeneficialOwnerDetailsFormProps = SubStepProps & {
@@ -66,24 +65,18 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
     const submit = () => {
-        const ownerFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
-        const owners = ownerKeys.map((ownerKey) =>
-            ownerFields.reduce((acc, fieldName) => {
-                acc[`${PREFIX}_${ownerKey}_${fieldName}`] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
-                return acc;
-            }, {} as Record<string, string | FileObject[] | undefined>),
-        );
+        const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys, reimbursementAccountDraft);
 
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
             [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
             [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
-            [BENEFICIAL_OWNERS]: JSON.stringify(owners),
+            [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
         saveCorpayOnboardingBeneficialOwners({
-            inputs: JSON.stringify(owners),
-            isUserBeneficialOwner: isUserOwner,
-            beneficialOwners: ownerKeys,
+            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore: isUserOwner || isAnyoneElseOwner}),
+            ...ownerFiles,
+            beneficialOwnerIDs: ownerKeys.join(','),
             bankAccountID,
         });
     };

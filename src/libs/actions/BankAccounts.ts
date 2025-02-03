@@ -409,12 +409,13 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
-function createCorpayBankAccount(fields: ReimbursementAccountForm) {
+function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: string | undefined) {
     const parameters = {
         type: 1,
         isSavings: false,
         isWithdrawal: true,
         inputs: JSON.stringify(fields),
+        policyID,
     };
 
     const onyxData: OnyxData = {
@@ -588,6 +589,10 @@ function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
+function clearCorpayBankAccountFields() {
+    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -671,7 +676,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
  * Add beneficial owners for the bank account and verify the accuracy of the information provided
  * @param params - Beneficial Owners step form params
  */
-function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string) {
+function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT,
         {
@@ -886,6 +891,7 @@ export {
     saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearCorpayBankAccountFields,
 };
 
 export type {BusinessAddress, PersonalAddress};
