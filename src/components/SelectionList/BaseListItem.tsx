@@ -40,7 +40,7 @@ function BaseListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
+    const {hovered, bind, setHovered} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const pressableRef = useRef<View>(null);
@@ -50,6 +50,7 @@ function BaseListItem<TItem extends ListItem>({
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
+        setHovered(false);
     };
 
     const rightHandSideComponentRender = () => {

@@ -719,6 +719,7 @@ function MoneyRequestConfirmationList({
                 ...participant,
                 isSelected: false,
                 isInteractive: !shouldDisableParticipant(participant),
+                shouldShowRightIcon: transaction?.isFromGlobalCreate,
             }));
             options.push({
                 title: translate('common.to'),
@@ -728,7 +729,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, transaction?.isFromGlobalCreate]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {

@@ -251,7 +251,14 @@ function IOURequestStepAmount({
         if (isPaidGroupPolicy(activePolicy)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
-            navigateToConfirmationPage();
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    activePolicyExpenseChat?.reportID,
+                ),
+            );
         } else {
             navigateToParticipantPage();
         }
