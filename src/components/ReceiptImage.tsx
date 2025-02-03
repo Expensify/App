@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import {View, type LayoutChangeEvent} from 'react-native';
+import React, {useState} from 'react';
+import {type LayoutChangeEvent, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import EReceipt from './EReceipt';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ThumbnailImage from './ThumbnailImage';
-import EReceipt from './EReceipt';
 
 type Style = {height: number; borderRadius: number; margin: number};
 
@@ -118,7 +118,6 @@ function ReceiptImage({
         setScale(scaleFactor);
     };
 
-    console.log(scale);
     if (isEmptyReceipt) {
         return (
             <ReceiptEmptyState

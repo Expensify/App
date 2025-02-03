@@ -4164,7 +4164,7 @@ const styles = (theme: ThemeColors) =>
         eReceiptBackgroundThumbnail: {
             ...sizing.w100,
             position: 'absolute',
-            aspectRatio: 335 / 540,
+            // aspectRatio: 335 / 540,
             top: 0,
         },
 
@@ -4173,6 +4173,25 @@ const styles = (theme: ThemeColors) =>
             minHeight: 540,
             borderRadius: 20,
             overflow: 'hidden',
+        },
+
+        eReceiptContentContainer: {
+            width: 303,
+            position: 'relative',
+            marginTop: 16,
+            minHeight: 540,
+        },
+
+        eReceiptBody: {
+            position: 'absolute',
+            top: 0,
+            width: '100%',
+        },
+
+        eReceiptContentWrapper: {
+            position: 'absolute',
+            top: 16,
+            width: '100%',
         },
 
         loginHeroBody: {

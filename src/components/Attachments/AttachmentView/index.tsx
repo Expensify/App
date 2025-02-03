@@ -165,19 +165,7 @@ function AttachmentView({
         return <PerDiemEReceipt transactionID={transaction.transactionID} />;
     }
 
-    // if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
-    //     return (
-    //         <View style={[styles.flex1, styles.alignItemsCenter]}>
-    //             <ScrollView
-    //                 style={styles.w100}
-    //                 contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
-    //             >
-    //                 <EReceipt transactionID={transaction.transactionID} />
-    //             </ScrollView>
-    //         </View>
-    //     );
-    // }
-    if (true) {
+    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
