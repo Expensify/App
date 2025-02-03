@@ -129,7 +129,7 @@ function OnyxTabNavigator({
                         const index = state.index;
                         const routeNames = state.routeNames;
                         const newSelectedTab = routeNames.at(index);
-                        if (selectedTab === newSelectedTab || (selectedTab && !routeNames.includes(selectedTab))) {
+                        if (selectedTab === newSelectedTab) {
                             return;
                         }
                         Tab.setSelectedTab(id, newSelectedTab as SelectedTabRequest);

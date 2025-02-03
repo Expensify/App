@@ -128,18 +128,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         break;
                     }
                     default: {
-                        Policy.enablePolicyReportFields(policyID, true, true);
+                        Policy.enablePolicyReportFields(policyID, true, false);
                     }
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                Policy.enablePolicyRules(policyID, true, true);
+                Policy.enablePolicyRules(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Policy.enableCompanyCards(policyID, true, true);
+                Policy.enableCompanyCards(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, true);
+                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             default:
         }

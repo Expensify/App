@@ -12,7 +12,7 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
@@ -161,7 +161,7 @@ function ScreenWrapper(
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
+    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
@@ -184,7 +184,7 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
@@ -198,7 +198,7 @@ function ScreenWrapper(
          * Disables the blur state when Safari is detected.
          */
         const handleViewportResize = () => {
-            if (!Browser.isSafari()) {
+            if (!isSafari()) {
                 return; // Exit early if not Safari
             }
             setIsBlurred(false); // Disable blur state for Safari
@@ -273,7 +273,7 @@ function ScreenWrapper(
         paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
-    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
         () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],

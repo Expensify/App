@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -49,29 +51,34 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-        <AnimatedPressableWithFeedback
-            accessibilityLabel={title}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flexGrow1]}
-            onPress={onPress}
-            onHoverIn={() => setIsHovered(true)}
-            onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        <Tooltip
+            shouldRender={!shouldShowLabelWhenInactive && !isActive}
+            text={title}
         >
-            <TabIcon
-                icon={icon}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-            />
-            {(shouldShowLabelWhenInactive || isActive) && (
-                <TabLabel
-                    title={title}
+            <AnimatedPressableWithFeedback
+                accessibilityLabel={title}
+                style={[styles.tabSelectorButton, styles.animatedTabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+                wrapperStyle={[styles.flexGrow1]}
+                onPress={onPress}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
+                role={CONST.ROLE.BUTTON}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <TabIcon
+                    icon={icon}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                 />
-            )}
-        </AnimatedPressableWithFeedback>
+                {(shouldShowLabelWhenInactive || isActive) && (
+                    <TabLabel
+                        title={title}
+                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    />
+                )}
+            </AnimatedPressableWithFeedback>
+        </Tooltip>
     );
 }
 
