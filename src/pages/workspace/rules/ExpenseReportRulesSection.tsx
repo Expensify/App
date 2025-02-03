@@ -46,7 +46,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
     const selfApproversEmails = getAllSelfApprovers(policy);
 
-
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
             setPolicyPreventSelfApproval(policyID, false);
