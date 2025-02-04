@@ -1,6 +1,6 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +34,8 @@ function ValidateCodeActionForm({
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
+    const [canSendHasMagicCodeBeenSent, setCanSendHasMagicCodeBeenSent] = useState(false);
+
     useEffect(
         () => () => {
             firstRenderRef.current = true;
@@ -49,6 +51,11 @@ function ValidateCodeActionForm({
         }
         firstRenderRef.current = false;
         sendValidateCode();
+        if (hasMagicCodeBeenSent) {
+            InteractionManager.runAfterInteractions(() => {
+                setCanSendHasMagicCodeBeenSent(true);
+            });
+        }
     }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
     if (isVisible) {
@@ -66,7 +73,7 @@ function ValidateCodeActionForm({
                     clearError={clearError}
                     buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                     ref={forwardedRef}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    hasMagicCodeBeenSent={canSendHasMagicCodeBeenSent}
                 />
             </View>
         );
