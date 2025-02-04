@@ -9,13 +9,13 @@ import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import PageWrapper from './PageWrapper';
 
-function DisabledStepPage() {
+function DisabledPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <PageWrapper
-            stepName={DisabledStepPage.displayName}
+            stepName={DisabledPage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
             <BlockingView
@@ -37,6 +37,6 @@ function DisabledStepPage() {
     );
 }
 
-DisabledStepPage.displayName = 'DisabledStepPage';
+DisabledPage.displayName = 'DisabledPage';
 
-export default DisabledStepPage;
+export default DisabledPage;

@@ -14,7 +14,7 @@ import PageWrapper from './PageWrapper';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 
-function GetCodePage() {
+function DisablePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -31,7 +31,7 @@ function GetCodePage() {
 
     return (
         <PageWrapper
-            stepName={GetCodePage.displayName}
+            stepName={DisablePage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())}
         >
@@ -64,6 +64,6 @@ function GetCodePage() {
     );
 }
 
-GetCodePage.displayName = 'GetCodePage';
+DisablePage.displayName = 'DisablePage';
 
-export default GetCodePage;
+export default DisablePage;

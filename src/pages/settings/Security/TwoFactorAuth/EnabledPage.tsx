@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PageWrapper from './PageWrapper';
 
-function EnabledStepPage() {
+function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +30,7 @@ function EnabledStepPage() {
 
     return (
         <PageWrapper
-            stepName={EnabledStepPage.displayName}
+            stepName={EnabledPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
@@ -75,6 +75,6 @@ function EnabledStepPage() {
     );
 }
 
-EnabledStepPage.displayName = 'EnabledStepPage';
+EnabledPage.displayName = 'EnabledPage';
 
-export default EnabledStepPage;
+export default EnabledPage;

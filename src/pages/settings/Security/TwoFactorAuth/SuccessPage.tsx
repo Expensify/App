@@ -7,12 +7,12 @@ import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
 import ROUTES from '@src/ROUTES';
 import PageWrapper from './PageWrapper';
 
-function SuccessStepPage() {
+function SuccessPage() {
     const {translate} = useLocalize();
 
     return (
         <PageWrapper
-            stepName={SuccessStepPage.displayName}
+            stepName={SuccessPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 3,
@@ -42,6 +42,6 @@ function SuccessStepPage() {
     );
 }
 
-SuccessStepPage.displayName = 'SuccessStepPage';
+SuccessPage.displayName = 'SuccessPage';
 
-export default SuccessStepPage;
+export default SuccessPage;

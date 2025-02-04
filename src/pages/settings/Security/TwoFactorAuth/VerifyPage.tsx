@@ -28,9 +28,9 @@ import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
 
-type VerifyStepPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY>;
+type VerifyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY>;
 
-function VerifyStepPage({route}: VerifyStepPageProps) {
+function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const contactMethod = getContactMethod();
@@ -73,7 +73,7 @@ function VerifyStepPage({route}: VerifyStepPageProps) {
     return (
         <PageWrapper
             shouldEnableKeyboardAvoidingView={false}
-            stepName={VerifyStepPage.displayName}
+            stepName={VerifyPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 2,
@@ -139,6 +139,6 @@ function VerifyStepPage({route}: VerifyStepPageProps) {
     );
 }
 
-VerifyStepPage.displayName = 'VerifyStepPage';
+VerifyPage.displayName = 'VerifyPage';
 
-export default VerifyStepPage;
+export default VerifyPage;

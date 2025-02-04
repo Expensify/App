@@ -59,6 +59,6 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
     );
 }
 
-PageWrapper.displayName = 'VerifyStepPage';
+PageWrapper.displayName = 'VerifyPage';
 
 export default PageWrapper;
