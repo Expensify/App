@@ -25,6 +25,7 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -132,7 +133,9 @@ function BaseSelectionList<TItem extends ListItem>(
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
+    const isSearchPageFocused = isSearchTopmostCentralPane();
     const isFocused = useIsFocused();
+    const isListFocused = isSearchPageFocused || isFocused;
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -323,7 +326,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: isListFocused,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -773,7 +776,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
-        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isListFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
@@ -790,7 +793,7 @@ function BaseSelectionList<TItem extends ListItem>(
         {
             captureOnInputs: true,
             shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
-            isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
+            isActive: !disableKeyboardShortcuts && isListFocused && !isConfirmButtonDisabled,
         },
     );
 
@@ -859,7 +862,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         scrollEventThrottle={scrollEventThrottle}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
-                        scrollEnabled={isFocused}
+                        scrollEnabled={isListFocused}
                     />
                     {children}
                 </>
