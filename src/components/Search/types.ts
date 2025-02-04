@@ -95,8 +95,7 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID
-    | typeof CONST.SEARCH.SYNTAX_KEY;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 
@@ -130,7 +129,7 @@ type SearchAutocompleteResult = {
 };
 
 type SearchAutocompleteQueryRange = {
-    key: SearchFilterKey;
+    key: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_KEY;
     length: number;
     start: number;
     value: string;

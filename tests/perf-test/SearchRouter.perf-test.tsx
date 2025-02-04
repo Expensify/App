@@ -117,6 +117,7 @@ function SearchAutocompleteInputWrapper() {
                 value={value}
                 onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
+                substitutionMap={{}}
             />
         </ComposeProviders>
     );
