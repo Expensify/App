@@ -4,9 +4,9 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import * as LoginUtils from '@libs/LoginUtils';
-import * as PhoneNumberUtils from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,20 +17,33 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
 
+    const sanitizePhoneNumber = (num?: string): string => num?.replace(CONST.SANITIZE_PHONE_REGEX, '') ?? '';
+    const formatPhoneNumber = useCallback((num: string) => {
+        const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
+        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+        return parsedPhoneNumber;
+    }, []);
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
+
+            if (!isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
+                return errors;
             }
-            const phoneNumber = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumber);
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumber.slice(0))) {
+
+            const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]));
+            const parsedPhoneNumber = formatPhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
+
+            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
+
             return errors;
         },
-        [translate],
+        [formatPhoneNumber, translate],
     );
 
     const handleSubmit = usePersonalDetailsFormSubmit({
@@ -47,7 +60,9 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
             formTitle={translate('privatePersonalDetails.enterPhoneNumber')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={(values) => {
+                handleSubmit({...values, phoneNumber: formatPhoneNumber(values[INPUT_IDS.PHONE_NUMBER]).number?.e164 ?? ''});
+            }}
             inputId={INPUT_IDS.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
