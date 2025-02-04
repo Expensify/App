@@ -304,7 +304,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
-    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil(report) && !isSubmitAndClose(policy);
+    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil({report}) && !isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {

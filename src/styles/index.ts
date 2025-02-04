@@ -2086,7 +2086,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2110,6 +2110,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
