@@ -1080,7 +1080,7 @@ function orderReportOptionsWithSearch(
                 }
 
                 if (option.isSelfDM) {
-                    return 0;
+                    return -1;
                 }
                 if (preferRecentExpenseReports && !!option?.lastIOUCreationDate) {
                     return 1;
