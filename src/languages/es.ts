@@ -1935,7 +1935,7 @@ const translations = {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'Ups, no deberías estar aquí',
-        noAccess: 'No tienes acceso a este chat',
+        noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
         goBackHome: 'Volver a la página principal',
     },
     setPasswordPage: {
@@ -2719,7 +2719,7 @@ const translations = {
                 }
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
+            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
         },
