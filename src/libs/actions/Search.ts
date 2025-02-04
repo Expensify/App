@@ -88,7 +88,7 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
         lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.DEFAULT as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     }
 
-    return lastPolicyPaymentMethod
+    return lastPolicyPaymentMethod;
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
