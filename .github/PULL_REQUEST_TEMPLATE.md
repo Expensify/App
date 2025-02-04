@@ -21,13 +21,8 @@ Do NOT only link the issue number like this: $ #<issueID>
 $
 PROPOSAL:
 
-
-<!--- 
-If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
-
+*If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify, PR replace <PR-number> with the PR ID:*
 MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
-
---->
 
 ### Tests
 <!---
