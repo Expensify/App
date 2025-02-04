@@ -3401,18 +3401,18 @@ const translations = {
         },
         nsqs: {
             setup: {
-                title: 'Netsuite configuración',
-                description: 'Enter your NetSuite account ID', // s77rt translate
+                title: 'NSQS configuración',
+                description: 'Enter your NSQS account ID', // s77rt translate
                 formInputs: {
-                    netSuiteAccountID: 'ID de Cuenta NetSuite',
+                    netSuiteAccountID: 'ID de Cuenta NSQS',
                 },
             },
             import: {
                 expenseCategories: 'Categorías de gastos',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.', // s77rt translate
+                expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.', // s77rt translate
                 importTypes: {
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
-                        label: 'Predeterminado del empleado NetSuite',
+                        label: 'Predeterminado del empleado NSQS',
                     },
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Etiquetas',
@@ -3426,19 +3426,19 @@ const translations = {
                 importFields: {
                     customers: {
                         title: 'Customers', // s77rt translate
-                        subtitle: 'Choose how to handle NetSuite *customers* in Expensify.', // s77rt translate
+                        subtitle: 'Choose how to handle NSQS *customers* in Expensify.', // s77rt translate
                     },
                     projects: {
                         title: 'Projects', // s77rt translate
-                        subtitle: 'Choose how to handle NetSuite *projects* in Expensify.', // s77rt translate
+                        subtitle: 'Choose how to handle NSQS *projects* in Expensify.', // s77rt translate
                     },
                 },
             },
             export: {
-                description: 'Configura cómo se exportan los datos de Expensify a NetSuite.',
+                description: 'Configura cómo se exportan los datos de Expensify a NSQS.',
                 exportDate: {
                     label: 'Fecha de exportación',
-                    description: 'Usa esta fecha al exportar informe a NetSuite.',
+                    description: 'Usa esta fecha al exportar informe a NSQS.',
                     values: {
                         [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
                             label: 'Fecha del último gasto',
@@ -3446,7 +3446,7 @@ const translations = {
                         },
                         [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
                             label: 'Fecha de exportación',
-                            description: 'Fecha de exportación del informe a NetSuite.',
+                            description: 'Fecha de exportación del informe a NSQS.',
                         },
                         [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
                             label: 'Fecha de envío',
@@ -3459,10 +3459,10 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as', // s77rt translate
             },
             advanced: {
-                defaultApprovalAccount: 'Preferencia predeterminada de NetSuite',
+                defaultApprovalAccount: 'Preferencia predeterminada de NSQS',
                 approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
                 approvalAccountDescription:
-                    'Elija la cuenta con la que se aprobarán las transacciones en NetSuite. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
+                    'Elija la cuenta con la que se aprobarán las transacciones en NSQS. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
             },
         },
         intacct: {

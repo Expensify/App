@@ -3362,18 +3362,18 @@ const translations = {
         },
         nsqs: {
             setup: {
-                title: 'NetSuite setup',
-                description: 'Enter your NetSuite account ID',
+                title: 'NSQS setup',
+                description: 'Enter your NSQS account ID',
                 formInputs: {
-                    netSuiteAccountID: 'NetSuite Account ID',
+                    netSuiteAccountID: 'NSQS Account ID',
                 },
             },
             import: {
                 expenseCategories: 'Expense categories',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.',
                 importTypes: {
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
-                        label: 'NetSuite employee default',
+                        label: 'NSQS employee default',
                     },
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
@@ -3387,19 +3387,19 @@ const translations = {
                 importFields: {
                     customers: {
                         title: 'Customers',
-                        subtitle: 'Choose how to handle NetSuite *customers* in Expensify.',
+                        subtitle: 'Choose how to handle NSQS *customers* in Expensify.',
                     },
                     projects: {
                         title: 'Projects',
-                        subtitle: 'Choose how to handle NetSuite *projects* in Expensify.',
+                        subtitle: 'Choose how to handle NSQS *projects* in Expensify.',
                     },
                 },
             },
             export: {
-                description: 'Configure how Expensify data exports to NetSuite.',
+                description: 'Configure how Expensify data exports to NSQS.',
                 exportDate: {
                     label: 'Export date',
-                    description: 'Use this date when exporting reports to NetSuite.',
+                    description: 'Use this date when exporting reports to NSQS.',
                     values: {
                         [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
                             label: 'Date of last expense',
@@ -3407,7 +3407,7 @@ const translations = {
                         },
                         [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
                             label: 'Export date',
-                            description: 'Date the report was exported to NetSuite.',
+                            description: 'Date the report was exported to NSQS.',
                         },
                         [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
                             label: 'Submitted date',
@@ -3420,10 +3420,10 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
             },
             advanced: {
-                defaultApprovalAccount: 'NetSuite default',
+                defaultApprovalAccount: 'NSQS default',
                 approvalAccount: 'A/P approval account',
                 approvalAccountDescription:
-                    'Choose the account that transactions will be approved against in NetSuite. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
+                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
             },
         },
         intacct: {
