@@ -969,9 +969,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true, report.reportID);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, report.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

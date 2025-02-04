@@ -4642,7 +4642,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 }
 
-function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean, reportIDToRemove?: string) {
+function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
     if (!backRoute) {
         return;
     }
@@ -4652,14 +4652,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
         return;
     }
     if (isFromRHP) {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToRemove}`];
-        if (report && isTrackExpenseReport(report)) {
-            const trackReportRoute = Navigation.getReportRouteByID(reportIDToRemove);
-            if (trackReportRoute?.key) {
-                Navigation.removeScreenFromNavigationStateByKey(trackReportRoute.key);
-            }
-        }
-        Navigation.isNavigationReady().then(() => Navigation.dismissModal());
+        Navigation.dismissModal();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
