@@ -204,6 +204,7 @@ type GetOptionsConfig = {
     recentAttendees?: Attendee[];
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
+    excludeHiddenReports?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -1079,7 +1080,7 @@ function orderReportOptionsWithSearch(
                 }
 
                 if (option.isSelfDM) {
-                    return 0;
+                    return -1;
                 }
                 if (preferRecentExpenseReports && !!option?.lastIOUCreationDate) {
                     return 1;
@@ -1420,6 +1421,7 @@ function getValidOptions(
         selectedOptions = [],
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
+        excludeHiddenReports = false,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1520,6 +1522,10 @@ function getValidOptions(
         recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
     }
 
+    if (excludeHiddenReports) {
+        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1550,6 +1556,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
+        excludeHiddenReports: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
