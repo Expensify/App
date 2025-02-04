@@ -78,7 +78,18 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    removeScreenByKey: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getPreviousTrackReport: jest.fn(),
 }));
+
+jest.mock('@src/libs/Navigation/navigationRef', () => ({
+    getRootState: () => ({
+        routes: [],
+    }),
+}));
+
+jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -89,6 +100,7 @@ jest.mock('@src/libs/actions/Report', () => {
         notifyNewAction: jest.fn(),
     };
 });
+
 jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
