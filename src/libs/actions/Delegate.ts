@@ -541,6 +541,13 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [

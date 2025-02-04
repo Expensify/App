@@ -43,7 +43,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             clearError={() => {}}
             onClose={onBackButtonPress}
             validateError={updateDelegateErrors}
-            isVisible={true}
+            isVisible
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
