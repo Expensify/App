@@ -2015,9 +2015,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
     }
 
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
-        return false;
-    }
 
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
         return false;
@@ -2047,6 +2044,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
     }
 
     if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
+        return false;
+    }
+
+    const policy = getPolicy(moneyRequestReport?.policyID);
+    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -4478,7 +4480,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 }
 
-function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
+function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean, reportIDToRemove?: string) {
     if (!backRoute) {
         return;
     }
@@ -4488,7 +4490,14 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissModal();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToRemove}`];
+        if (report && isTrackExpenseReport(report)) {
+            const trackReportRoute = Navigation.getReportRouteByID(reportIDToRemove);
+            if (trackReportRoute?.key) {
+                Navigation.removeScreenFromNavigationStateByKey(trackReportRoute.key);
+            }
+        }
+        Navigation.isNavigationReady().then(() => Navigation.dismissModal());
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
@@ -8549,7 +8558,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     actionName: IOUAction,
     reportActionID: string | undefined,
 ): void {
-    if (!transactionID || !reportID || !reportActionID) {
+    if (!transactionID || !reportID) {
         return;
     }
 
