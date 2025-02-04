@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -64,6 +64,14 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         setIsPopoverVisible(true);
     }, []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
+
+    // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
+    const [afterFirstRender, setAfterFirstRender] = useState(false);
+    useEffect(() => {
+        setTimeout(() => {
+            setAfterFirstRender(true);
+        }, 100);
+    }, []);
 
     const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
@@ -181,17 +189,19 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />
-            <PopoverMenu
-                menuItems={allMenuItems as PopoverMenuItem[]}
-                isVisible={isPopoverVisible}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onClose={closeMenu}
-                onItemSelected={closeMenu}
-                anchorRef={buttonRef}
-                shouldUseScrollView
-                shouldUseModalPaddingStyle={false}
-                innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
-            />
+            {afterFirstRender && (
+                <PopoverMenu
+                    menuItems={allMenuItems as PopoverMenuItem[]}
+                    isVisible={isPopoverVisible}
+                    anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+                    onClose={closeMenu}
+                    onItemSelected={closeMenu}
+                    anchorRef={buttonRef}
+                    shouldUseScrollView
+                    shouldUseModalPaddingStyle={false}
+                    innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
+                />
+            )}
             <DeleteConfirmModal />
         </>
     );

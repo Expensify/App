@@ -232,16 +232,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                             <SearchTypeMenuPopover queryJSON={queryJSON} />
                         </View>
                     </View>
-                    <View style={[styles.flex1, !searchRouterListVisible && styles.dNone]}>
-                        <SearchRouterList
-                            autocompleteQueryValue={autocompleteQueryValue}
-                            searchQueryItem={searchQueryItem}
-                            onListItemPress={onListItemPress}
-                            setTextQuery={setTextInputValue}
-                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                            ref={listRef}
-                        />
-                    </View>
+                    {!!searchRouterListVisible && (
+                        <View style={[styles.flex1]}>
+                            <SearchRouterList
+                                autocompleteQueryValue={autocompleteQueryValue}
+                                searchQueryItem={searchQueryItem}
+                                onListItemPress={onListItemPress}
+                                setTextQuery={setTextInputValue}
+                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                                ref={listRef}
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
         );
