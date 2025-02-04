@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -10,19 +10,15 @@ import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '@userAct
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceResetBankAccountModalOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-
-type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
+type WorkspaceResetBankAccountModalProps = {
     /** Reimbursement account data */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({reimbursementAccount}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
@@ -46,7 +42,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
             }
             danger
             onCancel={cancelResetFreePlanBankAccount}
-            onConfirm={() => resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
+            onConfirm={() => resetFreePlanBankAccount(bankAccountID, session, achData?.policyID)}
             shouldShowCancelButton
             isVisible
         />
@@ -55,8 +51,4 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
-export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WorkspaceResetBankAccountModal);
+export default WorkspaceResetBankAccountModal;
