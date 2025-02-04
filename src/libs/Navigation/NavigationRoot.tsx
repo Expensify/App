@@ -24,7 +24,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import getPolicyIDFromState from './getPolicyIDFromState';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';

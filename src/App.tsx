@@ -14,6 +14,7 @@ import CustomStatusBarAndBackgroundContextProvider from './components/CustomStat
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
+import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
@@ -39,10 +40,12 @@ import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
+import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
+/** Values passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
 type AppProps = {
-    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
+    /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
 };
 
@@ -79,7 +82,6 @@ function App({url}: AppProps) {
                                 SafeArea,
                                 LocaleContextProvider,
                                 HTMLEngineProvider,
-                                KeyboardStateProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
@@ -95,8 +97,10 @@ function App({url}: AppProps) {
                                 VolumeContextProvider,
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
+                                KeyboardStateProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
+                                InputBlurContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

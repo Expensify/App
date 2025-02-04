@@ -120,8 +120,7 @@ platform :android do
       gradle(
         project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
-        flavor: 'Production',
-        build_type: 'Release',
+        build_type: 'Debug',
       )
       setGradleOutputsInEnv()
     end
@@ -426,15 +425,15 @@ platform :ios do
 
       build_app(
         workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
-        scheme: "Expensify",
+        scheme: "Expensify AdHoc",
         output_name: "Expensify.ipa",
-        export_method: "app-store",
+        export_method: "ad-hoc",
         export_options: {
           manageAppVersionAndBuildNumber: false,
           provisioningProfiles: {
-              "com.expensify.expensifylite.adhoc" => "(OldApp) AppStore",
-              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
-              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
           }
         }
       )
@@ -447,7 +446,12 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "New Expensify"
+        scheme: "New Expensify",
+        configuration: "Debug",
+        sdk: "iphonesimulator",
+        skip_codesigning: true,
+        skip_archive: true,
+        export_method: "development"
     )
     setIOSBuildOutputsInEnv()
   end
@@ -457,7 +461,12 @@ platform :ios do
       ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
           workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
-          scheme: "Expensify"
+          scheme: "Expensify",
+          configuration: "Debug",
+          sdk: "iphonesimulator",
+          skip_codesigning: true,
+          skip_archive: true,
+          export_method: "development"
       )
       setIOSBuildOutputsInEnv()
     end

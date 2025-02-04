@@ -11,17 +11,17 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type AddressProps = SubStepProps;
 
-const {COMPANY_STREET, COMPANY_ZIP_CODE, COMPANY_STATE, COMPANY_CITY, COMPANY_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {COMPANY_STREET, COMPANY_POSTAL_CODE, COMPANY_STATE, COMPANY_CITY, COMPANY_COUNTRY_CODE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 const INPUT_KEYS = {
     street: COMPANY_STREET,
     city: COMPANY_CITY,
     state: COMPANY_STATE,
-    zipCode: COMPANY_ZIP_CODE,
-    country: COMPANY_COUNTRY,
+    zipCode: COMPANY_POSTAL_CODE,
+    country: COMPANY_COUNTRY_CODE,
 };
-const STEP_FIELDS = [COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_ZIP_CODE, COMPANY_COUNTRY];
-const STEP_FIELDS_WITHOUT_STATE = [COMPANY_STREET, COMPANY_CITY, COMPANY_ZIP_CODE, COMPANY_COUNTRY];
+const STEP_FIELDS = [COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_POSTAL_CODE, COMPANY_COUNTRY_CODE];
+const STEP_FIELDS_WITHOUT_STATE = [COMPANY_STREET, COMPANY_CITY, COMPANY_POSTAL_CODE, COMPANY_COUNTRY_CODE];
 
 function Address({onNext, onMove, isEditing}: AddressProps) {
     const {translate} = useLocalize();
@@ -31,7 +31,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
 
     const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const businessStepCountryDraftValue = onyxValues[COMPANY_COUNTRY];
+    const businessStepCountryDraftValue = onyxValues[COMPANY_COUNTRY_CODE];
     const countryStepCountryDraftValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const countryInitialValue =
         businessStepCountryDraftValue !== '' && businessStepCountryDraftValue !== countryStepCountryDraftValue ? businessStepCountryDraftValue : countryStepCountryDraftValue;
@@ -40,7 +40,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
         street: onyxValues[COMPANY_STREET] ?? '',
         city: onyxValues[COMPANY_CITY] ?? '',
         state: onyxValues[COMPANY_STATE] ?? '',
-        zipCode: onyxValues[COMPANY_ZIP_CODE] ?? '',
+        zipCode: onyxValues[COMPANY_POSTAL_CODE] ?? '',
         country: businessStepCountryDraftValue ?? countryInitialValue,
     };
 
