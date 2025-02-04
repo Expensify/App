@@ -4211,10 +4211,6 @@ function getReportName(
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
 
-    if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '');
-    }
-
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
         const {harvesting} = getOriginalMessage(parentReportAction) ?? {};
         if (harvesting) {
