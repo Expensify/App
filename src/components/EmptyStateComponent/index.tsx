@@ -101,7 +101,7 @@ function EmptyStateComponent({
                     <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
-                        {!!children && children}
+                        {children}
                         <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
                             {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
                                 <View
